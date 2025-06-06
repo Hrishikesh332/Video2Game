@@ -1,0 +1,7 @@
+twelvelabs
+flask
+flask-cors
+python-dotenv
+requests
+gunicorn
+apscheduler
