@@ -1,6 +1,7 @@
 twelvelabs
 flask
 flask-cors
+openai
 python-dotenv
 requests
 gunicorn
