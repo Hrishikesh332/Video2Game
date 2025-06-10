@@ -108,7 +108,7 @@ def analyze_video():
         video_analysis = analysis_response.data
    
         game_generation_prompt = f"""
-        Based on this video analysis, create a complete, streamlit runnable game that's perfectly suited to the content:
+        Based on this video analysis, create a complete, HTML files, having the best visual and usage of the CSS and JS for actions also with the color of the grey and white, other colors if needed, into runnable game that's perfectly suited to the content:
 
         VIDEO ANALYSIS:
         {video_analysis}
