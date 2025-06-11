@@ -1,6 +1,7 @@
 .env
 __pycache__
 venv/
+sample_game/
 
 **/__pycache__/
 **/*.py[cod]

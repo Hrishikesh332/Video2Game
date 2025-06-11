@@ -132,8 +132,10 @@ def analyze_video():
         4. **Ensure it's runnable** - Complete, working Python code that can be executed immediately
         
         5. **Add educational value** - Extract meaningful learning from the video content
+
+        6. COLOR THEME to Use - White Background and Grey as bg color and then over that use other color if needed, keep it simplistic as black, white and gray
         
-        Return ONLY the streamlit code, properly formatted and ready to run.
+        Return ONLY the single file HTML code (WHICH INCLUDES css and JS), properly formatted and ready to run.
         """
         
         sambanova_response = sambanova_client.chat.completions.create(

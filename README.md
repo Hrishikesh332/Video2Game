@@ -1,1 +1,84 @@
-# Video-To-Game
+
+
+### 1. Environment Setup
+Create a `.env` file in your project directory
+```bash
+TWELVELABS_API_KEY=your_twelvelabs_api_key_here
+SAMBANOVA_API_KEY=your_sambanova_api_key_here
+BASE_URL= localhost or deployed link
+SAMBANOVA_BASE_URL= sambonva_base_url
+```
+
+### 2. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Start the API
+```bash
+python app.py
+```
+
+The API will start on `http://localhost:5000`
+
+---
+
+## API Endpoints 
+
+### **Health Check**
+
+**Endpoint -** `GET /health`
+
+**Command**
+```bash
+curl http://localhost:5000/health
+```
+
+**Response**
+```json
+{
+  "status": "healthy",
+  "services": {
+    "twelvelabs": "connected",
+    "sambanova": "connected"
+  }
+}
+```
+
+---
+
+### **Get All Indexes**
+
+**Endpoint -** `GET /indexes`
+
+**Command**
+```bash
+curl http://localhost:5000/indexes
+```
+
+
+---
+
+### **Get Videos from Index**
+
+**Endpoint - ** `GET /indexes/<index_id>/videos`
+
+**Command**
+```bash
+curl http://localhost:5000/indexes/<INDEX-ID>/videos
+```
+
+---
+
+### **Generate Game**
+
+**Endpoint - ** `POST /analyze`
+
+
+**Command**
+```bash
+curl -X POST http://localhost:5000/analyze -H "Content-Type: application/json" -d '{"video_id": "<VIDEO_ID>"}'
+```
+
+
+---
