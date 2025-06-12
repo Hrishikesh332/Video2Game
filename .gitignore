@@ -2,6 +2,7 @@
 __pycache__
 venv/
 sample_game/
+generated_games/
 
 **/__pycache__/
 **/*.py[cod]
