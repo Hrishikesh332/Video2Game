@@ -16,11 +16,14 @@ class Config:
     SAMBANOVA_BASE_URL = SAMBANOVA_BASE_URL
     SAMBANOVA_MODEL = "DeepSeek-R1-0528"
     
-    GENERATION_TEMPERATURE = 0.1
-    GENERATION_TOP_P = 0.1
-    GENERATION_MAX_TOKENS = 8000
+    GENERATION_TEMPERATURE = 0.3
+    GENERATION_TOP_P = 0.8
+    GENERATION_MAX_TOKENS = 16000
     
-    MIN_HTML_LENGTH = 5000
+    MIN_HTML_LENGTH = 8000
+    MAX_RETRIES = 3 
+    
+    REQUIRED_HTML_TAGS = ['', '', '', '']
     
     @classmethod
     def validate_config(cls):

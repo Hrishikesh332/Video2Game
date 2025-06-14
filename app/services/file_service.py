@@ -1,7 +1,7 @@
 import os
 import time
 from flask import current_app
-from app.utils.html_utils import clean_html_content, ensure_valid_html
+from app.utils.html_utils import clean_html_content, ensure_valid_html, validate_html_structure, add_fallback_game_structure
 
 class FileService:
     
@@ -9,8 +9,26 @@ class FileService:
         self.games_dir = current_app.config['GAMES_DIR']
     
     def process_html_content(self, raw_html):
+        print("Processing HTML content...")
+        
         html_content = clean_html_content(raw_html)
+        
+        issues = validate_html_structure(html_content)
+        if issues:
+            print(f"HTML validation issues found: {issues}")
+        
         html_content = ensure_valid_html(html_content)
+        
+        if len(html_content) < current_app.config.get('MIN_HTML_LENGTH', 8000):
+            print(f"⚠️ HTML still too short ({len(html_content)} chars), checking for fallback...")
+            html_content = add_fallback_game_structure(html_content)
+
+        final_issues = validate_html_structure(html_content)
+        if not final_issues:
+            print("HTML processing completed successfully")
+        else:
+            print(f"Remaining issues after processing: {final_issues}")
+        
         return html_content
     
     def save_html_file(self, html_content, video_id):
@@ -21,7 +39,9 @@ class FileService:
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(html_content)
             
-            print(f"HTML game saved to: {file_path}")
+            file_size = os.path.getsize(file_path)
+            print(f"HTML game saved to: {file_path} ({file_size} bytes)")
+            
             return file_path
         except Exception as e:
             print(f"Error saving HTML file: {e}")
@@ -66,5 +86,5 @@ class FileService:
             }
             
         except Exception as e:
-            print(f"Error opening game file {filename}, {e}")
+            print(f"Error opening game file {filename}: {e}")
             return None
