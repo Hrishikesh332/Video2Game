@@ -4,15 +4,18 @@ from flask_cors import CORS
 from config import config
 
 def create_app(config_name=None, *args, **kwargs):
+
+    if config_name is not None and not isinstance(config_name, str):
+        config_name = None
     
     if config_name is None:
         config_name = os.getenv('FLASK_ENV', 'default')
     
     app = Flask(__name__)
     app.config.from_object(config[config_name])
-
-    CORS(app)
     
+    CORS(app)
+
     config_errors = config[config_name].validate_config()
     if config_errors:
         for error in config_errors:
@@ -27,6 +30,7 @@ def create_app(config_name=None, *args, **kwargs):
     return app
 
 def _create_directories(app):
+    """Create required directories."""
     directories = [
         app.config['GAMES_DIR'],
         app.config['CACHE_DIR'],
@@ -35,7 +39,7 @@ def _create_directories(app):
     
     for directory in directories:
         os.makedirs(directory, exist_ok=True)
-        print(f"📁 Directory ensured: {directory}")
+        print(f"Directory ensured: {directory}")
 
 def _register_blueprints(app):
     from app.routes import register_blueprints
@@ -47,4 +51,4 @@ def _initialize_services(app):
     prompt_service = PromptService(app.config['INSTRUCTIONS_DIR'])
     app.prompt_service = prompt_service
     
-    print(f"🚀 Application initialized with {len(prompt_service.prompts)} prompts loaded")
+    print(f"Application initialized with {len(prompt_service.prompts)} prompts loaded")
