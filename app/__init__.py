@@ -3,7 +3,7 @@ from flask import Flask
 from flask_cors import CORS
 from config import config
 
-def create_app(config_name=None):
+def create_app(config_name=None, *args, **kwargs):
     
     if config_name is None:
         config_name = os.getenv('FLASK_ENV', 'default')
@@ -35,7 +35,7 @@ def _create_directories(app):
     
     for directory in directories:
         os.makedirs(directory, exist_ok=True)
-        print(f"Directory ensured - {directory}")
+        print(f"📁 Directory ensured: {directory}")
 
 def _register_blueprints(app):
     from app.routes import register_blueprints
@@ -43,8 +43,8 @@ def _register_blueprints(app):
 
 def _initialize_services(app):
     from app.services.prompt_service import PromptService
-    
+
     prompt_service = PromptService(app.config['INSTRUCTIONS_DIR'])
     app.prompt_service = prompt_service
     
-    print(f"Application initialized with {len(prompt_service.prompts)} prompts loaded")
+    print(f"🚀 Application initialized with {len(prompt_service.prompts)} prompts loaded")
