@@ -82,3 +82,13 @@ curl -X POST http://localhost:5000/analyze -H "Content-Type: application/json" -
 
 
 ---
+
+
+# Analysis prompt
+curl http://localhost:5000/prompts/analysis
+
+# Game generation prompt  
+curl http://localhost:5000/prompts/game_generation
+
+# System prompt
+curl http://localhost:5000/prompts/system
