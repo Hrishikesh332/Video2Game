@@ -30,7 +30,7 @@ def analyze_video():
     
     if not video_id:
         return jsonify({"error": "video_id is required"}), 400
-
+    
     cache_service = CacheService()
     if not force_regenerate:
         cached_game = cache_service.load_game_cache(video_id)
@@ -70,3 +70,43 @@ def analyze_video():
         **game_data,
         "message": "Interactive HTML game generated and cached successfully"
     })
+
+@api_bp.route('/youtube/process', methods=['POST'])
+@handle_errors
+def process_youtube_video():
+    try:
+        from app.services.youtube_indexing_service import YouTubeIndexingService
+        
+        data = request.get_json()
+        youtube_url = data.get('youtube_url')
+        index_id = data.get('index_id')
+        force_regenerate = data.get('regenerate', False)
+        
+        if not youtube_url:
+            return jsonify({"error": "youtube_url is required"}), 400
+        
+        youtube_service = YouTubeIndexingService()
+        
+        print(f"Processing YouTube URL: {youtube_url}")
+        result = youtube_service.process_youtube_url(
+            youtube_url=youtube_url,
+            index_id=index_id,
+            force_regenerate=force_regenerate
+        )
+        
+        if result["success"]:
+            return jsonify(result)
+        else:
+            return jsonify(result), 500
+            
+    except ImportError as e:
+        return jsonify({
+            "error": "YouTube processing service not available",
+            "details": str(e),
+            "solution": "Install required dependencies: pip install moviepy yt-dlp"
+        }), 500
+    except Exception as e:
+        return jsonify({
+            "error": "YouTube processing failed",
+            "details": str(e)
+        }), 500

@@ -15,10 +15,23 @@ def index():
             "health": "/health",
             "indexes": "/indexes",
             "analyze": "/analyze",
+            "youtube_process": "/youtube/process",
             "games": "/games/cached",
             "prompts": "/prompts"
         }
     })
+
+@admin_bp.route('/debug/routes', methods=['GET'])
+@handle_errors
+def debug_routes():
+    routes = []
+    for rule in current_app.url_map.iter_rules():
+        routes.append({
+            "endpoint": rule.endpoint,
+            "methods": list(rule.methods),
+            "rule": rule.rule
+        })
+    return jsonify({"routes": routes})
 
 @admin_bp.route('/prompts', methods=['GET'])
 @handle_errors
@@ -61,7 +74,7 @@ def reload_prompts_endpoint():
 @handle_errors
 def health_check():
     config = current_app.config
-
+    
     games_count = 0
     cache_count = 0
     
@@ -77,6 +90,10 @@ def health_check():
             "twelvelabs": "connected" if config['TWELVELABS_API_KEY'] else "missing",
             "sambanova": "connected" if config['SAMBANOVA_API_KEY'] else "missing"
         },
+        "configuration": {
+            "index_id": config.get('TWELVELABS_INDEX_ID', 'not_configured'),
+            "index_id_configured": bool(config.get('TWELVELABS_INDEX_ID'))
+        },
         "directories": {
             "games": config['GAMES_DIR'],
             "cache": config['CACHE_DIR'],
@@ -86,5 +103,11 @@ def health_check():
             "html_files": games_count,
             "cached_games": cache_count
         },
-        "prompts_loaded": list(current_app.prompt_service.prompts.keys())
+        "prompts_loaded": list(current_app.prompt_service.prompts.keys()),
+        "features": {
+            "youtube_processing": True,
+            "video_indexing": True,
+            "game_generation": True,
+            "caching": True
+        }
     })

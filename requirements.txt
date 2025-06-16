@@ -6,3 +6,5 @@ python-dotenv
 requests
 gunicorn
 apscheduler
+yt-dlp
+moviepy
