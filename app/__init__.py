@@ -11,15 +11,17 @@ def create_app(config_name=None, *args, **kwargs):
     if config_name is None:
         config_name = os.getenv('FLASK_ENV', 'default')
     
+    print(f"Creating Flask app with config, {config_name}")
+    
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     
     CORS(app)
-
+    
     config_errors = config[config_name].validate_config()
     if config_errors:
         for error in config_errors:
-            print(f"{error}")
+            print(f"Configuration error: {error}")
         if not app.config['DEBUG']:
             raise RuntimeError("Missing required configuration")
     
@@ -27,10 +29,10 @@ def create_app(config_name=None, *args, **kwargs):
     _register_blueprints(app)
     _initialize_services(app)
     
+    print(f"Flask app created successfully")
     return app
 
 def _create_directories(app):
-    """Create required directories."""
     directories = [
         app.config['GAMES_DIR'],
         app.config['CACHE_DIR'],

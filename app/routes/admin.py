@@ -4,6 +4,22 @@ from app.utils.decorators import handle_errors
 
 admin_bp = Blueprint('admin', __name__)
 
+@admin_bp.route('/', methods=['GET'])
+@handle_errors
+def index():
+    return jsonify({
+        "message": "Video to Game API",
+        "status": "running",
+        "version": "1.0.0",
+        "endpoints": {
+            "health": "/health",
+            "indexes": "/indexes",
+            "analyze": "/analyze",
+            "games": "/games/cached",
+            "prompts": "/prompts"
+        }
+    })
+
 @admin_bp.route('/prompts', methods=['GET'])
 @handle_errors
 def list_prompts():
@@ -45,7 +61,7 @@ def reload_prompts_endpoint():
 @handle_errors
 def health_check():
     config = current_app.config
-    
+
     games_count = 0
     cache_count = 0
     
