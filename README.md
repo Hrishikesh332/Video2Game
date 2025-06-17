@@ -92,3 +92,27 @@ curl http://localhost:5000/prompts/game_generation
 
 # System prompt
 curl http://localhost:5000/prompts/system
+
+# Crucial Endpoint (Youtube URL)
+
+Youtube URL -> Downloading -> Indexing -> Pegasus (Analysis Generation) -> DeepSeek (SambaNova) -> HTML Response
+
+curl -X POST http://127.0.0.1:8000/youtube/process \
+  -H "Content-Type: application/json" \
+  -d '{"youtube_url": "https://www.youtube.com/watch?v=abc"}'
+
+
+# Crucial Endpoint (Youtube URL with Regenerate)
+
+  curl -X POST http://127.0.0.1:8000/youtube/process \
+  -H "Content-Type: application/json" \
+  -d '{"youtube_url": "https://www.youtube.com/watch?v=qxo8p8PtFeA", "regenerate": true}'
+
+
+# Debug to find the working routes
+
+  curl -X GET http://127.0.0.1:8000/debug/routes
+
+# Game HASH
+
+  curl -X GET http://127.0.0.1:8000/game/VIDEO_HASH/html
