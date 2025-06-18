@@ -1,0 +1,14 @@
+.env
+__pycache__
+venv/
+sample_game/
+generated_games/
+game_cache
+
+**/__pycache__/
+**/*.py[cod]
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
