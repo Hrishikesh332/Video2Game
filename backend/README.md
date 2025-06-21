@@ -1,40 +1,63 @@
 
 
-### 1. Environment Setup
-Create a `.env` file in your project directory
+# Video2Game
+
+**Video2Game** is an application which takes educational videos (like lectures, tutorials, or explainer videos) and transforms them into interactive games. Leveraging **TwelveLabs** for video understanding and **SambaNova** for code game generation, this project bridges passive video learning with immersive, game based experiences.
+
+
+---
+
+## ✨ Features
+
+* 🎥 **YouTube Video Processing**
+* 🧠 Pegasus Powered Video Content Analysis (TwelveLabs)
+* 🕹️ Game Generation from Educational Content (via SambaNova - Deepseek)
+* ⚙️ Modular Prompts for Analysis, Game Logic, and System Flow
+
+
+---
+
+## ⚙️ Environment Setup
+
+Create a `.env` file in your root directory:
+
 ```bash
 TWELVELABS_API_KEY=your_twelvelabs_api_key_here
 SAMBANOVA_API_KEY=your_sambanova_api_key_here
-BASE_URL= localhost or deployed link
-SAMBANOVA_BASE_URL= sambonva_base_url
+BASE_URL=http://127.0.0.1:8000
+SAMBANOVA_BASE_URL=your_sambanova_base_url_here
 ```
 
-### 2. Install Dependencies
+---
+
+## 📦 Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Start the API
+---
+
+## ▶️ Run the API
+
 ```bash
 python app.py
 ```
 
-The API will start on `http://localhost:5000`
+The API will start on: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
 ---
 
-## API Endpoints 
+## 🔌 API Endpoints
 
-### **Health Check**
+### ✅ Health Check
 
-**Endpoint -** `GET /health`
+`GET /health`
 
-**Command**
 ```bash
-curl http://localhost:5000/health
+curl http://127.0.0.1:8000/health
 ```
 
-**Response**
 ```json
 {
   "status": "healthy",
@@ -47,72 +70,100 @@ curl http://localhost:5000/health
 
 ---
 
-### **Get All Indexes**
+### Get All Indexes
 
-**Endpoint -** `GET /indexes`
+`GET /indexes`
 
-**Command**
 ```bash
-curl http://localhost:5000/indexes
-```
-
-
----
-
-### **Get Videos from Index**
-
-**Endpoint - ** `GET /indexes/<index_id>/videos`
-
-**Command**
-```bash
-curl http://localhost:5000/indexes/<INDEX-ID>/videos
+curl http://127.0.0.1:8000/indexes
 ```
 
 ---
 
-### **Generate Game**
+### Get Videos from an Index
 
-**Endpoint - ** `POST /analyze`
+`GET /indexes/<index_id>/videos`
 
-
-**Command**
 ```bash
-curl -X POST http://localhost:5000/analyze -H "Content-Type: application/json" -d '{"video_id": "<VIDEO_ID>"}'
+curl http://127.0.0.1:8000/indexes/<INDEX-ID>/videos
 ```
-
 
 ---
 
+### Generate Game from Video
 
-# Analysis prompt
-curl http://localhost:5000/prompts/analysis
+`POST /analyze`
 
-# Game generation prompt  
-curl http://localhost:5000/prompts/game_generation
+```bash
+curl -X POST http://127.0.0.1:8000/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"video_id": "<VIDEO_ID>"}'
+```
 
-# System prompt
-curl http://localhost:5000/prompts/system
+---
 
-# Crucial Endpoint (Youtube URL)
+## Prompt Management
 
-Youtube URL -> Downloading -> Indexing -> Pegasus (Analysis Generation) -> DeepSeek (SambaNova) -> HTML Response
+### Analysis Prompt
 
+```bash
+curl http://127.0.0.1:8000/prompts/analysis
+```
+
+### Game Generation Prompt
+
+```bash
+curl http://127.0.0.1:8000/prompts/game_generation
+```
+
+### System Prompt
+
+```bash
+curl http://127.0.0.1:8000/prompts/system
+```
+
+---
+
+## Full Processing from YouTube URL
+
+Convert a YouTube video directly into an interactive game:
+
+### Process YouTube Video
+
+```bash
 curl -X POST http://127.0.0.1:8000/youtube/process \
   -H "Content-Type: application/json" \
   -d '{"youtube_url": "https://www.youtube.com/watch?v=abc"}'
+```
 
+### Regenerate Game from the Same URL
 
-# Crucial Endpoint (Youtube URL with Regenerate)
-
-  curl -X POST http://127.0.0.1:8000/youtube/process \
+```bash
+curl -X POST http://127.0.0.1:8000/youtube/process \
   -H "Content-Type: application/json" \
   -d '{"youtube_url": "https://www.youtube.com/watch?v=qxo8p8PtFeA", "regenerate": true}'
+```
+
+---
+
+## Debug & Utilities
+
+### List All Active Routes
+
+```bash
+curl -X GET http://127.0.0.1:8000/debug/routes
+```
+
+### Fetch Game HTML by Video Hash
+
+```bash
+curl -X GET http://127.0.0.1:8000/game/VIDEO_HASH/html
+```
+
+---
 
 
-# Debug to find the working routes
+## Acknowledgements
 
-  curl -X GET http://127.0.0.1:8000/debug/routes
-
-# Game HASH
-
-  curl -X GET http://127.0.0.1:8000/game/VIDEO_HASH/html
+* Powered by [TwelveLabs](https://www.twelvelabs.io)
+* Enriched by [SambaNova](https://sambanova.ai)
