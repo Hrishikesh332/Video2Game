@@ -1,17 +1,21 @@
 
+<p align="center">
+  <img src="https://github.com/Hrishikesh332/Video-To-Game/blob/main/backend/app/src/Thumbnail.png" alt="Video2Game Banner" width="100%">
+</p>
 
-# Video2Game
+<h1 align="center">Video2Game</h1>
 
-**Video2Game** is an application which takes educational videos (like lectures, tutorials, or explainer videos) and transforms them into interactive games. Leveraging **TwelveLabs** for video understanding and **SambaNova** for code game generation, this project bridges passive video learning with immersive, game based experiences.
+
+**Video2Game** is an application which takes educational videos (like lectures, tutorials, or any type of the explainer videos) and transforms them into interactive games. Leveraging **TwelveLabs** for video understanding and **SambaNova** for code game generation, this project bridges passive video learning with immersive, game based experiences.
 
 
 ---
 
 ## ✨ Features
 
-* 🎥 **YouTube Video Processing**
+* 🎥 YouTube Video Processing
 * 🧠 Pegasus Powered Video Content Analysis (TwelveLabs)
-* 🕹️ Game Generation from Educational Content (via SambaNova - Deepseek)
+* 🕹️ Game Generation from Educational Video Content (via SambaNova - Deepseek)
 * ⚙️ Modular Prompts for Analysis, Game Logic, and System Flow
 
 
@@ -161,6 +165,28 @@ curl -X GET http://127.0.0.1:8000/game/VIDEO_HASH/html
 ```
 
 ---
+
+
+### Get all stored videos
+
+```bash
+curl -X GET http://127.0.0.1:8000/database/videos
+```
+
+### Find specific video by URL
+
+```bash
+curl -X POST http://127.0.0.1:8000/database/videos/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "youtube_url": "https://www.youtube.com/watch?v=qxo8p8PtFeA"
+  }'
+```
+
+
+## Queries
+
+For any doubts or help you can reach out to me via hrishikesh3321@gmail.com or ask in the [Discord Channel](https://discord.com/invite/Sh6BRfakJa)
 
 
 ## Acknowledgements
