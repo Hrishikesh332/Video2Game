@@ -45,11 +45,12 @@ export default function VideoToLearningApp() {
       return "https://production.onrender.com"
     }
 
-
+    // Server-side fallback
     return process.env.NEXT_PUBLIC_API_URL || "https://production.onrender.com"
   }
 
   const API_BASE_URL = getApiBaseUrl()
+  // Function to extract video ID from YouTube URL
   const extractVideoId = (url: string): string => {
     const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/
     const match = url.match(regex)
@@ -263,7 +264,6 @@ export default function VideoToLearningApp() {
     }
   }
 
-  // Extract video duration (placeholder for now)
   const extractVideoDuration = (): string => {
     return `${Math.floor(Math.random() * 15) + 1}:${Math.floor(Math.random() * 60)
       .toString()
@@ -450,9 +450,7 @@ export default function VideoToLearningApp() {
       {/* Top Navigation Bar */}
       <div className="relative z-20 bg-white/60 backdrop-blur-sm border-b border-[#ececec]/50 px-6 py-4">
         <div className="flex justify-between items-center max-w-7xl mx-auto">
-          {/* Left side - Logo and Controls */}
           <div className="flex items-center gap-4">
-            {/* Logo */}
             <div className="logo-container">
               <svg
                 id="Layer_1"
@@ -530,7 +528,6 @@ export default function VideoToLearningApp() {
               )}
             </div>
 
-            {/* External Link */}
             <a
               href="#"
               className="text-[#1d1c1b] hover:text-gray-600 transition-colors"
@@ -542,11 +539,9 @@ export default function VideoToLearningApp() {
             </a>
           </div>
 
-          {/* Right side - API Status */}
           <div
             className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all duration-200 bg-green-100/80 text-green-700 border border-green-200/50"
             onClick={() => {
-              /* API Modal will be handled later */
             }}
           >
             <div className={`w-1.5 h-1.5 rounded-full ${isApiConnected ? "bg-green-500" : "bg-red-500"}`}></div>
@@ -762,20 +757,16 @@ export default function VideoToLearningApp() {
           </div>
         </div>
 
-        {/* Right Compartment */}
         <div className="bg-white/40 backdrop-blur-sm relative flex flex-col" style={{ width: `${100 - leftWidth}%` }}>
           <div className="h-full flex flex-col">
             {isLoading ? (
-              /* Loading State */
               <div className="h-full flex flex-col items-center justify-center p-4">
                 <div className="w-16 h-16 border-4 border-[#1d1c1b]/20 border-t-[#1d1c1b] rounded-full animate-spin mb-4"></div>
                 <p className="text-[#1d1c1b] font-medium">Generating interactive content...</p>
               </div>
             ) : gameHtml ? (
-              /* Game Content with Tabs */
-              <div className="h-full flex flex-col">
-                {/* Header with Tabs */}
-                <div className="flex items-center justify-between p-4 pb-0">
+              <div className="h-full flex flex-col min-h-0">
+                <div className="flex items-center justify-between p-4 pb-0 flex-shrink-0">
                   <h2 className="text-xl font-bold text-[#1d1c1b]">Interactive Learning Game</h2>
                   <div className="flex items-center gap-2">
                     <button
@@ -810,7 +801,7 @@ export default function VideoToLearningApp() {
                 </div>
 
                 {/* Tab Navigation */}
-                <div className="flex items-center px-4 pt-2 pb-0">
+                <div className="flex items-center px-4 pt-2 pb-0 flex-shrink-0">
                   <div className="flex bg-white/60 backdrop-blur-sm rounded-lg p-1 border border-[#ececec]/50">
                     <button
                       onClick={() => setActiveTab("app")}
@@ -862,10 +853,8 @@ export default function VideoToLearningApp() {
                   </div>
                 </div>
 
-                {/* Tab Content */}
-                <div className="flex-1 p-4 pt-2">
+                <div className="flex-1 min-h-0 p-4 pt-2">
                   {activeTab === "app" ? (
-                    /* App Tab - Iframe */
                     <div className="h-full bg-white rounded-lg overflow-hidden border border-[#ececec] shadow-sm">
                       <iframe
                         ref={iframeRef}
@@ -875,7 +864,6 @@ export default function VideoToLearningApp() {
                       />
                     </div>
                   ) : (
-                    /* Code Tab - Code Viewer */
                     <div className="h-full bg-white rounded-lg overflow-hidden border border-[#ececec] shadow-sm">
                       <CodeViewer code={gameHtml} />
                     </div>

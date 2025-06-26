@@ -76,11 +76,9 @@ export default function CodeViewer({ code }: CodeViewerProps) {
 
     const formatted = formatHtml(code)
     setFormattedCode(formatted)
-
     const lines = formatted.split("\n")
     setLineNumbers(Array.from({ length: lines.length }, (_, i) => i + 1))
   }, [code])
-
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (lineNumbersRef.current) {
@@ -142,24 +140,24 @@ export default function CodeViewer({ code }: CodeViewerProps) {
   return (
     <>
       <style jsx global>{`
-        .code-viewer-scrollbar::-webkit-scrollbar {
-          width: 14px;
-          height: 14px;
+        .code-viewer-vertical-scroll::-webkit-scrollbar {
+          width: 16px;
         }
-        .code-viewer-scrollbar::-webkit-scrollbar-track {
-          background: #f8fafc;
+        .code-viewer-vertical-scroll::-webkit-scrollbar-track {
+          background: #f1f5f9;
           border-radius: 8px;
+          margin: 4px;
         }
-        .code-viewer-scrollbar::-webkit-scrollbar-thumb {
+        .code-viewer-vertical-scroll::-webkit-scrollbar-thumb {
           background: #cbd5e1;
           border-radius: 8px;
-          border: 2px solid #f8fafc;
+          border: 2px solid #f1f5f9;
         }
-        .code-viewer-scrollbar::-webkit-scrollbar-thumb:hover {
+        .code-viewer-vertical-scroll::-webkit-scrollbar-thumb:hover {
           background: #94a3b8;
         }
-        .code-viewer-scrollbar::-webkit-scrollbar-corner {
-          background: #f8fafc;
+        .code-viewer-vertical-scroll::-webkit-scrollbar-thumb:active {
+          background: #64748b;
         }
         .line-numbers-hidden::-webkit-scrollbar {
           display: none;
@@ -171,7 +169,6 @@ export default function CodeViewer({ code }: CodeViewerProps) {
       `}</style>
 
       <div className="h-full flex flex-col bg-white">
-        {/* Code Header */}
         <div className="flex items-center justify-between px-4 py-3 bg-gray-900 text-white border-b border-gray-700 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex gap-1.5">
@@ -203,7 +200,7 @@ export default function CodeViewer({ code }: CodeViewerProps) {
               </>
             ) : (
               <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="2">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                 </svg>
@@ -213,9 +210,8 @@ export default function CodeViewer({ code }: CodeViewerProps) {
           </button>
         </div>
 
-        {/* Code Content Area */}
-        <div className="flex-1 flex overflow-hidden">
-          <div className="bg-gray-50 border-r border-gray-200 flex-shrink-0 w-16">
+        <div className="flex flex-1 min-h-0">
+          <div className="bg-gray-50 border-r border-gray-200 flex-shrink-0 w-16 overflow-hidden">
             <div
               ref={lineNumbersRef}
               className="h-full overflow-y-auto overflow-x-hidden px-3 py-4 line-numbers-hidden"
@@ -230,30 +226,29 @@ export default function CodeViewer({ code }: CodeViewerProps) {
             </div>
           </div>
 
-          <div className="flex-1 relative overflow-hidden">
+          <div className="flex-1 min-w-0 overflow-hidden">
             <div
               ref={codeContainerRef}
-              className="h-full w-full overflow-auto px-4 py-4 bg-white code-viewer-scrollbar"
+              className="h-full overflow-y-auto overflow-x-hidden px-4 py-4 bg-white code-viewer-vertical-scroll"
               onScroll={handleScroll}
-              style={{
-                scrollBehavior: "smooth",
-              }}
             >
               <pre className="text-sm leading-6 font-mono">
                 <code>
                   {codeLines.map((line, index) => (
-                    <div key={index} className="h-6 hover:bg-gray-50 px-1 -mx-1 rounded flex items-start">
-                      <span dangerouslySetInnerHTML={{ __html: line || "&nbsp;" }} />
+                    <div key={index} className="min-h-[24px] hover:bg-gray-50 px-1 -mx-1 rounded flex items-start">
+                      <span
+                        className="break-all whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{ __html: line || "&nbsp;" }}
+                      />
                     </div>
                   ))}
                 </code>
               </pre>
-              <div className="h-20"></div>
+              <div className="h-12"></div>
             </div>
           </div>
         </div>
 
-        {/* Code Stats Footer */}
         <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-600 flex-shrink-0">
           <div className="flex justify-between items-center">
             <div className="flex gap-4">
