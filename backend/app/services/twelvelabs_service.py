@@ -53,7 +53,7 @@ class TwelveLabsService:
     
     def analyze_video(self, video_id, prompt):
         try:
-            analysis_response = self.client.generate.text(
+            analysis_response = self.client.analyze(
                 video_id=video_id,
                 prompt=prompt
             )
