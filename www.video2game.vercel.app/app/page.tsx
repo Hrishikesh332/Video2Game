@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
+import CodeViewer from "@/components/code-viewer"
 
 interface SampleVideo {
   id: number
@@ -30,25 +31,25 @@ export default function VideoToLearningApp() {
   const [currentGameId, setCurrentGameId] = useState<number | null>(null)
   const [isCheckingCache, setIsCheckingCache] = useState(false)
   const [showGeneratePopup, setShowGeneratePopup] = useState(false)
+  const [activeTab, setActiveTab] = useState<"app" | "code">("app")
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const getApiBaseUrl = () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const hostname = window.location.hostname
 
-      if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return 'http://localhost:8000' 
+      if (hostname === "localhost" || hostname === "127.0.0.1") {
+        return "http://localhost:8000"
       }
-      
-      return 'https://your-production-api.com' // sample
+
+      return "https://production.onrender.com"
     }
-    
-    // Server-side fallback
-    return process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000'
+
+
+    return process.env.NEXT_PUBLIC_API_URL || "https://production.onrender.com"
   }
-  
+
   const API_BASE_URL = getApiBaseUrl()
-  // Function to extract video ID from YouTube URL
   const extractVideoId = (url: string): string => {
     const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/
     const match = url.match(regex)
@@ -159,9 +160,9 @@ export default function VideoToLearningApp() {
     try {
       setIsCheckingCache(true)
       setError(null)
-  
-      console.log('Attempting to connect to:', `${API_BASE_URL}/youtube/process`)
-  
+
+      console.log("Attempting to connect to:", `${API_BASE_URL}/youtube/process`)
+
       const response = await fetch(`${API_BASE_URL}/youtube/process`, {
         method: "POST",
         headers: {
@@ -171,13 +172,13 @@ export default function VideoToLearningApp() {
           youtube_url: url,
         }),
       })
-  
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
-  
+
       const data = await response.json()
-  
+
       if (data.success && data.data && data.data.html_content) {
         // Render the game immediately when response is received
         setGameHtml(data.data.html_content)
@@ -206,15 +207,15 @@ export default function VideoToLearningApp() {
       }
     } catch (err) {
       console.error("Full error details:", err)
-      
+
       let errorMessage = "Unknown error occurred"
-      
-      if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
+
+      if (err instanceof TypeError && err.message.includes("Failed to fetch")) {
         errorMessage = `Cannot connect to backend server at ${API_BASE_URL}. Please ensure your backend is running.`
       } else if (err instanceof Error) {
         errorMessage = err.message
       }
-      
+
       setError(errorMessage)
       setIsApiConnected(false)
     } finally {
@@ -223,34 +224,34 @@ export default function VideoToLearningApp() {
   }
 
   // Add this function before your component
-const testApiConnection = async (baseUrl: string): Promise<boolean> => {
-  try {
-    const response = await fetch(`${baseUrl}/health`, { 
-      method: 'GET',
-      signal: AbortSignal.timeout(5000)
-    })
-    return response.ok
-  } catch {
-    return false
-  }
-}
-
-useEffect(() => {
-  const checkConnection = async () => {
+  const testApiConnection = async (baseUrl: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/health`, { 
-        method: 'GET',
-        signal: AbortSignal.timeout(5000)
+      const response = await fetch(`${baseUrl}/health`, {
+        method: "GET",
+        signal: AbortSignal.timeout(5000),
       })
-      setIsApiConnected(response.ok)
+      return response.ok
     } catch {
-      setIsApiConnected(false)
-      console.log(`Backend not reachable at ${API_BASE_URL}`)
+      return false
     }
   }
-  
-  checkConnection()
-}, [])
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/health`, {
+          method: "GET",
+          signal: AbortSignal.timeout(5000),
+        })
+        setIsApiConnected(response.ok)
+      } catch {
+        setIsApiConnected(false)
+        console.log(`Backend not reachable at ${API_BASE_URL}`)
+      }
+    }
+
+    checkConnection()
+  }, [])
 
   const extractVideoTitle = (url: string): string => {
     try {
@@ -330,7 +331,7 @@ useEffect(() => {
           // Create new video entry
           const videoId = extractVideoId(youtubeUrl)
           const newVideo: SampleVideo = {
-            id: Date.now(), 
+            id: Date.now(),
             title: data.data.video_title || extractVideoTitle(youtubeUrl),
             duration: extractVideoDuration(),
             type: gameType,
@@ -763,17 +764,18 @@ useEffect(() => {
 
         {/* Right Compartment */}
         <div className="bg-white/40 backdrop-blur-sm relative flex flex-col" style={{ width: `${100 - leftWidth}%` }}>
-          <div className="h-full flex flex-col p-4">
+          <div className="h-full flex flex-col">
             {isLoading ? (
               /* Loading State */
-              <div className="h-full flex flex-col items-center justify-center">
+              <div className="h-full flex flex-col items-center justify-center p-4">
                 <div className="w-16 h-16 border-4 border-[#1d1c1b]/20 border-t-[#1d1c1b] rounded-full animate-spin mb-4"></div>
                 <p className="text-[#1d1c1b] font-medium">Generating interactive content...</p>
               </div>
             ) : gameHtml ? (
-              /* Game Content */
-              <div className="h-full w-full flex flex-col">
-                <div className="flex items-center justify-between mb-2">
+              /* Game Content with Tabs */
+              <div className="h-full flex flex-col">
+                {/* Header with Tabs */}
+                <div className="flex items-center justify-between p-4 pb-0">
                   <h2 className="text-xl font-bold text-[#1d1c1b]">Interactive Learning Game</h2>
                   <div className="flex items-center gap-2">
                     <button
@@ -806,18 +808,83 @@ useEffect(() => {
                     </button>
                   </div>
                 </div>
-                <div className="flex-1 bg-white rounded-lg overflow-hidden border border-[#ececec]">
-                  <iframe
-                    ref={iframeRef}
-                    className="w-full h-full"
-                    title="Interactive Game"
-                    sandbox="allow-scripts allow-same-origin"
-                  />
+
+                {/* Tab Navigation */}
+                <div className="flex items-center px-4 pt-2 pb-0">
+                  <div className="flex bg-white/60 backdrop-blur-sm rounded-lg p-1 border border-[#ececec]/50">
+                    <button
+                      onClick={() => setActiveTab("app")}
+                      className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                        activeTab === "app"
+                          ? "bg-white text-[#1d1c1b] shadow-sm border border-[#ececec]/30"
+                          : "text-gray-600 hover:text-[#1d1c1b] hover:bg-white/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                          <line x1="8" y1="21" x2="16" y2="21"></line>
+                          <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                        App
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("code")}
+                      className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                        activeTab === "code"
+                          ? "bg-white text-[#1d1c1b] shadow-sm border border-[#ececec]/30"
+                          : "text-gray-600 hover:text-[#1d1c1b] hover:bg-white/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <polyline points="16,18 22,12 16,6"></polyline>
+                          <polyline points="8,6 2,12 8,18"></polyline>
+                        </svg>
+                        Code
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Tab Content */}
+                <div className="flex-1 p-4 pt-2">
+                  {activeTab === "app" ? (
+                    /* App Tab - Iframe */
+                    <div className="h-full bg-white rounded-lg overflow-hidden border border-[#ececec] shadow-sm">
+                      <iframe
+                        ref={iframeRef}
+                        className="w-full h-full"
+                        title="Interactive Game"
+                        sandbox="allow-scripts allow-same-origin"
+                      />
+                    </div>
+                  ) : (
+                    /* Code Tab - Code Viewer */
+                    <div className="h-full bg-white rounded-lg overflow-hidden border border-[#ececec] shadow-sm">
+                      <CodeViewer code={gameHtml} />
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
               /* Instructions */
-              <div className="h-full flex flex-col justify-center items-center">
+              <div className="h-full flex flex-col justify-center items-center p-4">
                 <div className="text-center max-w-md">
                   <div className="w-20 h-20 mx-auto mb-6 bg-white/60 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-[#ececec]/50">
                     <svg
