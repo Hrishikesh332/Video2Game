@@ -14,6 +14,8 @@ interface SampleVideo {
   isGenerated?: boolean
   channelName?: string
   viewCount?: string
+  createdAt?: string
+  videoId?: string
 }
 
 export default function VideoToLearningApp() {
@@ -45,84 +47,57 @@ export default function VideoToLearningApp() {
       return "https://production.onrender.com"
     }
 
-    // Server-side fallback
     return process.env.NEXT_PUBLIC_API_URL || "https://production.onrender.com"
   }
 
   const API_BASE_URL = getApiBaseUrl()
-  // Function to extract video ID from YouTube URL
   const extractVideoId = (url: string): string => {
     const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/
     const match = url.match(regex)
     return match ? match[1] : ""
   }
 
-  // Function to get YouTube embed URL
   const getYouTubeEmbedUrl = (url: string): string => {
     const videoId = extractVideoId(url)
     return videoId ? `https://www.youtube.com/embed/${videoId}` : url
   }
 
-  const [sampleVideos, setSampleVideos] = useState<SampleVideo[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("sampleVideos")
-      if (saved) {
-        return JSON.parse(saved)
-      }
-    }
-    return [
-      {
-        id: 1,
-        title: "How I Would Learn Data Science (If I Had to Start Over)",
-        duration: "11:42",
-        type: "Educational Tutorial",
-        thumbnail: `https://img.youtube.com/vi/${extractVideoId("https://www.youtube.com/watch?v=qxo8p8PtFeA")}/maxresdefault.jpg`,
-        videoUrl: "https://www.youtube.com/watch?v=qxo8p8PtFeA",
-        channelName: "Thu Vu data analytics",
-        viewCount: "2.1M views",
-        isGenerated: false,
-      },
-      {
-        id: 2,
-        title: "I Tried Andrew Tate's Hustlers University For 30 Days",
-        duration: "16:28",
-        type: "Review & Analysis",
-        thumbnail: `https://img.youtube.com/vi/${extractVideoId("https://www.youtube.com/watch?v=_2v6Mbx5v1w")}/maxresdefault.jpg`,
-        videoUrl: "https://www.youtube.com/watch?v=_2v6Mbx5v1w",
-        channelName: "Coffeezilla",
-        viewCount: "8.9M views",
-        isGenerated: false,
-      },
-      {
-        id: 3,
-        title: "I Tried Dropshipping for 30 Days (Realistic Results)",
-        duration: "14:35",
-        type: "Business Experiment",
-        thumbnail: `https://img.youtube.com/vi/${extractVideoId("https://www.youtube.com/watch?v=qfk8lOzwo2Q")}/maxresdefault.jpg`,
-        videoUrl: "https://www.youtube.com/watch?v=qfk8lOzwo2Q",
-        channelName: "Ryan Kaji",
-        viewCount: "1.8M views",
-        isGenerated: false,
-      },
-      {
-        id: 4,
-        title: "The TRUTH About Making Money Online",
-        duration: "18:22",
-        type: "Financial Education",
-        thumbnail: `https://img.youtube.com/vi/${extractVideoId("https://www.youtube.com/watch?v=_A0udZPwHxs")}/maxresdefault.jpg`,
-        videoUrl: "https://www.youtube.com/watch?v=_A0udZPwHxs",
-        channelName: "Graham Stephan",
-        viewCount: "3.2M views",
-        isGenerated: false,
-      },
-    ]
-  })
+  const [sampleVideos, setSampleVideos] = useState<SampleVideo[]>([])
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("sampleVideos", JSON.stringify(sampleVideos))
+    const fetchSampleApps = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/sample-apps`)
+        if (!response.ok) throw new Error('Failed to fetch sample apps')
+        const data = await response.json()
+        const apps = (data.apps || []).map((app: any, idx: number) => {
+          let duration = app.duration;
+          if (!duration && app.html_content) {
+            const match = app.html_content.match(/(\d{1,2}:\d{2})/);
+            duration = match ? match[1] : '';
+          }
+          return {
+            id: idx + 1,
+            title: app.video_title || `Video ${app.video_id?.substring(0, 8) || idx + 1}`,
+            duration: duration || '',
+            type: app.has_html ? 'Interactive App' : 'Video',
+            thumbnail: app.youtube_url ? `https://img.youtube.com/vi/${extractVideoId(app.youtube_url)}/maxresdefault.jpg` : '/placeholder.svg',
+            videoUrl: app.youtube_url || '',
+            gameHtml: app.html_content || '',
+            isGenerated: !!app.has_html,
+            channelName: app.channel_name || '',
+            viewCount: app.view_count || '',
+            createdAt: app.created_at || app.createdAt || '',
+            videoId: app.video_id || app.videoId || '',
+          }
+        })
+        setSampleVideos(apps)
+      } catch (err) {
+        setError('Could not load sample interactive apps')
+      }
     }
-  }, [sampleVideos])
+    fetchSampleApps()
+  }, [API_BASE_URL])
 
   const handleMouseDown = useCallback(() => {
     setIsDragging(true)
@@ -341,6 +316,8 @@ export default function VideoToLearningApp() {
             isGenerated: true,
             channelName: "Generated Content",
             viewCount: "New",
+            createdAt: data.data.created_at || data.data.createdAt || '',
+            videoId: data.data.video_id || data.data.videoId || '',
           }
 
           setSampleVideos((prev) => [newVideo, ...prev])
@@ -370,17 +347,16 @@ export default function VideoToLearningApp() {
   }
 
   useEffect(() => {
-    if (gameHtml && iframeRef.current) {
+    if (activeTab === "app" && gameHtml && iframeRef.current) {
       const iframe = iframeRef.current
       const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
-
       if (iframeDoc) {
         iframeDoc.open()
         iframeDoc.write(gameHtml)
         iframeDoc.close()
       }
     }
-  }, [gameHtml])
+  }, [gameHtml, activeTab])
 
   const handleVideoClick = async (videoId: number) => {
     const video = sampleVideos.find((v) => v.id === videoId)
@@ -662,9 +638,6 @@ export default function VideoToLearningApp() {
                             </svg>
                           </div>
                         </div>
-                        <div className="absolute bottom-1 right-1 bg-black/90 text-white text-xs px-2 py-1 rounded-md font-medium">
-                          {video.duration}
-                        </div>
                       </div>
                       <div className="flex-1 min-w-0 flex flex-col justify-between">
                         <div className="space-y-2">
@@ -672,7 +645,11 @@ export default function VideoToLearningApp() {
                             {video.title}
                           </div>
                           <div className="text-sm text-gray-600 font-medium">{video.channelName}</div>
-                          <div className="text-xs text-gray-500">{video.viewCount}</div>
+                          <div className="text-xs text-gray-500">
+                            {video.viewCount && <span>{video.viewCount}</span>}
+                            {video.createdAt && <span>{video.viewCount ? ' | ' : ''}Created: {video.createdAt}</span>}
+                            {video.videoId && <span>{(video.viewCount || video.createdAt) ? ' | ' : ''}ID: {video.videoId}</span>}
+                          </div>
                         </div>
                         <div className="flex items-center mt-3">
                           <div

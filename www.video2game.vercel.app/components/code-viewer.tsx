@@ -9,74 +9,13 @@ interface CodeViewerProps {
 }
 
 export default function CodeViewer({ code }: CodeViewerProps) {
-  const [formattedCode, setFormattedCode] = useState("")
   const [copied, setCopied] = useState(false)
   const [lineNumbers, setLineNumbers] = useState<number[]>([])
   const codeContainerRef = useRef<HTMLDivElement>(null)
   const lineNumbersRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const formatHtml = (html: string) => {
-      let formatted = html
-      let indent = 0
-      const tab = "  "
-
-      formatted = formatted.replace(/></g, ">\n<")
-      formatted = formatted.replace(/({|})/g, "$1\n")
-      formatted = formatted.replace(/;/g, ";\n")
-
-      const lines = formatted.split("\n")
-      const formattedLines = lines
-        .map((line) => {
-          const trimmed = line.trim()
-          if (!trimmed) return ""
-
-          if (trimmed.startsWith("</") || trimmed.startsWith("}")) {
-            indent = Math.max(0, indent - 1)
-          }
-
-          const indentedLine = tab.repeat(indent) + trimmed
-
-          if (
-            (trimmed.startsWith("<") &&
-              !trimmed.startsWith("</") &&
-              !trimmed.endsWith("/>") &&
-              !trimmed.includes("<!")) ||
-            trimmed.endsWith("{")
-          ) {
-            const tagName = trimmed.match(/<(\w+)/)?.[1]
-            if (
-              !tagName ||
-              ![
-                "img",
-                "br",
-                "hr",
-                "input",
-                "meta",
-                "link",
-                "area",
-                "base",
-                "col",
-                "embed",
-                "source",
-                "track",
-                "wbr",
-              ].includes(tagName.toLowerCase())
-            ) {
-              indent++
-            }
-          }
-
-          return indentedLine
-        })
-        .filter((line) => line.length > 0)
-
-      return formattedLines.join("\n")
-    }
-
-    const formatted = formatHtml(code)
-    setFormattedCode(formatted)
-    const lines = formatted.split("\n")
+    const lines = code.split("\n")
     setLineNumbers(Array.from({ length: lines.length }, (_, i) => i + 1))
   }, [code])
 
@@ -96,46 +35,7 @@ export default function CodeViewer({ code }: CodeViewerProps) {
     }
   }
 
-  const highlightSyntax = (code: string) => {
-    return (
-      code
-        .replace(
-          /(&lt;\/?)([a-zA-Z][a-zA-Z0-9]*)(.*?)(&gt;)/g,
-          '<span class="text-blue-600 font-medium">$1$2</span><span class="text-green-600">$3</span><span class="text-blue-600 font-medium">$4</span>',
-        )
-        .replace(
-          /(\s)([a-zA-Z-]+)(=)(&quot;[^&]*&quot;|&#039;[^&#]*&#039;)/g,
-          '$1<span class="text-purple-600">$2</span><span class="text-gray-500">$3</span><span class="text-orange-600">$4</span>',
-        )
-        .replace(
-          /([a-zA-Z-]+)(\s*:\s*)([^;]+)(;)/g,
-          '<span class="text-indigo-600">$1</span><span class="text-gray-500">$2</span><span class="text-green-700">$3</span><span class="text-gray-500">$4</span>',
-        )
-        .replace(
-          /\b(function|var|let|const|if|else|for|while|return|class|extends|import|export|from|default|true|false|null|undefined|new|this|typeof|instanceof)\b/g,
-          '<span class="text-pink-600 font-semibold">$1</span>',
-        )
-        .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="text-gray-400 italic">$1</span>')
-        .replace(/(\/\/.*$)/gm, '<span class="text-gray-400 italic">$1</span>')
-        .replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="text-gray-400 italic">$1</span>')
-        .replace(/(&quot;[^&]*&quot;)/g, '<span class="text-orange-600">$1</span>')
-        .replace(/(&#039;[^&#]*&#039;)/g, '<span class="text-orange-600">$1</span>')
-        .replace(/\b(\d+\.?\d*)\b/g, '<span class="text-red-600">$1</span>')
-        .replace(/([.#][a-zA-Z][a-zA-Z0-9-_]*)/g, '<span class="text-yellow-600 font-medium">$1</span>')
-    )
-  }
-
-  const escapeHtml = (html: string) => {
-    return html
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;")
-  }
-
-  const processedCode = highlightSyntax(escapeHtml(formattedCode))
-  const codeLines = processedCode.split("\n")
+  const codeLines = code.split("\n")
 
   return (
     <>
@@ -236,10 +136,7 @@ export default function CodeViewer({ code }: CodeViewerProps) {
                 <code>
                   {codeLines.map((line, index) => (
                     <div key={index} className="min-h-[24px] hover:bg-gray-50 px-1 -mx-1 rounded flex items-start">
-                      <span
-                        className="break-all whitespace-pre-wrap"
-                        dangerouslySetInnerHTML={{ __html: line || "&nbsp;" }}
-                      />
+                      <span className="break-all whitespace-pre-wrap">{line || "\u00A0"}</span>
                     </div>
                   ))}
                 </code>
