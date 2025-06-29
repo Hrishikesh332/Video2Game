@@ -5,7 +5,7 @@ from app.services.twelvelabs_service import TwelveLabsService
 from app.services.sambanova_service import SambanovaService
 from app.services.youtube_service import YouTubeService
 from app.services.video_chunking_service import VideoChunkingService
-from app.services.cache_service import CacheService
+from app.services.sample_apps_service import SampleAppsService
 from app.services.file_service import FileService
 
 class YouTubeIndexingService:
@@ -14,7 +14,7 @@ class YouTubeIndexingService:
         self.chunking_service = VideoChunkingService()
         self.twelvelabs_service = TwelveLabsService()
         self.sambanova_service = SambanovaService()
-        self.cache_service = CacheService()
+        self.sample_apps_service = SampleAppsService()
         self.file_service = FileService()
     
     def process_youtube_url(self, youtube_url, index_id=None, force_regenerate=False):
@@ -29,17 +29,17 @@ class YouTubeIndexingService:
                     "step": "validation"
                 }
             
-            video_id_hash = self._generate_video_hash(youtube_url)
-            
             if not force_regenerate:
-                cached_game = self.cache_service.load_game_cache(video_id_hash)
-                if cached_game:
+                existing_app = self.sample_apps_service.find_by_youtube_url(youtube_url)
+                if existing_app:
                     return {
                         "success": True,
-                        "data": cached_game,
+                        "data": existing_app,
                         "cached": True,
-                        "message": "Game loaded from cache"
+                        "message": "Game loaded from sample apps"
                     }
+            
+            video_id_hash = self._generate_video_hash(youtube_url)
             
             print(f"Downloading video from YouTube: {youtube_url}")
             video_file_path, video_title = self.youtube_service.download_video(youtube_url)
@@ -134,17 +134,17 @@ class YouTubeIndexingService:
             html_content = self.file_service.process_html_content(game_code)
             html_file_path = self.file_service.save_html_file(html_content, video_id_hash)
             
-            print(f"Caching results")
-            game_data = self.cache_service.create_game_data(
-                video_id_hash, video_analysis, html_content, html_file_path
+            print(f"Saving to sample apps")
+            game_data = self.sample_apps_service.create_game_data(
+                video_id_hash, video_analysis, html_content, html_file_path,
+                youtube_url=youtube_url,
+                video_title=video_title,
+                twelvelabs_video_ids=video_ids,
+                primary_video_id=primary_video_id,
+                total_chunks=len(video_ids) if len(video_ids) > 1 else None
             )
-            game_data["youtube_url"] = youtube_url
-            game_data["video_title"] = video_title
-            game_data["twelvelabs_video_ids"] = video_ids
-            game_data["primary_video_id"] = primary_video_id
-            game_data["total_chunks"] = len(video_ids) if len(video_ids) > 1 else None
             
-            self.cache_service.save_game_cache(video_id_hash, game_data)
+            self.sample_apps_service.save_app(game_data)
             
             return {
                 "success": True,
@@ -179,7 +179,7 @@ class YouTubeIndexingService:
             
             print(f"Indexing task created: {task.id}")
             
-            max_wait_time = 900  # 15 minutes
+            max_wait_time = 900 
             start_time = time.time()
             
             while time.time() - start_time < max_wait_time:

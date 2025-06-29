@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, current_app
 from app.services.twelvelabs_service import TwelveLabsService
 from app.services.sambanova_service import SambanovaService
-from app.services.cache_service import CacheService
+from app.services.sample_apps_service import SampleAppsService
 from app.services.file_service import FileService
 from app.utils.decorators import handle_errors
 
@@ -31,15 +31,15 @@ def analyze_video():
     if not video_id:
         return jsonify({"error": "video_id is required"}), 400
     
-    cache_service = CacheService()
+    sample_apps_service = SampleAppsService()
     if not force_regenerate:
-        cached_game = cache_service.load_game_cache(video_id)
-        if cached_game:
-            print(f"Using cached game for video: {video_id}")
+        existing_app = sample_apps_service.find_by_video_id(video_id)
+        if existing_app:
+            print(f"Using existing app for video: {video_id}")
             return jsonify({
-                **cached_game,
+                **existing_app,
                 "cached": True,
-                "message": "Game loaded from cache. Use 'regenerate': true to create a new version."
+                "message": "Game loaded from sample apps. Use 'regenerate': true to create a new version."
             })
     
     print(f"Analyzing video content with TwelveLabs, {video_id}")
@@ -63,12 +63,12 @@ def analyze_video():
     html_content = file_service.process_html_content(game_code)
     html_file_path = file_service.save_html_file(html_content, video_id)
     
-    game_data = cache_service.create_game_data(video_id, video_analysis, html_content, html_file_path)
-    cache_service.save_game_cache(video_id, game_data)
+    game_data = sample_apps_service.create_game_data(video_id, video_analysis, html_content, html_file_path)
+    sample_apps_service.save_app(game_data)
     
     return jsonify({
         **game_data,
-        "message": "Interactive HTML game generated and cached successfully"
+        "message": "Interactive HTML game generated and saved to sample apps successfully"
     })
 
 @api_bp.route('/youtube/process', methods=['POST'])
@@ -110,3 +110,57 @@ def process_youtube_video():
             "error": "YouTube processing failed",
             "details": str(e)
         }), 500
+
+@api_bp.route('/sample-apps', methods=['GET'])
+@handle_errors
+def get_sample_apps():
+    sample_apps_service = SampleAppsService()
+    apps = sample_apps_service.get_all_apps()
+    return jsonify({
+        "apps": apps,
+        "total": len(apps)
+    })
+
+@api_bp.route('/sample-apps/stats', methods=['GET'])
+@handle_errors
+def get_sample_apps_stats():
+    sample_apps_service = SampleAppsService()
+    stats = sample_apps_service.get_stats()
+    return jsonify(stats)
+
+@api_bp.route('/sample-apps/youtube/<path:youtube_url>', methods=['GET'])
+@handle_errors
+def get_sample_app_by_youtube_url(youtube_url):
+    sample_apps_service = SampleAppsService()
+    app = sample_apps_service.find_by_youtube_url(youtube_url)
+    
+    if app:
+        return jsonify({
+            "success": True,
+            "data": app,
+            "message": "App found in sample apps"
+        })
+    else:
+        return jsonify({
+            "success": False,
+            "error": "App not found",
+            "message": "No app found for this YouTube URL"
+        }), 404
+
+@api_bp.route('/sample-apps/<cache_key>', methods=['DELETE'])
+@handle_errors
+def delete_sample_app(cache_key):
+    sample_apps_service = SampleAppsService()
+    success = sample_apps_service.delete_app(cache_key)
+    
+    if success:
+        return jsonify({
+            "success": True,
+            "message": f"App {cache_key} deleted successfully"
+        })
+    else:
+        return jsonify({
+            "success": False,
+            "error": "App not found",
+            "message": f"No app found with cache key {cache_key}"
+        }), 404

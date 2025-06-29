@@ -1,6 +1,7 @@
 import os
 from flask import Blueprint, jsonify, current_app
 from app.utils.decorators import handle_errors
+from app.services.sample_apps_service import SampleAppsService
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -16,7 +17,8 @@ def index():
             "indexes": "/indexes",
             "analyze": "/analyze",
             "youtube_process": "/youtube/process",
-            "games": "/games/cached",
+            "sample_apps": "/sample-apps",
+            "sample_apps_stats": "/sample-apps/stats",
             "prompts": "/prompts"
         }
     })
@@ -76,13 +78,13 @@ def health_check():
     config = current_app.config
     
     games_count = 0
-    cache_count = 0
+    sample_apps_count = 0
     
     if os.path.exists(config['GAMES_DIR']):
         games_count = len([f for f in os.listdir(config['GAMES_DIR']) if f.endswith('.html')])
     
-    if os.path.exists(config['CACHE_DIR']):
-        cache_count = len([f for f in os.listdir(config['CACHE_DIR']) if f.endswith('.json')])
+    sample_apps_service = SampleAppsService()
+    sample_apps_stats = sample_apps_service.get_stats()
     
     return jsonify({
         "status": "healthy",
@@ -101,13 +103,30 @@ def health_check():
         },
         "stats": {
             "html_files": games_count,
-            "cached_games": cache_count
+            "sample_apps": sample_apps_stats
         },
         "prompts_loaded": list(current_app.prompt_service.prompts.keys()),
         "features": {
             "youtube_processing": True,
             "video_indexing": True,
             "game_generation": True,
-            "caching": True
+            "sample_apps": True
         }
     })
+
+@admin_bp.route('/sample-apps', methods=['GET'])
+@handle_errors
+def get_sample_apps_admin():
+    sample_apps_service = SampleAppsService()
+    apps = sample_apps_service.get_all_apps()
+    return jsonify({
+        "apps": apps,
+        "total": len(apps)
+    })
+
+@admin_bp.route('/sample-apps/stats', methods=['GET'])
+@handle_errors
+def get_sample_apps_stats_admin():
+    sample_apps_service = SampleAppsService()
+    stats = sample_apps_service.get_stats()
+    return jsonify(stats)

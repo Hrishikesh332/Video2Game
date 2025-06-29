@@ -1,7 +1,7 @@
 from flask import current_app
 from app.services.twelvelabs_service import TwelveLabsService
 from app.services.sambanova_service import SambanovaService
-from app.services.cache_service import CacheService
+from app.services.sample_apps_service import SampleAppsService
 from app.services.file_service import FileService
 
 class VideoGameService:
@@ -9,19 +9,19 @@ class VideoGameService:
     def __init__(self):
         self.twelvelabs_service = TwelveLabsService()
         self.sambanova_service = SambanovaService()
-        self.cache_service = CacheService()
+        self.sample_apps_service = SampleAppsService()
         self.file_service = FileService()
     
     def generate_game_from_video_id(self, video_id, force_regenerate=False):
         try:
             if not force_regenerate:
-                cached_game = self.cache_service.load_game_cache(video_id)
-                if cached_game:
+                existing_app = self.sample_apps_service.find_by_video_id(video_id)
+                if existing_app:
                     return {
                         "success": True,
-                        "data": cached_game,
+                        "data": existing_app,
                         "cached": True,
-                        "message": "Game loaded from cache"
+                        "message": "Game loaded from sample apps"
                     }
             
             print(f"Generating game from video_id: {video_id}")
@@ -40,11 +40,11 @@ class VideoGameService:
             html_content = self.file_service.process_html_content(game_code)
             html_file_path = self.file_service.save_html_file(html_content, video_id)
             
-            print(f"Caching results...")
-            game_data = self.cache_service.create_game_data(
+            print(f"Saving to sample apps...")
+            game_data = self.sample_apps_service.create_game_data(
                 video_id, video_analysis, html_content, html_file_path
             )
-            self.cache_service.save_game_cache(video_id, game_data)
+            self.sample_apps_service.save_app(game_data)
             
             return {
                 "success": True,
