@@ -167,3 +167,68 @@ def delete_sample_app(cache_key):
             "error": "App not found",
             "message": f"No app found with cache key {cache_key}"
         }), 404
+
+@api_bp.route('/youtube/regenerate', methods=['POST'])
+@handle_errors
+def regenerate_from_indexed_video():
+
+    from app.services.sample_apps_service import SampleAppsService
+    from app.services.twelvelabs_service import TwelveLabsService
+    from app.services.sambanova_service import SambanovaService
+    from app.services.file_service import FileService
+
+    data = request.get_json()
+    youtube_url = data.get('youtube_url')
+    force_regenerate = data.get('regenerate', False)
+
+    if not youtube_url:
+        return jsonify({"error": "youtube_url is required"}), 400
+
+    sample_apps_service = SampleAppsService()
+    app_entry = sample_apps_service.find_by_youtube_url(youtube_url)
+
+    if app_entry and app_entry.get('primary_video_id'):
+        video_id = app_entry['primary_video_id']
+        print(f"Found indexed video for {youtube_url}: {video_id}")
+
+        twelvelabs_service = TwelveLabsService()
+        analysis_prompt = current_app.prompt_service.get_prompt('analysis')
+        video_analysis = twelvelabs_service.analyze_video(video_id, analysis_prompt)
+
+        sambanova_service = SambanovaService()
+        game_generation_prompt = current_app.prompt_service.get_prompt('game_generation', video_analysis=video_analysis)
+        system_prompt = current_app.prompt_service.get_prompt('system')
+        game_code = sambanova_service.generate_game(system_prompt, game_generation_prompt)
+
+        file_service = FileService()
+        html_content = file_service.process_html_content(game_code)
+        html_file_path = file_service.save_html_file(html_content, video_id)
+
+        game_data = sample_apps_service.create_game_data(
+            video_id, video_analysis, html_content, html_file_path,
+            youtube_url=youtube_url,
+            video_title=app_entry.get('video_title'),
+            twelvelabs_video_ids=app_entry.get('twelvelabs_video_ids'),
+            primary_video_id=video_id,
+            total_chunks=app_entry.get('total_chunks')
+        )
+        sample_apps_service.save_app(game_data)
+
+        return jsonify({
+            "success": True,
+            "data": game_data,
+            "cached": False,
+            "message": "Game regenerated using existing indexed video."
+        })
+    else:
+        print(f"No indexed video found for {youtube_url}, running full pipeline.")
+        from app.services.youtube_indexing_service import YouTubeIndexingService
+        youtube_service = YouTubeIndexingService()
+        result = youtube_service.process_youtube_url(
+            youtube_url=youtube_url,
+            force_regenerate=True
+        )
+        if result["success"]:
+            return jsonify(result)
+        else:
+            return jsonify(result), 500

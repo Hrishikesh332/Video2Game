@@ -274,7 +274,11 @@ export default function VideoToLearningApp() {
         setGameHtml(null)
       }
 
-      const response = await fetch(`${API_BASE_URL}/youtube/process`, {
+      const endpoint = regenerate
+        ? `${API_BASE_URL}/youtube/regenerate`
+        : `${API_BASE_URL}/youtube/process`
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
