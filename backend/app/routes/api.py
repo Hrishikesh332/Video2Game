@@ -10,14 +10,16 @@ api_bp = Blueprint('api', __name__)
 @api_bp.route('/indexes', methods=['GET'])
 @handle_errors
 def get_indexes():
-    twelvelabs_service = TwelveLabsService()
+    api_key = request.headers.get('X-Twelvelabs-Api-Key')
+    twelvelabs_service = TwelveLabsService(api_key=api_key)
     indexes = twelvelabs_service.get_indexes()
     return jsonify({"indexes": indexes})
 
 @api_bp.route('/indexes/<index_id>/videos', methods=['GET'])
 @handle_errors
 def get_videos(index_id):
-    twelvelabs_service = TwelveLabsService()
+    api_key = request.headers.get('X-Twelvelabs-Api-Key')
+    twelvelabs_service = TwelveLabsService(api_key=api_key)
     videos = twelvelabs_service.get_videos(index_id)
     return jsonify({"videos": videos})
 
@@ -44,7 +46,8 @@ def analyze_video():
     
     print(f"Analyzing video content with TwelveLabs, {video_id}")
     
-    twelvelabs_service = TwelveLabsService()
+    api_key = request.headers.get('X-Twelvelabs-Api-Key')
+    twelvelabs_service = TwelveLabsService(api_key=api_key)
     analysis_prompt = current_app.prompt_service.get_prompt('analysis')
     video_analysis = twelvelabs_service.analyze_video(video_id, analysis_prompt)
     

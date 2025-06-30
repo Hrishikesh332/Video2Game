@@ -3,8 +3,10 @@ from flask import current_app
 
 class TwelveLabsService:
     
-    def __init__(self):
-        self.client = TwelveLabs(api_key=current_app.config['TWELVELABS_API_KEY'])
+    def __init__(self, api_key=None):
+        if api_key is None:
+            api_key = current_app.config['TWELVELABS_API_KEY']
+        self.client = TwelveLabs(api_key=api_key)
     
     def get_indexes(self):
         try:

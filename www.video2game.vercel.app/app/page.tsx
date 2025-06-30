@@ -490,7 +490,7 @@ export default function VideoToLearningApp() {
   return (
     <div className="min-h-screen bg-[#f4f3f3] relative overflow-hidden">
 
-      <div className="relative z-20 pt-3 px-6">
+      <div className="relative bg-white/30 z-20 pt-3 px-6">
         <div className="bg-white/80 backdrop-blur-md rounded-xl px-4 py-2.5 max-w-5xl mx-auto shadow-sm">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2.5">
