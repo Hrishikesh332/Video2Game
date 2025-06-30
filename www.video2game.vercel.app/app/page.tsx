@@ -2,6 +2,9 @@
 
 import { useState, useRef, useCallback, useEffect } from "react"
 import CodeViewer from "@/components/code-viewer"
+import SourceToggle from "@/components/source-toggle"
+import TwelveLabsSelector from "@/components/twelvelabs-selector"
+import ApiConnectionModal from "@/components/api-connection-modal"
 
 interface SampleVideo {
   id: number
@@ -34,6 +37,17 @@ export default function VideoToLearningApp() {
   const [isCheckingCache, setIsCheckingCache] = useState(false)
   const [showGeneratePopup, setShowGeneratePopup] = useState(false)
   const [activeTab, setActiveTab] = useState<"app" | "code">("app")
+  const [activeSource, setActiveSource] = useState<"youtube" | "twelvelabs">("youtube")
+
+  const [showApiModal, setShowApiModal] = useState(false)
+  const [apiKey, setApiKey] = useState("")
+  const [indexes, setIndexes] = useState<any[]>([])
+  const [videos, setVideos] = useState<any[]>([])
+  const [selectedTwelveLabsIndex, setSelectedTwelveLabsIndex] = useState("")
+  const [selectedTwelveLabsVideo, setSelectedTwelveLabsVideo] = useState("")
+  const [selectedTwelveLabsVideoName, setSelectedTwelveLabsVideoName] = useState("")
+  const [isLoadingIndexes, setIsLoadingIndexes] = useState(false)
+  const [isLoadingVideos, setIsLoadingVideos] = useState(false)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const getApiBaseUrl = () => {
@@ -68,32 +82,34 @@ export default function VideoToLearningApp() {
     const fetchSampleApps = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/sample-apps`)
-        if (!response.ok) throw new Error('Failed to fetch sample apps')
+        if (!response.ok) throw new Error("Failed to fetch sample apps")
         const data = await response.json()
         const apps = (data.apps || []).map((app: any, idx: number) => {
-          let duration = app.duration;
+          let duration = app.duration
           if (!duration && app.html_content) {
-            const match = app.html_content.match(/(\d{1,2}:\d{2})/);
-            duration = match ? match[1] : '';
+            const match = app.html_content.match(/(\d{1,2}:\d{2})/)
+            duration = match ? match[1] : ""
           }
           return {
             id: idx + 1,
             title: app.video_title || `Video ${app.video_id?.substring(0, 8) || idx + 1}`,
-            duration: duration || '',
-            type: app.has_html ? 'Interactive App' : 'Video',
-            thumbnail: app.youtube_url ? `https://img.youtube.com/vi/${extractVideoId(app.youtube_url)}/maxresdefault.jpg` : '/placeholder.svg',
-            videoUrl: app.youtube_url || '',
-            gameHtml: app.html_content || '',
+            duration: duration || "",
+            type: app.has_html ? "Interactive App" : "Video",
+            thumbnail: app.youtube_url
+              ? `https://img.youtube.com/vi/${extractVideoId(app.youtube_url)}/maxresdefault.jpg`
+              : "/placeholder.svg",
+            videoUrl: app.youtube_url || "",
+            gameHtml: app.html_content || "",
             isGenerated: !!app.has_html,
-            channelName: app.channel_name || '',
-            viewCount: app.view_count || '',
-            createdAt: app.created_at || app.createdAt || '',
-            videoId: app.video_id || app.videoId || '',
+            channelName: app.channel_name || "",
+            viewCount: app.view_count || "",
+            createdAt: app.created_at || app.createdAt || "",
+            videoId: app.video_id || app.videoId || "",
           }
         })
         setSampleVideos(apps)
       } catch (err) {
-        setError('Could not load sample interactive apps')
+        setError("Could not load sample interactive apps")
       }
     }
     fetchSampleApps()
@@ -158,7 +174,6 @@ export default function VideoToLearningApp() {
       if (data.success && data.data && data.data.html_content) {
         // Render the game immediately when response is received
         setGameHtml(data.data.html_content)
-        setIsApiConnected(true)
 
         const gameType = extractGameType(data.data.html_content)
 
@@ -193,7 +208,6 @@ export default function VideoToLearningApp() {
       }
 
       setError(errorMessage)
-      setIsApiConnected(false)
     } finally {
       setIsCheckingCache(false)
     }
@@ -215,11 +229,11 @@ export default function VideoToLearningApp() {
   useEffect(() => {
     const checkConnection = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/health`, {
-          method: "GET",
-          signal: AbortSignal.timeout(5000),
-        })
-        setIsApiConnected(response.ok)
+        const apiKeyFromStorage = localStorage.getItem("twelvelabs_api_key")
+        if (apiKeyFromStorage) {
+          setApiKey(apiKeyFromStorage)
+          setIsApiConnected(true)
+        }
       } catch {
         setIsApiConnected(false)
         console.log(`Backend not reachable at ${API_BASE_URL}`)
@@ -279,7 +293,6 @@ export default function VideoToLearningApp() {
 
       if (data.success && data.data && data.data.html_content) {
         setGameHtml(data.data.html_content)
-        setIsApiConnected(true)
 
         const gameType = extractGameType(data.data.html_content)
 
@@ -316,8 +329,8 @@ export default function VideoToLearningApp() {
             isGenerated: true,
             channelName: "Generated Content",
             viewCount: "New",
-            createdAt: data.data.created_at || data.data.createdAt || '',
-            videoId: data.data.video_id || data.data.videoId || '',
+            createdAt: data.data.created_at || data.data.createdAt || "",
+            videoId: data.data.videoId || data.data.videoId || "",
           }
 
           setSampleVideos((prev) => [newVideo, ...prev])
@@ -365,7 +378,6 @@ export default function VideoToLearningApp() {
       setExpandedVideo(videoId)
       setCurrentGameId(videoId)
 
-      // If this video has generated game content, load it
       if (video.gameHtml) {
         setGameHtml(video.gameHtml)
       } else {
@@ -386,7 +398,6 @@ export default function VideoToLearningApp() {
     }
   }
 
-  // Close expanded video
   const closeExpandedVideo = () => {
     setExpandedVideo(null)
     setShowGeneratePopup(false)
@@ -394,26 +405,189 @@ export default function VideoToLearningApp() {
 
   const selectedVideoData = expandedVideo ? sampleVideos.find((v) => v.id === expandedVideo) : null
 
+  const handleApiConnect = async (newApiKey: string) => {
+    setApiKey(newApiKey)
+    setIsApiConnected(true)
+    setShowApiModal(false)
+    localStorage.setItem("twelvelabs_api_key", newApiKey)
+    setActiveSource("twelvelabs")
+  }
+
+  const handleApiDisconnect = () => {
+    setApiKey("")
+    setIsApiConnected(false)
+    setIndexes([])
+    setVideos([])
+    setSelectedTwelveLabsIndex("")
+    setSelectedTwelveLabsVideo("")
+    localStorage.removeItem("twelvelabs_api_key")
+    setActiveSource("youtube")
+  }
+
+  const handleVideoSelect = (videoId: string, videoName: string) => {
+    setSelectedTwelveLabsVideo(videoId)
+    setSelectedTwelveLabsVideoName(videoName)
+  }
+
+  const processVideoId = async () => {
+    if (!selectedTwelveLabsVideo) {
+      setError("Please select a video from TwelveLabs")
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      setError(null)
+      setGameHtml(null)
+
+      const response = await fetch(`${API_BASE_URL}/video/process`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          video_id: selectedTwelveLabsVideo,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      if (data.success && data.data && data.data.html_content) {
+        setGameHtml(data.data.html_content)
+
+        const newVideo = {
+          id: Date.now(),
+          title: selectedTwelveLabsVideoName || `TwelveLabs Video ${selectedTwelveLabsVideo.substring(0, 8)}`,
+          duration: "Unknown",
+          type: extractGameType(data.data.html_content),
+          thumbnail: "/placeholder.svg?height=90&width=160&text=TwelveLabs",
+          videoUrl: "",
+          gameHtml: data.data.html_content,
+          isGenerated: true,
+          channelName: "TwelveLabs Content",
+          viewCount: "Generated",
+          videoId: selectedTwelveLabsVideo,
+        }
+
+        setSampleVideos((prev) => [newVideo, ...prev])
+        setCurrentGameId(newVideo.id)
+      } else {
+        throw new Error("Invalid response format")
+      }
+    } catch (err) {
+      setError(`Failed to process video: ${err instanceof Error ? err.message : String(err)}`)
+      console.error("Error processing TwelveLabs video:", err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#f4f3f3] relative overflow-hidden">
+
+      <div className="relative z-20 pt-3 px-6">
+        <div className="bg-white/80 backdrop-blur-md rounded-xl px-4 py-2.5 max-w-5xl mx-auto shadow-sm">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2.5">
+              <div className="logo-container">
+                <svg
+                  id="Layer_1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 204 146.6"
+                  width="24px"
+                  height="24px"
+                  className="fill-[#1d1c1b]"
+                >
+                  <rect x="43.9" y="50.3" width="64.3" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect y="50.3" width="35.3" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="124.1" y="50.3" width="40.3" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="129.9" y="37.8" width="34.5" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="168.9" y="37.8" width="27.3" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="157.3" y="25" width="31.1" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="167.1" y="12.5" width="9.2" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="74.3" y="112.6" width="15.9" height="9" rx="2.6" ry="2.6"></rect>
+                  <rect x="101.8" y="112.6" width="10.4" height="9" rx="2.6" ry="2.6"></rect>
+                  <rect x="117" y="112.6" width="28" height="9" rx="2.6" ry="2.6"></rect>
+                  <rect x="131" y="100.1" width="11.6" height="9" rx="2.6" ry="2.6"></rect>
+                  <rect x="52.4" y="112.6" width="9.2" height="9" rx="2.6" ry="2.6"></rect>
+                  <path d="M94.7,127.7c0-1.4,1.1-2.6,2.6-2.6h4c1.4,0,2.6,1.1,2.6,2.6v3.9c0,1.4-1.1,2.6-2.6,2.6h-4c-1.4,0-2.6-1.1-2.6-2.6v-3.9Z"></path>
+                  <rect x="85.8" y="137.6" width="8.7" height="9" rx="2.6" ry="2.6"></rect>
+                  <rect x="120.4" width="11.4" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="55.8" y="37.8" width="29" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="109.7" y="12.5" width="17.6" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="98.8" y="25" width="28.5" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="187.4" y="50.3" width="16.6" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="30.6" y="62.8" width="82.1" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="105.1" y="87.8" width="32.1" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="43.9" y="75.3" width="104.3" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="27.9" y="87.8" width="38.8" height="8.7" rx="2.6" ry="2.6"></rect>
+                  <rect x="63.3" y="100.1" width="12.7" height="9" rx="2.6" ry="2.6"></rect>
+                  <rect x="108.1" y="100.1" width="13.7" height="9" rx="2.6" ry="2.6"></rect>
+                  <rect x="39.8" y="100.1" width="12.9" height="9" rx="2.6" ry="2.6"></rect>
+                  <rect x="124.1" y="62.8" width="33.1" height="8.7" rx="2.6" ry="2.6"></rect>
+                </svg>
+              </div>
+
+              <h1 className="text-base font-bold text-[#1d1c1b]">Video2Game</h1>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <a
+                href="#"
+                className="text-[#1d1c1b] hover:text-gray-600 transition-colors p-1.5 rounded-lg hover:bg-white/50"
+                onClick={(e) => e.preventDefault()}
+                title="GitHub"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                </svg>
+              </a>
+
+              <a
+                href="#"
+                className="text-[#1d1c1b] hover:text-gray-600 transition-colors p-1.5 rounded-lg hover:bg-white/50"
+                onClick={(e) => e.preventDefault()}
+                title="Blog"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm-1-7.9c-.7 0-1.3-.6-1.3-1.3S7.3 6.5 8 6.5s1.3.6 1.3 1.3-.6 1.3-1.3 1.3zM17 17h-2v-3.4c0-.8 0-1.8-1.1-1.8s-1.3.9-1.3 1.8V17h-2v-7h1.9v1c.3-.4.9-1 2.2-1 2.4 0 2.8 1.6 2.8 3.6V17z" />
+                </svg>
+              </a>
+
+              <a
+                href="#"
+                className="text-[#1d1c1b] hover:text-gray-600 transition-colors p-1.5 rounded-lg hover:bg-white/50"
+                onClick={(e) => e.preventDefault()}
+                title="Apps"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="absolute inset-0 pointer-events-none">
-        {/* Primary large blobs */}
         <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-green-300/30 to-green-400/20 rounded-full blur-3xl"></div>
         <div className="absolute bottom-32 left-32 w-80 h-80 bg-gradient-to-tr from-orange-300/25 to-pink-300/20 rounded-full blur-3xl"></div>
         <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-gradient-to-r from-green-200/20 to-yellow-200/15 rounded-full blur-2xl"></div>
 
-        {/* Additional medium blobs */}
         <div className="absolute top-10 left-1/4 w-72 h-72 bg-gradient-to-bl from-blue-200/15 to-purple-200/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-1/4 w-60 h-60 bg-gradient-to-tl from-yellow-300/20 to-orange-200/15 rounded-full blur-2xl"></div>
         <div className="absolute top-2/3 left-10 w-56 h-56 bg-gradient-to-r from-pink-200/15 to-red-200/10 rounded-full blur-2xl"></div>
 
-        {/* Small accent blobs */}
         <div className="absolute top-1/4 right-10 w-40 h-40 bg-gradient-to-br from-cyan-200/20 to-blue-300/15 rounded-full blur-xl"></div>
         <div className="absolute bottom-1/3 left-1/2 w-48 h-48 bg-gradient-to-tr from-lime-200/15 to-green-300/10 rounded-full blur-xl"></div>
         <div className="absolute top-3/4 right-2/3 w-36 h-36 bg-gradient-to-bl from-violet-200/15 to-purple-300/10 rounded-full blur-xl"></div>
         <div className="absolute bottom-10 right-1/3 w-44 h-44 bg-gradient-to-tl from-amber-200/20 to-yellow-300/15 rounded-full blur-xl"></div>
 
-        {/* Tiny floating blobs for depth */}
         <div className="absolute top-1/3 left-1/3 w-24 h-24 bg-gradient-to-r from-emerald-200/25 to-teal-200/15 rounded-full blur-lg"></div>
         <div className="absolute bottom-1/4 left-3/4 w-28 h-28 bg-gradient-to-br from-rose-200/20 to-pink-200/10 rounded-full blur-lg"></div>
         <div className="absolute top-1/2 left-1/6 w-32 h-32 bg-gradient-to-tr from-indigo-200/15 to-blue-200/10 rounded-full blur-lg"></div>
@@ -423,110 +597,26 @@ export default function VideoToLearningApp() {
         <div className="absolute bottom-0 right-1/2 w-72 h-72 bg-gradient-to-t from-orange-100/10 to-transparent rounded-full blur-3xl"></div>
       </div>
 
-      {/* Top Navigation Bar */}
-      <div className="relative z-20 bg-white/60 backdrop-blur-sm border-b border-[#ececec]/50 px-6 py-4">
-        <div className="flex justify-between items-center max-w-7xl mx-auto">
-          <div className="flex items-center gap-4">
-            <div className="logo-container">
-              <svg
-                id="Layer_1"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 204 146.6"
-                width="32px"
-                height="32px"
-                className="fill-[#1d1c1b]"
-              >
-                <rect x="43.9" y="50.3" width="64.3" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect y="50.3" width="35.3" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="124.1" y="50.3" width="40.3" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="129.9" y="37.8" width="34.5" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="168.9" y="37.8" width="27.3" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="157.3" y="25" width="31.1" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="167.1" y="12.5" width="9.2" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="74.3" y="112.6" width="15.9" height="9" rx="2.6" ry="2.6"></rect>
-                <rect x="101.8" y="112.6" width="10.4" height="9" rx="2.6" ry="2.6"></rect>
-                <rect x="117" y="112.6" width="28" height="9" rx="2.6" ry="2.6"></rect>
-                <rect x="131" y="100.1" width="11.6" height="9" rx="2.6" ry="2.6"></rect>
-                <rect x="52.4" y="112.6" width="9.2" height="9" rx="2.6" ry="2.6"></rect>
-                <path d="M94.7,127.7c0-1.4,1.1-2.6,2.6-2.6h4c1.4,0,2.6,1.1,2.6,2.6v3.9c0,1.4-1.1,2.6-2.6,2.6h-4c-1.4,0-2.6-1.1-2.6-2.6v-3.9Z"></path>
-                <rect x="85.8" y="137.6" width="8.7" height="9" rx="2.6" ry="2.6"></rect>
-                <rect x="120.4" width="11.4" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="55.8" y="37.8" width="29" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="109.7" y="12.5" width="17.6" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="98.8" y="25" width="28.5" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="187.4" y="50.3" width="16.6" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="30.6" y="62.8" width="82.1" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="105.1" y="87.8" width="32.1" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="43.9" y="75.3" width="104.3" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="27.9" y="87.8" width="38.8" height="8.7" rx="2.6" ry="2.6"></rect>
-                <rect x="63.3" y="100.1" width="12.7" height="9" rx="2.6" ry="2.6"></rect>
-                <rect x="108.1" y="100.1" width="13.7" height="9" rx="2.6" ry="2.6"></rect>
-                <rect x="39.8" y="100.1" width="12.9" height="9" rx="2.6" ry="2.6"></rect>
-                <rect x="124.1" y="62.8" width="33.1" height="8.7" rx="2.6" ry="2.6"></rect>
-              </svg>
-            </div>
+      {/* API Connection Modal */}
+      {showApiModal && (
+        <ApiConnectionModal
+          isOpen={showApiModal}
+          onClose={() => setShowApiModal(false)}
+          isConnected={isApiConnected}
+          onConnect={handleApiConnect}
+          onDisconnect={handleApiDisconnect}
+          currentApiKey={apiKey}
+          indexes={indexes}
+          selectedIndex={selectedTwelveLabsIndex}
+          onIndexChange={setSelectedTwelveLabsIndex}
+          videos={videos}
+          selectedVideo={selectedTwelveLabsVideo}
+          onVideoChange={setSelectedTwelveLabsVideo}
+          isLoadingIndexes={isLoadingIndexes}
+          isLoadingVideos={isLoadingVideos}
+        />
+      )}
 
-            {/* Search/Dropdown Container */}
-            <div className="relative">
-              <button
-                className="flex items-center justify-between gap-3 px-3 py-2 bg-white/80 backdrop-blur-sm border border-[#d3d1cf]/50 rounded-lg hover:bg-white/90 focus:outline-none transition-all duration-200"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              >
-                <span className="text-sm text-[#1d1c1b] max-w-[180px] truncate">{selectedIndex}</span>
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                  className={`transform transition-transform text-[#1d1c1b] ${isDropdownOpen ? "rotate-180" : ""}`}
-                >
-                  <path d="M2 5l6 6 6-6"></path>
-                </svg>
-              </button>
-
-              {/* Dropdown Menu */}
-              {isDropdownOpen && (
-                <div className="absolute top-full left-0 mt-1 w-72 bg-white/95 backdrop-blur-sm border border-[#d3d1cf]/50 rounded-lg shadow-lg z-[100]">
-                  <div className="p-3">
-                    <select
-                      className="w-full p-2 border border-[#d3d1cf]/50 rounded-md focus:outline-none focus:ring-1 focus:ring-[#1d1c1b] bg-white/90 text-sm"
-                      value={selectedIndex}
-                      onChange={(e) => setSelectedIndex(e.target.value)}
-                    >
-                      <option value="" disabled>
-                        Select an index
-                      </option>
-                      <option value="Dance (Public)">Dance (Public)</option>
-                      <option value="Sports (Public)">Sports (Public)</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <a
-              href="#"
-              className="text-[#1d1c1b] hover:text-gray-600 transition-colors"
-              onClick={(e) => e.preventDefault()}
-            >
-              <svg fill="currentColor" width="14" height="14" viewBox="0 0 24 24">
-                <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"></path>
-              </svg>
-            </a>
-          </div>
-
-          <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-all duration-200 bg-green-100/80 text-green-700 border border-green-200/50"
-            onClick={() => {
-            }}
-          >
-            <div className={`w-1.5 h-1.5 rounded-full ${isApiConnected ? "bg-green-500" : "bg-red-500"}`}></div>
-            <span>TwelveLabs API {isApiConnected ? "Connected" : "Disconnected"}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Generate Popup */}
       {showGeneratePopup && (
         <div className="fixed top-4 right-4 z-50 bg-white/95 backdrop-blur-sm border border-orange-200 rounded-lg shadow-lg p-4 max-w-sm animate-in slide-in-from-right-5 duration-300">
           <div className="flex items-start gap-3">
@@ -565,39 +655,69 @@ export default function VideoToLearningApp() {
         </div>
       )}
 
-      {/* Main Content Area with Resizable Panels */}
-      <div ref={containerRef} className="relative z-10 flex h-[calc(100vh-73px)]">
-        {/* Left Compartment */}
+      <div ref={containerRef} className="relative z-10 flex h-[calc(100vh-80px)]">
+
         <div className="bg-white/30 backdrop-blur-sm relative flex flex-col" style={{ width: `${leftWidth}%` }}>
           <div
             className={`h-full flex flex-col p-8 overflow-y-auto transition-all duration-300 ${selectedVideoData ? "blur-sm" : ""}`}
           >
-            {/* Main Title */}
             <div className="text-center mb-8">
-              <h1 className="text-5xl font-bold text-[#1d1c1b] mb-4">Video to Gamified Learning</h1>
-              <p className="text-lg text-gray-600 max-w-md mx-auto">
+              <h1 className="text-5xl font-bold text-[#1d1c1b] mb-4">Video2Game</h1>
+              <p className="text-lg text-gray-600 max-w-md mx-auto mb-6">
                 Transform video content into interactive educational experiences
               </p>
+
+              <SourceToggle
+                activeSource={activeSource}
+                onSourceChange={setActiveSource}
+                isApiConnected={isApiConnected}
+                onApiConnect={() => setShowApiModal(true)}
+                onApiDisconnect={handleApiDisconnect}
+              />
             </div>
 
-            {/* URL Input */}
+
             <div className="w-full max-w-md mx-auto space-y-4 mb-8">
-              <input
-                type="text"
-                placeholder="Paste video URL here..."
-                className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-[#d3d1cf]/50 rounded-lg text-[#1d1c1b] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1d1c1b]/20 transition-all duration-200"
-                value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-              />
-              <button
-                className={`w-full px-6 py-3 bg-[#1d1c1b] hover:bg-[#1d1c1b]/90 text-white rounded-lg font-medium transition-all duration-200 ${
-                  isLoading ? "opacity-70 cursor-not-allowed" : ""
-                }`}
-                onClick={() => processYoutubeUrl(false)}
-                disabled={isLoading}
-              >
-                {isLoading ? "Generating..." : "Generate"}
-              </button>
+              {activeSource === "youtube" ? (
+                /* YouTube URL Input */
+                <>
+                  <input
+                    type="text"
+                    placeholder="Paste YouTube URL here..."
+                    className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-[#d3d1cf]/50 rounded-lg text-[#1d1c1b] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1d1c1b]/20 transition-all duration-200"
+                    value={youtubeUrl}
+                    onChange={(e) => setYoutubeUrl(e.target.value)}
+                  />
+                  <button
+                    className={`w-full px-6 py-3 bg-[#1d1c1b] hover:bg-[#1d1c1b]/90 text-white rounded-lg font-medium transition-all duration-200 ${
+                      isLoading ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
+                    onClick={() => processYoutubeUrl(false)}
+                    disabled={isLoading || !youtubeUrl.trim()}
+                  >
+                    {isLoading ? "Generating..." : "Generate from YouTube"}
+                  </button>
+                </>
+              ) : (
+
+                <>
+                  <TwelveLabsSelector
+                    isVisible={activeSource === "twelvelabs"}
+                    apiKey={apiKey}
+                    onVideoSelect={handleVideoSelect}
+                    selectedVideoId={selectedTwelveLabsVideo}
+                  />
+                  <button
+                    className={`w-full px-6 py-3 bg-[#1d1c1b] hover:bg-[#1d1c1b]/90 text-white rounded-lg font-medium transition-all duration-200 ${
+                      isLoading ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
+                    onClick={() => processVideoId()}
+                    disabled={isLoading || !selectedTwelveLabsVideo}
+                  >
+                    {isLoading ? "Generating..." : "Generate from TwelveLabs"}
+                  </button>
+                </>
+              )}
 
               {error && <div className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">{error}</div>}
             </div>
@@ -647,8 +767,16 @@ export default function VideoToLearningApp() {
                           <div className="text-sm text-gray-600 font-medium">{video.channelName}</div>
                           <div className="text-xs text-gray-500">
                             {video.viewCount && <span>{video.viewCount}</span>}
-                            {video.createdAt && <span>{video.viewCount ? ' | ' : ''}Created: {video.createdAt}</span>}
-                            {video.videoId && <span>{(video.viewCount || video.createdAt) ? ' | ' : ''}ID: {video.videoId}</span>}
+                            {video.createdAt && (
+                              <span>
+                                {video.viewCount ? " | " : ""}Created: {video.createdAt}
+                              </span>
+                            )}
+                            {video.videoId && (
+                              <span>
+                                {video.viewCount || video.createdAt ? " | " : ""}ID: {video.videoId}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center mt-3">
@@ -747,7 +875,17 @@ export default function VideoToLearningApp() {
                   <h2 className="text-xl font-bold text-[#1d1c1b]">Interactive Learning Game</h2>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => processYoutubeUrl(true)}
+                      onClick={() => {
+                        if (expandedVideo) {
+                          const video = sampleVideos.find((v) => v.id === expandedVideo)
+                          if (video && video.videoUrl) {
+                            setYoutubeUrl(video.videoUrl)
+                            processYoutubeUrl(true)
+                            return
+                          }
+                        }
+                        processYoutubeUrl(true)
+                      }}
                       disabled={isLoading}
                       className="flex items-center gap-1 text-xs bg-white/60 hover:bg-white/80 px-3 py-1.5 rounded-full transition-all duration-200 border border-[#ececec]/50 disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Regenerate with new content"
