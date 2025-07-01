@@ -50,6 +50,10 @@ export default function VideoToLearningApp() {
   const [isLoadingVideos, setIsLoadingVideos] = useState(false)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [streamingProgress, setStreamingProgress] = useState<string>("")
+  const [isStreaming, setIsStreaming] = useState(false)
+  const streamingCodeRef = useRef<HTMLDivElement>(null)
+
   const getApiBaseUrl = () => {
     if (typeof window !== "undefined") {
       const hostname = window.location.hostname
@@ -259,96 +263,178 @@ export default function VideoToLearningApp() {
       .padStart(2, "0")}`
   }
 
-  // Function to process YouTube URL and generate game
+
+  const fetchYouTubeTitle = async (url: string): Promise<string> => {
+    try {
+      const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`
+      const response = await fetch(oembedUrl)
+      if (response.ok) {
+        const data = await response.json()
+        return data.title || extractVideoTitle(url)
+      }
+    } catch {}
+    return extractVideoTitle(url)
+  }
+
   const processYoutubeUrl = async (regenerate = false) => {
     if (!youtubeUrl) {
       setError("Please enter a YouTube URL")
       return
     }
 
-    try {
-      setIsLoading(true)
-      setError(null)
-      setShowGeneratePopup(false)
-      if (!regenerate) {
-        setGameHtml(null)
-      }
+    let pendingTitle = extractVideoTitle(youtubeUrl)
+    if (!regenerate) {
+      try {
+        pendingTitle = await fetchYouTubeTitle(youtubeUrl)
+      } catch {}
+    }
 
-      const endpoint = regenerate
-        ? `${API_BASE_URL}/youtube/regenerate`
-        : `${API_BASE_URL}/youtube/process`
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    if (!regenerate) {
+      const tempId = Date.now()
+      setSampleVideos((prev) => [
+        {
+          id: tempId,
+          title: pendingTitle,
+          duration: "",
+          type: "Processing",
+          thumbnail: `https://img.youtube.com/vi/${extractVideoId(youtubeUrl)}/maxresdefault.jpg`,
+          videoUrl: youtubeUrl,
+          gameHtml: "",
+          isGenerated: false,
+          channelName: "",
+          viewCount: "",
+          createdAt: new Date().toISOString(),
+          videoId: extractVideoId(youtubeUrl),
         },
-        body: JSON.stringify({
-          youtube_url: youtubeUrl,
-          ...(regenerate && { regenerate: true }),
-        }),
-      })
+        ...prev,
+      ])
+      setExpandedVideo(tempId)
+      setCurrentGameId(tempId)
+    }
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`)
-      }
+    setIsLoading(true)
+    setError(null)
+    setShowGeneratePopup(false)
+    setGameHtml(null)
+    let streamedHtml = ""
+    let streamedAnalysis = ""
+    let progressMsg = ""
+    let indexingCompleted = false
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const endpoint = regenerate
+          ? `${API_BASE_URL}/youtube/regenerate?youtube_url=${encodeURIComponent(youtubeUrl)}`
+          : `${API_BASE_URL}/youtube/process?youtube_url=${encodeURIComponent(youtubeUrl)}`
+        const evtSource = new EventSource(endpoint)
 
-      const data = await response.json()
-
-      if (data.success && data.data && data.data.html_content) {
-        setGameHtml(data.data.html_content)
-
-        const gameType = extractGameType(data.data.html_content)
-
-        // Check if this URL already exists in sample videos
-        const existingVideoIndex = sampleVideos.findIndex((video) => video.videoUrl === youtubeUrl)
-
-        if (existingVideoIndex !== -1) {
-          // Update existing video with new game content
-          setSampleVideos((prev) =>
-            prev.map((video, index) =>
-              index === existingVideoIndex
-                ? {
-                    ...video,
-                    gameHtml: data.data.html_content,
-                    type: gameType,
-                    title: data.data.video_title || video.title,
-                    isGenerated: true,
+        evtSource.onmessage = (event) => {
+          const e = event as MessageEvent
+          if (e.data === "[DONE]") {
+            evtSource.close()
+            setIsLoading(false)
+            setIsStreaming(false)
+            setStreamingProgress("")
+            setTimeout(async () => {
+              try {
+                const response = await fetch(`${API_BASE_URL}/sample-apps`)
+                if (response.ok) {
+                  const data = await response.json()
+                  const apps = (data.apps || []).map((app: any, idx: number) => {
+                    let duration = app.duration
+                    if (!duration && app.html_content) {
+                      const match = app.html_content.match(/(\d{1,2}:\d{2})/)
+                      duration = match ? match[1] : ""
+                    }
+                    return {
+                      id: idx + 1,
+                      title: app.video_title || `Video ${app.video_id?.substring(0, 8) || idx + 1}`,
+                      duration: duration || "",
+                      type: app.has_html ? "Interactive App" : "Video",
+                      thumbnail: app.youtube_url
+                        ? `https://img.youtube.com/vi/${extractVideoId(app.youtube_url)}/maxresdefault.jpg`
+                        : "/placeholder.svg",
+                      videoUrl: app.youtube_url || "",
+                      gameHtml: app.html_content || "",
+                      isGenerated: !!app.has_html,
+                      channelName: app.channel_name || "",
+                      viewCount: app.view_count || "",
+                      createdAt: app.created_at || app.createdAt || "",
+                      videoId: app.video_id || app.videoId || "",
+                    }
+                  })
+                  setSampleVideos(apps)
+                  const currentApp = apps.find((app: any) => app.videoUrl === youtubeUrl)
+                  if (currentApp && currentApp.gameHtml) {
+                    setGameHtml(currentApp.gameHtml)
+                    setCurrentGameId(currentApp.id)
+                    setExpandedVideo(currentApp.id)
+                  } else {
+                    if (apps.length > 0) {
+                      setGameHtml(apps[0].gameHtml)
+                      setCurrentGameId(apps[0].id)
+                      setExpandedVideo(apps[0].id)
+                    }
                   }
-                : video,
-            ),
-          )
-          setCurrentGameId(sampleVideos[existingVideoIndex].id)
-        } else {
-          // Create new video entry
-          const videoId = extractVideoId(youtubeUrl)
-          const newVideo: SampleVideo = {
-            id: Date.now(),
-            title: data.data.video_title || extractVideoTitle(youtubeUrl),
-            duration: extractVideoDuration(),
-            type: gameType,
-            thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
-            videoUrl: youtubeUrl,
-            gameHtml: data.data.html_content,
-            isGenerated: true,
-            channelName: "Generated Content",
-            viewCount: "New",
-            createdAt: data.data.created_at || data.data.createdAt || "",
-            videoId: data.data.videoId || data.data.videoId || "",
+                }
+              } catch (err) {
+                console.error("Error refreshing app data:", err)
+              }
+            }, 1000)
+            resolve()
           }
-
-          setSampleVideos((prev) => [newVideo, ...prev])
-          setCurrentGameId(newVideo.id)
         }
-      } else {
-        throw new Error("Invalid response format")
-      }
+
+        evtSource.addEventListener("progress", (event) => {
+          const e = event as MessageEvent
+          progressMsg = e.data
+          setStreamingProgress(progressMsg)
+          
+          if (progressMsg.includes("Analyzing video content") || progressMsg.includes("Starting analysis")) {
+            if (!indexingCompleted) {
+              indexingCompleted = true
+              setIsStreaming(true)
+            }
+          }
+        })
+
+        evtSource.addEventListener("analysis", (event) => {
+          const e = event as MessageEvent
+          streamedAnalysis = e.data
+          setStreamingProgress("Twelvelabs Analysis...")
+          setGameHtml(streamedAnalysis)
+        })
+
+        evtSource.addEventListener("game_chunk", (event) => {
+          const e = event as MessageEvent
+          streamedHtml += e.data
+          setGameHtml(streamedHtml)
+        })
+
+        evtSource.addEventListener("done", () => {
+          evtSource.close()
+          setIsLoading(false)
+          setIsStreaming(false)
+          setStreamingProgress("")
+          resolve()
+        })
+
+        evtSource.addEventListener("error", (event) => {
+          const e = event as MessageEvent
+          setError(e.data || "Streaming error")
+          evtSource.close()
+          setIsLoading(false)
+          setIsStreaming(false)
+          setStreamingProgress("")
+          reject(e.data || "Streaming error")
+        })
+      })
     } catch (err) {
       setError(`Failed to process video: ${err instanceof Error ? err.message : String(err)}`)
-      console.error("Error processing YouTube URL:", err)
-    } finally {
       setIsLoading(false)
+      setIsStreaming(false)
+      setStreamingProgress("")
     }
+    return
   }
 
   const extractGameType = (htmlContent: string): string => {
@@ -385,7 +471,33 @@ export default function VideoToLearningApp() {
       if (video.gameHtml) {
         setGameHtml(video.gameHtml)
       } else {
-        await checkCacheAndProcess(video.videoUrl)
+        try {
+          const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(video.videoUrl)}`)
+          if (response.ok) {
+            const data = await response.json()
+            if (data.success && data.data && data.data.html_content) {
+              setGameHtml(data.data.html_content)
+              
+              setSampleVideos((prev) =>
+                prev.map((v) =>
+                  v.id === videoId
+                    ? {
+                        ...v,
+                        gameHtml: data.data.html_content,
+                        type: extractGameType(data.data.html_content),
+                        isGenerated: true,
+                      }
+                    : v
+                )
+              )
+              return
+            }
+          }
+        } catch (err) {
+          console.error("Error fetching from cache:", err)
+        }
+        
+        setShowGeneratePopup(true)
       }
     }
   }
@@ -490,6 +602,12 @@ export default function VideoToLearningApp() {
       setIsLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (isStreaming && streamingCodeRef.current) {
+      streamingCodeRef.current.scrollTop = streamingCodeRef.current.scrollHeight;
+    }
+  }, [gameHtml, isStreaming]);
 
   return (
     <div className="min-h-screen bg-[#f4f3f3] relative overflow-hidden">
@@ -868,7 +986,23 @@ export default function VideoToLearningApp() {
 
         <div className="bg-white/40 backdrop-blur-sm relative flex flex-col" style={{ width: `${100 - leftWidth}%` }}>
           <div className="h-full flex flex-col">
-            {isLoading ? (
+            {isStreaming ? (
+              <div className="h-full flex flex-col items-center justify-center p-4 w-full">
+                <div className="w-8 h-8 border-2 border-[#1d1c1b]/20 border-t-[#1d1c1b] rounded-full animate-spin mb-4"></div>
+                {streamingProgress && (
+                  <div className="text-[#1d1c1b] text-base mb-4 text-center min-h-[1.5em] font-medium">{streamingProgress}</div>
+                )}
+                <div
+                  ref={streamingCodeRef}
+                  className="w-full max-w-2xl flex-1 bg-[#18181b] text-white rounded-xl shadow-lg p-6 overflow-y-auto text-sm border border-[#232323]"
+                  style={{ fontFamily: 'Fira Mono, Menlo, monospace', minHeight: 320, maxHeight: 480 }}
+                >
+                  <pre className="whitespace-pre-wrap break-words" style={{ margin: 0 }}>
+                    <code>{gameHtml || ""}</code>
+                  </pre>
+                </div>
+              </div>
+            ) : isLoading ? (
               <div className="h-full flex flex-col items-center justify-center p-4">
                 <div className="w-16 h-16 border-4 border-[#1d1c1b]/20 border-t-[#1d1c1b] rounded-full animate-spin mb-4"></div>
                 <p className="text-[#1d1c1b] font-medium">Generating interactive content...</p>
