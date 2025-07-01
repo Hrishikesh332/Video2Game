@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, current_app, Response, stream_with_context
 from app.services.twelvelabs_service import TwelveLabsService
 from app.services.sambanova_service import SambanovaService
 from app.services.sample_apps_service import SampleAppsService
@@ -74,45 +74,128 @@ def analyze_video():
         "message": "Interactive HTML game generated and saved to sample apps successfully"
     })
 
-@api_bp.route('/youtube/process', methods=['POST'])
+@api_bp.route('/youtube/process', methods=['POST', 'GET'])
 @handle_errors
 def process_youtube_video():
-    try:
-        from app.services.youtube_indexing_service import YouTubeIndexingService
-        
+    from app.services.youtube_indexing_service import YouTubeIndexingService
+
+    def event_stream(youtube_url, index_id=None, force_regenerate=False):
+        sample_apps_service = SampleAppsService()
+        youtube_service = YouTubeIndexingService()
+        yield f"event: progress\ndata: Validating YouTube URL...\n\n"
+        if not youtube_url:
+            yield f"event: error\ndata: youtube_url is required\n\n"
+            return
+        if not youtube_service.youtube_service.validate_youtube_url(youtube_url):
+            yield f"event: error\ndata: Invalid YouTube URL provided\n\n"
+            return
+        if not force_regenerate:
+            existing_app = sample_apps_service.find_by_youtube_url(youtube_url)
+            if existing_app:
+                yield f"event: done\ndata: [DONE]\n\n"
+                return
+        yield f"event: progress\ndata: Downloading video...\n\n"
+        video_file_path, video_title = youtube_service.youtube_service.download_video(youtube_url)
+        if not video_file_path:
+            yield f"event: error\ndata: Failed to download video: {video_title}\n\n"
+            return
+        yield f"event: progress\ndata: Video downloaded. Indexing with TwelveLabs...\n\n"
+        if not index_id:
+            indexes = youtube_service.twelvelabs_service.get_indexes()
+            if not indexes:
+                yield f"event: error\ndata: No TwelveLabs indexes available. Please create an index first.\n\n"
+                return
+            index_id = indexes[0]["id"]
+        duration = youtube_service.youtube_service.get_video_duration(video_file_path)
+        max_duration = 59 * 60
+        video_ids = []
+        if duration and duration > max_duration:
+            yield f"event: progress\ndata: Chunking video...\n\n"
+            chunk_files = youtube_service.chunking_service.chunk_video(video_file_path, max_duration)
+            if not chunk_files:
+                yield f"event: error\ndata: Failed to chunk video\n\n"
+                return
+            for i, chunk_path in enumerate(chunk_files):
+                yield f"event: progress\ndata: Indexing chunk {i+1}/{len(chunk_files)}...\n\n"
+                video_id = youtube_service._index_video_file(chunk_path, index_id)
+                if video_id:
+                    video_ids.append(video_id)
+                else:
+                    yield f"event: error\ndata: Failed to index chunk {i+1}\n\n"
+            if not video_ids:
+                yield f"event: error\ndata: Failed to index any video chunks\n\n"
+                return
+            primary_video_id = video_ids[0]
+        else:
+            yield f"event: progress\ndata: Indexing video...\n\n"
+            primary_video_id = youtube_service._index_video_file(video_file_path, index_id)
+            if not primary_video_id:
+                yield f"event: error\ndata: Failed to index video with TwelveLabs\n\n"
+                return
+            video_ids = [primary_video_id]
+        yield f"event: progress\ndata: Analyzing video content...\n\n"
+        analysis_prompt = current_app.prompt_service.get_prompt('analysis')
+        video_analysis = youtube_service.twelvelabs_service.analyze_video(primary_video_id, analysis_prompt)
+        yield f"event: analysis\ndata: {video_analysis}\n\n"
+        yield f"event: progress\ndata: Generating game with SambaNova...\n\n"
+        sambanova_service = youtube_service.sambanova_service
+        game_generation_prompt = current_app.prompt_service.get_prompt('game_generation', video_analysis=video_analysis)
+        system_prompt = current_app.prompt_service.get_prompt('system')
+        try:
+            streamed_html = ""
+            for chunk in sambanova_service.generate_game_stream(system_prompt, game_generation_prompt):
+                if chunk:
+                    streamed_html += chunk
+                    yield f"event: game_chunk\ndata: {chunk}\n\n"
+            
+            if streamed_html:
+                file_service = youtube_service.file_service
+                html_content = file_service.process_html_content(streamed_html)
+                video_id_hash = youtube_service._generate_video_hash(youtube_url)
+                html_file_path = file_service.save_html_file(html_content, video_id_hash)
+                
+                # Save to sample apps
+                game_data = sample_apps_service.create_game_data(
+                    video_id_hash, 
+                    video_analysis, 
+                    html_content, 
+                    html_file_path,
+                    youtube_url=youtube_url,
+                    video_title=video_title,
+                    twelvelabs_video_ids=video_ids,
+                    primary_video_id=primary_video_id,
+                    total_chunks=len(video_ids) if len(video_ids) > 1 else None
+                )
+                sample_apps_service.save_app(game_data)
+                
+        except Exception as e:
+            yield f"event: error\ndata: Error streaming from SambaNova: {str(e)}\n\n"
+            return
+        yield f"event: done\ndata: [DONE]\n\n"
+
+    if request.method == 'GET':
+        youtube_url = request.args.get('youtube_url')
+        index_id = request.args.get('index_id')
+        force_regenerate = request.args.get('regenerate', 'false').lower() == 'true'
+        return Response(stream_with_context(event_stream(youtube_url, index_id, force_regenerate)), mimetype='text/event-stream')
+    else:
         data = request.get_json()
         youtube_url = data.get('youtube_url')
         index_id = data.get('index_id')
         force_regenerate = data.get('regenerate', False)
-        
         if not youtube_url:
             return jsonify({"error": "youtube_url is required"}), 400
-        
         youtube_service = YouTubeIndexingService()
-        
         print(f"Processing YouTube URL: {youtube_url}")
         result = youtube_service.process_youtube_url(
             youtube_url=youtube_url,
             index_id=index_id,
             force_regenerate=force_regenerate
         )
-        
         if result["success"]:
             return jsonify(result)
         else:
             return jsonify(result), 500
-            
-    except ImportError as e:
-        return jsonify({
-            "error": "YouTube processing service not available",
-            "details": str(e),
-            "solution": "Install required dependencies: pip install moviepy yt-dlp"
-        }), 500
-    except Exception as e:
-        return jsonify({
-            "error": "YouTube processing failed",
-            "details": str(e)
-        }), 500
 
 @api_bp.route('/sample-apps', methods=['GET'])
 @handle_errors
@@ -168,67 +251,70 @@ def delete_sample_app(cache_key):
             "message": f"No app found with cache key {cache_key}"
         }), 404
 
-@api_bp.route('/youtube/regenerate', methods=['POST'])
+@api_bp.route('/youtube/regenerate', methods=['POST', 'GET'])
 @handle_errors
 def regenerate_from_indexed_video():
-
     from app.services.sample_apps_service import SampleAppsService
     from app.services.twelvelabs_service import TwelveLabsService
     from app.services.sambanova_service import SambanovaService
     from app.services.file_service import FileService
 
-    data = request.get_json()
-    youtube_url = data.get('youtube_url')
-    force_regenerate = data.get('regenerate', False)
+    def event_stream(youtube_url):
+        sample_apps_service = SampleAppsService()
+        app_entry = sample_apps_service.find_by_youtube_url(youtube_url)
+
+        if app_entry and app_entry.get('primary_video_id'):
+            video_id = app_entry['primary_video_id']
+            yield f"event: progress\ndata: Starting analysis with TwelveLabs...\n\n"
+            twelvelabs_service = TwelveLabsService()
+            analysis_prompt = current_app.prompt_service.get_prompt('analysis')
+            video_analysis = twelvelabs_service.analyze_video(video_id, analysis_prompt)
+            yield f"event: analysis\ndata: {video_analysis}\n\n"
+
+            yield f"event: progress\ndata: Generating game with SambaNova...\n\n"
+            sambanova_service = SambanovaService()
+            game_generation_prompt = current_app.prompt_service.get_prompt('game_generation', video_analysis=video_analysis)
+            system_prompt = current_app.prompt_service.get_prompt('system')
+
+            try:
+                streamed_html = ""
+                for chunk in sambanova_service.generate_game_stream(system_prompt, game_generation_prompt):
+                    if chunk:
+                        streamed_html += chunk
+                        yield f"event: game_chunk\ndata: {chunk}\n\n"
+                
+                if streamed_html:
+                    file_service = FileService()
+                    html_content = file_service.process_html_content(streamed_html)
+                    html_file_path = file_service.save_html_file(html_content, video_id)
+
+                    updated_game_data = sample_apps_service.create_game_data(
+                        video_id, 
+                        video_analysis, 
+                        html_content, 
+                        html_file_path,
+                        youtube_url=youtube_url,
+                        video_title=app_entry.get('video_title', ''),
+                        channel_name=app_entry.get('channel_name', ''),
+                        view_count=app_entry.get('view_count', '')
+                    )
+                    sample_apps_service.save_app(updated_game_data)
+                    
+            except Exception as e:
+                yield f"event: error\ndata: Error streaming from SambaNova: {str(e)}\n\n"
+                return
+
+            yield f"event: done\ndata: [DONE]\n\n"
+        else:
+            yield f"event: error\ndata: No indexed video found for this YouTube URL.\n\n"
+
+    if request.method == 'GET':
+        youtube_url = request.args.get('youtube_url')
+    else:
+        data = request.get_json()
+        youtube_url = data.get('youtube_url')
 
     if not youtube_url:
         return jsonify({"error": "youtube_url is required"}), 400
 
-    sample_apps_service = SampleAppsService()
-    app_entry = sample_apps_service.find_by_youtube_url(youtube_url)
-
-    if app_entry and app_entry.get('primary_video_id'):
-        video_id = app_entry['primary_video_id']
-        print(f"Found indexed video for {youtube_url}: {video_id}")
-
-        twelvelabs_service = TwelveLabsService()
-        analysis_prompt = current_app.prompt_service.get_prompt('analysis')
-        video_analysis = twelvelabs_service.analyze_video(video_id, analysis_prompt)
-
-        sambanova_service = SambanovaService()
-        game_generation_prompt = current_app.prompt_service.get_prompt('game_generation', video_analysis=video_analysis)
-        system_prompt = current_app.prompt_service.get_prompt('system')
-        game_code = sambanova_service.generate_game(system_prompt, game_generation_prompt)
-
-        file_service = FileService()
-        html_content = file_service.process_html_content(game_code)
-        html_file_path = file_service.save_html_file(html_content, video_id)
-
-        game_data = sample_apps_service.create_game_data(
-            video_id, video_analysis, html_content, html_file_path,
-            youtube_url=youtube_url,
-            video_title=app_entry.get('video_title'),
-            twelvelabs_video_ids=app_entry.get('twelvelabs_video_ids'),
-            primary_video_id=video_id,
-            total_chunks=app_entry.get('total_chunks')
-        )
-        sample_apps_service.save_app(game_data)
-
-        return jsonify({
-            "success": True,
-            "data": game_data,
-            "cached": False,
-            "message": "Game regenerated using existing indexed video."
-        })
-    else:
-        print(f"No indexed video found for {youtube_url}, running full pipeline.")
-        from app.services.youtube_indexing_service import YouTubeIndexingService
-        youtube_service = YouTubeIndexingService()
-        result = youtube_service.process_youtube_url(
-            youtube_url=youtube_url,
-            force_regenerate=True
-        )
-        if result["success"]:
-            return jsonify(result)
-        else:
-            return jsonify(result), 500
+    return Response(stream_with_context(event_stream(youtube_url)), mimetype='text/event-stream')

@@ -25,7 +25,7 @@ class SambanovaService:
                     temperature=current_app.config['GENERATION_TEMPERATURE'],
                     top_p=current_app.config['GENERATION_TOP_P'],
                     max_tokens=current_app.config['GENERATION_MAX_TOKENS'],
-                    stream=False
+                    stream=True
                 )
                 
                 game_code = response.choices[0].message.content
@@ -74,3 +74,20 @@ class SambanovaService:
         
         print("HTML validation passed")
         return True
+
+    def generate_game_stream(self, system_prompt, user_prompt):
+        response = self.client.chat.completions.create(
+            model=current_app.config['SAMBANOVA_MODEL'],
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=current_app.config['GENERATION_TEMPERATURE'],
+            top_p=current_app.config['GENERATION_TOP_P'],
+            max_tokens=current_app.config['GENERATION_MAX_TOKENS'],
+            stream=True
+        )
+        for chunk in response:
+            content = getattr(chunk.choices[0].delta, 'content', None) if hasattr(chunk.choices[0], 'delta') else getattr(chunk.choices[0], 'text', None)
+            if content:
+                yield content
