@@ -70,14 +70,11 @@ def analyze_video():
         video_id,
         video_analysis,
         html_file_path,
+        twelvelabs_video_ids=data.get('twelvelabs_video_ids', []),
         youtube_url=data.get('youtube_url', ''),
         video_title=data.get('video_title', ''),
         channel_name=data.get('channel_name', ''),
-        view_count=data.get('view_count', ''),
-        cache_key=data.get('cache_key', ''),
-        twelvelabs_video_ids=data.get('twelvelabs_video_ids', []),
-        primary_video_id=video_id,
-        total_chunks=data.get('total_chunks', None)
+        view_count=data.get('view_count', '')
     )
     sample_games_service.save_game(game_data)
     
@@ -171,14 +168,11 @@ def process_youtube_video():
                     video_id_hash,
                     video_analysis,
                     html_file_path,
+                    twelvelabs_video_ids=video_ids,
                     youtube_url=youtube_url,
                     video_title=video_title,
                     channel_name='',
-                    view_count='',
-                    cache_key='',
-                    twelvelabs_video_ids=video_ids,
-                    primary_video_id=primary_video_id,
-                    total_chunks=len(video_ids) if len(video_ids) > 1 else None
+                    view_count=''
                 )
                 sample_games_service.save_game(game_data)
                 
@@ -309,14 +303,11 @@ def regenerate_from_indexed_video():
                         video_id,
                         video_analysis,
                         html_file_path,
+                        twelvelabs_video_ids=app_entry.get('twelvelabs_video_ids', []),
                         youtube_url=youtube_url,
                         video_title=app_entry.get('video_title', ''),
                         channel_name=app_entry.get('channel_name', ''),
-                        view_count=app_entry.get('view_count', ''),
-                        cache_key=app_entry.get('cache_key', ''),
-                        twelvelabs_video_ids=app_entry.get('twelvelabs_video_ids', []),
-                        primary_video_id=video_id,
-                        total_chunks=app_entry.get('total_chunks', None)
+                        view_count=app_entry.get('view_count', '')
                     )
                     sample_games_service.save_game(updated_game_data)
                     

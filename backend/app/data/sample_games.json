@@ -164,5 +164,29 @@
     "channel_name": "",
     "view_count": "",
     "cached_at": "2025-07-03 12:16:23 UTC"
+  },
+  "68667949a98231bea6b2a1be": {
+    "video_id": "68667949a98231bea6b2a1be",
+    "video_analysis": "I regret to inform you that the question you've asked is of such complexity that a definitive answer eludes our current knowledge and understanding.",
+    "html_file_path": "generated_games/video_game_68667949a98231bea6b2a1be_1751546617.html",
+    "created_at": "2025-07-03 12:43:37 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=b0XI-cbel1U",
+    "video_title": "Is Elon’s Grok 3 the new AI king?",
+    "channel_name": "",
+    "view_count": "",
+    "cached_at": "2025-07-03 12:43:37 UTC"
+  },
+  "68667a42a98231bea6b2a1f7": {
+    "video_id": "68667a42a98231bea6b2a1f7",
+    "video_analysis": "```json\n{\n  \"spec\": \"In the field of Artificial Intelligence (AI), foundational knowledge in math and programming is crucial for learners to build a strong base before diving into advanced topics. This interactive web app aims to reinforce the key ideas from the video and provide an engaging, interactive learning experience for self-studying AI.\n\n  SPECIFICATIONS:\n\n  1. The app must feature a structured roadmap that guides users through essential prerequisites, including math and programming skills.\n  2. The app must include interactive modules for foundational math topics such as Calculus, Linear Algebra, and Probability and Statistics. Each module should have:\n     - Interactive lessons with visual aids and examples.\n     - Quizzes and practice problems to reinforce learning.\n     - Progress tracking with checkboxes to mark completed units.\n  3. The app must provide interactive programming modules for Linux Command Line, Object-Oriented Programming, Data Structures and Algorithms, and Python. Each module should have:\n     - Interactive coding environments for hands-on practice.\n     - Tutorials and examples to guide users through concepts.\n     - Progress tracking with checkboxes to mark completed units.\n  4. The app must offer two paths for AI fundamentals: Machine Learning and Artificial Intelligence. Each path should have:\n     - Interactive lessons with visual aids and examples.\n     - Quizzes and practice problems to reinforce learning.\n     - Project templates and guidelines for real-world application.\n  5. The app must include a project section where users can:\n     - Choose from predefined project templates or create their own.\n     - Access guidelines for developing publishable quality projects.\n     - Review recent research papers and past class projects for inspiration.\n  6. The app must provide electives for advanced topics such as Deep Learning, Computer Vision, Robotics, Natural Language Processing, and Reinforcement Learning. Each elective should have:\n     - Interactive lessons with visual aids and examples.\n     - Quizzes and practice problems to reinforce learning.\n     - Progress tracking with checkboxes to mark completed units.\n  7. The app must have a user-friendly interface with clear navigation and a clean design to promote understanding and engagement.\n  8. The app must allow users to save their progress and return to it later, ensuring a consistent learning experience.\n  9. The app must include motivational features such as badges or rewards for completing modules and projects, encouraging users to continue their learning journey.\n  10. The app must be accessible and free, ensuring that anyone can access the knowledge and skills regardless of their background or financial circumstances.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_7d568f21384d936e_1751546556.html",
+    "created_at": "2025-07-03 12:42:36 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=nznFtfgP2ks",
+    "video_title": "AI Machine Learning Roadmap: Self Study AI!",
+    "channel_name": "",
+    "view_count": "",
+    "cached_at": "2025-07-03 12:42:36 UTC"
   }
 }

@@ -65,9 +65,15 @@ class SampleGamesService:
 
     def save_game(self, game_data):
         data = self._load_file()
-        video_id = game_data.get('video_id')
-        if not video_id:
+        # Use the first twelvelabs_video_id as the key and video_id if present
+        twelvelabs_video_ids = game_data.get('twelvelabs_video_ids')
+        if twelvelabs_video_ids and isinstance(twelvelabs_video_ids, list) and len(twelvelabs_video_ids) > 0:
+            key_id = twelvelabs_video_ids[0]
+        else:
+            key_id = game_data.get('video_id')
+        if not key_id:
             return False
+        game_data['video_id'] = key_id
         game_data['cached_at'] = time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())
         # Only keep allowed fields
         allowed_fields = [
@@ -75,7 +81,7 @@ class SampleGamesService:
             "youtube_url", "video_title", "channel_name", "view_count", "cached_at"
         ]
         filtered_game_data = {k: v for k, v in game_data.items() if k in allowed_fields}
-        data[video_id] = filtered_game_data
+        data[key_id] = filtered_game_data
         return self._save_file(data)
 
     def delete_game(self, video_id):
@@ -85,7 +91,7 @@ class SampleGamesService:
         del data[video_id]
         return self._save_file(data)
 
-    def create_game_data(self, video_id, video_analysis, html_file_path, **additional_data):
+    def create_game_data(self, video_id, video_analysis, html_file_path, twelvelabs_video_ids=None, **additional_data):
         current_time = time.time()
         game_data = {
             "video_id": video_id,
@@ -99,6 +105,8 @@ class SampleGamesService:
             "view_count": additional_data.get('view_count', ''),
             # cached_at will be set in save_game
         }
+        if twelvelabs_video_ids is not None:
+            game_data['twelvelabs_video_ids'] = twelvelabs_video_ids
         return game_data
 
     def get_stats(self):
