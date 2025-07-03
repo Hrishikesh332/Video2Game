@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, jsonify, current_app
 from app.utils.decorators import handle_errors
-from app.services.sample_apps_service import SampleAppsService
+from app.services.sample_games_service import SampleGamesService
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -83,8 +83,8 @@ def health_check():
     if os.path.exists(config['GAMES_DIR']):
         games_count = len([f for f in os.listdir(config['GAMES_DIR']) if f.endswith('.html')])
     
-    sample_apps_service = SampleAppsService()
-    sample_apps_stats = sample_apps_service.get_stats()
+    sample_games_service = SampleGamesService()
+    sample_apps_stats = sample_games_service.get_stats()
     
     return jsonify({
         "status": "healthy",
@@ -117,8 +117,8 @@ def health_check():
 @admin_bp.route('/sample-apps', methods=['GET'])
 @handle_errors
 def get_sample_apps_admin():
-    sample_apps_service = SampleAppsService()
-    apps = sample_apps_service.get_all_apps()
+    sample_games_service = SampleGamesService()
+    apps = sample_games_service.get_all_games()
     return jsonify({
         "apps": apps,
         "total": len(apps)
@@ -127,6 +127,6 @@ def get_sample_apps_admin():
 @admin_bp.route('/sample-apps/stats', methods=['GET'])
 @handle_errors
 def get_sample_apps_stats_admin():
-    sample_apps_service = SampleAppsService()
-    stats = sample_apps_service.get_stats()
+    sample_games_service = SampleGamesService()
+    stats = sample_games_service.get_stats()
     return jsonify(stats)

@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app.services.sample_apps_service import SampleAppsService
+from app.services.sample_games_service import SampleGamesService
 from app.services.file_service import FileService
 from app.utils.decorators import handle_errors
 
@@ -8,13 +8,13 @@ game_bp = Blueprint('game', __name__)
 @game_bp.route('/game/<video_id>', methods=['GET'])
 @handle_errors
 def get_game_by_video_id(video_id):
-    sample_apps_service = SampleAppsService()
-    existing_app = sample_apps_service.find_by_video_id(video_id)
+    sample_games_service = SampleGamesService()
+    existing_app = sample_games_service.find_by_video_id(video_id)
     
     if existing_app:
         return jsonify({
             **existing_app,
-            "message": "Game loaded from sample apps"
+            "message": "Game loaded from sample games"
         })
     else:
         return jsonify({
@@ -26,11 +26,11 @@ def get_game_by_video_id(video_id):
 @game_bp.route('/game/<video_id>/html', methods=['GET'])
 @handle_errors
 def get_game_html_only(video_id):
-    sample_apps_service = SampleAppsService()
-    existing_app = sample_apps_service.find_by_video_id(video_id)
+    sample_games_service = SampleGamesService()
+    existing_app = sample_games_service.find_by_video_id(video_id)
     
-    if existing_app and 'html_content' in existing_app:
-        return existing_app['html_content'], 200, {'Content-Type': 'text/html'}
+    if existing_app and 'html_file_path' in existing_app:
+        return existing_app['html_file_path'], 200, {'Content-Type': 'text/html'}
     else:
         return jsonify({
             "error": "No game HTML found for this video ID"

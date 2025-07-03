@@ -5,7 +5,7 @@ from app.services.twelvelabs_service import TwelveLabsService
 from app.services.sambanova_service import SambanovaService
 from app.services.youtube_service import YouTubeService
 from app.services.video_chunking_service import VideoChunkingService
-from app.services.sample_apps_service import SampleAppsService
+from app.services.sample_games_service import SampleGamesService
 from app.services.file_service import FileService
 
 class YouTubeIndexingService:
@@ -14,7 +14,7 @@ class YouTubeIndexingService:
         self.chunking_service = VideoChunkingService()
         self.twelvelabs_service = TwelveLabsService()
         self.sambanova_service = SambanovaService()
-        self.sample_apps_service = SampleAppsService()
+        self.sample_games_service = SampleGamesService()
         self.file_service = FileService()
     
     def process_youtube_url(self, youtube_url, index_id=None, force_regenerate=False):
@@ -30,7 +30,7 @@ class YouTubeIndexingService:
                 }
             
             if not force_regenerate:
-                existing_app = self.sample_apps_service.find_by_youtube_url(youtube_url)
+                existing_app = self.sample_games_service.find_by_youtube_url(youtube_url)
                 if existing_app:
                     return {
                         "success": True,
@@ -135,8 +135,8 @@ class YouTubeIndexingService:
             html_file_path = self.file_service.save_html_file(html_content, video_id_hash)
             
             print(f"Saving to sample apps")
-            game_data = self.sample_apps_service.create_game_data(
-                video_id_hash, video_analysis, html_content, html_file_path,
+            game_data = self.sample_games_service.create_game_data(
+                video_id_hash, video_analysis, html_file_path, html_file_path,
                 youtube_url=youtube_url,
                 video_title=video_title,
                 twelvelabs_video_ids=video_ids,
@@ -144,7 +144,7 @@ class YouTubeIndexingService:
                 total_chunks=len(video_ids) if len(video_ids) > 1 else None
             )
             
-            self.sample_apps_service.save_app(game_data)
+            self.sample_games_service.save_app(game_data)
             
             return {
                 "success": True,

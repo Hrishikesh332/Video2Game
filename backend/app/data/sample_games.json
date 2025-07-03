@@ -1,0 +1,168 @@
+{
+  "686182c2da8b16ab27af8c64": {
+    "video_id": "686182c2da8b16ab27af8c64",
+    "video_analysis": "```json\n{\n  \"spec\": \"In machine learning, linear regression is a supervised algorithm used to predict continuous numerical data based on labeled datasets. This app aims to help learners understand the concept of linear regression through interactive and engaging design.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive graph with a horizontal axis labeled 'Height in Inches' and a vertical axis labeled 'Shoe Size [US]'.\\n2. The app must allow users to input data points representing different heights and corresponding shoe sizes.\\n3. The app must automatically plot these data points on the graph.\\n4. The app must provide a feature to draw a best fit line through the plotted data points, indicating the positive correlation between height and shoe size.\\n5. The app must allow users to identify outliers by highlighting specific data points.\\n6. The app must include a section to explain the concept of labeled datasets and the difference between continuous and categorical data.\\n7. The app must provide examples of continuous data (height, age, foot size) and categorical data (color, gender).\\n8. The app must allow users to toggle between different types of data to see how they affect the best fit line.\\n9. The app must include a section to explain the importance of linear regression in machine learning and how it can be used to make predictions.\\n10. The app must have a playful design with clear instructions and feedback to enhance user engagement and understanding.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_686182c2da8b16ab27af8c64_1751321613.html",
+    "created_at": "2025-06-30 22:13:33 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=qxo8p8PtFeA",
+    "video_title": "Why Linear regression for Machine Learning?",
+    "twelvelabs_video_ids": [
+      "686182c2da8b16ab27af8c64"
+    ],
+    "primary_video_id": "686182c2da8b16ab27af8c64",
+    "total_chunks": null,
+    "cache_key": "ed463b330e0c117d",
+    "cached_at": "2025-06-30 22:13:33 UTC"
+  },
+  "686153da21f0ea193ed033fa": {
+    "video_id": "686153da21f0ea193ed033fa",
+    "video_analysis": "```json\n{\n  \"spec\": \"In the video, Michelle leads a 3-minute stretching routine that includes breathing exercises, arm stretches, elbow rotations, and torso twists. The routine is designed to be a quick and effective way to start the day with a bit of exercise and mindfulness.\\n\\nBuild an interactive web app to help learners understand and practice the stretching routine.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature a simple, user-friendly interface with clear instructions and visual cues.\\n2. The app must include an animated avatar that demonstrates each stretch in the routine.\\n3. The app must provide audio cues for breathing exercises, guiding users to inhale and exhale at the appropriate times.\\n4. The app must allow users to select and practice individual stretches or the entire routine.\\n5. The app must include a timer that counts down the duration of each stretch and the entire routine.\\n6. The app must offer a brief explanation of the benefits of each stretch, such as improved flexibility and reduced stress.\\n7. The app must include a feature to track the user's progress and encourage regular practice.\\n8. The app must allow users to customize the routine by adjusting the duration of each stretch or adding/removing stretches.\\n9. The app must provide a 'rewatch' button that allows users to revisit the routine at any time.\\n10. The app must include a section for additional resources, such as tips for maintaining a regular stretching routine and links to other related videos or articles.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_686153da21f0ea193ed033fa_1751542052.html",
+    "created_at": "2025-07-03 11:27:32 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=_2v6Mbx5v1w",
+    "video_title": "3-min Stretch | Great in the morning or between work! | Beginners | Apartment Friendly",
+    "channel_name": "",
+    "view_count": "",
+    "cache_key": "0cd6e502bd723141",
+    "cached_at": "2025-07-03 11:27:32 UTC"
+  },
+  "dd2f49f007938719": {
+    "video_id": "dd2f49f007938719",
+    "video_analysis": "```json\n{\n  \"spec\": \"In neural networks, data flows through interconnected layers of nodes, each of which can be thought of as a linear regression model. The network learns and improves its accuracy over time through training data and backpropagation. Different types of neural networks, such as CNNs and RNNs, are suited for various tasks like image recognition and time series prediction.\n\n  Build an interactive web app to help learners understand the basics of neural networks.\n\n  SPECIFICATIONS:\n\n  1. The app must feature a visual representation of a neural network with input, hidden, and output layers.\n  2. The app must allow users to input data into the input layer and see how it flows through the network to the output layer.\n  3. The app must showcase the concept of linear regression models within each node, showing how inputs are multiplied by weights and added to a bias term.\n  4. The app must include a section where users can adjust the weights and biases of the nodes and observe how these changes affect the output.\n  5. The app must explain the concept of backpropagation and allow users to simulate the process of adjusting weights and biases based on training data.\n  6. The app must include examples of different types of neural networks, such as CNNs and RNNs, and explain their unique architectures and applications.\n  7. The app must provide a simple, playful interface with clear instructions and feedback to promote understanding and engagement.\n  8. The app must allow users to experiment with different scenarios and observe the outcomes, reinforcing the concepts of data flow, linear regression, and backpropagation.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_dd2f49f007938719_1751215276.html",
+    "created_at": "2025-06-29 16:41:16 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=jmmW0F0biz0",
+    "video_title": "Neural Networks Explained in 5 minutes",
+    "twelvelabs_video_ids": [
+      "68616c3a042f13dfd543c91f"
+    ],
+    "primary_video_id": "68616c3a042f13dfd543c91f",
+    "total_chunks": null,
+    "cache_key": "dd2f49f007938719",
+    "cached_at": "2025-06-29 16:41:16 UTC"
+  },
+  "e0f30888d8ae998d": {
+    "video_id": "e0f30888d8ae998d",
+    "video_analysis": "```json\n{\n  \"spec\": \"Build an interactive web app to help learners understand SHAP values and their application in machine learning models.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature a simple, user-friendly interface with clear navigation.\\n2. The app must include an interactive section where users can input different feature values for a hypothetical employee, such as years of experience, degree status, sales performance, and days late.\\n3. The app must display a bar chart that shows the SHAP values for each input feature, illustrating how each feature contributes to the predicted bonus.\\n4. The app must provide a visual explanation of SHAP values, including how they increase or decrease the prediction compared to the average prediction across all employees.\\n5. The app must include a section that explains the concept of SHAP values in the context of classification problems, using an example of predicting whether a mushroom is poisonous or edible.\\n6. The app must allow users to explore different scenarios by changing feature values and observing the impact on the predicted outcome and SHAP values.\\n7. The app must include a debugging section where users can input incorrect predictions and understand which features have caused the error.\\n8. The app must provide human-friendly explanations for predictions, highlighting the key features that influenced the outcome.\\n9. The app must include a data exploration section where users can learn about hidden patterns and interactions within the data set.\\n10. The app must offer a brief introduction to the theory behind SHAP and a guide to using the Python SHAP package, with links to further resources for learning.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_e0f30888d8ae998d_1751321944.html",
+    "created_at": "2025-06-30 22:19:04 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=MQ6fFDwjuco",
+    "video_title": "SHAP values for beginners | What they mean and their applications",
+    "twelvelabs_video_ids": [
+      "68630ce0913f41f63f5d2380"
+    ],
+    "primary_video_id": "68630ce0913f41f63f5d2380",
+    "total_chunks": null,
+    "cache_key": "e0f30888d8ae998d",
+    "cached_at": "2025-06-30 22:19:04 UTC"
+  },
+  "68631901913f41f63f5d251b": {
+    "video_id": "68631901913f41f63f5d251b",
+    "video_analysis": "I regret to inform you that the question you've asked is of such complexity that a definitive answer eludes our current knowledge and understanding.",
+    "html_file_path": "generated_games/video_game_68631901913f41f63f5d251b_1751325086.html",
+    "created_at": "2025-06-30 23:11:26 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=T-D1OfcDW1M",
+    "video_title": "What is Retrieval-Augmented Generation (RAG)?",
+    "channel_name": "",
+    "view_count": "",
+    "cache_key": "e30b1a0332f1f9ac",
+    "cached_at": "2025-06-30 23:11:26 UTC"
+  },
+  "c88ef2d11a87a57d": {
+    "video_id": "c88ef2d11a87a57d",
+    "video_analysis": "```json\n{\n  \"spec\": \"In the realm of data storage and retrieval, vector databases offer a powerful way to store and query unstructured data, such as images, text, and audio, by capturing their semantic essence through vector embeddings. This approach bridges the semantic gap between how humans understand data and how computers store it, enabling nuanced similarity searches.\\n\\nBuild an interactive web app to help learners understand vector databases and their applications.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive canvas where users can draw simple images or upload images.\\n2. The app must display a relational database model and a vector database model side by side for comparison.\\n3. The app must explain the concept of the semantic gap and how vector databases address it.\\n4. The app must allow users to convert their drawn or uploaded images into vector embeddings and display the numerical values of these embeddings.\\n5. The app must provide a feature to compare the vector embeddings of two different images and highlight the similarities and differences.\\n6. The app must showcase examples of embedding models (Clip for images, GloVe for text, and Wav2Vec for audio) and explain how they create vector embeddings.\\n7. The app must demonstrate the process of vector indexing using approximate nearest neighbor algorithms and show how it enables efficient similarity search.\\n8. The app must include a section on RAG (Retrieval Augmented Generation) and explain how vector databases are used in this context.\\n9. The app must provide a simple, playful interface with clear instructions and feedback to enhance user engagement and understanding.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_c88ef2d11a87a57d_1751362880.html",
+    "created_at": "2025-07-01 09:41:20 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=gl1r1XV0SLw",
+    "video_title": "What is a Vector Database? Powering Semantic Search & AI Applications",
+    "twelvelabs_video_ids": [
+      "6863aca366e177b742cc6724"
+    ],
+    "primary_video_id": "6863aca366e177b742cc6724",
+    "total_chunks": null,
+    "cache_key": "c88ef2d11a87a57d",
+    "cached_at": "2025-07-01 09:41:20 UTC"
+  },
+  "6863ae6866e177b742cc676e": {
+    "video_id": "6863ae6866e177b742cc676e",
+    "video_analysis": "```json\n{\n  \"spec\": {\n    \"title\": \"Interactive Dance Studio\",\n    \"description\": \"An engaging web app that helps users learn and practice dance moves inspired by a dynamic dance performance.\",\n    \"features\": [\n      {\n        \"name\": \"Dance Move Library\",\n        \"description\": \"A collection of dance moves demonstrated in the performance, categorized by complexity and style.\",\n        \"mechanics\": [\n          \"Users can browse and select dance moves from the library.\",\n          \"Each move includes a step-by-step guide with visual aids.\"\n        ]\n      },\n      {\n        \"name\": \"Practice Mode\",\n        \"description\": \"Allows users to practice selected dance moves in a virtual studio environment.\",\n        \"mechanics\": [\n          \"Users can set the tempo and difficulty level.\",\n          \"The app provides real-time feedback on form and timing.\"\n        ]\n      },\n      {\n        \"name\": \"Choreography Builder\",\n        \"description\": \"Enables users to create their own dance routines using the library of moves.\",\n        \"mechanics\": [\n          \"Users can drag and drop moves into a timeline.\",\n          \"The app generates a video preview of the routine.\"\n        ]\n      }\n    ],\n    \"design\": {\n      \"colorScheme\": [\"#FFC107\", \"#28A745\", \"#17A2B8\"],\n      \"fontFamily\": \"Roboto\",\n      \"layout\": \"Responsive layout optimized for mobile and desktop.\"\n    },\n    \"development\": {\n      \"technologyStack\": [\"HTML\", \"CSS\", \"JavaScript\"],\n      \"libraries\": [\"jQuery\", \"Bootstrap\"],\n      \"testing\": \"Unit tests and integration tests using Jest and Cypress.\"\n    }\n  }\n}\n```",
+    "html_file_path": "generated_games/video_game_6863ae6866e177b742cc676e_1751541364.html",
+    "created_at": "2025-07-03 11:16:04 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=w5cZM23PG-k",
+    "video_title": "On The Floor - Jenefer Lopes (Dance Cover) | Orangie Choreography",
+    "channel_name": "",
+    "view_count": "",
+    "cache_key": "5c35c36dfe1615b8",
+    "cached_at": "2025-07-03 11:16:04 UTC"
+  },
+  "6863b03266e177b742cc67c6": {
+    "video_id": "6863b03266e177b742cc67c6",
+    "video_analysis": "```json\n{\n  \"spec\": {\n    \"title\": \"Dance Studio Interactive App\",\n    \"description\": \"An interactive web app designed to complement and reinforce the concepts of dance choreography and synchronization.\",\n    \"features\": [\n      {\n        \"name\": \"Interactive Choreography Board\",\n        \"description\": \"A visual representation of the dance studio where users can select different dancers and view their movements.\",\n        \"mechanics\": [\n          \"Users can click on individual dancers to highlight their movements.\",\n          \"The board displays the names and roles of each dancer.\"\n        ]\n      },\n      {\n        \"name\": \"Choreography Sequence Builder\",\n        \"description\": \"Allows users to build and play back sequences of dance moves.\",\n        \"mechanics\": [\n          \"Users can drag and drop dance moves into a timeline.\",\n          \"The app plays back the sequence with synchronized animations.\"\n        ]\n      },\n      {\n        \"name\": \"Synchronization Challenges\",\n        \"description\": \"Interactive challenges that test users' ability to synchronize dance moves.\",\n        \"mechanics\": [\n          \"Users must match their movements to a pre-recorded sequence.\",\n          \"The app provides feedback on synchronization accuracy.\"\n        ]\n      }\n    ],\n    \"design\": {\n      \"colorScheme\": [\"#FFC107\", \"#28A745\", \"#17A2B8\"],\n      \"fontFamily\": \"Roboto\",\n      \"layout\": \"Responsive layout with a central choreography board and side panels for features.\"\n    },\n    \"development\": {\n      \"technologyStack\": [\"HTML\", \"CSS\", \"JavaScript\"],\n      \"libraries\": [],\n      \"dependencies\": []\n    }\n  }\n}\n```",
+    "html_file_path": "generated_games/video_game_6863b03266e177b742cc67c6_1751365720.html",
+    "created_at": "2025-07-01 10:28:40 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=wjzMS8FBXSk",
+    "video_title": "Espresso - Sabrina Carpenter | HEXXY Choreography",
+    "channel_name": "",
+    "view_count": "",
+    "cache_key": "48cc15be84fa892e",
+    "cached_at": "2025-07-01 10:28:40 UTC"
+  },
+  "6863b1fc6b30ee3bee7381a2": {
+    "video_id": "6863b1fc6b30ee3bee7381a2",
+    "video_analysis": "```json\n{\n  \"spec\": \"In the history of Mumbai, the city was initially formed by seven separate islands that were later joined together through land reclamation processes. This transformation played a significant role in shaping the city into a major metropolitan area and financial hub of India. The interactive web app aims to help learners understand the historical context and the process of land reclamation that led to the formation of modern-day Mumbai.\n\n  SPECIFICATIONS:\n\n  1. The app must feature an interactive map of the seven islands of Mumbai.\n  2. The app must showcase the names and locations of the seven islands: Colaba, Mazagaon, Old Woman's Island, Worli, Mahim, Parel, and the Island of Bombay.\n  3. The app must include a timeline that highlights the historical periods during which different rulers and empires controlled the islands, such as the Satavahanas, Western Satraps, Abhiras, Vakatakas, Kalachuris, Chalukyas, and Rashtrakutas.\n  4. The app must explain the process of land reclamation, including the causeways that connected the islands, such as the Duncan Causeway, Colaba Causeway, and Mahim Causeway.\n  5. The app must allow users to interact with the map by clicking on each island to reveal historical information and the timeline of its development.\n  6. The app must include a feature where users can drag and drop causeways to connect the islands, simulating the land reclamation process.\n  7. The app must provide a final view of the unified landmass of Mumbai, with the label 'Mumbai' prominently displayed.\n  8. The app must include simple, playful design elements such as animations and interactive quizzes to reinforce the learning experience.\n  9. The app must be accessible and user-friendly, with clear instructions and visual cues to guide the user through the interactive features.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_6863b1fc6b30ee3bee7381a2_1751365641.html",
+    "created_at": "2025-07-01 10:27:21 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=rpMeNGfdVqk",
+    "video_title": "History of Mumbai: A city of Seven Islands | General Geography | Land Reclamation | UPSC CSE",
+    "channel_name": "",
+    "view_count": "",
+    "cache_key": "2f256accc18fc4e8",
+    "cached_at": "2025-07-01 10:27:21 UTC"
+  },
+  "6863b381487d08d06eebb96f": {
+    "video_id": "6863b381487d08d06eebb96f",
+    "video_analysis": "```json\n{\n  \"spec\": \"In data science, Principal Component Analysis (PCA) is a technique used to reduce the number of dimensions in large datasets while retaining most of the original information. This is particularly useful for data visualization and machine learning applications.\\n\\nBuild an interactive web app to help learners understand PCA and its applications.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive table where users can input or modify data for multiple loans, including dimensions such as loan amount, credit score, annual income, and years in job.\\n2. The app must display a scatter plot that visualizes the data points based on the first two principal components (PC1 and PC2) derived from the input data.\\n3. The app must allow users to toggle the visibility of different dimensions in the scatter plot to observe how PCA reduces dimensionality and retains essential information.\\n4. The app must include a section that explains the concept of principal components, highlighting how they are linear combinations of the original variables that capture the maximum variance.\\n5. The app must provide examples of PCA use cases, such as image compression, data visualization, noise filtration, and healthcare applications, with interactive elements to demonstrate each use case.\\n6. The app must include a brief history section that mentions PCA's development in 1901 and its relevance in modern machine learning applications.\\n7. The app must have a simple, playful design with clear instructions and feedback to guide users through the interactive elements.\\n8. The app must be responsive and accessible, ensuring a smooth user experience across different devices and screen sizes.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_6863b381487d08d06eebb96f_1751364736.html",
+    "created_at": "2025-07-01 10:12:16 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=ZgyY3JuGQY8&t=3s",
+    "video_title": "Principal Component Analysis (PCA) Explained: Simplify Complex Data for Machine Learning",
+    "channel_name": "",
+    "view_count": "",
+    "cache_key": "66d1ef4bb14d0638",
+    "cached_at": "2025-07-01 10:12:16 UTC"
+  },
+  "6863b8d56b30ee3bee7383ef": {
+    "video_id": "6863b8d56b30ee3bee7383ef",
+    "video_analysis": "```json\n{\n  \"spec\": \"In statistics, Principal Component Analysis (PCA) is a technique used to reduce the dimensionality of data while preserving as much variation as possible. This is achieved by transforming the original variables into a new set of variables, the principal components, which are uncorrelated and ordered so that the first few retain most of the variation present in all of the original variables.\\n\\nBuild an interactive web app to help learners understand PCA and its practical tips.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive table where users can input or modify data points for two or more variables.\\n2. The app must display a scatter plot that updates in real-time as users modify the data in the table.\\n3. The app must include a scaling feature that allows users to adjust the scale of each variable to ensure they are on the same scale before performing PCA.\\n4. The app must include a centering feature that allows users to center the data around the origin before performing PCA.\\n5. The app must calculate and display the principal components (PC1 and PC2) on the scatter plot, showing how the data is transformed.\\n6. The app must provide a visual explanation of how many principal components can be expected based on the number of variables and samples.\\n7. The app must include a feature that allows users to add or remove data points and observe how this affects the principal components.\\n8. The app must include a tutorial section that explains the concepts of scaling, centering, and the number of principal components in simple terms.\\n9. The app must have a clear and simple design, with intuitive controls and feedback mechanisms to enhance user engagement and learning.\\n10. The app must be responsive and accessible, ensuring that it can be used on various devices and by users with different abilities.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_6863b8d56b30ee3bee7383ef_1751544243.html",
+    "created_at": "2025-07-03 12:04:03 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=oRvgq966yZg",
+    "video_title": "StatQuest: PCA - Practical Tips",
+    "channel_name": "",
+    "view_count": "",
+    "cached_at": "2025-07-03 12:04:03 UTC"
+  },
+  "1b590d8d297bca42": {
+    "video_id": "1b590d8d297bca42",
+    "video_analysis": "```json\n{\n  \"spec\": {\n    \"title\": \"Grok-3 Interactive Web App\",\n    \"description\": \"An interactive web app designed to complement and reinforce the key ideas presented about Grok-3, an advanced artificial intelligence model with enhanced reasoning and computational capabilities.\",\n    \"features\": [\n      {\n        \"name\": \"Interactive Chat Interface\",\n        \"description\": \"Users can engage in a simulated conversation with Grok-3, asking questions and receiving detailed explanations.\",\n        \"mechanics\": [\n          \"Users type questions into a text box.\",\n          \"Grok-3 responds with detailed answers, explaining the reasoning behind them.\"\n        ]\n      },\n      {\n        \"name\": \"Think Mode Simulation\",\n        \"description\": \"A visual representation of Grok-3's Think Mode, illustrating step-by-step problem-solving.\",\n        \"mechanics\": [\n          \"Users select a problem from a list.\",\n          \"Grok-3 breaks down the problem into smaller steps, showing each step visually.\"\n        ]\n      },\n      {\n        \"name\": \"Big Brain Mode Challenge\",\n        \"description\": \"A series of complex problems that require Grok-3's advanced computational power.\",\n        \"mechanics\": [\n          \"Users choose a challenge from a list.\",\n          \"Grok-3 solves the problem, demonstrating its ability to handle complex tasks.\"\n        ]\n      }\n    ],\n    \"design\": {\n      \"colorScheme\": [\"#007BFF\", \"#FFC107\", \"#28A745\"],\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"layout\": \"Responsive layout with a clean and modern design.\"\n    },\n    \"development\": {\n      \"technologyStack\": [\"HTML\", \"CSS\", \"JavaScript\"],\n      \"libraries\": [],\n      \"dependencies\": []\n    }\n  }\n}\n```",
+    "html_file_path": "generated_games/video_game_1b590d8d297bca42_1751544983.html",
+    "created_at": "2025-07-03 12:16:23 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=lYuXx4TGUk4",
+    "video_title": "Elon Musk's Grok-3 AI Model in 2 Minutes",
+    "channel_name": "",
+    "view_count": "",
+    "cached_at": "2025-07-03 12:16:23 UTC"
+  }
+}
