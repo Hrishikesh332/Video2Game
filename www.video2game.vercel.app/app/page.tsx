@@ -54,6 +54,28 @@ export default function VideoToLearningApp() {
   const [isStreaming, setIsStreaming] = useState(false)
   const streamingCodeRef = useRef<HTMLDivElement>(null)
 
+  const [statusMessage, setStatusMessage] = useState("Starting process... This may take about 1 minute.");
+
+  const [isRegenerate, setIsRegenerate] = useState(false);
+
+  const progressToMessage = (msg: string, isRegenerate: boolean) => {
+    if (isRegenerate) {
+      if (msg.includes("Starting analysis with TwelveLabs")) return "Analyzing the video content with TwelveLabs";
+      if (msg.includes("Generating game with SambaNova")) return "Generating the Game with Sambanova";
+      return "Analyzing the video content with TwelveLabs";
+    } else {
+      if (msg.includes("Validating YouTube URL")) return "Validating YouTube URL";
+      if (msg.includes("Downloading video")) return "Downloading video";
+      if (msg.includes("Video downloaded. Indexing with TwelveLabs")) return "Indexing the Video with TwelveLabs";
+      if (msg.includes("Chunking video")) return "Chunking the video";
+      if (msg.includes("Indexing chunk")) return msg.replace("progress\ndata: ", "");
+      if (msg.includes("Indexing video")) return "Indexing the Video with TwelveLabs";
+      if (msg.includes("Analyzing video content")) return "Analyzing the video content with TwelveLabs";
+      if (msg.includes("Generating game with SambaNova")) return "Generating the Game with Sambanova";
+      return "Processing the video";
+    }
+  };
+
   const getApiBaseUrl = () => {
     if (typeof window !== "undefined") {
       const hostname = window.location.hostname
@@ -273,6 +295,7 @@ export default function VideoToLearningApp() {
   }
 
   const processYoutubeUrl = async (regenerate = false) => {
+    setIsRegenerate(regenerate);
     if (!youtubeUrl) {
       setError("Please enter a YouTube URL")
       return
@@ -379,12 +402,11 @@ export default function VideoToLearningApp() {
           const e = event as MessageEvent
           progressMsg = e.data
           setStreamingProgress(progressMsg)
+          setStatusMessage(progressToMessage(progressMsg, regenerate))
           
-          if (progressMsg.includes("Analyzing video content") || progressMsg.includes("Starting analysis")) {
-            if (!indexingCompleted) {
-              indexingCompleted = true
-              setIsStreaming(true)
-            }
+          // Show black container only when Sambanova is about to start
+          if (progressMsg.includes("Generating game with SambaNova")) {
+            setIsStreaming(true)
           }
         })
 
@@ -1002,26 +1024,22 @@ export default function VideoToLearningApp() {
 
         <div className="bg-white/40 backdrop-blur-sm relative flex flex-col" style={{ width: `${100 - leftWidth}%` }}>
           <div className="h-full flex flex-col">
-            {isStreaming ? (
+            {isLoading ? (
               <div className="h-full flex flex-col items-center justify-center p-4 w-full">
                 <div className="w-8 h-8 border-2 border-[#1d1c1b]/20 border-t-[#1d1c1b] rounded-full animate-spin mb-4"></div>
-                {streamingProgress && (
-                  <div className="text-[#1d1c1b] text-base mb-4 text-center min-h-[1.5em] font-medium">{streamingProgress}</div>
+                <div className="text-[#1d1c1b] text-base mb-2 text-center min-h-[1.5em] font-medium">{statusMessage}</div>
+                <div className="text-xs text-gray-500 mb-4">Note - It takes only 1 min to process.</div>
+                {isStreaming && (
+                  <div
+                    ref={streamingCodeRef}
+                    className="w-full max-w-2xl flex-1 bg-gradient-to-br from-[#18181b] to-[#232323] text-white rounded-2xl shadow-2xl p-8 overflow-y-auto text-base border-2 border-blue-900/40 animate-in fade-in-0 duration-500 relative"
+                    style={{ fontFamily: 'Fira Mono, Menlo, monospace', minHeight: 320, maxHeight: 480 }}
+                  >
+                    <pre className="whitespace-pre-wrap break-words" style={{ margin: 0 }}>
+                      <code>{gameHtml || ""}{isStreaming && <span className="animate-pulse text-blue-400">|</span>}</code>
+                    </pre>
+                  </div>
                 )}
-                <div
-                  ref={streamingCodeRef}
-                  className="w-full max-w-2xl flex-1 bg-[#18181b] text-white rounded-xl shadow-lg p-6 overflow-y-auto text-sm border border-[#232323]"
-                  style={{ fontFamily: 'Fira Mono, Menlo, monospace', minHeight: 320, maxHeight: 480 }}
-                >
-                  <pre className="whitespace-pre-wrap break-words" style={{ margin: 0 }}>
-                    <code>{gameHtml || ""}</code>
-                  </pre>
-                </div>
-              </div>
-            ) : isLoading ? (
-              <div className="h-full flex flex-col items-center justify-center p-4">
-                <div className="w-16 h-16 border-4 border-[#1d1c1b]/20 border-t-[#1d1c1b] rounded-full animate-spin mb-4"></div>
-                <p className="text-[#1d1c1b] font-medium">Generating interactive content...</p>
               </div>
             ) : gameHtml ? (
               <div className="h-full flex flex-col min-h-0">
