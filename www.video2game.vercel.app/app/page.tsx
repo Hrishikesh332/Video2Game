@@ -13,7 +13,7 @@ interface SampleVideo {
   type: string
   thumbnail: string
   videoUrl: string
-  gameHtml?: string
+  htmlFilePath: string
   isGenerated?: boolean
   channelName?: string
   viewCount?: string
@@ -82,41 +82,37 @@ export default function VideoToLearningApp() {
 
   const [sampleVideos, setSampleVideos] = useState<SampleVideo[]>([])
 
-  useEffect(() => {
-    const fetchSampleApps = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/sample-apps`)
-        if (!response.ok) throw new Error("Failed to fetch sample apps")
-        const data = await response.json()
-        const apps = (data.apps || []).map((app: any, idx: number) => {
-          let duration = app.duration
-          if (!duration && app.html_content) {
-            const match = app.html_content.match(/(\d{1,2}:\d{2})/)
-            duration = match ? match[1] : ""
-          }
-          return {
-            id: idx + 1,
-            title: app.video_title || `Video ${app.video_id?.substring(0, 8) || idx + 1}`,
-            duration: duration || "",
-            type: app.has_html ? "Interactive App" : "Video",
-            thumbnail: app.youtube_url
-              ? `https://img.youtube.com/vi/${extractVideoId(app.youtube_url)}/maxresdefault.jpg`
-              : "/placeholder.svg",
-            videoUrl: app.youtube_url || "",
-            gameHtml: app.html_content || "",
-            isGenerated: !!app.has_html,
-            channelName: app.channel_name || "",
-            viewCount: app.view_count || "",
-            createdAt: app.created_at || app.createdAt || "",
-            videoId: app.video_id || app.videoId || "",
-          }
-        })
-        setSampleVideos(apps)
-      } catch (err) {
-        setError("Could not load sample interactive apps")
-      }
+  const fetchSampleGames = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/sample-apps`)
+      if (!response.ok) throw new Error("Failed to fetch sample games")
+      const data = await response.json()
+      const apps = (data.apps || []).map((app: any, idx: number) => {
+        return {
+          id: idx + 1,
+          title: app.video_title || `Video ${app.video_id?.substring(0, 8) || idx + 1}`,
+          duration: app.duration || "",
+          type: app.has_html_file ? "Interactive App" : "Video",
+          thumbnail: app.youtube_url
+            ? `https://img.youtube.com/vi/${extractVideoId(app.youtube_url)}/maxresdefault.jpg`
+            : "/placeholder.svg",
+          videoUrl: app.youtube_url || "",
+          htmlFilePath: app.html_file_path || "",
+          isGenerated: !!app.has_html_file,
+          channelName: app.channel_name || "",
+          viewCount: app.view_count || "",
+          createdAt: app.created_at || app.createdAt || "",
+          videoId: app.video_id || app.videoId || "",
+        }
+      })
+      setSampleVideos(apps)
+    } catch (err) {
+      setError("Could not load sample interactive games")
     }
-    fetchSampleApps()
+  }
+
+  useEffect(() => {
+    fetchSampleGames()
   }, [API_BASE_URL])
 
   const handleMouseDown = useCallback(() => {
@@ -175,11 +171,11 @@ export default function VideoToLearningApp() {
 
       const data = await response.json()
 
-      if (data.success && data.data && data.data.html_content) {
+      if (data.success && data.data && data.data.html_file_path) {
         // Render the game immediately when response is received
-        setGameHtml(data.data.html_content)
+        setGameHtml(data.data.html_file_path)
 
-        const gameType = extractGameType(data.data.html_content)
+        const gameType = extractGameType(data.data.html_file_path)
 
         const existingVideoIndex = sampleVideos.findIndex((video) => video.videoUrl === url)
         if (existingVideoIndex !== -1) {
@@ -188,7 +184,7 @@ export default function VideoToLearningApp() {
               index === existingVideoIndex
                 ? {
                     ...video,
-                    gameHtml: data.data.html_content,
+                    htmlFilePath: data.data.html_file_path,
                     type: gameType,
                     title: data.data.video_title || video.title,
                     isGenerated: true,
@@ -299,7 +295,7 @@ export default function VideoToLearningApp() {
           type: "Processing",
           thumbnail: `https://img.youtube.com/vi/${extractVideoId(youtubeUrl)}/maxresdefault.jpg`,
           videoUrl: youtubeUrl,
-          gameHtml: "",
+          htmlFilePath: "",
           isGenerated: false,
           channelName: "",
           viewCount: "",
@@ -340,22 +336,17 @@ export default function VideoToLearningApp() {
                 if (response.ok) {
                   const data = await response.json()
                   const apps = (data.apps || []).map((app: any, idx: number) => {
-                    let duration = app.duration
-                    if (!duration && app.html_content) {
-                      const match = app.html_content.match(/(\d{1,2}:\d{2})/)
-                      duration = match ? match[1] : ""
-                    }
                     return {
                       id: idx + 1,
                       title: app.video_title || `Video ${app.video_id?.substring(0, 8) || idx + 1}`,
-                      duration: duration || "",
-                      type: app.has_html ? "Interactive App" : "Video",
+                      duration: app.duration || "",
+                      type: app.has_html_file ? "Interactive App" : "Video",
                       thumbnail: app.youtube_url
                         ? `https://img.youtube.com/vi/${extractVideoId(app.youtube_url)}/maxresdefault.jpg`
                         : "/placeholder.svg",
                       videoUrl: app.youtube_url || "",
-                      gameHtml: app.html_content || "",
-                      isGenerated: !!app.has_html,
+                      htmlFilePath: app.html_file_path || "",
+                      isGenerated: !!app.has_html_file,
                       channelName: app.channel_name || "",
                       viewCount: app.view_count || "",
                       createdAt: app.created_at || app.createdAt || "",
@@ -364,13 +355,13 @@ export default function VideoToLearningApp() {
                   })
                   setSampleVideos(apps)
                   const currentApp = apps.find((app: any) => app.videoUrl === youtubeUrl)
-                  if (currentApp && currentApp.gameHtml) {
-                    setGameHtml(currentApp.gameHtml)
+                  if (currentApp && currentApp.htmlFilePath) {
+                    setGameHtml(currentApp.htmlFilePath)
                     setCurrentGameId(currentApp.id)
                     setExpandedVideo(currentApp.id)
                   } else {
                     if (apps.length > 0) {
-                      setGameHtml(apps[0].gameHtml)
+                      setGameHtml(apps[0].htmlFilePath)
                       setCurrentGameId(apps[0].id)
                       setExpandedVideo(apps[0].id)
                     }
@@ -437,8 +428,8 @@ export default function VideoToLearningApp() {
     return
   }
 
-  const extractGameType = (htmlContent: string): string => {
-    const title = htmlContent.match(/<title>(.*?)<\/title>/i)?.[1] || ""
+  const extractGameType = (htmlFilePath: string): string => {
+    const title = htmlFilePath.match(/<title>(.*?)<\/title>/i)?.[1] || ""
 
     if (title.toLowerCase().includes("quiz")) return "Interactive Quiz"
     if (title.toLowerCase().includes("explorer") || title.toLowerCase().includes("regression")) return "Data Explorer"
@@ -449,15 +440,33 @@ export default function VideoToLearningApp() {
     return "Interactive App"
   }
 
+  const fetchHtmlFromFile = async (htmlFilePath: string): Promise<string> => {
+    if (!htmlFilePath) return ""
+    try {
+      const filename = htmlFilePath.split('/').pop()
+      const response = await fetch(`${API_BASE_URL}/games/open/${filename}`)
+      if (response.ok) {
+        const data = await response.json()
+        return data.content || ""
+      }
+    } catch (err) {
+      console.error("Failed to fetch HTML file:", err)
+    }
+    return ""
+  }
+
   useEffect(() => {
     if (activeTab === "app" && gameHtml && iframeRef.current) {
-      const iframe = iframeRef.current
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
-      if (iframeDoc) {
-        iframeDoc.open()
-        iframeDoc.write(gameHtml)
-        iframeDoc.close()
-      }
+      fetchHtmlFromFile(gameHtml).then((html) => {
+        const iframe = iframeRef.current
+        if (!iframe) return
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
+        if (iframeDoc) {
+          iframeDoc.open()
+          iframeDoc.write(html)
+          iframeDoc.close()
+        }
+      })
     }
   }, [gameHtml, activeTab])
 
@@ -468,23 +477,23 @@ export default function VideoToLearningApp() {
       setExpandedVideo(videoId)
       setCurrentGameId(videoId)
 
-      if (video.gameHtml) {
-        setGameHtml(video.gameHtml)
+      if (video.htmlFilePath) {
+        setGameHtml(video.htmlFilePath)
       } else {
         try {
           const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(video.videoUrl)}`)
           if (response.ok) {
             const data = await response.json()
-            if (data.success && data.data && data.data.html_content) {
-              setGameHtml(data.data.html_content)
+            if (data.success && data.data && data.data.html_file_path) {
+              setGameHtml(data.data.html_file_path)
               
               setSampleVideos((prev) =>
                 prev.map((v) =>
                   v.id === videoId
                     ? {
                         ...v,
-                        gameHtml: data.data.html_content,
-                        type: extractGameType(data.data.html_content),
+                        htmlFilePath: data.data.html_file_path,
+                        type: extractGameType(data.data.html_file_path),
                         isGenerated: true,
                       }
                     : v
@@ -573,17 +582,17 @@ export default function VideoToLearningApp() {
 
       const data = await response.json()
 
-      if (data.success && data.data && data.data.html_content) {
-        setGameHtml(data.data.html_content)
+      if (data.success && data.data && data.data.html_file_path) {
+        setGameHtml(data.data.html_file_path)
 
         const newVideo = {
           id: Date.now(),
           title: selectedTwelveLabsVideoName || `TwelveLabs Video ${selectedTwelveLabsVideo.substring(0, 8)}`,
           duration: "Unknown",
-          type: extractGameType(data.data.html_content),
+          type: extractGameType(data.data.html_file_path),
           thumbnail: "/placeholder.svg?height=90&width=160&text=TwelveLabs",
           videoUrl: "",
-          gameHtml: data.data.html_content,
+          htmlFilePath: data.data.html_file_path,
           isGenerated: true,
           channelName: "TwelveLabs Content",
           viewCount: "Generated",
@@ -608,6 +617,13 @@ export default function VideoToLearningApp() {
       streamingCodeRef.current.scrollTop = streamingCodeRef.current.scrollHeight;
     }
   }, [gameHtml, isStreaming]);
+
+  const [htmlCode, setHtmlCode] = useState<string>("")
+  useEffect(() => {
+    if (activeTab === "code" && gameHtml) {
+      fetchHtmlFromFile(gameHtml).then(setHtmlCode)
+    }
+  }, [gameHtml, activeTab])
 
   return (
     <div className="min-h-screen bg-[#f4f3f3] relative overflow-hidden">
@@ -1118,7 +1134,7 @@ export default function VideoToLearningApp() {
                     </div>
                   ) : (
                     <div className="h-full bg-white rounded-lg overflow-hidden border border-[#ececec] shadow-sm">
-                      <CodeViewer code={gameHtml} />
+                      <CodeViewer code={htmlCode} />
                     </div>
                   )}
                 </div>
