@@ -1026,7 +1026,36 @@ export default function VideoToLearningApp() {
           <div className="h-full flex flex-col">
             {isLoading ? (
               <div className="h-full flex flex-col items-center justify-center p-4 w-full">
-                <div className="w-8 h-8 border-2 border-[#1d1c1b]/20 border-t-[#1d1c1b] rounded-full animate-spin mb-4"></div>
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-4">
+                  <rect className="twl-bar twl-bar1" x="10" y="20" width="60" height="10" rx="5" />
+                  <rect className="twl-bar twl-bar2" x="10" y="35" width="60" height="10" rx="5" />
+                  <rect className="twl-bar twl-bar3" x="10" y="50" width="60" height="10" rx="5" />
+                </svg>
+                <style jsx>{`
+                  .twl-bar {
+                    fill: #1d1c1b;
+                    opacity: 0.3;
+                    transform-origin: 40px 25px;
+                  }
+                  .twl-bar1 {
+                    animation: twl-bar-anim 1.2s cubic-bezier(0.4,0,0.2,1) infinite;
+                    animation-delay: 0s;
+                  }
+                  .twl-bar2 {
+                    animation: twl-bar-anim 1.2s cubic-bezier(0.4,0,0.2,1) infinite;
+                    animation-delay: 0.2s;
+                  }
+                  .twl-bar3 {
+                    animation: twl-bar-anim 1.2s cubic-bezier(0.4,0,0.2,1) infinite;
+                    animation-delay: 0.4s;
+                  }
+                  @keyframes twl-bar-anim {
+                    0% { opacity: 0.3; transform: scaleX(1); }
+                    20% { opacity: 1; transform: scaleX(1.08); }
+                    40% { opacity: 0.3; transform: scaleX(1); }
+                    100% { opacity: 0.3; transform: scaleX(1); }
+                  }
+                `}</style>
                 <div className="text-[#1d1c1b] text-base mb-2 text-center min-h-[1.5em] font-medium">{statusMessage}</div>
                 <div className="text-xs text-gray-500 mb-4">Note - It takes only 1 min to process.</div>
                 {isStreaming && (
