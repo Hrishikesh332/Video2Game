@@ -104,29 +104,27 @@
   },
   "6863b03266e177b742cc67c6": {
     "video_id": "6863b03266e177b742cc67c6",
-    "video_analysis": "```json\n{\n  \"spec\": {\n    \"title\": \"Dance Studio Interactive App\",\n    \"description\": \"An interactive web app designed to complement and reinforce the concepts of dance choreography and synchronization.\",\n    \"features\": [\n      {\n        \"name\": \"Interactive Choreography Board\",\n        \"description\": \"A visual representation of the dance studio where users can select different dancers and view their movements.\",\n        \"mechanics\": [\n          \"Users can click on individual dancers to highlight their movements.\",\n          \"The board displays the names and roles of each dancer.\"\n        ]\n      },\n      {\n        \"name\": \"Choreography Sequence Builder\",\n        \"description\": \"Allows users to build and play back sequences of dance moves.\",\n        \"mechanics\": [\n          \"Users can drag and drop dance moves into a timeline.\",\n          \"The app plays back the sequence with synchronized animations.\"\n        ]\n      },\n      {\n        \"name\": \"Synchronization Challenges\",\n        \"description\": \"Interactive challenges that test users' ability to synchronize dance moves.\",\n        \"mechanics\": [\n          \"Users must match their movements to a pre-recorded sequence.\",\n          \"The app provides feedback on synchronization accuracy.\"\n        ]\n      }\n    ],\n    \"design\": {\n      \"colorScheme\": [\"#FFC107\", \"#28A745\", \"#17A2B8\"],\n      \"fontFamily\": \"Roboto\",\n      \"layout\": \"Responsive layout with a central choreography board and side panels for features.\"\n    },\n    \"development\": {\n      \"technologyStack\": [\"HTML\", \"CSS\", \"JavaScript\"],\n      \"libraries\": [],\n      \"dependencies\": []\n    }\n  }\n}\n```",
-    "html_file_path": "generated_games/video_game_6863b03266e177b742cc67c6_1751365720.html",
-    "created_at": "2025-07-01 10:28:40 UTC",
+    "video_analysis": "```json\n{\n  \"spec\": {\n    \"title\": \"Dance Studio Rhythm and Flow\",\n    \"description\": \"An interactive web app designed to help learners understand rhythm and flow in dance.\",\n    \"features\": [\n      {\n        \"name\": \"Interactive Dance Floor\",\n        \"description\": \"A virtual dance floor where users can perform dance moves and see their effects in real-time.\",\n        \"mechanics\": [\n          \"Users can select different dance styles and levels of difficulty.\",\n          \"The app provides visual feedback on timing and synchronization.\",\n          \"Users can record and share their performances.\"\n        ]\n      },\n      {\n        \"name\": \"Rhythm Generator\",\n        \"description\": \"A tool that generates rhythmic patterns for users to practice and improve their timing.\",\n        \"mechanics\": [\n          \"Users can choose from various rhythmic patterns and tempos.\",\n          \"The app provides visual cues to help users follow the rhythm.\",\n          \"Users can adjust the complexity of the patterns as they progress.\"\n        ]\n      },\n      {\n        \"name\": \"Flow Visualization\",\n        \"description\": \"A feature that illustrates the flow of movement in dance, helping users understand how to transition smoothly between moves.\",\n        \"mechanics\": [\n          \"The app uses animations and diagrams to show the flow of movement.\",\n          \"Users can explore different flow patterns and see how they affect the overall performance.\",\n          \"The app provides tips and exercises to improve flow and fluidity.\"\n        ]\n      }\n    ],\n    \"design\": {\n      \"colorScheme\": [\"#FFC107\", \"#28A745\", \"#17A2B8\"],\n      \"fontFamily\": \"Roboto\",\n      \"layout\": \"Responsive layout with a clean and modern design.\"\n    },\n    \"development\": {\n      \"technologyStack\": [\"HTML\", \"CSS\", \"JavaScript\"],\n      \"libraries\": [\"jQuery\", \"Bootstrap\"],\n      \"testing\": \"Unit tests and integration tests using Jest and Cypress.\"\n    }\n  }\n}\n```",
+    "html_file_path": "generated_games/video_game_6863b03266e177b742cc67c6_1751577410.html",
+    "created_at": "2025-07-03 21:16:50 UTC",
     "cached": true,
     "youtube_url": "https://www.youtube.com/watch?v=wjzMS8FBXSk",
     "video_title": "Espresso - Sabrina Carpenter | HEXXY Choreography",
     "channel_name": "",
     "view_count": "",
-    "cache_key": "48cc15be84fa892e",
-    "cached_at": "2025-07-01 10:28:40 UTC"
+    "cached_at": "2025-07-03 21:16:50 UTC"
   },
   "6863b1fc6b30ee3bee7381a2": {
     "video_id": "6863b1fc6b30ee3bee7381a2",
-    "video_analysis": "```json\n{\n  \"spec\": \"In the history of Mumbai, the city was initially formed by seven separate islands that were later joined together through land reclamation processes. This transformation played a significant role in shaping the city into a major metropolitan area and financial hub of India. The interactive web app aims to help learners understand the historical context and the process of land reclamation that led to the formation of modern-day Mumbai.\n\n  SPECIFICATIONS:\n\n  1. The app must feature an interactive map of the seven islands of Mumbai.\n  2. The app must showcase the names and locations of the seven islands: Colaba, Mazagaon, Old Woman's Island, Worli, Mahim, Parel, and the Island of Bombay.\n  3. The app must include a timeline that highlights the historical periods during which different rulers and empires controlled the islands, such as the Satavahanas, Western Satraps, Abhiras, Vakatakas, Kalachuris, Chalukyas, and Rashtrakutas.\n  4. The app must explain the process of land reclamation, including the causeways that connected the islands, such as the Duncan Causeway, Colaba Causeway, and Mahim Causeway.\n  5. The app must allow users to interact with the map by clicking on each island to reveal historical information and the timeline of its development.\n  6. The app must include a feature where users can drag and drop causeways to connect the islands, simulating the land reclamation process.\n  7. The app must provide a final view of the unified landmass of Mumbai, with the label 'Mumbai' prominently displayed.\n  8. The app must include simple, playful design elements such as animations and interactive quizzes to reinforce the learning experience.\n  9. The app must be accessible and user-friendly, with clear instructions and visual cues to guide the user through the interactive features.\"\n}\n```",
-    "html_file_path": "generated_games/video_game_6863b1fc6b30ee3bee7381a2_1751365641.html",
-    "created_at": "2025-07-01 10:27:21 UTC",
+    "video_analysis": "```json\n{\n  \"spec\": \"Build an interactive web app to help learners understand the historical context and development of the seven islands of Mumbai.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive map of the seven islands of Mumbai, allowing users to zoom in and out and click on each island to see detailed information.\\n2. The app must include a timeline feature that allows users to explore the historical periods during which different rulers and empires controlled the islands, from the 2nd century BC to the 9th century CE.\\n3. The app must provide a section on land reclamation, where users can interactively see how the islands were joined together by the British East India Company through various civil engineering projects.\\n4. The app must include a quiz section where users can test their knowledge about the historical rulers, empires, and the process of land reclamation.\\n5. The app must have a feature that allows users to view historical photos and illustrations of the construction sites and the development of the islands.\\n6. The app must include a section on the demographic changes in the region due to immigration, with interactive charts showing the population increase from 10,000 to 60,000 during the period 1661-1675 AD.\\n7. The app must have a section on the economic impact of the land reclamation, showing how the islands became a significant trading center and harbor for the British.\\n8. The app must allow users to play a mini-game where they can virtually construct the causeways and embankments that unified the islands, reinforcing the concept of land reclamation.\\n9. The app must include a glossary of terms related to the historical context and development of the islands, such as 'civil engineering projects', 'land reclamation', and 'causeways'.\\n10. The app must have a feature that allows users to explore the current city layout and compare it with the historical maps, highlighting the areas that were once separate islands.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_6863b1fc6b30ee3bee7381a2_1751578082.html",
+    "created_at": "2025-07-03 21:28:02 UTC",
     "cached": true,
     "youtube_url": "https://www.youtube.com/watch?v=rpMeNGfdVqk",
     "video_title": "History of Mumbai: A city of Seven Islands | General Geography | Land Reclamation | UPSC CSE",
     "channel_name": "",
     "view_count": "",
-    "cache_key": "2f256accc18fc4e8",
-    "cached_at": "2025-07-01 10:27:21 UTC"
+    "cached_at": "2025-07-03 21:28:02 UTC"
   },
   "6863b381487d08d06eebb96f": {
     "video_id": "6863b381487d08d06eebb96f",
@@ -143,15 +141,15 @@
   },
   "6863b8d56b30ee3bee7383ef": {
     "video_id": "6863b8d56b30ee3bee7383ef",
-    "video_analysis": "```json\n{\n  \"spec\": \"In statistics, Principal Component Analysis (PCA) is a technique used to reduce the dimensionality of data while preserving as much variation as possible. This is achieved by transforming the original variables into a new set of variables, the principal components, which are uncorrelated and ordered so that the first few retain most of the variation present in all of the original variables.\\n\\nBuild an interactive web app to help learners understand PCA and its practical tips.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive table where users can input or modify data points for two or more variables.\\n2. The app must display a scatter plot that updates in real-time as users modify the data in the table.\\n3. The app must include a scaling feature that allows users to adjust the scale of each variable to ensure they are on the same scale before performing PCA.\\n4. The app must include a centering feature that allows users to center the data around the origin before performing PCA.\\n5. The app must calculate and display the principal components (PC1 and PC2) on the scatter plot, showing how the data is transformed.\\n6. The app must provide a visual explanation of how many principal components can be expected based on the number of variables and samples.\\n7. The app must include a feature that allows users to add or remove data points and observe how this affects the principal components.\\n8. The app must include a tutorial section that explains the concepts of scaling, centering, and the number of principal components in simple terms.\\n9. The app must have a clear and simple design, with intuitive controls and feedback mechanisms to enhance user engagement and learning.\\n10. The app must be responsive and accessible, ensuring that it can be used on various devices and by users with different abilities.\"\n}\n```",
-    "html_file_path": "generated_games/video_game_6863b8d56b30ee3bee7383ef_1751544243.html",
-    "created_at": "2025-07-03 12:04:03 UTC",
+    "video_analysis": "```json\n{\n  \"spec\": \"In Principal Component Analysis (PCA), the goal is to reduce the dimensionality of data while preserving as much variance as possible. This is achieved by scaling and centering the data, and then identifying the principal components that capture the most variance.\\n\\nBuild an interactive web app to help learners understand PCA.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive scatter plot where users can input or drag data points.\\n2. The app must allow users to scale the data by adjusting the range of values for each variable. This can be done through sliders or input fields.\\n3. The app must center the data by shifting the origin to the mean of the data points. This should be a toggleable feature.\\n4. The app must display the principal components (PC1 and PC2) as lines on the scatter plot. Users should be able to see how these lines change as they scale and center the data.\\n5. The app must explain the concept of scaling and centering, and how these processes affect the PCA results. This can be done through tooltips or a help section.\\n6. The app must allow users to add or remove data points to observe how the number of samples affects the number of principal components. This should be clearly indicated on the scatter plot.\\n7. The app must display the eigenvalues for each principal component, showing the amount of variance captured by each component.\\n8. The app must include a simple example dataset to demonstrate the concepts, such as student scores in Math and Reading.\\n9. The app must have a clear and simple interface with minimal distractions to focus on the core mechanics of PCA.\\n10. The app must be responsive and work well on both desktop and mobile devices.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_6863b8d56b30ee3bee7383ef_1751577038.html",
+    "created_at": "2025-07-03 21:10:38 UTC",
     "cached": true,
     "youtube_url": "https://www.youtube.com/watch?v=oRvgq966yZg",
     "video_title": "StatQuest: PCA - Practical Tips",
     "channel_name": "",
     "view_count": "",
-    "cached_at": "2025-07-03 12:04:03 UTC"
+    "cached_at": "2025-07-03 21:10:38 UTC"
   },
   "1b590d8d297bca42": {
     "video_id": "1b590d8d297bca42",
@@ -168,25 +166,49 @@
   "68667949a98231bea6b2a1be": {
     "video_id": "68667949a98231bea6b2a1be",
     "video_analysis": "I regret to inform you that the question you've asked is of such complexity that a definitive answer eludes our current knowledge and understanding.",
-    "html_file_path": "generated_games/video_game_68667949a98231bea6b2a1be_1751546617.html",
-    "created_at": "2025-07-03 12:43:37 UTC",
+    "html_file_path": "generated_games/video_game_68667949a98231bea6b2a1be_1751576568.html",
+    "created_at": "2025-07-03 21:02:48 UTC",
     "cached": true,
     "youtube_url": "https://www.youtube.com/watch?v=b0XI-cbel1U",
     "video_title": "Is Elon’s Grok 3 the new AI king?",
     "channel_name": "",
     "view_count": "",
-    "cached_at": "2025-07-03 12:43:37 UTC"
+    "cached_at": "2025-07-03 21:02:48 UTC"
   },
   "68667a42a98231bea6b2a1f7": {
     "video_id": "68667a42a98231bea6b2a1f7",
-    "video_analysis": "```json\n{\n  \"spec\": \"In the field of Artificial Intelligence (AI), foundational knowledge in math and programming is crucial for learners to build a strong base before diving into advanced topics. This interactive web app aims to reinforce the key ideas from the video and provide an engaging, interactive learning experience for self-studying AI.\n\n  SPECIFICATIONS:\n\n  1. The app must feature a structured roadmap that guides users through essential prerequisites, including math and programming skills.\n  2. The app must include interactive modules for foundational math topics such as Calculus, Linear Algebra, and Probability and Statistics. Each module should have:\n     - Interactive lessons with visual aids and examples.\n     - Quizzes and practice problems to reinforce learning.\n     - Progress tracking with checkboxes to mark completed units.\n  3. The app must provide interactive programming modules for Linux Command Line, Object-Oriented Programming, Data Structures and Algorithms, and Python. Each module should have:\n     - Interactive coding environments for hands-on practice.\n     - Tutorials and examples to guide users through concepts.\n     - Progress tracking with checkboxes to mark completed units.\n  4. The app must offer two paths for AI fundamentals: Machine Learning and Artificial Intelligence. Each path should have:\n     - Interactive lessons with visual aids and examples.\n     - Quizzes and practice problems to reinforce learning.\n     - Project templates and guidelines for real-world application.\n  5. The app must include a project section where users can:\n     - Choose from predefined project templates or create their own.\n     - Access guidelines for developing publishable quality projects.\n     - Review recent research papers and past class projects for inspiration.\n  6. The app must provide electives for advanced topics such as Deep Learning, Computer Vision, Robotics, Natural Language Processing, and Reinforcement Learning. Each elective should have:\n     - Interactive lessons with visual aids and examples.\n     - Quizzes and practice problems to reinforce learning.\n     - Progress tracking with checkboxes to mark completed units.\n  7. The app must have a user-friendly interface with clear navigation and a clean design to promote understanding and engagement.\n  8. The app must allow users to save their progress and return to it later, ensuring a consistent learning experience.\n  9. The app must include motivational features such as badges or rewards for completing modules and projects, encouraging users to continue their learning journey.\n  10. The app must be accessible and free, ensuring that anyone can access the knowledge and skills regardless of their background or financial circumstances.\"\n}\n```",
-    "html_file_path": "generated_games/video_game_7d568f21384d936e_1751546556.html",
-    "created_at": "2025-07-03 12:42:36 UTC",
+    "video_analysis": "",
+    "html_file_path": "generated_games/video_game_68667a42a98231bea6b2a1f7_1751576122.html",
+    "created_at": "2025-07-03 20:55:22 UTC",
     "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=nznFtfgP2ks",
-    "video_title": "AI Machine Learning Roadmap: Self Study AI!",
+    "youtube_url": "",
+    "video_title": "Test Video",
     "channel_name": "",
     "view_count": "",
-    "cached_at": "2025-07-03 12:42:36 UTC"
+    "cached_at": "2025-07-03 20:55:22 UTC"
+  },
+  "6866f392a98231bea6b2c3fd": {
+    "video_id": "6866f392a98231bea6b2c3fd",
+    "video_analysis": "```json\n{\n  \"spec\": \"In machine learning, a Support Vector Machine (SVM) is a powerful algorithm used for classification tasks. It aims to find the hyperplane that maximizes the margin between different classes of data points. This hyperplane is defined by support vectors, which are the data points closest to the decision boundary.\n\n  Build an interactive web app to help learners understand the core concepts of SVMs.\n\n  SPECIFICATIONS:\n\n  1. The app must feature an interactive scatter plot where users can manually add data points with labels (+1 or -1).\n  2. The app must allow users to adjust the position of a hyperplane using a slider or direct manipulation.\n  3. The app must visually highlight the margin around the hyperplane and indicate which data points are support vectors.\n  4. The app must display the equations of the hyperplane and the margin boundaries (w^T x + b = 1 and w^T x + b = -1).\n  5. The app must include a button to automatically calculate and display the optimal hyperplane that maximizes the margin.\n  6. The app must provide a visual explanation of the constraints (y_i(w^T x_i + b) >= 1) and how they relate to the support vectors.\n  7. The app must allow users to experiment with different data distributions and observe the impact on the hyperplane and margin.\n  8. The app must include a section that explains the dual form of the SVM optimization problem and how it relates to the support vectors.\n  9. The app must provide a simple way to understand the calculation of the bias term (b) using the support vectors.\n  10. The app must include a classifier that predicts the label of a new data point based on the current hyperplane and margin.\n  11. The app must have a clear and concise tutorial section that explains the key concepts and mechanics of SVMs.\n  12. The app must be designed with a simple, playful interface to engage users and promote understanding.\n  \"\n}\n```",
+    "html_file_path": "generated_games/video_game_6866f392a98231bea6b2c3fd_1751578171.html",
+    "created_at": "2025-07-03 21:29:31 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=vIdaGA8Mn-M",
+    "video_title": "1.  HARD MARGIN SVM",
+    "channel_name": "",
+    "view_count": "",
+    "cached_at": "2025-07-03 21:29:31 UTC"
+  },
+  "6866f6b0a98231bea6b2c500": {
+    "video_id": "6866f6b0a98231bea6b2c500",
+    "video_analysis": "```json\n{\n  \"spec\": {\n    \"title\": \"Parisian Landmarks Interactive App\",\n    \"description\": \"An interactive web app designed to help learners explore and understand the iconic landmarks of Paris.\",\n    \"features\": [\n      {\n        \"name\": \"Interactive Map\",\n        \"description\": \"A map of Paris highlighting key landmarks such as the Eiffel Tower, Louvre Museum, Notre-Dame Cathedral, and Arc de Triomphe. Users can click on each landmark to learn more about its history and significance.\",\n        \"mechanics\": [\n          \"Display a map of Paris with markers for each landmark.\",\n          \"When a user clicks on a marker, show a pop-up window with information about the landmark.\",\n          \"Include images and videos related to each landmark.\"\n        ]\n      },\n      {\n        \"name\": \"Historical Timeline\",\n        \"description\": \"A timeline showcasing the historical context of Parisian landmarks. Users can navigate through different eras to see how the city has evolved over time.\",\n        \"mechanics\": [\n          \"Create a horizontal timeline with markers for different historical periods.\",\n          \"Allow users to drag the timeline to view different eras.\",\n          \"Display relevant images, videos, and text for each period.\"\n        ]\n      },\n      {\n        \"name\": \"Cultural Quiz\",\n        \"description\": \"A quiz to test users' knowledge of Parisian culture and landmarks. Questions cover topics such as art, architecture, and history.\",\n        \"mechanics\": [\n          \"Generate random questions from a predefined list.\",\n          \"Provide multiple-choice answers for each question.\",\n          \"Track the user's score and display it at the end of the quiz.\"\n        ]\n      }\n    ],\n    \"design\": {\n      \"colorScheme\": [\"#FFD700\", \"#008000\", \"#FF69B4\"],\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"layout\": \"Responsive layout that adapts to different screen sizes.\"\n    },\n    \"development\": {\n      \"technology\": \"HTML, CSS, JavaScript\",\n      \"libraries\": [],\n      \"dependencies\": []\n    }\n  }\n}\n```",
+    "html_file_path": "generated_games/video_game_6866f6b0a98231bea6b2c500_1751621582.html",
+    "created_at": "2025-07-04 09:33:02 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=HYbAVU-pI08",
+    "video_title": "The City of Paris in less than 2 min",
+    "channel_name": "",
+    "view_count": "",
+    "cached_at": "2025-07-04 09:33:02 UTC"
   }
 }

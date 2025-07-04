@@ -1,0 +1,24 @@
+Note: Unnecessary use of -X or --request, GET is already inferred.
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying [::1]:8000...
+* connect to ::1 port 8000 failed: Connection refused
+*   Trying 127.0.0.1:8000...
+* Connected to localhost (127.0.0.1) port 8000
+> GET /indexes/685031e8a0a40b82607ebbbd/videos/6866f6b0a98231bea6b2c500/thumbnail HTTP/1.1
+> Host: localhost:8000
+> User-Agent: curl/8.4.0
+> Accept: */*
+> X-Twelvelabs-Api-Key: tlk_38MN0C92WHAHQS26CJKEC16M4ZS3
+> 
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0< HTTP/1.1 200 OK
+< Server: Werkzeug/3.0.3 Python/3.12.4
+< Date: Thu, 03 Jul 2025 22:22:42 GMT
+< Content-Type: image/jpeg
+< Content-Length: 456
+< Access-Control-Allow-Origin: *
+< Connection: close
+< 
+{ [456 bytes data]
+100   456  100   456    0     0    579      0 --:--:-- --:--:-- --:--:--   579
+* Closing connection

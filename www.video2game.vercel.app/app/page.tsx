@@ -587,14 +587,15 @@ export default function VideoToLearningApp() {
       setError(null)
       setGameHtml(null)
 
-      const response = await fetch(`${API_BASE_URL}/video/process`, {
+      const response = await fetch(`${API_BASE_URL}/analyze`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+          "X-Twelvelabs-Api-Key": apiKey,
         },
         body: JSON.stringify({
           video_id: selectedTwelveLabsVideo,
+          regenerate: true,
         }),
       })
 
@@ -604,17 +605,17 @@ export default function VideoToLearningApp() {
 
       const data = await response.json()
 
-      if (data.success && data.data && data.data.html_file_path) {
-        setGameHtml(data.data.html_file_path)
+      if (data.html_file_path) {
+        setGameHtml(data.html_file_path)
 
         const newVideo = {
           id: Date.now(),
           title: selectedTwelveLabsVideoName || `TwelveLabs Video ${selectedTwelveLabsVideo.substring(0, 8)}`,
           duration: "Unknown",
-          type: extractGameType(data.data.html_file_path),
+          type: extractGameType(data.html_file_path),
           thumbnail: "/placeholder.svg?height=90&width=160&text=TwelveLabs",
           videoUrl: "",
-          htmlFilePath: data.data.html_file_path,
+          htmlFilePath: data.html_file_path,
           isGenerated: true,
           channelName: "TwelveLabs Content",
           viewCount: "Generated",
@@ -859,7 +860,6 @@ export default function VideoToLearningApp() {
                   </button>
                 </>
               ) : (
-
                 <>
                   <TwelveLabsSelector
                     isVisible={activeSource === "twelvelabs"}

@@ -1,5 +1,7 @@
 from twelvelabs import TwelveLabs
 from flask import current_app
+import requests
+import sys
 
 class TwelveLabsService:
     
@@ -63,3 +65,61 @@ class TwelveLabsService:
         except Exception as e:
             print(f"Error analyzing video {video_id}: {e}")
             raise e
+
+    def get_video_details(self, index_id, video_id):
+        if not hasattr(self, 'client') or not getattr(self, 'client', None):
+            return None
+        api_key = self.client.api_key if hasattr(self.client, 'api_key') else None
+        if not api_key:
+            return None
+        url = f"https://api.twelvelabs.io/v1.3/indexes/{index_id}/videos/{video_id}?embed=false"
+        headers = {
+            "accept": "application/json",
+            "x-api-key": api_key,
+            "Content-Type": "application/json"
+        }
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                print(f"Failed to get video details: Status {response.status_code}")
+                return None
+        except Exception as e:
+            print(f"Exception getting video details: {str(e)}")
+            return None
+
+    def get_video_thumbnail(self, index_id, video_id):
+        if not hasattr(self, 'client') or not getattr(self, 'client', None):
+            print("[DEBUG] No client available", file=sys.stderr)
+            return None
+        api_key = self.client.api_key if hasattr(self.client, 'api_key') else None
+        if not api_key:
+            print("[DEBUG] No API key available", file=sys.stderr)
+            return None
+        url = f"https://api.twelvelabs.io/v1.3/indexes/{index_id}/videos/{video_id}/thumbnail"
+        headers = {
+            "accept": "application/json",
+            "x-api-key": api_key
+        }
+        try:
+            response = requests.get(url, headers=headers)
+            print(f"[DEBUG] Thumbnail endpoint content-type: {response.headers.get('Content-Type')}", file=sys.stderr)
+            data = response.json()
+            thumbnail_url = data.get('thumbnail')
+            print(f"[DEBUG] Extracted thumbnail URL: {thumbnail_url}", file=sys.stderr)
+            if thumbnail_url:
+                img_resp = requests.get(thumbnail_url)
+                print(f"[DEBUG] Image fetch status: {img_resp.status_code}", file=sys.stderr)
+                if img_resp.status_code == 200:
+                    print(f"[DEBUG] Image fetch successful, bytes: {len(img_resp.content)}", file=sys.stderr)
+                    return img_resp.content
+                else:
+                    print(f"[DEBUG] Failed to fetch actual thumbnail image: {img_resp.status_code}", file=sys.stderr)
+                    return None
+            else:
+                print("[DEBUG] No thumbnail URL in JSON response", file=sys.stderr)
+                return None
+        except Exception as e:
+            print(f"[DEBUG] Exception getting thumbnail: {str(e)}", file=sys.stderr)
+            return None

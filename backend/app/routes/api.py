@@ -329,3 +329,25 @@ def regenerate_from_indexed_video():
         return jsonify({"error": "youtube_url is required"}), 400
 
     return Response(stream_with_context(event_stream(youtube_url)), mimetype='text/event-stream')
+
+@api_bp.route('/indexes/<index_id>/videos/<video_id>/details', methods=['GET'])
+@handle_errors
+def get_video_details(index_id, video_id):
+    api_key = request.headers.get('X-Twelvelabs-Api-Key')
+    twelvelabs_service = TwelveLabsService(api_key=api_key)
+    details = twelvelabs_service.get_video_details(index_id, video_id)
+    if details:
+        return jsonify(details)
+    else:
+        return jsonify({'error': 'Failed to fetch video details'}), 404
+
+@api_bp.route('/indexes/<index_id>/videos/<video_id>/thumbnail', methods=['GET'])
+@handle_errors
+def get_video_thumbnail(index_id, video_id):
+    api_key = request.headers.get('X-Twelvelabs-Api-Key')
+    twelvelabs_service = TwelveLabsService(api_key=api_key)
+    thumbnail = twelvelabs_service.get_video_thumbnail(index_id, video_id)
+    if thumbnail:
+        return Response(thumbnail, mimetype='image/jpeg')
+    else:
+        return jsonify({'error': 'Failed to fetch video thumbnail'}), 404

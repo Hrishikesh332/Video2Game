@@ -1,6 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "./ui/select"
+import { useMemo } from "react"
 
 interface Index {
   id: string
@@ -20,6 +28,16 @@ interface TwelveLabsSelectorProps {
   selectedVideoId: string
 }
 
+interface VideoDetails {
+  id: string
+  name: string
+  duration: number
+  description?: string
+  thumbnailUrl?: string
+  filename?: string
+  createdAt?: string
+}
+
 export default function TwelveLabsSelector({
   isVisible,
   apiKey,
@@ -28,12 +46,14 @@ export default function TwelveLabsSelector({
 }: TwelveLabsSelectorProps) {
   const [indexes, setIndexes] = useState<Index[]>([])
   const [videos, setVideos] = useState<Video[]>([])
+  const [videoDetails, setVideoDetails] = useState<Record<string, VideoDetails>>({})
   const [selectedIndex, setSelectedIndex] = useState("")
   const [isLoadingIndexes, setIsLoadingIndexes] = useState(false)
   const [isLoadingVideos, setIsLoadingVideos] = useState(false)
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const API_BASE_URL = "http://localhost:8000" 
+  const API_BASE_URL = "http://localhost:8000"
 
   useEffect(() => {
     if (isVisible && apiKey) {
@@ -41,14 +61,64 @@ export default function TwelveLabsSelector({
     }
   }, [isVisible, apiKey])
 
-  // Fetch videos when index changes
   useEffect(() => {
     if (selectedIndex) {
       fetchVideos(selectedIndex)
     } else {
       setVideos([])
+      setVideoDetails({})
     }
   }, [selectedIndex])
+
+  // Fetch video details and thumbnails for all videos in the index
+  useEffect(() => {
+    if (videos.length > 0 && selectedIndex) {
+      setIsLoadingDetails(true)
+      const fetchAllDetails = async () => {
+        const details: Record<string, VideoDetails> = {}
+        await Promise.all(
+          videos.map(async (video) => {
+            try {
+              const res = await fetch(
+                `${API_BASE_URL}/indexes/${selectedIndex}/videos/${video.id}/details`,
+                {
+                  headers: {
+                    "X-Twelvelabs-Api-Key": apiKey,
+                  },
+                }
+              )
+              let detail = await res.json()
+              let thumbnailUrl = `${API_BASE_URL}/indexes/${selectedIndex}/videos/${video.id}/thumbnail?${Date.now()}`
+              const systemMeta = detail.system_metadata || {}
+              const duration = systemMeta.duration || video.duration
+              const filename = systemMeta.filename || video.name
+              const createdAt = detail.created_at
+              details[video.id] = {
+                id: video.id,
+                name: video.name,
+                duration,
+                description: filename,
+                thumbnailUrl,
+                filename,
+                createdAt,
+              }
+            } catch (e) {
+              details[video.id] = {
+                id: video.id,
+                name: video.name,
+                duration: video.duration,
+                description: video.name,
+                thumbnailUrl: undefined,
+              }
+            }
+          })
+        )
+        setVideoDetails(details)
+        setIsLoadingDetails(false)
+      }
+      fetchAllDetails()
+    }
+  }, [videos, selectedIndex, apiKey])
 
   const fetchIndexes = async () => {
     setIsLoadingIndexes(true)
@@ -60,9 +130,7 @@ export default function TwelveLabsSelector({
           "Content-Type": "application/json",
         },
       })
-
       if (!response.ok) throw new Error("Failed to fetch indexes")
-
       const data = await response.json()
       setIndexes(data.indexes || [])
     } catch (err) {
@@ -83,9 +151,7 @@ export default function TwelveLabsSelector({
           "Content-Type": "application/json",
         },
       })
-
       if (!response.ok) throw new Error("Failed to fetch videos")
-
       const data = await response.json()
       setVideos(data.videos || [])
     } catch (err) {
@@ -117,44 +183,86 @@ export default function TwelveLabsSelector({
         </select>
       </div>
 
-      {/* Video Selection */}
+      {/* Video Selection - Custom Dropdown */}
       {selectedIndex && (
         <div className="space-y-2 animate-in slide-in-from-top-3 duration-300">
           <label className="block text-sm font-medium text-[#1d1c1b]">Select Video</label>
-          <select
+          <Select
             value={selectedVideoId}
-            onChange={(e) => {
-              const video = videos.find((v) => v.id === e.target.value)
+            onValueChange={(val) => {
+              const video = videoDetails[val] || videos.find((v) => v.id === val)
               if (video) {
                 onVideoSelect(video.id, video.name)
               }
             }}
-            disabled={isLoadingVideos}
-            className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-[#d3d1cf]/50 rounded-lg text-[#1d1c1b] focus:outline-none focus:ring-2 focus:ring-[#1d1c1b]/20 transition-all duration-200"
+            disabled={isLoadingVideos || isLoadingDetails}
           >
-            <option value="">{isLoadingVideos ? "Loading videos..." : "Choose a video"}</option>
-            {videos.map((video) => (
-              <option key={video.id} value={video.id}>
-                {video.name}
-                {video.duration > 0 &&
-                  ` (${Math.floor(video.duration / 60)}:${(video.duration % 60).toString().padStart(2, "0")})`}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm border border-[#d3d1cf]/50 rounded-lg text-[#1d1c1b] focus:outline-none focus:ring-2 focus:ring-[#1d1c1b]/20 transition-all duration-200">
+              {selectedVideoId && videoDetails[selectedVideoId] ? (
+                <div className="flex items-center gap-3 w-full">
+                  <div className="flex-shrink-0 w-12 h-8 flex items-center justify-center">
+                    <img
+                      src={videoDetails[selectedVideoId].thumbnailUrl}
+                      alt={videoDetails[selectedVideoId].name}
+                      className="w-12 h-8 object-cover rounded border border-gray-200"
+                      style={{ minWidth: 48 }}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <span className="truncate font-medium max-w-xs leading-tight">{videoDetails[selectedVideoId].filename || videoDetails[selectedVideoId].name}</span>
+                    {videoDetails[selectedVideoId].duration !== undefined && videoDetails[selectedVideoId].duration > 0 && (
+                      <span className="text-xs text-gray-500 truncate">{`${Math.floor(videoDetails[selectedVideoId].duration / 60)}:${(Math.round(videoDetails[selectedVideoId].duration % 60)).toString().padStart(2, "0")}`}</span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <span className="truncate">{isLoadingVideos || isLoadingDetails ? "Loading videos..." : "Choose a video"}</span>
+              )}
+            </SelectTrigger>
+            <SelectContent className="max-h-80 overflow-y-auto">
+              {videos.map((video) => {
+                const details = videoDetails[video.id]
+                return (
+                  <SelectItem key={video.id} value={video.id} className="py-2 px-2 cursor-pointer hover:bg-gray-100 rounded-lg transition-all">
+                    <div className="flex flex-row items-center gap-3 w-full">
+                      <div className="flex-shrink-0 w-16 h-10 flex items-center justify-center">
+                        {details?.thumbnailUrl ? (
+                          <img
+                            src={details.thumbnailUrl}
+                            alt={details.name}
+                            className="w-16 h-10 object-cover rounded-md border border-gray-200 shadow-sm"
+                            style={{ minWidth: 64 }}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement
+                              target.src = "/placeholder.svg?height=60&width=100"
+                            }}
+                          />
+                        ) : (
+                          <div className="w-16 h-10 bg-gray-200 rounded-md flex items-center justify-center text-xs text-gray-500">No Image</div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <div className="font-medium text-[#1d1c1b] truncate max-w-xs">{details?.filename || details?.name || video.name}</div>
+                        <div className="text-xs text-gray-600 truncate max-w-xs">{details?.createdAt ? `Created: ${new Date(details.createdAt).toLocaleString()}` : ''}</div>
+                        <div className="text-xs text-gray-400 mt-0.5">
+                          {details?.duration !== undefined && details?.duration > 0 && (
+                            <span>Duration: {`${Math.floor(details.duration / 60)}:${(Math.round(details.duration % 60)).toString().padStart(2, "0")}`}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </SelectItem>
+                )
+              })}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
-      {/* Stats */}
+      {/* Note */}
       {selectedIndex && (
-        <div className="grid grid-cols-2 gap-3 animate-in slide-in-from-bottom-3 duration-400">
-          <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-white/30">
-            <div className="text-lg font-bold text-[#1d1c1b]">{indexes.length}</div>
-            <div className="text-xs text-gray-600">Indexes</div>
-          </div>
-          <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-white/30">
-            <div className="text-lg font-bold text-[#1d1c1b]">{videos.length}</div>
-            <div className="text-xs text-gray-600">Videos</div>
-          </div>
+        <div className="text-xs text-gray-500 mt-2 px-1">
+          Note: You can access the most recent 10 videos indexed in the selected index.
         </div>
       )}
 
