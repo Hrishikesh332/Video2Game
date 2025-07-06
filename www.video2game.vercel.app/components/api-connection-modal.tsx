@@ -111,7 +111,12 @@ export default function ApiConnectionModal({
                 >
                   {isConnecting ? (
                     <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <img 
+                        src="/TwelveLabs.gif" 
+                        alt="Loading..." 
+                        className="w-4 h-4 object-contain"
+                        style={{ imageRendering: 'auto' }}
+                      />
                       Connecting...
                     </div>
                   ) : (

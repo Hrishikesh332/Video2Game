@@ -92,3 +92,20 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+img[src*="TwelveLabs.gif"] {
+  animation-play-state: running !important;
+  animation-iteration-count: infinite !important;
+  will-change: auto;
+  pointer-events: none;
+}
+
+img[src*="TwelveLabs.gif"]:not([style*="display: none"]) {
+  animation: none !important;
+  animation-play-state: running !important;
+  animation-iteration-count: infinite !important;
+}
+
+*:has(img[src*="TwelveLabs.gif"]) {
+  animation-play-state: running !important;
+}

@@ -137,6 +137,23 @@ export default function VideoToLearningApp() {
     fetchSampleGames()
   }, [API_BASE_URL])
 
+  useEffect(() => {
+    const ensureGifPlaying = () => {
+      const gifs = document.querySelectorAll('img[src*="TwelveLabs.gif"]') as NodeListOf<HTMLImageElement>
+      gifs.forEach(gif => {
+        if (gif.complete && gif.naturalHeight !== 0) {
+          const currentSrc = gif.src
+          gif.src = ''
+          gif.src = currentSrc
+        }
+      })
+    }
+
+    const interval = setInterval(ensureGifPlaying, 2000)
+    
+    return () => clearInterval(interval)
+  }, [isLoading, isCheckingCache])
+
   const handleMouseDown = useCallback(() => {
     setIsDragging(true)
   }, [])
@@ -576,18 +593,17 @@ export default function VideoToLearningApp() {
     setSelectedTwelveLabsVideoName(videoName)
   }
 
-  const processVideoId = async () => {
+  const processTwelveLabsRegenerate = async () => {
     if (!selectedTwelveLabsVideo) {
       setError("Please select a video from TwelveLabs")
       return
     }
-
     try {
       setIsLoading(true)
       setError(null)
       setGameHtml(null)
-
-      const response = await fetch(`${API_BASE_URL}/analyze`, {
+      // Call the new regenerate pipeline endpoint
+      const response = await fetch(`${API_BASE_URL}/twelvelabs/regenerate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -595,19 +611,14 @@ export default function VideoToLearningApp() {
         },
         body: JSON.stringify({
           video_id: selectedTwelveLabsVideo,
-          regenerate: true,
         }),
       })
-
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`)
       }
-
       const data = await response.json()
-
       if (data.html_file_path) {
         setGameHtml(data.html_file_path)
-
         const newVideo = {
           id: Date.now(),
           title: selectedTwelveLabsVideoName || `TwelveLabs Video ${selectedTwelveLabsVideo.substring(0, 8)}`,
@@ -621,7 +632,6 @@ export default function VideoToLearningApp() {
           viewCount: "Generated",
           videoId: selectedTwelveLabsVideo,
         }
-
         setSampleVideos((prev) => [newVideo, ...prev])
         setCurrentGameId(newVideo.id)
       } else {
@@ -871,7 +881,7 @@ export default function VideoToLearningApp() {
                     className={`w-full px-6 py-3 bg-[#1d1c1b] hover:bg-[#1d1c1b]/90 text-white rounded-lg font-medium transition-all duration-200 ${
                       isLoading ? "opacity-70 cursor-not-allowed" : ""
                     }`}
-                    onClick={() => processVideoId()}
+                    onClick={processTwelveLabsRegenerate}
                     disabled={isLoading || !selectedTwelveLabsVideo}
                   >
                     {isLoading ? "Generating..." : "Generate from TwelveLabs"}
@@ -978,7 +988,12 @@ export default function VideoToLearningApp() {
                   {isCheckingCache ? (
                     <div className="w-full h-full flex items-center justify-center bg-gray-900">
                       <div className="text-center text-white">
-                        <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                        <img 
+                          src="/TwelveLabs.gif" 
+                          alt="Loading..." 
+                          className="w-8 h-8 mx-auto mb-2 object-contain"
+                          style={{ imageRendering: 'auto' }}
+                        />
                         <p className="text-sm">Checking cache...</p>
                       </div>
                     </div>
@@ -1026,36 +1041,12 @@ export default function VideoToLearningApp() {
           <div className="h-full flex flex-col">
             {isLoading ? (
               <div className="h-full flex flex-col items-center justify-center p-4 w-full">
-                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-4">
-                  <rect className="twl-bar twl-bar1" x="10" y="20" width="60" height="10" rx="5" />
-                  <rect className="twl-bar twl-bar2" x="10" y="35" width="60" height="10" rx="5" />
-                  <rect className="twl-bar twl-bar3" x="10" y="50" width="60" height="10" rx="5" />
-                </svg>
-                <style jsx>{`
-                  .twl-bar {
-                    fill: #1d1c1b;
-                    opacity: 0.3;
-                    transform-origin: 40px 25px;
-                  }
-                  .twl-bar1 {
-                    animation: twl-bar-anim 1.2s cubic-bezier(0.4,0,0.2,1) infinite;
-                    animation-delay: 0s;
-                  }
-                  .twl-bar2 {
-                    animation: twl-bar-anim 1.2s cubic-bezier(0.4,0,0.2,1) infinite;
-                    animation-delay: 0.2s;
-                  }
-                  .twl-bar3 {
-                    animation: twl-bar-anim 1.2s cubic-bezier(0.4,0,0.2,1) infinite;
-                    animation-delay: 0.4s;
-                  }
-                  @keyframes twl-bar-anim {
-                    0% { opacity: 0.3; transform: scaleX(1); }
-                    20% { opacity: 1; transform: scaleX(1.08); }
-                    40% { opacity: 0.3; transform: scaleX(1); }
-                    100% { opacity: 0.3; transform: scaleX(1); }
-                  }
-                `}</style>
+                <img 
+                  src="/TwelveLabs.gif" 
+                  alt="Loading..." 
+                  className="w-20 h-20 mb-4 object-contain"
+                  style={{ imageRendering: 'auto' }}
+                />
                 <div className="text-[#1d1c1b] text-base mb-2 text-center min-h-[1.5em] font-medium">{statusMessage}</div>
                 <div className="text-xs text-gray-500 mb-4">Note - It takes only 1 min to process.</div>
                 {isStreaming && (
@@ -1091,20 +1082,28 @@ export default function VideoToLearningApp() {
                       className="flex items-center gap-1 text-xs bg-white/60 hover:bg-white/80 px-3 py-1.5 rounded-full transition-all duration-200 border border-[#ececec]/50 disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Regenerate with new content"
                     >
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        className={isLoading ? "animate-spin" : ""}
-                      >
-                        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-                        <path d="M21 3v5h-5" />
-                        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-                        <path d="M3 21v-5h5" />
-                      </svg>
+                      {isLoading ? (
+                        <img 
+                          src="/TwelveLabs.gif" 
+                          alt="Loading..." 
+                          className="w-3 h-3 object-contain"
+                          style={{ imageRendering: 'auto' }}
+                        />
+                      ) : (
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                          <path d="M21 3v5h-5" />
+                          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                          <path d="M3 21v-5h5" />
+                        </svg>
+                      )}
                       {isLoading ? "Regenerating..." : "Regenerate"}
                     </button>
                     <button
