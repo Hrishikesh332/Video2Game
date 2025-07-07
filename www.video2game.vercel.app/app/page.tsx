@@ -19,6 +19,7 @@ interface SampleVideo {
   viewCount?: string
   createdAt?: string
   videoId?: string
+  source?: 'youtube' | 'twelvelabs'
 }
 
 export default function VideoToLearningApp() {
@@ -110,12 +111,13 @@ export default function VideoToLearningApp() {
       if (!response.ok) throw new Error("Failed to fetch sample games")
       const data = await response.json()
       const apps = (data.apps || []).map((app: any, idx: number) => {
+        const isYouTube = !!app.youtube_url
         return {
           id: idx + 1,
           title: app.video_title || `Video ${app.video_id?.substring(0, 8) || idx + 1}`,
           duration: app.duration || "",
           type: app.has_html_file ? "Interactive App" : "Video",
-          thumbnail: app.youtube_url
+          thumbnail: isYouTube
             ? `https://img.youtube.com/vi/${extractVideoId(app.youtube_url)}/maxresdefault.jpg`
             : "/placeholder.svg",
           videoUrl: app.youtube_url || "",
@@ -125,6 +127,7 @@ export default function VideoToLearningApp() {
           viewCount: app.view_count || "",
           createdAt: app.created_at || app.createdAt || "",
           videoId: app.video_id || app.videoId || "",
+          source: isYouTube ? 'youtube' as const : 'twelvelabs' as const,
         }
       })
       setSampleVideos(apps)
@@ -227,6 +230,7 @@ export default function VideoToLearningApp() {
                     type: gameType,
                     title: data.data.video_title || video.title,
                     isGenerated: true,
+                    source: 'youtube' as const,
                   }
                 : video,
             ),
@@ -341,6 +345,7 @@ export default function VideoToLearningApp() {
           viewCount: "",
           createdAt: new Date().toISOString(),
           videoId: extractVideoId(youtubeUrl),
+          source: 'youtube' as const,
         },
         ...prev,
       ])
@@ -391,6 +396,7 @@ export default function VideoToLearningApp() {
                       viewCount: app.view_count || "",
                       createdAt: app.created_at || app.createdAt || "",
                       videoId: app.video_id || app.videoId || "",
+                      source: app.youtube_url ? 'youtube' as const : 'twelvelabs' as const,
                     }
                   })
                   setSampleVideos(apps)
@@ -534,6 +540,7 @@ export default function VideoToLearningApp() {
                         htmlFilePath: data.data.html_file_path,
                         type: extractGameType(data.data.html_file_path),
                         isGenerated: true,
+                        source: 'youtube' as const,
                       }
                     : v
                 )
@@ -631,6 +638,7 @@ export default function VideoToLearningApp() {
           channelName: "TwelveLabs Content",
           viewCount: "Generated",
           videoId: selectedTwelveLabsVideo,
+          source: 'twelvelabs' as const,
         }
         setSampleVideos((prev) => [newVideo, ...prev])
         setCurrentGameId(newVideo.id)
@@ -907,7 +915,7 @@ export default function VideoToLearningApp() {
             <div ref={sampleAppsRef} className="w-full mx-auto max-w-md">
               <h3 className="text-lg font-semibold text-[#1d1c1b] mb-4">Sample Interactive Apps</h3>
               <div className="space-y-4">
-                {sampleVideos.map((video) => (
+                {sampleVideos.filter(video => video.source === 'youtube').map((video) => (
                   <div
                     key={video.id}
                     className={`bg-white/70 backdrop-blur-sm border border-[#ececec]/60 rounded-xl p-5 hover:bg-white/85 cursor-pointer transition-all duration-300 hover:scale-[1.01] hover:shadow-xl group ${
