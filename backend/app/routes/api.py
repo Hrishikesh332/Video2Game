@@ -351,3 +351,84 @@ def get_video_thumbnail(index_id, video_id):
         return Response(thumbnail, mimetype='image/jpeg')
     else:
         return jsonify({'error': 'Failed to fetch video thumbnail'}), 404
+
+@api_bp.route('/twelvelabs/regenerate', methods=['POST', 'GET'])
+@handle_errors
+def twelvelabs_regenerate():
+    from app.services.sample_games_service import SampleGamesService
+    from app.services.twelvelabs_service import TwelveLabsService
+    from app.services.sambanova_service import SambanovaService
+    from app.services.file_service import FileService
+
+    def event_stream(video_id, api_key):
+        sample_games_service = SampleGamesService()
+        
+        if not video_id:
+            yield f"event: error\ndata: video_id is required\n\n"
+            return
+            
+        if not api_key:
+            yield f"event: error\ndata: API key is required\n\n"
+            return
+
+        try:
+            yield f"event: progress\ndata: Starting analysis with TwelveLabs...\n\n"
+            twelvelabs_service = TwelveLabsService(api_key=api_key)
+            analysis_prompt = current_app.prompt_service.get_prompt('analysis')
+            video_analysis = twelvelabs_service.analyze_video(video_id, analysis_prompt)
+            yield f"event: analysis\ndata: {video_analysis}\n\n"
+
+            yield f"event: progress\ndata: Generating game with SambaNova...\n\n"
+            sambanova_service = SambanovaService()
+            game_generation_prompt = current_app.prompt_service.get_prompt('game_generation', video_analysis=video_analysis)
+            system_prompt = current_app.prompt_service.get_prompt('system')
+
+            try:
+                streamed_html = ""
+                for chunk in sambanova_service.generate_game_stream(system_prompt, game_generation_prompt):
+                    if chunk:
+                        streamed_html += chunk
+                        yield f"event: game_chunk\ndata: {chunk}\n\n"
+                
+                if streamed_html:
+                    file_service = FileService()
+                    html_content = file_service.process_html_content(streamed_html)
+                    html_file_path = file_service.save_html_file(html_content, video_id)
+
+                    game_data = sample_games_service.create_game_data(
+                        video_id,
+                        video_analysis,
+                        html_file_path,
+                        twelvelabs_video_ids=[video_id],
+                        youtube_url='',
+                        video_title=f'TwelveLabs Video {video_id}',
+                        channel_name='TwelveLabs',
+                        view_count='Generated'
+                    )
+                    sample_games_service.save_game(game_data)
+                else:
+                    yield f"event: error\ndata: No game content was generated\n\n"
+                    return
+                    
+            except Exception as e:
+                print(f"Error in SambaNova streaming: {str(e)}")
+                yield f"event: error\ndata: Error streaming from SambaNova: {str(e)}\n\n"
+                return
+
+            yield f"event: done\ndata: [DONE]\n\n"
+        except Exception as e:
+            print(f"Error in TwelveLabs processing: {str(e)}")
+            yield f"event: error\ndata: Error processing TwelveLabs video: {str(e)}\n\n"
+
+    if request.method == 'GET':
+        video_id = request.args.get('video_id')
+        api_key = request.args.get('api_key')
+    else:
+        data = request.get_json()
+        video_id = data.get('video_id')
+        api_key = request.headers.get('X-Twelvelabs-Api-Key')
+
+    if not video_id:
+        return jsonify({"error": "video_id is required"}), 400
+
+    return Response(stream_with_context(event_stream(video_id, api_key)), mimetype='text/event-stream')
