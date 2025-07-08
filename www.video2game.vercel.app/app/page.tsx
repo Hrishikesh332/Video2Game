@@ -372,38 +372,25 @@ export default function VideoToLearningApp() {
             setStreamingProgress("")
             setTimeout(async () => {
               try {
-                const response = await fetch(`${API_BASE_URL}/sample-apps`)
+                // Fetch the latest sample app for this YouTube video
+                const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(youtubeUrl)}`)
                 if (response.ok) {
                   const data = await response.json()
-                  const apps = (data.apps || []).map((app: any, idx: number) => {
-                    return {
-                      id: idx + 1,
-                      title: app.video_title || `Video ${app.video_id?.substring(0, 8) || idx + 1}`,
-                      duration: app.duration || "",
-                      type: app.has_html_file ? "Interactive App" : "Video",
-                      thumbnail: app.youtube_url
-                        ? `https://img.youtube.com/vi/${extractVideoId(app.youtube_url)}/maxresdefault.jpg`
-                        : "/placeholder.svg",
-                      videoUrl: app.youtube_url || "",
-                      htmlFilePath: app.html_file_path || "",
-                      isGenerated: !!app.has_html_file,
-                      channelName: app.channel_name || "",
-                      viewCount: app.view_count || "",
-                      createdAt: app.created_at || app.createdAt || "",
-                      videoId: app.video_id || app.videoId || "",
-                    }
-                  })
-                  setSampleVideos(apps)
-                  const currentApp = apps.find((app: any) => app.videoUrl === youtubeUrl)
-                  if (currentApp && currentApp.htmlFilePath) {
-                    setGameHtml(currentApp.htmlFilePath)
-                    setCurrentGameId(currentApp.id)
-                    setExpandedVideo(currentApp.id)
+                  if (data.success && data.data && data.data.html_file_path) {
+                    setGameHtml(data.data.html_file_path)
+                    setCurrentGameId(data.data.id || null)
+                    setExpandedVideo(data.data.id || null)
                   } else {
-                    if (apps.length > 0) {
-                      setGameHtml(apps[0].htmlFilePath)
-                      setCurrentGameId(apps[0].id)
-                      setExpandedVideo(apps[0].id)
+                    // fallback: fetch all sample apps and try to find the right one
+                    const allResp = await fetch(`${API_BASE_URL}/sample-apps`)
+                    if (allResp.ok) {
+                      const allData = await allResp.json()
+                      const found = (allData.apps || []).find((app: any) => app.youtube_url === youtubeUrl)
+                      if (found) {
+                        setGameHtml(found.html_file_path)
+                        setCurrentGameId(found.id)
+                        setExpandedVideo(found.id)
+                      }
                     }
                   }
                 }
@@ -438,6 +425,7 @@ export default function VideoToLearningApp() {
           const e = event as MessageEvent
           streamedHtml += e.data
           setGameHtml(streamedHtml)
+          console.log("Received game chunk, total length:", streamedHtml.length)
         })
 
         evtSource.addEventListener("done", () => {
@@ -496,16 +484,33 @@ export default function VideoToLearningApp() {
 
   useEffect(() => {
     if (activeTab === "app" && gameHtml && iframeRef.current) {
-      fetchHtmlFromFile(gameHtml).then((html) => {
-        const iframe = iframeRef.current
-        if (!iframe) return
+      const iframe = iframeRef.current
+      if (!iframe) return
+      
+      console.log("Setting iframe content:", gameHtml.substring(0, 100) + "...")
+      
+      // Check if gameHtml is a file path (starts with /) or actual HTML content
+      if (gameHtml.startsWith('/') || gameHtml.includes('.html')) {
+        // It's a file path - fetch the content
+        fetchHtmlFromFile(gameHtml).then((html) => {
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
+          if (iframeDoc) {
+            iframeDoc.open()
+            iframeDoc.write(html)
+            iframeDoc.close()
+            console.log("Iframe content set from file path")
+          }
+        })
+      } else {
+        // It's actual HTML content - use it directly
         const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
         if (iframeDoc) {
           iframeDoc.open()
-          iframeDoc.write(html)
+          iframeDoc.write(gameHtml)
           iframeDoc.close()
+          console.log("Iframe content set from direct HTML")
         }
-      })
+      }
     }
   }, [gameHtml, activeTab])
 
@@ -643,6 +648,7 @@ export default function VideoToLearningApp() {
           const e = event as MessageEvent
           streamedHtml += e.data
           setGameHtml(streamedHtml)
+          console.log("Received game chunk, total length:", streamedHtml.length)
         })
 
         evtSource.addEventListener("done", () => {
@@ -678,7 +684,22 @@ export default function VideoToLearningApp() {
         videoId: selectedTwelveLabsVideo,
       }
       setSampleVideos((prev) => [newVideo, ...prev])
-      setCurrentGameId(newVideo.id)
+      setGameHtml(streamedHtml)
+      // Do NOT setCurrentGameId or setExpandedVideo for TwelveLabs
+      // Do NOT set gameHtml to found.html_file_path for TwelveLabs
+      // Only update those for YouTube
+      await fetchSampleGames();
+      // Find the correct video in the new sampleVideos and update UI
+      const allResp2 = await fetch(`${API_BASE_URL}/sample-apps`);
+      if (allResp2.ok) {
+        const allData2 = await allResp2.json();
+        const found2 = (allData2.apps || []).find((app: any) => app.twelvelabs_video_ids && app.twelvelabs_video_ids.includes(selectedTwelveLabsVideo));
+        if (found2) {
+          setGameHtml(found2.html_file_path);
+          setCurrentGameId(found2.id);
+          setExpandedVideo(found2.id);
+        }
+      }
     } catch (err) {
       setError(`Failed to process video: ${err instanceof Error ? err.message : String(err)}`)
       setIsLoading(false)
@@ -700,6 +721,18 @@ export default function VideoToLearningApp() {
       fetchHtmlFromFile(gameHtml).then(setHtmlCode)
     }
   }, [gameHtml, activeTab])
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (activeSource === 'youtube' && youtubeUrl) {
+      const found = sampleVideos.find(app => app.videoUrl === youtubeUrl);
+      if (found) {
+        setGameHtml(found.htmlFilePath);
+        setCurrentGameId(found.id);
+        setExpandedVideo(found.id);
+      }
+    }
+  }, [sampleVideos, youtubeUrl, activeSource, isLoading]);
 
   return (
     <div className="min-h-screen bg-[#f4f3f3] relative overflow-hidden">
@@ -873,7 +906,7 @@ export default function VideoToLearningApp() {
 
         <div className="bg-white/30 backdrop-blur-sm relative flex flex-col" style={{ width: `${leftWidth}%` }}>
           <div
-            className={`h-full flex flex-col p-8 overflow-y-auto transition-all duration-300 ${selectedVideoData ? "blur-sm" : ""}`}
+            className={`h-full flex flex-col p-8 overflow-y-auto transition-all duration-300 ${selectedVideoData && activeSource === 'youtube' ? "blur-sm" : ""}`}
           >
             <div className="text-center mb-8">
               <h1 className="text-5xl font-bold text-[#1d1c1b] mb-4">Video2Game</h1>
@@ -939,7 +972,7 @@ export default function VideoToLearningApp() {
             <div className="w-full mx-auto max-w-md">
               <h3 className="text-lg font-semibold text-[#1d1c1b] mb-4">Sample Interactive Apps</h3>
               <div className="space-y-4">
-                {sampleVideos.map((video) => (
+                {sampleVideos.filter(video => video.videoUrl && video.videoUrl !== '').map((video) => (
                   <div
                     key={video.id}
                     className={`bg-white/70 backdrop-blur-sm border border-[#ececec]/60 rounded-xl p-5 hover:bg-white/85 cursor-pointer transition-all duration-300 hover:scale-[1.01] hover:shadow-xl group ${
@@ -950,7 +983,7 @@ export default function VideoToLearningApp() {
                     <div className="flex gap-5">
                       <div className="relative flex-shrink-0">
                         <img
-                          src={video.thumbnail || "/placeholder.svg"}
+                          src={video.thumbnail && video.thumbnail !== '' ? video.thumbnail : "/placeholder.svg"}
                           alt={video.title}
                           className="w-36 h-20 object-cover rounded-lg shadow-md transition-all duration-300 group-hover:shadow-lg"
                           onError={(e) => {
@@ -1012,7 +1045,7 @@ export default function VideoToLearningApp() {
           </div>
 
           {/* Modal Video Player */}
-          {selectedVideoData && (
+          {selectedVideoData && activeSource === 'youtube' && selectedVideoData.videoUrl ? (
             <div className="absolute inset-0 flex items-center justify-center p-8 z-20">
               <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 w-full max-w-2xl border border-white/20 animate-in zoom-in-95 duration-300">
                 {/* Close Button */}
@@ -1067,7 +1100,7 @@ export default function VideoToLearningApp() {
                 </div>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Resizable Divider */}
@@ -1107,19 +1140,26 @@ export default function VideoToLearningApp() {
             ) : gameHtml ? (
               <div className="h-full flex flex-col min-h-0">
                 <div className="flex items-center justify-between p-4 pb-0 flex-shrink-0">
-                  <h2 className="text-xl font-bold text-[#1d1c1b]">Interactive Learning Game</h2>
+                  <h2 className="text-xl font-bold text-[#1d1c1b]">
+                    {activeSource === 'youtube' ? 'Interactive Learning Game' : 'TwelveLabs Generated Game'}
+                  </h2>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => {
-                        if (expandedVideo) {
-                          const video = sampleVideos.find((v) => v.id === expandedVideo)
-                          if (video && video.videoUrl) {
-                            setYoutubeUrl(video.videoUrl)
-                            processYoutubeUrl(true)
-                            return
+                        if (activeSource === 'youtube') {
+                          if (expandedVideo) {
+                            const video = sampleVideos.find((v) => v.id === expandedVideo)
+                            if (video && video.videoUrl) {
+                              setYoutubeUrl(video.videoUrl)
+                              processYoutubeUrl(true)
+                              return
+                            }
                           }
+                          processYoutubeUrl(true)
+                        } else {
+                          // TwelveLabs regenerate
+                          processTwelveLabsRegenerate()
                         }
-                        processYoutubeUrl(true)
                       }}
                       disabled={isLoading}
                       className="flex items-center gap-1 text-xs bg-white/60 hover:bg-white/80 px-3 py-1.5 rounded-full transition-all duration-200 border border-[#ececec]/50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1147,7 +1187,7 @@ export default function VideoToLearningApp() {
                           <path d="M3 21v-5h5" />
                         </svg>
                       )}
-                      {isLoading ? "Regenerating..." : "Regenerate"}
+                      {isLoading ? "Regenerating..." : activeSource === 'youtube' ? "Regenerate YouTube" : "Regenerate TwelveLabs"}
                     </button>
                     <button
                       onClick={() => setGameHtml(null)}
