@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Women's 5000m Race Challenge</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .game-container {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .level-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin: 0 5px;
+        }
+        
+        .level-dot.active {
+            background-color: #666;
+        }
+        
+        .instructions {
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        
+        .track-container {
+            position: relative;
+            height: 300px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .lane {
+            position: absolute;
+            width: 100%;
+            height: 50px;
+            border-bottom: 1px dashed #ccc;
+        }
+        
+        .runner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.2s;
+        }
+        
+        .runner:hover {
+            transform: scale(1.1);
+        }
+        
+        .runners-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .runner-profile {
+            display: flex;
+            background-color: #e9e9e9;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .runner-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #ccc;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .runner-stats {
+            flex-grow: 1;
+        }
+        
+        .runner-stats h3 {
+            margin-bottom: 5px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .stat-item {
+            background-color: #f0f0f0;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .question-container {
+            background-color: #e9e9e9;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .option {
+            background-color: #f0f0f0;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #ddd;
+        }
+        
+        .option.selected {
+            background-color: #ccc;
+            font-weight: bold;
+        }
+        
+        .race-progress {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #666;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #666;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #555;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .feedback {
+            text-align: center;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        
+        .feedback.correct {
+            background-color: #e6f7e6;
+            color: #2e7d32;
+        }
+        
+        .feedback.incorrect {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .results {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .score-display {
+            font-size: 1.5rem;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 600px) {
+            .options {
+                grid-template-columns: 1fr;
+            }
+            
+            .runner-profile {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .runner-image {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Women's 5000m Race Challenge</h1>
+        <p>Test your knowledge of race strategy and runner profiles</p>
+    </header>
+    
+    <div class="level-indicator">
+        <div class="level-dot active" id="dot1"></div>
+        <div class="level-dot" id="dot2"></div>
+        <div class="level-dot" id="dot3"></div>
+    </div>
+    
+    <div class="game-container">
+        <!-- Level 1: Interactive Track -->
+        <div id="level1" class="game-level">
+            <div class="instructions">
+                <p>Drag runners to their starting positions on the track. Place them strategically based on their profiles.</p>
+            </div>
+            
+            <div class="track-container" id="track">
+                <!-- Lanes will be generated by JS -->
+            </div>
+            
+            <div class="runners-pool" id="runners-pool">
+                <!-- Runners will be generated by JS -->
+            </div>
+            
+            <div class="feedback" id="feedback1"></div>
+            
+            <div class="controls">
+                <button id="restart1">Reset Positions</button>
+                <button id="next1">Next Level</button>
+            </div>
+        </div>
+        
+        <!-- Level 2: Runner Profiles -->
+        <div id="level2" class="game-level" style="display:none">
+            <div class="instructions">
+                <p>Compare the runner profiles and answer the question based on their statistics.</p>
+            </div>
+            
+            <div class="runner-profile">
+                <div class="runner-image" style="background-color: #FF69B4;">A</div>
+                <div class="runner-stats">
+                    <h3>Alice Johnson (USA)</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">PB: 14:45.23</div>
+                        <div class="stat-item">SB: 14:58.76</div>
+                        <div class="stat-item">Avg Pace: 2:57/km</div>
+                        <div class="stat-item">Strong Finish</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="runner-profile">
+                <div class="runner-image" style="background-color: #008000;">B</div>
+                <div class="runner-stats">
+                    <h3>Bianca Rossi (ITA)</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">PB: 14:52.11</div>
+                        <div class="stat-item">SB: 15:05.34</div>
+                        <div class="stat-item">Avg Pace: 2:58/km</div>
+                        <div class="stat-item">Consistent Pacer</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="question-container">
+                <p>Based on their profiles, which runner is more likely to make a strong final sprint?</p>
+                <div class="options">
+                    <div class="option" data-value="A">Alice Johnson</div>
+                    <div class="option" data-value="B">Bianca Rossi</div>
+                </div>
+            </div>
+            
+            <div class="feedback" id="feedback2"></div>
+            
+            <div class="controls">
+                <button id="restart2">Try Again</button>
+                <button id="next2">Next Level</button>
+            </div>
+        </div>
+        
+        <!-- Level 3: Race Simulation -->
+        <div id="level3" class="game-level" style="display:none">
+            <div class="instructions">
+                <p>Watch the race simulation and predict the winner based on the race dynamics.</p>
+            </div>
+            
+            <div class="track-container" id="race-track">
+                <!-- Race simulation will be generated by JS -->
+            </div>
+            
+            <div class="race-progress">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <div class="question-container">
+                <p>At the 4000m mark, who is most likely leading the race?</p>
+                <div class="options">
+                    <div class="option" data-value="A">Alice Johnson</div>
+                    <div class="option" data-value="B">Bianca Rossi</div>
+                </div>
+            </div>
+            
+            <div class="feedback" id="feedback3"></div>
+            
+            <div class="controls">
+                <button id="restart3">Replay Race</button>
+                <button id="next3">See Results</button>
+            </div>
+        </div>
+        
+        <!-- Results Screen -->
+        <div id="results" class="results" style="display:none">
+            <h2>Race Completed!</h2>
+            <div class="score-display">
+                Your Score: <span id="final-score">0</span>/3
+            </div>
+            <p>You've demonstrated great knowledge of race strategy!</p>
+            <div class="controls">
+                <button id="restart-game">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game state
+            const state = {
+                currentLevel: 1,
+                score: 0,
+                runners: [
+                    { id: 'A', name: 'Alice Johnson', country: 'USA', color: '#FF69B4', position: null },
+                    { id: 'B', name: 'Bianca Rossi', country: 'ITA', color: '#008000', position: null },
+                    { id: 'C', name: 'Chloe Martin', country: 'GBR', color: '#FFD700', position: null },
+                    { id: 'D', name: 'Diana Kim', country: 'KOR', color: '#1E88E5', position: null }
+                ],
+                selectedOption: null,
+                highScore: localStorage.getItem('highScore') || 0
+            };
+            
+            // DOM Elements
+            const levels = [
+                document.getElementById('level1'),
+                document.getElementById('level2'),
+                document.getElementById('level3')
+            ];
+            
+            const levelDots = [
+                document.getElementById('dot1'),
+                document.getElementById('dot2'),
+                document.getElementById('dot3')
+            ];
+            
+            const nextButtons = [
+                document.getElementById('next1'),
+                document.getElementById('next2'),
+                document.getElementById('next3')
+            ];
+            
+            const restartButtons = [
+                document.getElementById('restart1'),
+                document.getElementById('restart2'),
+                document.getElementById('restart3')
+            ];
+            
+            const feedbacks = [
+                document.getElementById('feedback1'),
+                document.getElementById('feedback2'),
+                document.getElementById('feedback3')
+            ];
+            
+            const resultsScreen = document.getElementById('results');
+            const finalScore = document.getElementById('final-score');
+            const restartGameBtn = document.getElementById('restart-game');
+            const progressBar = document.getElementById('progress-bar');
+            
+            // Initialize Level 1
+            function initLevel1() {
+                const track = document.getElementById('track');
+                const runnersPool = document.getElementById('runners-pool');
+                
+                // Clear previous content
+                track.innerHTML = '';
+                runnersPool.innerHTML = '';
+                
+                // Create lanes
+                for (let i = 0; i < 6; i++) {
+                    const lane = document.createElement('div');
+                    lane.className = 'lane';
+                    lane.style.top = `${i * 50}px`;
+                    lane.dataset.lane = i + 1;
+                    track.appendChild(lane);
+                }
+                
+                // Create runner elements
+                state.runners.forEach(runner => {
+                    const runnerEl = document.createElement('div');
+                    runnerEl.className = 'runner';
+                    runnerEl.style.backgroundColor = runner.color;
+                    runnerEl.textContent = runner.id;
+                    runnerEl.dataset.id = runner.id;
+                    runnerEl.draggable = true;
+                    
+                    // Add drag event listeners
+                    runnerEl.addEventListener('dragstart', handleDragStart);
+                    
+                    runnersPool.appendChild(runnerEl);
+                });
+                
+                // Add drop event listeners to lanes
+                const lanes = document.querySelectorAll('.lane');
+                lanes.forEach(lane => {
+                    lane.addEventListener('dragover', handleDragOver);
+                    lane.addEventListener('drop', handleDrop);
+                });
+                
+                // Reset feedback
+                feedbacks[0].textContent = '';
+                feedbacks[0].className = 'feedback';
+            }
+            
+            // Drag and Drop functions
+            function handleDragStart(e) {
+                e.dataTransfer.setData('text/plain', e.target.dataset.id);
+            }
+            
+            function handleDragOver(e) {
+                e.preventDefault();
+            }
+            
+            function handleDrop(e) {
+                e.preventDefault();
+                const runnerId = e.dataTransfer.getData('text/plain');
+                const lane = e.target.closest('.lane');
+                
+                if (lane) {
+                    const runner = state.runners.find(r => r.id === runnerId);
+                    runner.position = parseInt(lane.dataset.lane);
+                    
+                    // Position runner in lane
+                    const runnerEl = document.querySelector(`.runner[data-id="${runnerId}"]`);
+                    lane.appendChild(runnerEl);
+                    runnerEl.style.position = 'absolute';
+                    runnerEl.style.top = '10px';
+                    runnerEl.style.left = '20px';
+                    
+                    // Check if all runners are placed
+                    checkLevel1Completion();
+                }
+            }
+            
+            function checkLevel1Completion() {
+                const allPlaced = state.runners.every(runner => runner.position !== null);
+                nextButtons[0].disabled = !allPlaced;
+                
+                if (allPlaced) {
+                    feedbacks[0].textContent = 'All runners placed! Ready for next level.';
+                    feedbacks[0].className = 'feedback correct';
+                }
+            }
+            
+            // Initialize Level 2
+            function initLevel2() {
+                const options = document.querySelectorAll('#level2 .option');
+                
+                // Reset selection
+                state.selectedOption = null;
+                options.forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Add event listeners
+                options.forEach(opt => {
+                    opt.addEventListener('click', function() {
+                        options.forEach(o => o.classList.remove('selected'));
+                        this.classList.add('selected');
+                        state.selectedOption = this.dataset.value;
+                        nextButtons[1].disabled = false;
+                    });
+                });
+                
+                // Reset feedback
+                feedbacks[1].textContent = '';
+                feedbacks[1].className = 'feedback';
+                nextButtons[1].disabled = true;
+            }
+            
+            // Initialize Level 3
+            function initLevel3() {
+                const raceTrack = document.getElementById('race-track');
+                const options = document.querySelectorAll('#level3 .option');
+                
+                // Clear previous content
+                raceTrack.innerHTML = '';
+                progressBar.style.width = '0%';
+                
+                // Create lanes and runners
+                for (let i = 0; i < 4; i++) {
+                    const lane = document.createElement('div');
+                    lane.className = 'lane';
+                    lane.style.top = `${i * 70}px`;
+                    raceTrack.appendChild(lane);
+                    
+                    const runner = state.runners[i];
+                    const runnerEl = document.createElement('div');
+                    runnerEl.className = 'runner';
+                    runnerEl.style.backgroundColor = runner.color;
+                    runnerEl.textContent = runner.id;
+                    runnerEl.style.top = '15px';
+                    runnerEl.style.left = '20px';
+                    lane.appendChild(runnerEl);
+                }
+                
+                // Reset selection
+                state.selectedOption = null;
+                options.forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Add event listeners
+                options.forEach(opt => {
+                    opt.addEventListener('click', function() {
+                        options.forEach(o => o.classList.remove('selected'));
+                        this.classList.add('selected');
+                        state.selectedOption = this.dataset.value;
+                    });
+                });
+                
+                // Reset feedback
+                feedbacks[2].textContent = '';
+                feedbacks[2].className = 'feedback';
+                nextButtons[2].disabled = true;
+            }
+            
+            // Run race simulation
+            function runRaceSimulation() {
+                progressBar.style.width = '0%';
+                let width = 0;
+                
+                const interval = setInterval(() => {
+                    width += 1;
+                    progressBar.style.width = `${width}%`;
+                    
+                    if (width >= 80) {
+                        clearInterval(interval);
+                        nextButtons[2].disabled = false;
+                        feedbacks[2].textContent = 'Race paused at 4000m. Make your prediction!';
+                    }
+                }, 50);
+            }
+            
+            // Check answers
+            function checkLevel2Answer() {
+                const correctAnswer = 'A'; // Alice has "Strong Finish" in profile
+                const isCorrect = state.selectedOption === correctAnswer;
+    </script>
+</body>
+</html>

@@ -1,8 +1,6 @@
 .env
 __pycache__
 venv/
-sample_game/
-generated_games/
 game_cache
 
 **/__pycache__/

@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIME Algorithm Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #666666;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #222222;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        .instructions {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        select, input[type="range"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #dddddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+
+        input[type="range"] {
+            padding: 0;
+        }
+
+        .slider-value {
+            display: inline-block;
+            min-width: 40px;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .visualization {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .chart-container {
+            flex: 1;
+            min-width: 300px;
+            height: 300px;
+            background-color: white;
+            border: 1px solid #eeeeee;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .data-table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+        }
+
+        .highlight {
+            background-color: #e6f7ff;
+            font-weight: bold;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4a4a4a;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #333333;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0 20px;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            flex-grow: 1;
+            margin: 0 10px;
+            position: relative;
+            align-self: center;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #4a4a4a;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .step-label {
+            font-size: 0.8rem;
+            text-align: center;
+            max-width: 100px;
+        }
+
+        .step-circle.active {
+            background-color: #4a4a4a;
+            color: white;
+        }
+
+        .feedback {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .feedback.correct {
+            background-color: #e6ffed;
+            border: 1px solid #a3d9b1;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background-color: #fff0f0;
+            border: 1px solid #ffc1c1;
+            display: block;
+        }
+
+        .score-container {
+            text-align: right;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .visualization {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .control-group {
+                min-width: 100%;
+            }
+            
+            .progress-container {
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+            
+            .progress-bar {
+                order: 1;
+                width: 100%;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>LIME Algorithm Explorer</h1>
+        <p class="subtitle">Understand how LIME explains machine learning predictions through interactive experimentation</p>
+    </header>
+
+    <div class="score-container">
+        Score: <span id="score">0</span>/100
+    </div>
+
+    <div class="game-container">
+        <div class="progress-container">
+            <div class="progress-step">
+                <div class="step-circle active">1</div>
+                <div class="step-label">Dataset & Instance</div>
+            </div>
+            <div class="progress-step">
+                <div class="step-circle">2</div>
+                <div class="step-label">Perturb Features</div>
+            </div>
+            <div class="progress-step">
+                <div class="step-circle">3</div>
+                <div class="step-label">Kernel Width</div>
+            </div>
+            <div class="progress-step">
+                <div class="step-circle">4</div>
+                <div class="step-label">Model & Explain</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 25%;"></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>1. Select Dataset and Instance</h2>
+            <div class="instructions">
+                <p>Choose a dataset and select an instance to explain. LIME helps interpret individual predictions by analyzing local behavior around this instance.</p>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="dataset-select">Dataset:</label>
+                    <select id="dataset-select">
+                        <option value="iris">Iris Flowers (Classification)</option>
+                        <option value="housing">Boston Housing (Regression)</option>
+                        <option value="wine">Wine Quality (Classification)</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="instance-select">Instance to Explain:</label>
+                    <select id="instance-select">
+                        <option value="0">Instance #1</option>
+                        <option value="1">Instance #2</option>
+                        <option value="2">Instance #3</option>
+                        <option value="3">Instance #4</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="visualization">
+                <div class="chart-container">
+                    <canvas id="dataset-chart"></canvas>
+                </div>
+            </div>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Value</th>
+                        <th>Black-box Prediction</th>
+                    </tr>
+                </thead>
+                <tbody id="instance-data">
+                    <tr>
+                        <td>Sepal Length</td>
+                        <td>5.1 cm</td>
+                        <td>Setosa (98%)</td>
+                    </tr>
+                    <tr>
+                        <td>Sepal Width</td>
+                        <td>3.5 cm</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Petal Length</td>
+                        <td>1.4 cm</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Petal Width</td>
+                        <td>0.2 cm</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="panel">
+            <h2>2. Perturb Features and Generate Samples</h2>
+            <div class="instructions">
+                <p>Adjust feature values to create perturbed samples around your selected instance. Observe how changes affect the model's prediction.</p>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="feature1">Sepal Length: <span class="slider-value" id="val1">5.1</span> cm</label>
+                    <input type="range" id="feature1" min="4.0" max="7.0" step="0.1" value="5.1">
+                </div>
+                
+                <div class="control-group">
+                    <label for="feature2">Sepal Width: <span class="slider-value" id="val2">3.5</span> cm</label>
+                    <input type="range" id="feature2" min="2.0" max="4.5" step="0.1" value="3.5">
+                </div>
+                
+                <div class="control-group">
+                    <label for="feature3">Petal Length: <span class="slider-value" id="val3">1.4</span> cm</label>
+                    <input type="range" id="feature3" min="1.0" max="7.0" step="0.1" value="1.4">
+                </div>
+                
+                <div class="control-group">
+                    <label for="feature4">Petal Width: <span class="slider-value" id="val4">0.2</span> cm</label>
+                    <input type="range" id="feature4" min="0.1" max="2.5" step="0.1" value="0.2">
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button id="generate-samples">Generate Perturbed Samples</button>
+                <button id="reset-features">Reset to Original</button>
+            </div>
+            
+            <div class="visualization">
+                <div class="chart-container">
+                    <canvas id="perturbation-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>3. Adjust Kernel Width</h2>
+            <div class="instructions">
+                <p>Kernel width determines how nearby samples are weighted. A smaller width gives higher weight to samples closer to the original instance.</p>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="kernel-width">Kernel Width: <span class="slider-value" id="kernel-val">0.5</span></label>
+                    <input type="range" id="kernel-width" min="0.1" max="2.0" step="0.1" value="0.5">
+                </div>
+            </div>
+            
+            <div class="visualization">
+                <div class="chart-container">
+                    <canvas id="kernel-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>4. Train Surrogate Model and Explain</h2>
+            <div class="instructions">
+                <p>Train an interpretable model on the weighted samples. The feature importance shows which features most influenced the prediction.</p>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="model-select">Surrogate Model:</label>
+                    <select id="model-select">
+                        <option value="linear">Linear Regression</option>
+                        <option value="tree">Decision Tree</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button id="train-model">Train Model</button>
+                <button id="explain">Explain Prediction</button>
+            </div>
+            
+            <div class="visualization">
+                <div class="chart-container">
+                    <canvas id="importance-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="feedback correct">
+                <p>✓ Correct! The surrogate model shows that Petal Length and Petal Width are the most important features for this prediction, which aligns with botanical knowledge of iris classification.</p>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button id="prev-btn">Previous</button>
+            <button id="next-btn">Next Step</button>
+            <button id="restart-btn">Restart</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state and configuration
+        const gameState = {
+            currentStep: 1,
+            score: 0,
+            selectedDataset: 'iris',
+            selectedInstance: 0,
+            kernelWidth: 0.5,
+            surrogateModel: 'linear',
+            featureValues: [5.1, 3.5, 1.4, 0.2],
+            originalFeatures: [5.1, 3.5, 1.4, 0.2]
+        };
+
+        // DOM Elements
+        const scoreElement = document.getElementById('score');
+        const progressFill = document.getElementById('progress-fill');
+        const stepCircles = document.querySelectorAll('.step-circle');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const datasetSelect = document.getElementById('dataset-select');
+        const instanceSelect = document.getElementById('instance-select');
+        const modelSelect = document.getElementById('model-select');
+        const kernelSlider = document.getElementById('kernel-width');
+        const kernelValue = document.getElementById('kernel-val');
+        const generateSamplesBtn = document.getElementById('generate-samples');
+        const resetFeaturesBtn = document.getElementById('reset-features');
+        const trainModelBtn = document.getElementById('train-model');
+        const explainBtn = document.getElementById('explain');
+        const featureSliders = [
+            document.getElementById('feature1'),
+            document.getElementById('feature2'),
+            document.getElementById('feature3'),
+            document.getElementById('feature4')
+        ];
+        const featureValues = [
+            document.getElementById('val1'),
+            document.getElementById('val2'),
+            document.getElementById('val3'),
+            document.getElementById('val4')
+        ];
+
+        // Initialize game
+        function initGame() {
+            updateScore(0);
+            updateProgress();
+            setupEventListeners();
+            updateFeatureSliders();
+            drawCharts();
+        }
+
+        // Update score display
+        function updateScore(points) {
+            gameState.score = Math.min(100, Math.max(0, points));
+            scoreElement.textContent = gameState.score;
+        }
+
+        // Update progress bar and step indicators
+        function updateProgress() {
+            const progressPercentage = (gameState.currentStep / 4) * 100;
+            progressFill.style.width = `${progressPercentage}%`;
+            
+            stepCircles.forEach((circle, index) => {
+                if (index + 1 === gameState.currentStep) {
+                    circle.classList.add('active');
+                } else {
+                    circle.classList.remove('active');
+                }
+            });
+            
+            // Update button states
+            prevBtn.disabled = gameState.currentStep === 1;
+            nextBtn.textContent = gameState.currentStep === 4 ? 'Finish' : 'Next Step';
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            nextBtn.addEventListener('click', nextStep);
+            prevBtn.addEventListener('click', prevStep);
+            restartBtn.addEventListener('click', restartGame);
+            
+            datasetSelect.addEventListener('change', (e) => {
+                gameState.selectedDataset = e.target.value;
+                updateDatasetDisplay();
+            });
+            
+            instanceSelect.addEventListener('change', (e) => {
+                gameState.selectedInstance = parseInt(e.target.value);
+                updateInstanceDisplay();
+            });
+            
+            modelSelect.addEventListener('change', (e) => {
+                gameState.surrogateModel = e.target.value;
+            });
+            
+            kernelSlider.addEventListener('input', (e) => {
+                gameState.kernelWidth = parseFloat(e.target.value);
+                kernelValue.textContent = gameState.kernelWidth.toFixed(1);
+                drawKernelChart();
+            });
+            
+            generateSamplesBtn.addEventListener('click', generateSamples);
+            resetFeaturesBtn.addEventListener('click', resetFeatures);
+            trainModelBtn.addEventListener('click', trainModel);
+            explainBtn.addEventListener('click', explainPrediction);
+            
+            // Feature slider events
+            featureSliders.forEach((slider, index) => {
+                slider.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    gameState.featureValues[index] = value;
+                    featureValues[index].textContent = value.toFixed(1);
+                });
+            });
+        }
+
+        // Navigation functions
+        function nextStep() {
+            if (gameState.currentStep < 4) {
+                gameState.currentStep++;
+                updateProgress();
+                
+                // Award points for completing steps
+                if (gameState.currentStep === 4) {
+                    updateScore(gameState.score + 25);
+                }
+            } else {
+                // Finish the game
+                alert('Congratulations! You completed the LIME exploration. Final score: ' + gameState.score);
+            }
+        }
+
+        function prevStep() {
+            if (gameState.currentStep > 1) {
+                gameState.currentStep--;
+                updateProgress();
+            }
+        }
+
+        function restartGame() {
+            gameState.currentStep = 1;
+            gameState.featureValues = [...gameState.originalFeatures];
+            gameState.kernelWidth = 0.5;
+            kernelSlider.value = 0.5;
+            kernelValue.textContent = '0.5';
+            updateScore(0);
+            updateProgress();
+            updateFeatureSliders();
+            drawCharts();
+        }
+
+        // Update feature sliders with current values
+        function updateFeatureSliders() {
+            featureSliders.forEach((slider, index) => {
+                slider.value = gameState.featureValues[index];
+                featureValues[index].textContent = gameState.featureValues[index].toFixed(1);
+            });
+        }
+
+        // Update dataset display
+        function updateDatasetDisplay() {
+            // In a real implementation, this would update based on selected dataset
+            drawDatasetChart();
+        }
+
+        // Update instance display
+        function updateInstanceDisplay() {
+            // In a real implementation, this would update based on selected instance
+            drawDatasetChart();
+        }
+
+        // Generate perturbed samples
+        function generateSamples() {
+            // Simulate sample generation
+            drawPerturbationChart();
+            updateScore(gameState.score + 10);
+        }
+
+        // Reset features to original values
+        function resetFeatures() {
+            gameState.featureValues = [...gameState.originalFeatures];
+            updateFeatureSliders();
+            drawPerturbationChart();
+        }
+
+        // Train surrogate model
+        function trainModel() {
+            // Simulate model training
+            drawImportanceChart();
+            updateScore(gameState.score + 15);
+        }
+
+        // Explain prediction
+        function explainPrediction() {
+            // Show feedback
+            document.querySelector('.feedback').classList.add('correct');
+            updateScore(gameState.score + 20);
+        }
+
+        // Chart drawing functions (simplified for this example)
+        function drawCharts() {
+            drawDatasetChart();
+            drawPerturbationChart();
+            drawKernelChart();
+            drawImportanceChart();
+        }
+
+        function drawDatasetChart() {
+            const canvas = document.getElementById('dataset-chart');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw chart title
+            ctx.font = '16px sans-serif';
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'center';
+            ctx.fillText('Selected Dataset Features', width/2, 30);
+            
+            // Draw simple representation of data
+            ctx.fillStyle = '#4a4a4a';
+            ctx.fillRect(50, 100, 40, 150);
+            ctx.fillRect(120, 100, 40, 120);
+            ctx.fillRect(190, 100, 40, 180);
+            ctx.fillRect(260, 100, 40, 90);
+            
+            // Feature labels
+            ctx.font = '12px sans-serif';
+            ctx.fillText('Sepal L', 70, 270);
+            ctx.fillText('Sepal W', 140, 270);
+            ctx.fillText('Petal L', 210, 270);
+            ctx.fillText('Petal W', 280, 270);
+        }
+
+        function drawPerturbationChart() {
+            const canvas = document.getElementById('perturbation-chart');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw chart title
+            ctx.font = '16px sans-serif';
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'center';
+            ctx.fillText('Perturbed Samples', width/2, 30);
+            
+            // Draw sample points
+            ctx.fillStyle = '#4a4a4a';
+            for (let i = 0; i < 50; i++) {
+                const x = 50 + Math.random() * (width - 100);
+                const y = 80 + Math.random() * (height - 130);
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Draw original instance
+            ctx.fillStyle = '#e74c3c';
+            ctx.beginPath();
+            ctx.arc(width/2, height/2, 8, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawKernelChart() {
+            const canvas = document.getElementById('kernel-chart');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw chart title
+            ctx.font = '16px sans-serif';
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'center';
+            ctx.fillText('Sample Weights (Kernel: ' + gameState.kernelWidth.toFixed(1) + ')', width/2, 30);
+            
+            // Draw kernel curve
+            ctx.beginPath();
+            ctx.moveTo(50, height - 50);
+            
+            for (let x = 0; x <= width - 100; x++) {
+                const xVal = x / (width - 100) * 3;
+                const y = height - 50 - Math.exp(-(xVal * xVal) / (gameState.kernelWidth * gameState.kernelWidth)) * 150;
+                ctx.lineTo(50 + x, y);
+            }
+            
+            ctx.strokeStyle = '#4a4a4a';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Axes
+            ctx.beginPath();
+            ctx.moveTo(50, 50);
+            ctx.lineTo(50, height - 50);
+            ctx.lineTo(width - 50, height - 50);
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // Labels
+            ctx.font = '12px sans-serif';
+            ctx.fillText('Distance', width/2, height - 20);
+            ctx.save();
+            ctx.translate(30, height/2);
+            ctx.rotate(-Math.PI/2);
+            ctx.fillText('Weight', 0, 0);
+            ctx.restore();
+        }
+
+        function drawImportanceChart() {
+            const canvas = document.getElementById('importance-chart');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw chart title
+            ctx.font = '16px sans-serif';
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'center';
+            ctx.fillText('Feature Importance', width/2, 30);
+            
+            // Feature names and importance values
+            const features = ['Sepal Length', 'Sepal Width', 'Petal Length', 'Petal Width'];
+            const importance = [0.15, 0.08, 0.45, 0.32];
+            
+            const barHeight = 30;
+            const spacing = 15;
+            const startY = 70;
+            const maxBarWidth = width - 150;
+            
+            // Draw bars
+            features.forEach((feature, i) => {
+                const y = startY + i * (barHeight + spacing);
+                const barWidth = importance[i] * maxBarWidth;
+                
+                // Bar
+                ctx.fillStyle = i === 2 ? '#3498db' : '#4a4a4a';
+                ctx.fillRect(100, y, barWidth, barHeight);
+                
+                // Feature name
+                ctx.fillStyle = '#333';
+                ctx.font = '14px sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(feature, 95, y + barHeight/2 + 5);
+                
+                // Importance value
+                ctx.textAlign = 'left';
+                ctx.fillText((importance[i] * 100).toFixed(1) + '%', 105 + barWidth, y + barHeight/2 + 5);
+            });
+        }
+
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

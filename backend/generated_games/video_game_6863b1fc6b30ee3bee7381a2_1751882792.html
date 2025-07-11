@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai: Island Transformation</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .map-container {
+            position: relative;
+            height: 400px;
+            background-color: #e9e9e9;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+
+        .island:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 15px 0;
+        }
+
+        .time-periods {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .period-btn {
+            padding: 10px 20px;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .period-btn.active {
+            background-color: #555;
+            color: white;
+        }
+
+        .info-panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            min-height: 200px;
+            border: 1px solid #eee;
+        }
+
+        .info-panel h3 {
+            margin-bottom: 15px;
+            color: #222;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .timeline-container {
+            margin-top: 20px;
+        }
+
+        .timeline {
+            display: flex;
+            overflow-x: auto;
+            padding: 20px 0;
+            gap: 25px;
+        }
+
+        .timeline-event {
+            min-width: 250px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #eee;
+        }
+
+        .timeline-event h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid #eee;
+        }
+
+        .score, .level {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #333;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .map-container {
+                height: 300px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .time-periods {
+                justify-content: center;
+            }
+            
+            .island {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .map-container {
+                height: 250px;
+            }
+            
+            .timeline-event {
+                min-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mumbai: Island Transformation</h1>
+        <p>Explore how seven islands became modern Mumbai through land reclamation</p>
+    </header>
+
+    <main class="game-container">
+        <div class="game-stats">
+            <div class="score">Score: <span id="score-value">0</span></div>
+            <div class="level">Level: <span id="level-value">1/3</span></div>
+        </div>
+
+        <div class="map-container" id="map">
+            <!-- Islands will be dynamically positioned -->
+        </div>
+
+        <div class="controls">
+            <div class="time-periods">
+                <button class="period-btn active" data-period="pre1782">Pre-1782</button>
+                <button class="period-btn" data-period="1782-1845">1782-1845</button>
+                <button class="period-btn" data-period="post1845">Post-1845</button>
+            </div>
+            <button class="btn" id="next-level">Next Level</button>
+        </div>
+
+        <div class="info-panel">
+            <h3>Island Information</h3>
+            <div id="island-info">Click on an island to learn about its history</div>
+        </div>
+
+        <div class="timeline-container">
+            <h3>Historical Timeline</h3>
+            <div class="timeline" id="timeline">
+                <!-- Timeline events will be added here -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Game data
+        const islands = [
+            { id: 'colaba', name: 'Colaba', color: '#4a6fa5', x: 80, y: 80, radius: 40, 
+              info: 'Originally known as Kolbhat. Site of important Portuguese and later British fortifications.' },
+            { id: 'old-womans', name: "Old Woman's", color: '#5e8c6a', x: 40, y: 180, radius: 35, 
+              info: 'Small island between Colaba and Bombay. Named for an old woman who lived there.' },
+            { id: 'bombay', name: 'Bombay', color: '#9e7c5e', x: 150, y: 150, radius: 60, 
+              info: 'The main island where the British established their headquarters and trading center.' },
+            { id: 'mazagaon', name: 'Mazagaon', color: '#c96f53', x: 250, y: 120, radius: 45, 
+              info: 'Portuguese for "fisherman\'s village". Known for its docks and shipbuilding.' },
+            { id: 'parel', name: 'Parel', color: '#8a6a9b', x: 200, y: 250, radius: 50, 
+              info: 'Site of the Governor\'s residence during British rule. Now a major residential area.' },
+            { id: 'worli', name: 'Worli', color: '#4d8b8f', x: 120, y: 300, radius: 45, 
+              info: 'Fishing village that became important for the Hornby Vellard project connecting islands.' },
+            { id: 'mahim', name: 'Mahim', color: '#b78d5a', x: 50, y: 350, radius: 55, 
+              info: 'Northernmost island, connected to Salsette. Site of the Mahim Causeway project.' }
+        ];
+
+        const timelineEvents = [
+            { year: '1348', title: 'Gujarat Sultanate', description: 'Mumbai islands come under Muslim rule of the Gujarat Sultanate' },
+            { year: '1534', title: 'Portuguese Control', description: 'Portuguese take control of the islands from Bahadur Shah of Gujarat' },
+            { year: '1661', title: 'British Possession', description: 'Portuguese cede the islands to England as part of Catherine of Braganza\'s dowry' },
+            { year: '1668', title: 'East India Company', description: 'British Crown leases the islands to the East India Company for £10 per year' },
+            { year: '1782', title: 'Hornby Vellard', description: 'Construction begins on the Hornby Vellard project to connect Mahim and Worli' },
+            { year: '1838', title: 'Colaba Causeway', description: 'Construction of causeway connecting Colaba to Bombay completed' },
+            { year: '1845', title: 'Mahim Causeway', description: 'Completion of causeway connecting Mahim to Bandra on the mainland' }
+        ];
+
+        const projects = [
+            { name: 'Hornby Vellard', location: 'worli', year: '1782-1784', 
+              info: 'Engineering project connecting Worli and Mahim islands, initiated by Governor William Hornby against East India Company orders.' },
+            { name: 'Colaba Causeway', location: 'colaba', year: '1838', 
+              info: 'Causeway connecting Colaba and Old Woman\'s Island to Bombay, enabling urban expansion southward.' },
+            { name: 'Duncan Causeway', location: 'mazagaon', year: '1815', 
+              info: 'Causeway connecting Mazagaon to Bombay island, named after Governor Jonathan Duncan.' },
+            { name: 'Mahim Causeway', location: 'mahim', year: '1845', 
+              info: 'Final major causeway connecting Mahim to Bandra on the mainland, completing the physical unification.' }
+        ];
+
+        // Game state
+        let currentScore = 0;
+        let currentLevel = 1;
+        let foundProjects = [];
+        let currentPeriod = 'pre1782';
+
+        // DOM elements
+        const mapElement = document.getElementById('map');
+        const infoElement = document.getElementById('island-info');
+        const timelineElement = document.getElementById('timeline');
+        const scoreElement = document.getElementById('score-value');
+        const levelElement = document.getElementById('level-value');
+        const nextLevelBtn = document.getElementById('next-level');
+
+        // Initialize game
+        function initGame() {
+            renderIslands();
+            renderTimeline();
+            updateGameStats();
+            setupEventListeners();
+        }
+
+        // Render islands on the map
+        function renderIslands() {
+            mapElement.innerHTML = '';
+            
+            islands.forEach(island => {
+                const islandEl = document.createElement('div');
+                islandEl.className = 'island';
+                islandEl.id = island.id;
+                islandEl.textContent = island.name;
+                
+                // Position and style
+                islandEl.style.width = `${island.radius * 2}px`;
+                islandEl.style.height = `${island.radius * 2}px`;
+                islandEl.style.left = `${island.x}px`;
+                islandEl.style.top = `${island.y}px`;
+                islandEl.style.backgroundColor = island.color;
+                
+                // Add click event
+                islandEl.addEventListener('click', () => showIslandInfo(island));
+                
+                mapElement.appendChild(islandEl);
+            });
+            
+            // Add project markers based on level
+            if (currentLevel >= 2) {
+                projects.forEach(project => {
+                    const island = islands.find(i => i.id === project.location);
+                    if (island) {
+                        const marker = document.createElement('div');
+                        marker.className = 'project-marker';
+                        marker.dataset.project = project.name;
+                        marker.style.width = '20px';
+                        marker.style.height = '20px';
+                        marker.style.backgroundColor = '#e74c3c';
+                        marker.style.borderRadius = '50%';
+                        marker.style.position = 'absolute';
+                        marker.style.left = `${island.x + island.radius - 10}px`;
+                        marker.style.top = `${island.y - 10}px`;
+                        marker.style.cursor = 'pointer';
+                        marker.style.boxShadow = '0 0 0 3px rgba(231, 76, 60, 0.5)';
+                        
+                        marker.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showProjectInfo(project);
+                        });
+                        
+                        mapElement.appendChild(marker);
+                    }
+                });
+            }
+        }
+
+        // Show island information
+        function showIslandInfo(island) {
+            let infoHTML = `<h4>${island.name} Island</h4>`;
+            infoHTML += `<p>${island.info}</p>`;
+            
+            // Add projects for this island
+            const islandProjects = projects.filter(p => p.location === island.id);
+            if (islandProjects.length > 0 && currentLevel >= 2) {
+                infoHTML += `<h4 style="margin-top:15px;">Engineering Projects:</h4>`;
+                islandProjects.forEach(project => {
+                    infoHTML += `<p><strong>${project.name}</strong> (${project.year}): ${project.info}</p>`;
+                });
+            }
+            
+            infoElement.innerHTML = infoHTML;
+            
+            // Scoring for level 1
+            if (currentLevel === 1) {
+                currentScore += 10;
+                updateGameStats();
+            }
+        }
+
+        // Show project information
+        function showProjectInfo(project) {
+            let infoHTML = `<h4>${project.name}</h4>`;
+            infoHTML += `<p><strong>Year:</strong> ${project.year}</p>`;
+            infoHTML += `<p>${project.info}</p>`;
+            infoElement.innerHTML = infoHTML;
+            
+            // Scoring for level 2
+            if (currentLevel === 2 && !foundProjects.includes(project.name)) {
+                foundProjects.push(project.name);
+                currentScore += 20;
+                updateGameStats();
+                
+                // Check if all projects found
+                if (foundProjects.length === projects.length) {
+                    nextLevelBtn.disabled = false;
+                }
+            }
+        }
+
+        // Render timeline
+        function renderTimeline() {
+            timelineElement.innerHTML = '';
+            
+            timelineEvents.forEach(event => {
+                const eventEl = document.createElement('div');
+                eventEl.className = 'timeline-event';
+                eventEl.innerHTML = `
+                    <h4>${event.year}: ${event.title}</h4>
+                    <p>${event.description}</p>
+                `;
+                timelineElement.appendChild(eventEl);
+            });
+        }
+
+        // Update game stats display
+        function updateGameStats() {
+            scoreElement.textContent = currentScore;
+            levelElement.textContent = `${currentLevel}/3`;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Time period buttons
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentPeriod = this.dataset.period;
+                    updateMapForPeriod();
+                });
+            });
+            
+            // Next level button
+            nextLevelBtn.addEventListener('click', goToNextLevel);
+        }
+
+        // Update map based on selected time period
+        function updateMapForPeriod() {
+            const islands = document.querySelectorAll('.island');
+            
+            if (currentPeriod === 'pre1782') {
+                // Original separate islands
+                islands.forEach(island => {
+                    island.style.transform = 'scale(1)';
+                    island.style.opacity = '1';
+                });
+            } else if (currentPeriod === '1782-1845') {
+                // Partially connected
+                islands.forEach(island => {
+                    if (['worli', 'mahim'].includes(island.id)) {
+                        island.style.transform = 'translate(40px, -30px)';
+                    }
+                });
+            } else if (currentPeriod === 'post1845') {
+                // Fully connected
+                islands.forEach(island => {
+                    if (['colaba', 'old-womans'].includes(island.id)) {
+                        island.style.transform = 'translate(30px, 20px)';
+                    } else if (['mazagaon', 'parel'].includes(island.id)) {
+                        island.style.transform = 'translate(-20px, 10px)';
+                    } else if (['worli', 'mahim'].includes(island.id)) {
+                        island.style.transform = 'translate(60px, -40px)';
+                    }
+                });
+            }
+            
+            // Scoring for level 3
+            if (currentLevel === 3) {
+                currentScore += 5;
+                updateGameStats();
+            }
+        }
+
+        // Advance to next level
+        function goToNextLevel() {
+            if (currentLevel < 3) {
+                currentLevel++;
+                foundProjects = [];
+                nextLevelBtn.disabled = currentLevel === 2;
+                updateGameStats();
+                renderIslands();
+                
+                if (currentLevel === 3) {
+                    document.querySelector('.period-btn.active').click();
+                }
+            } else {
+                // Game completion
+                infoElement.innerHTML = `
+                    <h3>Game Completed!</h3>
+                    <p>Final Score: ${currentScore}</p>
+                    <p>You've learned how Mumbai transformed from seven islands to a unified city through land reclamation projects.</p>
+                    <button class="btn" id="restart-btn">Play Again</button>
+                `;
+                document.getElementById('restart-btn').addEventListener('click', restartGame);
+            }
+        }
+
+        // Restart game
+        function restartGame() {
+            currentScore = 0;
+            currentLevel = 1;
+            foundProjects = [];
+            updateGameStats();
+            renderIslands();
+            infoElement.innerHTML = 'Click on an island to learn about its history';
+            nextLevelBtn.disabled = false;
+            document.querySelector('.period-btn').classList.add('active');
+        }
+
+        // Initialize the game when page loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>

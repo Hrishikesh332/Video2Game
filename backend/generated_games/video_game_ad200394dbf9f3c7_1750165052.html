@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cappuccino Making Simulator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .screen {
+            display: none;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .active {
+            display: block;
+        }
+
+        h1, h2 {
+            color: #444;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .progress-container {
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            height: 20px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #757575;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .ingredients-container, .tools-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .ingredient, .tool {
+            width: 80px;
+            height: 80px;
+            background-color: #e9e9e9;
+            border: 2px solid #d0d0d0;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ingredient.selected, .tool.selected {
+            background-color: #d0d0d0;
+            border-color: #a0a0a0;
+        }
+
+        .ingredient img, .tool img {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 5px;
+        }
+
+        .measurement {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .slider-container {
+            width: 80%;
+            margin: 20px 0;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 25px;
+        }
+
+        .value-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .target-display {
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .mixing-area {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            background-color: #e9e9e9;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #d0d0d0;
+        }
+
+        .coffee-liquid {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: #4e3524;
+            height: 0%;
+            transition: height 0.5s ease;
+        }
+
+        .milk-foam {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: #f0f0f0;
+            height: 0%;
+            border-radius: 50% 50% 0 0;
+            transition: height 0.5s ease;
+        }
+
+        .stir-area {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .stir-spoon {
+            position: absolute;
+            width: 100px;
+            height: 20px;
+            background-color: #a0a0a0;
+            transform-origin: 10% 50%;
+            transition: transform 0.1s linear;
+        }
+
+        .stir-progress {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 15px;
+        }
+
+        button {
+            background-color: #757575;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #5a5a5a;
+        }
+
+        button:disabled {
+            background-color: #b0b0b0;
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .score-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .feedback {
+            font-style: italic;
+            margin: 10px 0;
+            color: #555;
+        }
+
+        @media (max-width: 600px) {
+            .ingredient, .tool {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .mixing-area {
+                width: 250px;
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active">
+            <h1>Cappuccino Making Simulator</h1>
+            <p>Learn how to make the perfect cappuccino at home!</p>
+            <div class="button-container">
+                <button id="start-btn">Start Brewing</button>
+            </div>
+        </div>
+
+        <!-- Level 1: Ingredient Selection -->
+        <div id="level1" class="screen">
+            <h2>Step 1: Select Ingredients</h2>
+            <p>Choose the correct ingredients for a cappuccino</p>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-level1"></div>
+            </div>
+            <div class="ingredients-container">
+                <div class="ingredient" data-ingredient="coffee">
+                    <div>☕</div>
+                    <span>Coffee</span>
+                </div>
+                <div class="ingredient" data-ingredient="water">
+                    <div>💧</div>
+                    <span>Water</span>
+                </div>
+                <div class="ingredient" data-ingredient="milk">
+                    <div>🥛</div>
+                    <span>Milk</span>
+                </div>
+                <div class="ingredient" data-ingredient="sugar">
+                    <div>🍬</div>
+                    <span>Sugar</span>
+                </div>
+                <div class="ingredient" data-ingredient="honey">
+                    <div>🍯</div>
+                    <span>Honey</span>
+                </div>
+                <div class="ingredient" data-ingredient="tea">
+                    <div>🍵</div>
+                    <span>Tea</span>
+                </div>
+            </div>
+            <div class="button-container">
+                <button id="next-level1" disabled>Next Step</button>
+            </div>
+        </div>
+
+        <!-- Level 2: Measurement Guide -->
+        <div id="level2" class="screen">
+            <h2>Step 2: Measure Ingredients</h2>
+            <p>Adjust to the perfect measurements</p>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-level2"></div>
+            </div>
+            
+            <div class="measurement">
+                <h3>Coffee Powder</h3>
+                <div class="target-display">Target: 18g</div>
+                <div class="slider-container">
+                    <input type="range" min="0" max="30" value="0" class="measure-slider" data-ingredient="coffee">
+                </div>
+                <div class="value-display">0g</div>
+            </div>
+            
+            <div class="measurement">
+                <h3>Milk</h3>
+                <div class="target-display">Target: 120ml</div>
+                <div class="slider-container">
+                    <input type="range" min="0" max="200" value="0" class="measure-slider" data-ingredient="milk">
+                </div>
+                <div class="value-display">0ml</div>
+            </div>
+            
+            <div class="button-container">
+                <button id="next-level2" disabled>Next Step</button>
+            </div>
+        </div>
+
+        <!-- Level 3: Mixing Process -->
+        <div id="level3" class="screen">
+            <h2>Step 3: Mix & Froth</h2>
+            <p>Stir the coffee and froth the milk</p>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-level3"></div>
+            </div>
+            
+            <div class="mixing-area">
+                <div class="coffee-liquid" id="coffee-liquid"></div>
+                <div class="stir-area" id="stir-area">
+                    <div class="stir-spoon" id="stir-spoon"></div>
+                </div>
+            </div>
+            <div class="stir-progress">Stirring Progress: <span id="stir-count">0</span>/20 rotations</div>
+            
+            <div class="button-container">
+                <button id="next-level3" disabled>Finish Mixing</button>
+            </div>
+        </div>
+
+        <!-- Level 4: Final Pour -->
+        <div id="level4" class="screen">
+            <h2>Step 4: Final Pour</h2>
+            <p>Pour the frothed milk into your coffee</p>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-level4"></div>
+            </div>
+            
+            <div class="mixing-area">
+                <div class="coffee-liquid" id="final-coffee"></div>
+                <div class="milk-foam" id="milk-foam"></div>
+            </div>
+            
+            <div class="slider-container" style="width: 300px; margin: 30px auto;">
+                <input type="range" min="0" max="100" value="0" id="pour-slider">
+            </div>
+            <div class="value-display">Pour: <span id="pour-value">0</span>%</div>
+            
+            <div class="button-container">
+                <button id="next-level4" disabled>Finish & Serve</button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="screen">
+            <h2>Your Cappuccino is Ready!</h2>
+            <div class="result-container">
+                <div class="score-display">Final Score: <span id="final-score">0</span>/100</div>
+                <div class="feedback" id="feedback"></div>
+            </div>
+            <div class="button-container">
+                <button id="restart-btn">Make Another</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentLevel: 0,
+            score: 0,
+            selectedIngredients: [],
+            measurements: {
+                coffee: 0,
+                milk: 0
+            },
+            stirCount: 0,
+            pourAmount: 0
+        };
+
+        // DOM elements
+        const screens = [
+            document.getElementById('start-screen'),
+            document.getElementById('level1'),
+            document.getElementById('level2'),
+            document.getElementById('level3'),
+            document.getElementById('level4'),
+            document.getElementById('results-screen')
+        ];
+
+        const progressBars = [
+            document.getElementById('progress-level1'),
+            document.getElementById('progress-level2'),
+            document.getElementById('progress-level3'),
+            document.getElementById('progress-level4')
+        ];
+
+        // Initialize game
+        function initGame() {
+            // Start button
+            document.getElementById('start-btn').addEventListener('click', () => {
+                showScreen(1);
+            });
+
+            // Level 1: Ingredient selection
+            const ingredients = document.querySelectorAll('.ingredient');
+            ingredients.forEach(ingredient => {
+                ingredient.addEventListener('click', () => {
+                    const selected = ingredient.dataset.ingredient;
+                    
+                    if (gameState.selectedIngredients.includes(selected)) {
+                        ingredient.classList.remove('selected');
+                        gameState.selectedIngredients = gameState.selectedIngredients.filter(item => item !== selected);
+                    } else {
+                        ingredient.classList.add('selected');
+                        gameState.selectedIngredients.push(selected);
+                    }
+                    
+                    // Enable next button only if correct ingredients are selected
+                    const correctSelections = ['coffee', 'water', 'milk', 'sugar'];
+                    const allCorrect = correctSelections.every(item => 
+                        gameState.selectedIngredients.includes(item)
+                    );
+                    
+                    document.getElementById('next-level1').disabled = !allCorrect;
+                });
+            });
+
+            document.getElementById('next-level1').addEventListener('click', () => {
+                gameState.score += 25;
+                updateProgressBar(0, 25);
+                showScreen(2);
+            });
+
+            // Level 2: Measurement
+            const sliders = document.querySelectorAll('.measure-slider');
+            sliders.forEach(slider => {
+                const valueDisplay = slider.parentElement.nextElementSibling;
+                
+                slider.addEventListener('input', () => {
+                    const ingredient = slider.dataset.ingredient;
+                    gameState.measurements[ingredient] = parseInt(slider.value);
+                    valueDisplay.textContent = `${slider.value}${ingredient === 'coffee' ? 'g' : 'ml'}`;
+                    
+                    // Check if both measurements are within acceptable range
+                    const coffeeOk = gameState.measurements.coffee >= 16 && gameState.measurements.coffee <= 20;
+                    const milkOk = gameState.measurements.milk >= 110 && gameState.measurements.milk <= 130;
+                    
+                    document.getElementById('next-level2').disabled = !(coffeeOk && milkOk);
+                });
+            });
+
+            document.getElementById('next-level2').addEventListener('click', () => {
+                // Calculate measurement score
+                const coffeeDiff = Math.abs(18 - gameState.measurements.coffee);
+                const milkDiff = Math.abs(120 - gameState.measurements.milk);
+                
+                const coffeeScore = Math.max(0, 15 - coffeeDiff);
+                const milkScore = Math.max(0, 10 - milkDiff/2);
+                
+                gameState.score += coffeeScore + milkScore;
+                updateProgressBar(1, 25);
+                
+                // Update coffee liquid display
+                document.getElementById('coffee-liquid').style.height = '40%';
+                showScreen(3);
+            });
+
+            // Level 3: Mixing
+            const stirArea = document.getElementById('stir-area');
+            const stirSpoon = document.getElementById('stir-spoon');
+            let rotation = 0;
+            let isStirring = false;
+            let lastAngle = 0;
+            
+            stirArea.addEventListener('mousedown', startStirring);
+            stirArea.addEventListener('touchstart', startStirring);
+            
+            function startStirring(e) {
+                e.preventDefault();
+                isStirring = true;
+                const rect = stirArea.getBoundingClientRect();
+                const centerX = rect.left + rect.width/2;
+                const centerY = rect.top + rect.height/2;
+                
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+                
+                lastAngle = Math.atan2(clientY - centerY, clientX - centerX);
+            }
+            
+            document.addEventListener('mousemove', stir);
+            document.addEventListener('touchmove', stir);
+            document.addEventListener('mouseup', stopStirring);
+            document.addEventListener('touchend', stopStirring);
+            
+            function stir(e) {
+                if (!isStirring) return;
+                
+                const rect = stirArea.getBoundingClientRect();
+                const centerX = rect.left + rect.width/2;
+                const centerY = rect.top + rect.height/2;
+                
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+                
+                const angle = Math.atan2(clientY - centerY, clientX - centerX);
+                const angleDiff = angle - lastAngle;
+                
+                // Detect full rotations
+                if (Math.abs(angleDiff) > Math.PI) {
+                    rotation += angleDiff > 0 ? 1 : -1;
+                    gameState.stirCount = Math.min(20, Math.max(0, gameState.stirCount + 1));
+                    document.getElementById('stir-count').textContent = gameState.stirCount;
+                    
+                    if (gameState.stirCount >= 20) {
+                        document.getElementById('next-level3').disabled = false;
+                    }
+                }
+                
+                stirSpoon.style.transform = `rotate(${angle}rad)`;
+                lastAngle = angle;
+            }
+            
+            function stopStirring() {
+                isStirring = false;
+            }
+            
+            document.getElementById('next-level3').addEventListener('click', () => {
+                // Calculate stirring score
+                const stirScore = Math.min(20, gameState.stirCount) * 1.5;
+                gameState.score += stirScore;
+                updateProgressBar(2, 25);
+                showScreen(4);
+            });
+
+            // Level 4: Pouring
+            const pourSlider = document.getElementById('pour-slider');
+            const pourValue = document.getElementById('pour-value');
+            
+            pourSlider.addEventListener('input', () => {
+                const value = parseInt(pourSlider.value);
+                gameState.pourAmount = value;
+                pourValue.textContent = value;
+                
+                document.getElementById('milk-foam').style.height = `${value}%`;
+                document.getElementById('next-level4').disabled = value < 80;
+            });
+            
+            document.getElementById('next-level4').addEventListener('click', () => {
+                // Calculate pouring score
+                const pourDiff = Math.abs(90 - gameState.pourAmount);
+                const pourScore = Math.max(0, 15 - pourDiff/2);
+                gameState.score += pourScore;
+                updateProgressBar(3, 25);
+                
+                // Final score
+                gameState.score = Math.min(100, Math.round(gameState.score));
+                document.getElementById('final-score').textContent = gameState.score;
+                
+                // Feedback
+                const feedback = document.getElementById('feedback');
+                if (gameState.score >= 90) {
+                    feedback.textContent = "Perfect! You're a barista master!";
+                } else if (gameState.score >= 70) {
+                    feedback.textContent = "Great job! Your cappuccino looks delicious!";
+                } else if (gameState.score >= 50) {
+                    feedback.textContent = "Good effort! With practice, you'll master it.";
+                } else {
+                    feedback.textContent = "Keep practicing! You'll get better.";
+                }
+                
+                showScreen(5);
+            });
+
+            // Restart button
+            document.getElementById('restart-btn').addEventListener('click', () => {
+                resetGame();
+                showScreen(0);
+            });
+        }
+
+        // Screen navigation
+        function showScreen(index) {
+            screens.forEach(screen => screen.classList.remove('active'));
+            screens[index].classList.add('active');
+            gameState.currentLevel = index;
+        }
+
+        // Progress tracking
+        function updateProgressBar(levelIndex, percent) {
+            const currentWidth = parseInt(progressBars[levelIndex].style.width) || 0;
+            progressBars[levelIndex].style.width = `${currentWidth + percent}%`;
+        }
+
+        // Reset game state
+        function resetGame() {
+            gameState.score = 0;
+            gameState.selectedIngredients = [];
+            gameState.measurements = { coffee: 0, milk: 0 };
+            gameState.stirCount = 0;
+            gameState.pourAmount = 0;
+            
+            // Reset UI elements
+            document.querySelectorAll('.ingredient').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.measure-slider').forEach(slider => slider.value = 0);
+            document.querySelectorAll('.value-display').forEach(display => {
+                if (display.classList.contains('value-display')) {
+                    display.textContent = display.textContent.includes('g') ? '0g' : '0ml';
+                }
+            });
+            document.getElementById('coffee-liquid').style.height = '0%';
+            document.getElementById('milk-foam').style.height = '0%';
+            document.getElementById('stir-count').textContent = '0';
+            document.getElementById('pour-value').textContent = '0';
+            pourSlider.value = 0;
+            
+            // Reset buttons
+            document.getElementById('next-level1').disabled = true;
+            document.getElementById('next-level2').disabled = true;
+            document.getElementById('next-level3').disabled = true;
+            document.getElementById('next-level4').disabled = true;
+            
+            // Reset progress bars
+            progressBars.forEach(bar => bar.style.width = '0%');
+        }
+
+        // Initialize game when loaded
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

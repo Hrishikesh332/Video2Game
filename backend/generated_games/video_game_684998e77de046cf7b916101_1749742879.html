@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Financial Challenge</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            color: #2c3e50;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #1a252f;
+        }
+        
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .game-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+            min-height: 400px;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        .instructions {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+        }
+        
+        .challenge {
+            margin: 20px 0;
+        }
+        
+        .scatter-plot {
+            width: 100%;
+            height: 300px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        .data-point {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .data-point:hover {
+            transform: translate(-50%, -50%) scale(1.5);
+            z-index: 10;
+        }
+        
+        .axis {
+            position: absolute;
+            background-color: #333;
+        }
+        
+        .x-axis {
+            bottom: 0;
+            left: 40px;
+            right: 40px;
+            height: 2px;
+        }
+        
+        .y-axis {
+            top: 40px;
+            bottom: 0;
+            left: 40px;
+            width: 2px;
+        }
+        
+        .axis-label {
+            position: absolute;
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+        
+        .x-label {
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .y-label {
+            top: 20px;
+            left: 20px;
+            transform: rotate(-90deg);
+            transform-origin: left top;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .option {
+            padding: 15px;
+            background-color: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .option:hover {
+            background-color: #d6dbdf;
+            border-color: #95a5a6;
+        }
+        
+        .option.selected {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+        
+        .option.correct {
+            background-color: #2ecc71;
+            border-color: #27ae60;
+            color: white;
+        }
+        
+        .option.incorrect {
+            background-color: #e74c3c;
+            border-color: #c0392b;
+            color: white;
+        }
+        
+        .feedback {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background-color: #d5f5e3;
+            border: 1px solid #2ecc71;
+            display: block;
+        }
+        
+        .feedback.incorrect {
+            background-color: #fadbd8;
+            border: 1px solid #e74c3c;
+            display: block;
+        }
+        
+        .dimension-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .dimension {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .dimension label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .dimension input {
+            width: 100%;
+        }
+        
+        .results {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+        }
+        
+        .result-item {
+            text-align: center;
+        }
+        
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .completion-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .completion-screen h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .score-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #3498db;
+            margin: 20px 0;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .stat-item {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            min-width: 150px;
+        }
+        
+        @media (max-width: 768px) {
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCA Financial Challenge</h1>
+        <div class="controls">
+            <button id="prevBtn">Previous</button>
+            <button id="nextBtn">Next</button>
+        </div>
+    </header>
+    
+    <div class="game-container">
+        <!-- Introduction Screen -->
+        <div id="intro-screen" class="screen active">
+            <h2>Principal Component Analysis Challenge</h2>
+            <div class="instructions">
+                <p>Welcome to the PCA Financial Challenge! In this interactive experience, you'll explore how Principal Component Analysis helps simplify complex financial data.</p>
+                <p>Through three challenges, you'll:</p>
+                <ul>
+                    <li>Analyze loan payment data across multiple dimensions</li>
+                    <li>Identify clusters in financial data</li>
+                    <li>Understand how PCA reduces complexity</li>
+                    <li>Predict payment outcomes based on financial variables</li>
+                </ul>
+                <p>Earn points for correct answers and strategic decisions. Let's begin!</p>
+            </div>
+            <button id="start-btn">Start Challenge</button>
+        </div>
+        
+        <!-- Challenge 1: Data Classification -->
+        <div id="challenge1-screen" class="screen">
+            <h2>Challenge 1: Data Classification</h2>
+            <div class="instructions">
+                <p>Analyze the scatter plot showing annual income vs. loan amounts. Identify which cluster each data point belongs to based on payment behavior patterns.</p>
+            </div>
+            
+            <div class="scatter-plot" id="scatter-plot-1">
+                <div class="axis x-axis"></div>
+                <div class="axis y-axis"></div>
+                <div class="axis-label x-label">Annual Income ($)</div>
+                <div class="axis-label y-label">Loan Amount ($)</div>
+                <!-- Data points will be generated by JavaScript -->
+            </div>
+            
+            <div class="options-container" id="cluster-options">
+                <!-- Options will be generated by JavaScript -->
+            </div>
+            
+            <div class="feedback" id="feedback-1"></div>
+            
+            <button id="submit-1">Submit Answer</button>
+        </div>
+        
+        <!-- Challenge 2: Dimension Analysis -->
+        <div id="challenge2-screen" class="screen">
+            <h2>Challenge 2: Dimension Analysis</h2>
+            <div class="instructions">
+                <p>Financial data has multiple dimensions. Adjust the sliders to see how adding credit score and loan duration dimensions affects the clustering.</p>
+            </div>
+            
+            <div class="dimension-controls">
+                <div class="dimension">
+                    <label for="credit-score">Credit Score (650-850)</label>
+                    <input type="range" id="credit-score" min="650" max="850" value="750">
+                    <span id="credit-value">750</span>
+                </div>
+                <div class="dimension">
+                    <label for="loan-duration">Loan Duration (1-7 years)</label>
+                    <input type="range" id="loan-duration" min="1" max="7" value="3">
+                    <span id="duration-value">3 years</span>
+                </div>
+            </div>
+            
+            <div class="scatter-plot" id="scatter-plot-2">
+                <div class="axis x-axis"></div>
+                <div class="axis y-axis"></div>
+                <div class="axis-label x-label">Annual Income ($)</div>
+                <div class="axis-label y-label">Loan Amount ($)</div>
+                <!-- Data points will be generated by JavaScript -->
+            </div>
+            
+            <div class="results">
+                <div class="result-item">
+                    <div>Monthly Payment</div>
+                    <div class="result-value" id="payment-result">$1,250</div>
+                </div>
+                <div class="result-item">
+                    <div>Risk Level</div>
+                    <div class="result-value" id="risk-result">Medium</div>
+                </div>
+                <div class="result-item">
+                    <div>Cluster Assignment</div>
+                    <div class="result-value" id="cluster-result">Group B</div>
+                </div>
+            </div>
+            
+            <div class="feedback" id="feedback-2"></div>
+            
+            <button id="submit-2">Submit Prediction</button>
+        </div>
+        
+        <!-- Challenge 3: PCA Application -->
+        <div id="challenge3-screen" class="screen">
+            <h2>Challenge 3: PCA Application</h2>
+            <div class="instructions">
+                <p>Apply Principal Component Analysis to simplify this 4-dimensional financial dataset. Select which dimensions to combine to create the most meaningful clusters.</p>
+            </div>
+            
+            <div class="options-container" id="pca-options">
+                <div class="option" data-value="income-credit">Income + Credit Score</div>
+                <div class="option" data-value="loan-duration">Loan Amount + Duration</div>
+                <div class="option" data-value="income-duration">Income + Duration</div>
+                <div class="option" data-value="credit-loan">Credit Score + Loan Amount</div>
+            </div>
+            
+            <div class="scatter-plot" id="scatter-plot-3">
+                <div class="axis x-axis"></div>
+                <div class="axis y-axis"></div>
+                <div class="axis-label x-label">Principal Component 1</div>
+                <div class="axis-label y-label">Principal Component 2</div>
+                <!-- Data points will be generated by JavaScript -->
+            </div>
+            
+            <div class="feedback" id="feedback-3"></div>
+            
+            <button id="submit-3">Apply PCA</button>
+        </div>
+        
+        <!-- Completion Screen -->
+        <div id="completion-screen" class="screen">
+            <div class="completion-screen">
+                <h2>Challenge Complete!</h2>
+                <p>You've successfully applied Principal Component Analysis to financial data.</p>
+                
+                <div class="score-display">Score: <span id="final-score">0</span>/300</div>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <h3>Data Points Classified</h3>
+                        <div class="result-value" id="classified-stat">12</div>
+                    </div>
+                    <div class="stat-item">
+                        <h3>Dimensions Analyzed</h3>
+                        <div class="result-value" id="dimensions-stat">4</div>
+                    </div>
+                    <div class="stat-item">
+                        <h3>Accuracy</h3>
+                        <div class="result-value" id="accuracy-stat">85%</div>
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <h3>PCA Mastery</h3>
+                    <div class="progress-bar">
+                        <div class="progress" id="mastery-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <button id="restart-btn">Play Again</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Game state management
+        const gameState = {
+            currentScreen: 0,
+            score: 0,
+            challenges: [
+                { completed: false, score: 0 },
+                { completed: false, score: 0 },
+                { completed: false, score: 0 }
+            ],
+            challenge1: {
+                selectedOption: null,
+                correctAnswer: 'clusterB'
+            },
+            challenge2: {
+                creditScore: 750,
+                loanDuration: 3,
+                correctPrediction: 'Group B'
+            },
+            challenge3: {
+                selectedOption: null,
+                correctAnswer: 'income-credit'
+            }
+        };
+        
+        // DOM Elements
+        const screens = [
+            document.getElementById('intro-screen'),
+            document.getElementById('challenge1-screen'),
+            document.getElementById('challenge2-screen'),
+            document.getElementById('challenge3-screen'),
+            document.getElementById('completion-screen')
+        ];
+        
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        // Initialize game
+        function initGame() {
+            // Event listeners
+            startBtn.addEventListener('click', () => showScreen(1));
+            restartBtn.addEventListener('click', resetGame);
+            prevBtn.addEventListener('click', showPrevScreen);
+            nextBtn.addEventListener('click', showNextScreen);
+            
+            // Challenge 1 elements
+            document.querySelectorAll('#cluster-options .option').forEach(option => {
+                option.addEventListener('click', handleClusterSelection);
+            });
+            document.getElementById('submit-1').addEventListener('click', submitChallenge1);
+            
+            // Challenge 2 elements
+            document.getElementById('credit-score').addEventListener('input', updateDimensions);
+            document.getElementById('loan-duration').addEventListener('input', updateDimensions);
+            document.getElementById('submit-2').addEventListener('click', submitChallenge2);
+            
+            // Challenge 3 elements
+            document.querySelectorAll('#pca-options .option').forEach(option => {
+                option.addEventListener('click', handlePCASelection);
+            });
+            document.getElementById('submit-3').addEventListener('click', submitChallenge3);
+            
+            // Generate initial data visualizations
+            generateScatterPlot('scatter-plot-1', 1);
+            generateScatterPlot('scatter-plot-2', 2);
+            generateScatterPlot('scatter-plot-3', 3);
+            
+            // Initialize challenge 2 display
+            updateDimensions();
+        }
+        
+        // Screen navigation
+        function showScreen(index) {
+            screens.forEach(screen => screen.classList.remove('active'));
+            screens[index].classList.add('active');
+            gameState.currentScreen = index;
+            
+            // Update button states
+            prevBtn.disabled = (index === 0);
+            nextBtn.disabled = (index === screens.length - 1);
+            
+            // Special case for completion screen
+            if (index === screens.length - 1) {
+                updateCompletionScreen();
+            }
+        }
+        
+        function showNextScreen() {
+            if (gameState.currentScreen < screens.length - 1) {
+                showScreen(gameState.currentScreen + 1);
+            }
+        }
+        
+        function showPrevScreen() {
+            if (gameState.currentScreen > 0) {
+                showScreen(gameState.currentScreen - 1);
+            }
+        }
+        
+        // Reset game state
+        function resetGame() {
+            gameState.currentScreen = 0;
+            gameState.score = 0;
+            gameState.challenges.forEach(challenge => {
+                challenge.completed = false;
+                challenge.score = 0;
+            });
+            
+            // Reset challenge-specific states
+            gameState.challenge1.selectedOption = null;
+            gameState.challenge2.creditScore = 750;
+            gameState.challenge2.loanDuration = 3;
+            gameState.challenge3.selectedOption = null;
+            
+            // Reset UI elements
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('selected', 'correct', 'incorrect');
+            });
+            
+            document.querySelectorAll('.feedback').forEach(feedback => {
+                feedback.style.display = 'none';
+                feedback.classList.remove('correct', 'incorrect');
+            });
+            
+            document.getElementById('credit-score').value = 750;
+            document.getElementById('loan-duration
+    </script>
+</body>
+</html>

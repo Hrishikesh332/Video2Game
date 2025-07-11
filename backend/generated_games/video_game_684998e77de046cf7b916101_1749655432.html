@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+   <html>
+   <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>PCA Learning Game</title>
+     <style>
+        ... all CSS ...
+     </style>
+   </head>
+   <body>
+     <div id="game-container">
+        <div id="start-screen" class="screen">
+          <h1>Principal Component Analysis (PCA) Game</h1>
+          <p>Test your understanding of PCA through interactive challenges!</p>
+          <button id="start-btn">Start Game</button>
+        </div>
+
+        <div id="challenge-screen" class="screen hidden">
+          <div id="progress-bar">
+            <div id="progress"></div>
+          </div>
+          <h2 id="challenge-title">Challenge 1</h2>
+          <div id="challenge-instructions"></div>
+          <div id="challenge-content"></div>
+          <button id="submit-btn" disabled>Submit</button>
+          <div id="feedback"></div>
+        </div>
+
+        <div id="end-screen" class="screen hidden">
+          <h1>Game Completed!</h1>
+          <p>Your Score: <span id="final-score">0</span></p>
+          <button id="restart-btn">Play Again</button>
+        </div>
+     </div>
+
+     <script>
+        ... all JavaScript ...
+     </script>
+   </body>
+   </html>

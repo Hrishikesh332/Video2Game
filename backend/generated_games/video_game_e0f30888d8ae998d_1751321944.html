@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHAP Values Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #666666;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #222222;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eeeeee;
+        }
+        
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .input-container {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #444444;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin-top: 5px;
+        }
+        
+        select, input[type="number"] {
+            padding: 10px;
+            border: 1px solid #dddddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .visualization {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #fafafa;
+            border-radius: 8px;
+        }
+        
+        .chart-container {
+            height: 300px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding: 20px 0;
+            border-top: 1px solid #eeeeee;
+        }
+        
+        .bar {
+            width: 60px;
+            background-color: #4a90e2;
+            margin: 0 10px;
+            position: relative;
+            transition: height 0.3s ease;
+        }
+        
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666666;
+        }
+        
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            width: 100%;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .prediction {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f0f7ff;
+            border-radius: 8px;
+            border-left: 4px solid #4a90e2;
+        }
+        
+        .explanation {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            border-left: 4px solid #cccccc;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #3a7bc8;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .step {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #cccccc;
+            margin: 0 8px;
+        }
+        
+        .step.active {
+            background-color: #4a90e2;
+        }
+        
+        .debug-section {
+            background-color: #fff8f8;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .debug-input {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .debug-result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fef2f2;
+            border-radius: 6px;
+        }
+        
+        .feature-impact {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        @media (max-width: 768px) {
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHAP Values Explorer</h1>
+        <p class="subtitle">Understand how machine learning models make decisions through interactive exploration of SHAP values</p>
+    </header>
+    
+    <main class="game-container">
+        <section class="section" id="step1">
+            <h2>Employee Bonus Prediction</h2>
+            <p>Adjust the employee features to see how each factor influences their predicted bonus. The SHAP values show how each feature moves the prediction from the average bonus.</p>
+            
+            <div class="input-group">
+                <div class="input-container">
+                    <label for="experience">Years of Experience</label>
+                    <input type="range" id="experience" min="0" max="20" value="5">
+                    <span id="experience-value">5 years</span>
+                </div>
+                
+                <div class="input-container">
+                    <label for="degree">Highest Degree</label>
+                    <select id="degree">
+                        <option value="0">High School</option>
+                        <option value="1" selected>Bachelor's</option>
+                        <option value="2">Master's</option>
+                        <option value="3">PhD</option>
+                    </select>
+                </div>
+                
+                <div class="input-container">
+                    <label for="sales">Sales Performance ($)</label>
+                    <input type="range" id="sales" min="0" max="100000" value="50000" step="5000">
+                    <span id="sales-value">$50,000</span>
+                </div>
+                
+                <div class="input-container">
+                    <label for="late">Days Late (Last Year)</label>
+                    <input type="range" id="late" min="0" max="20" value="3">
+                    <span id="late-value">3 days</span>
+                </div>
+            </div>
+            
+            <div class="visualization">
+                <h3>SHAP Value Impact</h3>
+                <div class="chart-container" id="shap-chart">
+                    <!-- Bars will be generated by JavaScript -->
+                </div>
+                
+                <div class="prediction">
+                    Predicted Bonus: <span id="prediction-value">$7,200</span>
+                </div>
+                
+                <div class="explanation">
+                    <p>The base value (average bonus) is $5,000. Each feature either increases or decreases this base value:</p>
+                    <ul>
+                        <li>Positive SHAP values (blue bars) increase the bonus prediction</li>
+                        <li>Negative SHAP values (red bars) decrease the bonus prediction</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <section class="section" id="step2">
+            <h2>Mushroom Classification</h2>
+            <p>In this classification example, we predict whether a mushroom is poisonous or edible based on its features. SHAP values show how each feature contributes to the prediction.</p>
+            
+            <div class="input-group">
+                <div class="input-container">
+                    <label for="odor">Odor</label>
+                    <select id="odor">
+                        <option value="0">None</option>
+                        <option value="1">Almond</option>
+                        <option value="2">Pungent</option>
+                        <option value="3">Creosote</option>
+                    </select>
+                </div>
+                
+                <div class="input-container">
+                    <label for="cap-color">Cap Color</label>
+                    <select id="cap-color">
+                        <option value="0">Brown</option>
+                        <option value="1">Yellow</option>
+                        <option value="2">White</option>
+                        <option value="3">Green</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="visualization">
+                <div class="prediction">
+                    Prediction: <span id="mushroom-prediction">Edible (82% probability)</span>
+                </div>
+                
+                <div class="chart-container" id="mushroom-chart">
+                    <!-- Bars will be generated by JavaScript -->
+                </div>
+                
+                <div class="explanation">
+                    <p>SHAP values for classification show how each feature moves the prediction from the base probability (50% in this case). Features can push the prediction toward "poisonous" or "edible".</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="section debug-section" id="step3">
+            <h2>Model Debugging</h2>
+            <p>Enter a case where the model made an incorrect prediction. We'll analyze which features contributed to the error.</p>
+            
+            <div class="debug-input">
+                <div class="input-container">
+                    <label>Actual Status</label>
+                    <select id="actual-status">
+                        <option value="poisonous">Poisonous</option>
+                        <option value="edible" selected>Edible</option>
+                    </select>
+                </div>
+                
+                <div class="input-container">
+                    <label>Model Prediction</label>
+                    <select id="predicted-status">
+                        <option value="poisonous" selected>Poisonous</option>
+                        <option value="edible">Edible</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="debug-result">
+                <h3>Debugging Analysis</h3>
+                <p>The model incorrectly predicted <strong>poisonous</strong> when the mushroom was actually <strong>edible</strong>.</p>
+                
+                <div class="feature-impact">
+                    <span>Odor (Almond)</span>
+                    <span>+0.25 (contributed to error)</span>
+                </div>
+                
+                <div class="feature-impact">
+                    <span>Cap Color (White)</span>
+                    <span>-0.18 (partially corrected)</span>
+                </div>
+                
+                <p class="explanation">Features with positive SHAP values pushed the prediction toward poisonous, causing the error. The cap color feature partially corrected this but wasn't sufficient.</p>
+            </div>
+        </section>
+        
+        <div class="step-indicator">
+            <div class="step active" data-step="1"></div>
+            <div class="step" data-step="2"></div>
+            <div class="step" data-step="3"></div>
+        </div>
+        
+        <div class="controls">
+            <button id="prev-btn" disabled>Previous</button>
+            <button id="next-btn">Next</button>
+        </div>
+    </main>
+
+    <script>
+        // Current step tracking
+        let currentStep = 1;
+        const totalSteps = 3;
+        
+        // DOM elements
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const stepIndicators = document.querySelectorAll('.step');
+        const sections = document.querySelectorAll('.section');
+        
+        // Employee bonus inputs
+        const experienceInput = document.getElementById('experience');
+        const degreeInput = document.getElementById('degree');
+        const salesInput = document.getElementById('sales');
+        const lateInput = document.getElementById('late');
+        
+        // Mushroom inputs
+        const odorInput = document.getElementById('odor');
+        const capColorInput = document.getElementById('cap-color');
+        
+        // Display elements
+        const experienceValue = document.getElementById('experience-value');
+        const salesValue = document.getElementById('sales-value');
+        const lateValue = document.getElementById('late-value');
+        const predictionValue = document.getElementById('prediction-value');
+        const mushroomPrediction = document.getElementById('mushroom-prediction');
+        const shapChart = document.getElementById('shap-chart');
+        const mushroomChart = document.getElementById('mushroom-chart');
+        
+        // Initialize the app
+        function init() {
+            updateInputDisplays();
+            calculateBonus();
+            calculateMushroom();
+            updateStepVisibility();
+            
+            // Event listeners
+            prevBtn.addEventListener('click', goToPreviousStep);
+            nextBtn.addEventListener('click', goToNextStep);
+            
+            experienceInput.addEventListener('input', () => {
+                experienceValue.textContent = `${experienceInput.value} years`;
+                calculateBonus();
+            });
+            
+            salesInput.addEventListener('input', () => {
+                salesValue.textContent = `$${parseInt(salesInput.value).toLocaleString()}`;
+                calculateBonus();
+            });
+            
+            lateInput.addEventListener('input', () => {
+                lateValue.textContent = `${lateInput.value} days`;
+                calculateBonus();
+            });
+            
+            degreeInput.addEventListener('change', calculateBonus);
+            odorInput.addEventListener('change', calculateMushroom);
+            capColorInput.addEventListener('change', calculateMushroom);
+        }
+        
+        // Update input value displays
+        function updateInputDisplays() {
+            experienceValue.textContent = `${experienceInput.value} years`;
+            salesValue.textContent = `$${parseInt(salesInput.value).toLocaleString()}`;
+            lateValue.textContent = `${lateInput.value} days`;
+        }
+        
+        // Calculate bonus prediction and SHAP values
+        function calculateBonus() {
+            const experience = parseInt(experienceInput.value);
+            const degree = parseInt(degreeInput.value);
+            const sales = parseInt(salesInput.value);
+            const late = parseInt(lateInput.value);
+            
+            // Base value (average bonus)
+            const baseValue = 5000;
+            
+            // Calculate feature contributions (SHAP values)
+            const experienceContribution = experience * 300;
+            const degreeContribution = degree * 1000;
+            const salesContribution = sales * 0.04;
+            const lateContribution = late * -200;
+            
+            // Total prediction
+            const prediction = baseValue + experienceContribution + degreeContribution + salesContribution + lateContribution;
+            
+            // Update display
+            predictionValue.textContent = `$${Math.round(prediction).toLocaleString()}`;
+            
+            // Update SHAP chart
+            updateShapChart([
+                { feature: 'Experience', value: experienceContribution },
+                { feature: 'Degree', value: degreeContribution },
+                { feature: 'Sales', value: salesContribution },
+                { feature: 'Days Late', value: lateContribution },
+                { feature: 'Base Value', value: baseValue }
+            ], baseValue);
+        }
+        
+        // Calculate mushroom prediction
+        function calculateMushroom() {
+            const odor = parseInt(odorInput.value);
+            const capColor = parseInt(capColorInput.value);
+            
+            // Base probability (log odds)
+            const baseValue = 0;
+            
+            // Calculate feature contributions (SHAP values)
+            const odorContributions = [0.2, -0.4, 0.6, 0.8];
+            const capColorContributions = [-0.1, 0.3, -0.2, 0.1];
+            
+            const odorContribution = odorContributions[odor];
+            const capColorContribution = capColorContributions[capColor];
+            
+            // Total prediction (log odds)
+            const logOdds = baseValue + odorContribution + capColorContribution;
+            
+            // Convert to probability
+            const probability = 1 / (1 + Math.exp(-logOdds));
+            const edibleProbability = Math.round(probability * 100);
+            const poisonousProbability = 100 - edibleProbability;
+            
+            // Update display
+            const predictionText = edibleProbability >= 50 ? 
+                `Edible (${edibleProbability}% probability)` : 
+                `Poisonous (${poisonousProbability}% probability)`;
+                
+            mushroomPrediction.textContent = predictionText;
+            
+            // Update mushroom SHAP chart
+            updateMushroomChart([
+                { feature: 'Odor', value: odorContribution },
+                { feature: 'Cap Color', value: capColorContribution },
+                { feature: 'Base Value', value: baseValue }
+            ]);
+        }
+        
+        // Update SHAP value chart for employee bonus
+        function updateShapChart(features, baseValue) {
+            shapChart.innerHTML = '';
+            
+            // Find max absolute value for scaling
+            const maxValue = Math.max(...features.map(f => Math.abs(f.value)), 5000);
+            const scale = 120 / maxValue;
+            
+            features.forEach(feature => {
+                const barHeight = Math.abs(feature.value) * scale;
+                const isPositive = feature.value >= 0;
+                const isBase = feature.feature === 'Base Value';
+                
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = `${barHeight}px`;
+                bar.style.backgroundColor = isBase ? '#aaaaaa' : (isPositive ? '#4a90e2' : '#e74c3c');
+                bar.style.marginTop = isPositive ? 'auto' : '0';
+                
+                const barLabel = document.createElement('div');
+                barLabel.className = 'bar-label';
+                barLabel.textContent = feature.feature;
+                
+                const barValue = document.createElement('div');
+                barValue.className = 'bar-value';
+                barValue.textContent = Math.round(feature.value);
+                barValue.style.color = isBase ? '#333333' : (isPositive ? '#4a90e2' : '#e74c3c');
+                
+                bar.appendChild(barValue);
+                bar.appendChild(barLabel);
+                shapChart.appendChild(bar);
+            });
+        }
+        
+        // Update SHAP value chart for mushroom classification
+        function updateMushroomChart(features) {
+            mushroomChart.innerHTML = '';
+            
+            // Find max absolute value for scaling
+            const maxValue = Math.max(...features.map(f => Math.abs(f.value)), 1);
+            const scale = 120 / maxValue;
+            
+            features.forEach(feature => {
+                const barHeight = Math.abs(feature.value) * scale;
+                const isPositive = feature.value >= 0;
+                const isBase = feature.feature === 'Base Value';
+                
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = `${barHeight}px`;
+                bar.style.backgroundColor = isBase ? '#aaaaaa' : (isPositive ? '#4a90e2' : '#e74c3c');
+                bar.style.marginTop = isPositive ? 'auto' : '0';
+                
+                const barLabel = document.createElement('div');
+                barLabel.className = 'bar-label';
+                barLabel.textContent = feature.feature;
+                
+                const barValue = document.createElement('div');
+                barValue.className = 'bar-value';
+                barValue.textContent = feature.value.toFixed(2);
+                barValue.style.color = isBase ? '#333333' : (isPositive ? '#4a90e2' : '#e74c3c');
+                
+                bar.appendChild(barValue);
+                bar.appendChild(barLabel);
+                mushroomChart.appendChild(bar);
+            });
+        }
+        
+        // Navigation functions
+        function goToPreviousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepVisibility();
+            }
+        }
+        
+        function goToNextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateStepVisibility();
+            }
+        }
+        
+        function updateStepVisibility() {
+            // Hide all sections
+            sections.forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show current section
+            document.getElementById(`step${currentStep}`).style.display = 'block';
+            
+            // Update step indicators
+            stepIndicators.forEach((indicator, index) => {
+                if (index + 1 === currentStep) {
+                    indicator.classList.add('active');
+                } else {
+                    indicator.classList.remove('active');
+                }
+            });
+            
+            // Update button states
+            prevBtn.disabled = currentStep === 1;
+            nextBtn.textContent = currentStep === totalSteps ? 'Finish' : 'Next';
+        }
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+   <html>
+   <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>PCA Learning Game</title>
+     <style>
+        /* CSS Reset and base styles */
+        /* Use a clean, sans-serif font */
+        /* Color scheme: white, grey, and accents in blue, green, purple */
+     </style>
+   </head>
+   <body>
+     <header>
+        <h1>Principal Component Analysis</h1>
+        <div id="score">Score: 0</div>
+     </header>
+
+     <main>
+        <section id="welcome" class="screen active">
+          <h2>Welcome to the PCA Game</h2>
+          <p>In this game, you'll learn about Principal Component Analysis by completing interactive challenges.</p>
+          <button id="start-btn">Start</button>
+        </section>
+
+        <!-- Challenge 1: Draw the first principal component -->
+        <section id="challenge1" class="screen challenge">
+          <h2>Challenge 1: First Principal Component</h2>
+          <p>Draw the direction of the first principal component (the direction of maximum variance) on the scatter plot below.</p>
+          <div class="plot-container">
+            <svg id="scatter-plot1" width="400" height="400"></svg>
+          </div>
+          <div class="feedback"></div>
+          <button class="next-btn" disabled>Next</button>
+        </section>
+
+        <!-- Challenge 2: Draw the second principal component -->
+        <section id="challenge2" class="screen challenge">
+          <h2>Challenge 2: Second Principal Component</h2>
+          <p>Now draw the second principal component (orthogonal to the first).</p>
+          <div class="plot-container">
+            <svg id="scatter-plot2" width="400" height="400"></svg>
+          </div>
+          <div class="feedback"></div>
+          <button class="next-btn" disabled>Next</button>
+        </section>
+
+        <!-- Challenge 3: Variance Explained -->
+        <section id="challenge3" class="screen challenge">
+          <h2>Challenge 3: Variance Explained</h2>
+          <p>Select the number of components to retain 85% of the variance.</p>
+          <div class="plot-container">
+            <svg id="variance-plot" width="400" height="400"></svg>
+          </div>
+          <div class="input-container">
+            <input type="range" min="1" max="5" value="1" id="component-slider">
+            <span id="slider-value">1</span>
+          </div>
+          <div class="feedback"></div>
+          <button class="next-btn" disabled>Next</button>
+        </section>
+
+        <!-- ... more challenges ... -->
+
+        <section id="completion" class="screen">
+          <h2>Congratulations!</h2>
+          <p>You've completed the PCA challenges. Your final score is <span id="final-score">0</span>.</p>
+          <button id="restart-btn">Play Again</button>
+        </section>
+     </main>
+
+     <script>
+        // JavaScript code will go here
+        // We'll handle:
+        //   - Drawing scatter plots with random data
+        //   - Handling user drawing of lines
+        //   - Calculating the correct principal components (for the generated data) using math in JS
+        //   - Updating the score and progress
+        //   - Switching between challenges
+
+        // Note: Due to complexity, we might simplify the PCA math for 2D. We can compute the covariance matrix and eigenvectors.
+
+        // However, note: This is a big task. We'll focus on a minimal working example for the first challenge and then build upon it.
+
+        // Steps for Challenge 1:
+        //   - Generate 2D data with a clear principal component.
+        //   - Draw the scatter plot.
+        //   - Let the user draw a line by clicking two points (or drag to draw a line segment?).
+        //   - Calculate the angle of the user's line and compare to the true first PC.
+
+        // We'll use a simple approach: the first PC is the eigenvector of the covariance matrix with the largest eigenvalue.
+
+        // Due to the complexity and time, we might simulate with precomputed data.
+
+        // We'll break the JS into parts:
+        //   1. Game state and navigation
+        //   2. Challenge-specific code (drawing, validation)
+
+        // We'll create a Challenge class for each challenge? Or just functions for each.
+
+        // Given the constraints, we'll do a procedural approach.
+
+        // Let's start with the navigation and then add the first challenge.
+
+     </script>
+   </body>
+   </html>

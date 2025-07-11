@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .graph-container {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        #graph {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: block;
+            margin: 0 auto;
+            cursor: crosshair;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background-color: #f0f0f0;
+            border: 1px solid #d0d0d0;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .step-container {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .step-indicator {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #d0d0d0;
+        }
+        
+        .step-dot.active {
+            background-color: #555;
+        }
+        
+        .instructions {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        
+        .content-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 6px;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        h3 {
+            font-size: 1.2rem;
+            margin: 15px 0 8px;
+            color: #333;
+        }
+        
+        p {
+            margin-bottom: 10px;
+        }
+        
+        .summary {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid #d0d0d0;
+        }
+        
+        @media (max-width: 768px) {
+            #graph {
+                width: 100%;
+                height: auto;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Linear Regression Explorer</h1>
+        <p>Understand relationships in data through interactive exploration</p>
+    </header>
+    
+    <div class="container">
+        <div class="graph-container">
+            <canvas id="graph" width="700" height="400"></canvas>
+            <div class="controls">
+                <button id="reset-btn">Reset Points</button>
+                <button id="next-btn">Next Step</button>
+            </div>
+        </div>
+        
+        <div class="step-container">
+            <div class="step-header">
+                <h2>Learning Steps</h2>
+                <div class="step-indicator">
+                    <div class="step-dot active" id="step1-dot"></div>
+                    <div class="step-dot" id="step2-dot"></div>
+                    <div class="step-dot" id="step3-dot"></div>
+                </div>
+            </div>
+            
+            <div class="instructions" id="instructions">
+                Step 1: Click on the graph to add data points showing height vs shoe size
+            </div>
+            
+            <div class="content-section">
+                <h3>What is Linear Regression?</h3>
+                <p>Linear regression models relationships between variables using a straight line. It's a supervised learning method that uses labeled data to predict continuous outcomes.</p>
+                
+                <h3>Continuous Data Examples</h3>
+                <p>Height, age, and foot size are continuous variables that can take any value within a range.</p>
+            </div>
+        </div>
+        
+        <div class="summary">
+            <h2>Key Insight</h2>
+            <p>Understanding relationships and patterns in data is fundamental to machine learning and AI, even if you don't love pure mathematics.</p>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentStep: 1,
+            points: [],
+            regressionLine: null,
+            outliers: []
+        };
+
+        // DOM elements
+        const canvas = document.getElementById('graph');
+        const ctx = canvas.getContext('2d');
+        const resetBtn = document.getElementById('reset-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const instructions = document.getElementById('instructions');
+        const stepDots = [
+            document.getElementById('step1-dot'),
+            document.getElementById('step2-dot'),
+            document.getElementById('step3-dot')
+        ];
+
+        // Graph dimensions and padding
+        const graphPadding = { top: 30, right: 30, bottom: 60, left: 60 };
+        const graphWidth = canvas.width - graphPadding.left - graphPadding.right;
+        const graphHeight = canvas.height - graphPadding.top - graphPadding.bottom;
+
+        // Data ranges
+        const xRange = { min: 50, max: 80 };   // Height in inches
+        const yRange = { min: 0, max: 15 };    // Shoe size (US)
+
+        // Initialize game
+        function init() {
+            drawGrid();
+            drawAxes();
+            resetBtn.addEventListener('click', resetGame);
+            nextBtn.addEventListener('click', nextStep);
+            canvas.addEventListener('click', handleCanvasClick);
+        }
+
+        // Draw grid lines
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            
+            // Vertical grid lines
+            for (let i = 1; i < 10; i++) {
+                const x = graphPadding.left + (i * graphWidth / 10);
+                ctx.beginPath();
+                ctx.moveTo(x, graphPadding.top);
+                ctx.lineTo(x, graphPadding.top + graphHeight);
+                ctx.stroke();
+            }
+            
+            // Horizontal grid lines
+            for (let i = 1; i < 10; i++) {
+                const y = graphPadding.top + (i * graphHeight / 10);
+                ctx.beginPath();
+                ctx.moveTo(graphPadding.left, y);
+                ctx.lineTo(graphPadding.left + graphWidth, y);
+                ctx.stroke();
+            }
+        }
+
+        // Draw axes and labels
+        function drawAxes() {
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#333';
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(graphPadding.left, graphPadding.top + graphHeight);
+            ctx.lineTo(graphPadding.left + graphWidth, graphPadding.top + graphHeight);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(graphPadding.left, graphPadding.top);
+            ctx.lineTo(graphPadding.left, graphPadding.top + graphHeight);
+            ctx.stroke();
+            
+            // X-axis label
+            ctx.textAlign = 'center';
+            ctx.fillText('Height in Inches', canvas.width / 2, canvas.height - 15);
+            
+            // Y-axis label
+            ctx.save();
+            ctx.translate(15, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = 'center';
+            ctx.fillText('Shoe Size [US]', 0, 0);
+            ctx.restore();
+            
+            // X-axis ticks
+            for (let i = 0; i <= 10; i++) {
+                const x = graphPadding.left + (i * graphWidth / 10);
+                const value = xRange.min + (i * (xRange.max - xRange.min) / 10);
+                ctx.beginPath();
+                ctx.moveTo(x, graphPadding.top + graphHeight);
+                ctx.lineTo(x, graphPadding.top + graphHeight + 5);
+                ctx.stroke();
+                ctx.fillText(Math.round(value), x, graphPadding.top + graphHeight + 20);
+            }
+            
+            // Y-axis ticks
+            for (let i = 0; i <= 10; i++) {
+                const y = graphPadding.top + graphHeight - (i * graphHeight / 10);
+                const value = yRange.min + (i * (yRange.max - yRange.min) / 10);
+                ctx.beginPath();
+                ctx.moveTo(graphPadding.left, y);
+                ctx.lineTo(graphPadding.left - 5, y);
+                ctx.stroke();
+                ctx.fillText(Math.round(value), graphPadding.left - 20, y + 5);
+            }
+        }
+
+        // Convert data point to canvas coordinates
+        function dataToCanvas(x, y) {
+            return {
+                x: graphPadding.left + ((x - xRange.min) / (xRange.max - xRange.min)) * graphWidth,
+                y: graphPadding.top + graphHeight - ((y - yRange.min) / (yRange.max - yRange.min)) * graphHeight
+            };
+        }
+
+        // Draw data points
+        function drawPoints() {
+            gameState.points.forEach(point => {
+                const {x, y} = dataToCanvas(point.x, point.y);
+                
+                // Check if point is an outlier
+                const isOutlier = gameState.outliers.some(outlier => 
+                    outlier.x === point.x && outlier.y === point.y);
+                
+                // Draw point
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, Math.PI * 2);
+                ctx.fillStyle = isOutlier ? '#ff6b6b' : '#4a90e2';
+                ctx.fill();
+                
+                // Draw playful element (heart for outlier, boot for normal)
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = 'white';
+                ctx.fillText(isOutlier ? '❤️' : '👢', x, y);
+            });
+        }
+
+        // Calculate linear regression
+        function calculateRegression() {
+            if (gameState.points.length < 2) return null;
+            
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            
+            gameState.points.forEach(point => {
+                sumX += point.x;
+                sumY += point.y;
+                sumXY += point.x * point.y;
+                sumX2 += point.x * point.x;
+            });
+            
+            const n = gameState.points.length;
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            return { slope, intercept };
+        }
+
+        // Identify outliers
+        function identifyOutliers() {
+            if (!gameState.regressionLine) return [];
+            
+            const residuals = gameState.points.map(point => {
+                const predictedY = gameState.regressionLine.slope * point.x + gameState.regressionLine.intercept;
+                return Math.abs(point.y - predictedY);
+            });
+            
+            const meanResidual = residuals.reduce((sum, val) => sum + val, 0) / residuals.length;
+            const threshold = 1.5 * meanResidual;
+            
+            return gameState.points.filter((point, i) => {
+                return residuals[i] > threshold;
+            });
+        }
+
+        // Draw regression line
+        function drawRegressionLine() {
+            if (!gameState.regressionLine) return;
+            
+            const startX = xRange.min;
+            const endX = xRange.max;
+            const startY = gameState.regressionLine.slope * startX + gameState.regressionLine.intercept;
+            const endY = gameState.regressionLine.slope * endX + gameState.regressionLine.intercept;
+            
+            const start = dataToCanvas(startX, startY);
+            const end = dataToCanvas(endX, endY);
+            
+            ctx.beginPath();
+            ctx.moveTo(start.x, start.y);
+            ctx.lineTo(end.x, end.y);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        //
+    </script>
+</body>
+</html>

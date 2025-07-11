@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Women's 5000m Race Interactive App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: white;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .game-area {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 400px;
+            position: relative;
+        }
+        
+        .track {
+            position: relative;
+            height: 300px;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .lane {
+            position: absolute;
+            width: 100%;
+            height: 40px;
+            border-bottom: 2px dashed #aaa;
+        }
+        
+        .runner {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: move;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            transition: left 0.5s ease;
+        }
+        
+        .runner-info {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            display: none;
+            z-index: 20;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .runner-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .runner-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            cursor: pointer;
+            width: 120px;
+            text-align: center;
+        }
+        
+        .runner-card.selected {
+            border-color: #008000;
+            background-color: #f0fff0;
+        }
+        
+        .runner-card img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: #ddd;
+            margin-bottom: 5px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        button.primary {
+            background-color: #008000;
+            color: white;
+            border-color: #006400;
+        }
+        
+        button.primary:hover {
+            background-color: #006400;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+        }
+        
+        .challenge {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .timer {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .lap-counter {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        
+        .results {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .leader {
+            box-shadow: 0 0 0 3px #FFD700;
+        }
+        
+        .final-lap {
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 105, 180, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 105, 180, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 105, 180, 0); }
+        }
+        
+        .feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+            border-left: 4px solid #008000;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .runner-selector {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Women's 5000m Race Strategy Simulator</h1>
+        <p>Drag runners onto the track, set their strategies, and simulate the race!</p>
+    </header>
+    
+    <div class="container">
+        <div class="game-area">
+            <div class="track" id="track">
+                <div class="lap-counter">Lap: <span id="lap-count">1</span>/12.5</div>
+                <div class="timer">Time: <span id="race-time">0:00</span></div>
+                <!-- Lanes will be generated by JS -->
+            </div>
+            
+            <div class="controls">
+                <button id="start-btn" class="primary">Start Simulation</button>
+                <button id="reset-btn">Reset Race</button>
+                <button id="strategy-btn">Apply Strategy</button>
+                <select id="strategy-select">
+                    <option value="steady">Steady Pace</option>
+                    <option value="front">Lead from Front</option>
+                    <option value="kick">Final Lap Kick</option>
+                </select>
+            </div>
+            
+            <div class="runner-selector" id="runner-selector">
+                <!-- Runner cards will be generated by JS -->
+            </div>
+            
+            <div class="challenge">
+                <h3>Strategy Challenge</h3>
+                <p>Current Challenge: <span id="current-challenge">Lead from the Front</span></p>
+                <p>Goal: Have your selected runner lead for at least 3 laps</p>
+                <div class="feedback" id="challenge-feedback"></div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>Race Leader</h3>
+                    <p id="leader-info">None</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Fastest Lap</h3>
+                    <p id="fastest-lap">0:00</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Current Pace</h3>
+                    <p id="current-pace">0:00 per lap</p>
+                </div>
+            </div>
+            
+            <div class="results" id="results">
+                <h2>Race Results</h2>
+                <ol id="results-list"></ol>
+                <button id="replay-btn" class="primary">Replay Race</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            const state = {
+                runners: [],
+                selectedRunner: null,
+                raceStarted: false,
+                raceTime: 0,
+                currentLap: 1,
+                leader: null,
+                challenge: 1,
+                challenges: [
+                    { 
+                        title: "Lead from the Front", 
+                        goal: "Have your selected runner lead for at least 3 laps",
+                        completed: false 
+                    },
+                    { 
+                        title: "Final Lap Kick", 
+                        goal: "Have your selected runner win with a last lap surge",
+                        completed: false 
+                    },
+                    { 
+                        title: "Steady Pacing", 
+                        goal: "Maintain consistent lap times within 2 seconds",
+                        completed: false 
+                    }
+                ]
+            };
+            
+            // Runner data
+            const runnersData = [
+                { id: 1, name: "Sifan Hassan", country: "Netherlands", color: "#FF69B4", speed: 85, strategy: "steady", position: 0, lapsLed: 0 },
+                { id: 2, name: "Letesenbet Gidey", country: "Ethiopia", color: "#008000", speed: 90, strategy: "steady", position: 0, lapsLed: 0 },
+                { id: 3, name: "Gudaf Tsegay", country: "Ethiopia", color: "#FFD700", speed: 88, strategy: "steady", position: 0, lapsLed: 0 },
+                { id: 4, name: "Hellen Obiri", country: "Kenya", color: "#0000FF", speed: 87, strategy: "steady", position: 0, lapsLed: 0 }
+            ];
+            
+            // DOM elements
+            const track = document.getElementById('track');
+            const runnerSelector = document.getElementById('runner-selector');
+            const startBtn = document.getElementById('start-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const strategyBtn = document.getElementById('strategy-btn');
+            const strategySelect = document.getElementById('strategy-select');
+            const lapCount = document.getElementById('lap-count');
+            const raceTime = document.getElementById('race-time');
+            const leaderInfo = document.getElementById('leader-info');
+            const fastestLap = document.getElementById('fastest-lap');
+            const currentPace = document.getElementById('current-pace');
+            const results = document.getElementById('results');
+            const resultsList = document.getElementById('results-list');
+            const replayBtn = document.getElementById('replay-btn');
+            const challengeFeedback = document.getElementById('challenge-feedback');
+            const currentChallenge = document.getElementById('current-challenge');
+            
+            // Initialize game
+            function initGame() {
+                createLanes();
+                createRunnerCards();
+                updateChallengeDisplay();
+            }
+            
+            // Create track lanes
+            function createLanes() {
+                track.innerHTML = '<div class="lap-counter">Lap: <span id="lap-count">1</span>/12.5</div><div class="timer">Time: <span id="race-time">0:00</span></div>';
+                
+                for (let i = 0; i < 6; i++) {
+                    const lane = document.createElement('div');
+                    lane.className = 'lane';
+                    lane.style.top = `${i * 50 + 10}px`;
+                    track.appendChild(lane);
+                }
+            }
+            
+            // Create runner selection cards
+            function createRunnerCards() {
+                runnerSelector.innerHTML = '';
+                
+                runnersData.forEach(runner => {
+                    const card = document.createElement('div');
+                    card.className = 'runner-card';
+                    card.dataset.id = runner.id;
+                    card.innerHTML = `
+                        <div style="background-color:${runner.color}; width:50px; height:50px; border-radius:50%; margin:0 auto;"></div>
+                        <div>${runner.name}</div>
+                        <small>${runner.country}</small>
+                    `;
+                    
+                    card.addEventListener('click', () => {
+                        document.querySelectorAll('.runner-card').forEach(c => c.classList.remove('selected'));
+                        card.classList.add('selected');
+                        state.selectedRunner = runner.id;
+                    });
+                    
+                    runnerSelector.appendChild(card);
+                });
+            }
+            
+            // Place runner on track
+            function placeRunner(runnerId) {
+                const runner = runnersData.find(r => r.id === runnerId);
+                if (!runner) return;
+                
+                const runnerEl = document.createElement('div');
+                runnerEl.className = 'runner';
+                runnerEl.id = `runner-${runner.id}`;
+                runnerEl.style.backgroundColor = runner.color;
+                runnerEl.style.left = '50px';
+                runnerEl.style.top = `${(runner.id * 50) - 20}px`;
+                runnerEl.textContent = runner.id;
+                
+                runnerEl.addEventListener('mouseenter', (e) => {
+                    const info = document.createElement('div');
+                    info.className = 'runner-info';
+                    info.textContent = `${runner.name} (${runner.country})`;
+                    info.style.top = `${e.clientY - 40}px`;
+                    info.style.left = `${e.clientX}px`;
+                    info.id = `info-${runner.id}`;
+                    document.body.appendChild(info);
+                });
+                
+                runnerEl.addEventListener('mousemove', (e) => {
+                    const info = document.getElementById(`info-${runner.id}`);
+                    if (info) {
+                        info.style.top = `${e.clientY - 40}px`;
+                        info.style.left = `${e.clientX + 10}px`;
+                    }
+                });
+                
+                runnerEl.addEventListener('mouseleave', () => {
+                    const info = document.getElementById(`info-${runner.id}`);
+                    if (info) info.remove();
+                });
+                
+                runnerEl.addEventListener('click', () => {
+                    state.selectedRunner = runner.id;
+                    document.querySelectorAll('.runner-card').forEach(card => {
+                        card.classList.toggle('selected', parseInt(card.dataset.id) === runner.id);
+                    });
+                });
+                
+                track.appendChild(runnerEl);
+                state.runners.push({...runner, element: runnerEl});
+            }
+            
+            // Update challenge display
+            function updateChallengeDisplay() {
+                const challenge = state.challenges[state.challenge - 1];
+                currentChallenge.textContent = challenge.title;
+                document.querySelector('.challenge p:nth-child(2)').textContent = `Goal: ${challenge.goal}`;
+            }
+            
+            // Start race simulation
+            function startRace() {
+                if (state.raceStarted) return;
+                
+                state.raceStarted = true;
+                startBtn.textContent = "Pause Race";
+                state.runners.forEach(runner => placeRunner(runner.id));
+                
+                const raceInterval = setInterval(() => {
+                    if (!state.raceStarted) {
+                        clearInterval(raceInterval);
+                        return;
+                    }
+                    
+                    state.raceTime += 1;
+                    updateRaceDisplay();
+                    
+                    // Update runner positions
+                    let newLeader = null;
+                    let maxPosition = 0;
+                    
+                    state.runners.forEach(runner => {
+                        // Apply strategy effects
+                        let speedModifier = 1;
+                        if (runner.strategy === "front" && state.currentLap < 4) {
+                            speedModifier = 1.2;
+                        } else if (runner.strategy === "kick" && state.currentLap >= 11.5) {
+                            speedModifier = 1.3;
+                        }
+                        
+                        runner.position += runner.speed * speedModifier * 0.01;
+                        
+                        // Update position on track
+                        const trackWidth = track.offsetWidth - 40;
+                        const lapProgress = runner.position / 400;
+                        const effectiveLap = Math.min(12.5, lapProgress);
+                        
+                        const runnerEl = document.getElementById(`runner-${runner.id}`);
+                        if (runnerEl) {
+                            runnerEl.style.left = `${50 + (trackWidth * (effectiveLap % 1))}px`;
+                            
+                            // Highlight leader
+                            if (runner.position > maxPosition) {
+                                newLeader = runner;
+                                maxPosition = runner.position;
+                            }
+                        }
+                    });
+                    
+                    // Update leader
+                    if (newLeader && state.leader !== newLeader.id) {
+                        state.leader = newLeader.id;
+                        state.runners.forEach(runner => {
+                            const runnerEl = document.getElementById(`runner-${runner.id}`);
+                            runnerEl.classList.toggle('leader', runner.id === newLeader.id);
+                            
+                            if (runner.id === newLeader.id) {
+                                runner.lapsLed += 0.1;
+                            }
+                        });
+                        leaderInfo.textContent = `${newLeader.name} (${newLeader.country})`;
+                    }
+                    
+                    // Update lap count
+                    const leadingLap = Math.floor(maxPosition / 400) + 1;
+                    if (leadingLap > state.currentLap) {
+                        state.currentLap = leadingLap;
+                        lapCount.textContent = state.currentLap;
+                        
+                        // Highlight final lap
+                        if (state.currentLap === 12) {
+                            state.runners.forEach(runner => {
+                                const runnerEl = document.getElementById(`runner-${runner.id}`);
+                                runnerEl.classList.add('final-lap');
+                            });
+                        }
+                    }
+                    
+                    // Check if race is finished
+                    if (state.currentLap > 12.5) {
+                        clearInterval(raceInterval);
+                        endRace();
+                    }
+                    
+                    // Check challenge completion
+                    checkChallenge();
+                }, 100);
+            }
+            
+            // Update race display
+            function updateRaceDisplay() {
+                const minutes = Math.floor(state.raceTime / 60);
+                const seconds = state.raceTime % 60;
+                raceTime.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                
+                // Update pace (simplified)
+                const pace = Math.floor(65 + (state.currentLap * 0.5));
+                const paceMin = Math.floor(pace / 60);
+                const paceSec = pace % 60;
+                currentPace.textContent = `${paceMin}:${paceSec < 10 ? '0' : ''}${paceSec} per lap`;
+            }
+            
+            // Check challenge completion
+            function checkChallenge() {
+                const challenge = state.challenges[state.challenge - 1];
+                const selectedRunner = state.runners.find(r => r.id === state.selectedRunner);
+                
+                if (!selectedRunner) return;
+                
+                if (state.challenge === 1 && selectedRunner.lapsLed >= 3) {
+                    challenge.completed = true;
+                    challengeFeedback.textContent = "Challenge Complete! You led for 3+ laps.";
+                    challengeFeedback.style.borderLeftColor = "#008000";
+                } else if (state.challenge === 2 && state.currentLap > 12.5 && state.leader === selectedRunner.id) {
+                    challenge.completed = true;
+                    challengeFeedback.textContent = "Challenge Complete! You won with a final lap kick!";
+                    challengeFeedback.style.borderLeftColor = "#008000";
+                } else if (state.challenge === 3 && state.raceTime > 30) {
+                    // Simplified consistency check
+                    challenge.completed = true;
+                    challengeFeedback.textContent = "Challenge Complete! You maintained consistent pacing!";
+                    challengeFeedback.style.borderLeftColor = "#008000";
+                }
+            }
+            
+            // End race and show results
+            function endRace() {
+                state.raceStarted = false;
+                results.style.display = 'block';
+                
+                // Sort runners by position
+                const sortedRunners = [...state.runners].sort((a, b) => b.position - a.position);
+                
+                resultsList.innerHTML = '';
+                sortedRunners.forEach((runner, index) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${index + 1}.</strong> ${runner.name} (${runner.country})`;
+                    resultsList.appendChild(li);
+                });
+            }
+            
+            // Apply strategy to selected runner
+            function applyStrategy() {
+                if (!state.selectedRunner) return;
+                
+                const strategy = strategySelect.value;
+                const runner = state.runners.find(r => r.id === state.selectedRunner);
+                if (runner) {
+                    runner.strategy = strategy;
+                    challengeFeedback.textContent = `Strategy applied: ${getStrategyName(strategy)}`;
+                    challengeFeedback.style.borderLeftColor = "#008000";
+                }
+            }
+            
+            // Get strategy display name
+            function getStrategyName(strategy) {
+                const names = {
+                    steady: "Steady Pace",
+                    front: "Lead from Front",
+                    kick: "Final Lap Kick"
+                };
+                return names[strategy] || strategy;
+            }
+            
+            // Reset race
+            function resetRace() {
+                state.raceStarted = false;
+                state.raceTime = 0;
+                state.currentLap = 1;
+                state.leader = null;
+                state.runners = [];
+                
+                startBtn.textContent = "Start Simulation";
+                lapCount.textContent = "1";
+                raceTime.textContent = "0:00";
+                leaderInfo.textContent = "None";
+                fastestLap.textContent = "0:00";
+                currentPace.textContent = "0:00 per lap";
+                results.style.display = 'none';
+                
+                document.querySelectorAll('.runner').forEach(el => el.remove());
+                challengeFeedback.textContent = "";
+            }
+            
+            // Next challenge
+            function nextChallenge() {
+                if (state.challenge < 3) {
+                    state.challenge++;
+                    resetRace();
+                    updateChallengeDisplay();
+                } else {
+                    challengeFeedback.textContent = "All challenges completed!";
+                }
+            }
+            
+            // Event listeners
+            startBtn.addEventListener('click', () => {
+                if (!state.raceStarted) {
+                    startRace();
+                } else {
+                    state.raceStarted = false;
+                    startBtn.textContent = "Resume Race";
+                }
+            });
+            
+            resetBtn.addEventListener('click', resetRace);
+            strategyBtn.addEventListener('click', applyStrategy);
+            replayBtn.addEventListener('click', () => {
+                results.style.display = 'none';
+                resetRace();
+            });
+            
+            // Initialize the game
+            initGame();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai Formation Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .instructions {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .map-container {
+            position: relative;
+            height: 500px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            background-color: #d0d0d0;
+            border: 2px solid #a0a0a0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            padding: 10px;
+        }
+        
+        .island:hover {
+            transform: scale(1.05);
+            background-color: #c0c0c0;
+        }
+        
+        .island.active {
+            background-color: #a0a0a0;
+            color: white;
+        }
+        
+        .info-panel {
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            min-height: 200px;
+        }
+        
+        .timeline-container {
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            overflow-x: auto;
+        }
+        
+        .timeline {
+            display: flex;
+            gap: 10px;
+            padding: 10px 0;
+        }
+        
+        .timeline-item {
+            background-color: #d0d0d0;
+            padding: 10px 15px;
+            border-radius: 20px;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+        
+        .causeway-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .causeway {
+            background-color: #d0d0d0;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: move;
+            user-select: none;
+        }
+        
+        .dropzone {
+            height: 60px;
+            background-color: #e8e8e8;
+            border: 2px dashed #a0a0a0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .dropzone.active {
+            background-color: #d0d0d0;
+            border-style: solid;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 0 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #a0a0a0;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #d0d0d0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #a0a0a0;
+            color: white;
+        }
+        
+        button:disabled {
+            background-color: #e0e0e0;
+            cursor: not-allowed;
+            color: #a0a0a0;
+        }
+        
+        .score-container {
+            text-align: right;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .final-view {
+            text-align: center;
+            padding: 40px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .final-view h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .quiz-container {
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .quiz-option {
+            padding: 15px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .quiz-option:hover {
+            background-color: #d0d0d0;
+        }
+        
+        @media (max-width: 768px) {
+            .map-container {
+                height: 400px;
+            }
+            
+            .island {
+                font-size: 12px;
+                padding: 8px;
+            }
+            
+            .quiz-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mumbai Formation Game</h1>
+        <div class="score-container">Score: <span id="score">0</span></div>
+    </header>
+    
+    <main class="game-container">
+        <div class="instructions" id="step-instructions">
+            Click on the islands to learn about their history and significance in Mumbai's formation.
+        </div>
+        
+        <div class="progress-container">
+            <span>Step <span id="current-step">1</span> of 3</span>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <span id="progress-text">Islands: 0/7</span>
+        </div>
+        
+        <div class="map-container" id="map">
+            <!-- Islands will be positioned by JavaScript -->
+        </div>
+        
+        <div class="info-panel" id="info-panel">
+            <h2 id="island-name">Select an Island</h2>
+            <p id="island-info">Click on any island to see information about it.</p>
+            <div id="timeline-container" style="display: none; margin-top: 15px;">
+                <h3>Historical Timeline</h3>
+                <div class="timeline" id="timeline"></div>
+            </div>
+        </div>
+        
+        <div id="causeway-section" style="display: none;">
+            <div class="instructions">
+                Drag and drop causeways to connect the islands and form Mumbai.
+            </div>
+            <div class="causeway-container" id="causeways">
+                <div class="causeway" draggable="true" data-causeway="duncan">Duncan Causeway</div>
+                <div class="causeway" draggable="true" data-causeway="colaba">Colaba Causeway</div>
+                <div class="causeway" draggable="true" data-causeway="mahim">Mahim Causeway</div>
+            </div>
+            <div class="dropzone" id="dropzone">Drop causeway here to build</div>
+        </div>
+        
+        <div class="quiz-container" id="quiz-container">
+            <h2>Test Your Knowledge</h2>
+            <p id="quiz-question"></p>
+            <div class="quiz-options" id="quiz-options"></div>
+        </div>
+        
+        <div class="final-view" id="final-view">
+            <h2>Mumbai</h2>
+            <p>The seven islands are now connected to form the great city of Mumbai!</p>
+            <p>Final Score: <span id="final-score">0</span></p>
+            <button id="play-again">Play Again</button>
+        </div>
+        
+        <div class="controls">
+            <button id="restart">Restart</button>
+            <button id="next" disabled>Next Step</button>
+        </div>
+    </main>
+
+    <script>
+        // Game data
+        const gameData = {
+            islands: [
+                { id: 'colaba', name: 'Colaba', x: 20, y: 80, radius: 60, 
+                  info: 'Southernmost island, important trading port since ancient times.',
+                  history: ['Satavahanas (230 BCE - 220 CE)', 'Western Satraps (35-405 CE)'] },
+                { id: 'mazagaon', name: 'Mazagaon', x: 80, y: 40, radius: 50, 
+                  info: 'Known for its natural harbor and Portuguese influence.',
+                  history: ['Abhiras (203-370 CE)', 'Vakatakas (250-500 CE)'] },
+                { id: 'oldwoman', name: 'Old Woman\'s Island', x: 30, y: 30, radius: 40, 
+                  info: 'Small island with strategic importance for coastal defense.',
+                  history: ['Kalachuris (550-620 CE)', 'Chalukyas (6th-8th century)'] },
+                { id: 'worli', name: 'Worli', x: 50, y: 70, radius: 55, 
+                  info: 'Fishing community that became a key connection point.',
+                  history: ['Rashtrakutas (753-982 CE)', 'Silharas (810-1260 CE)'] },
+                { id: 'mahim', name: 'Mahim', x: 70, y: 60, radius: 45, 
+                  info: 'Site of the Mahim Fort and important Muslim settlement.',
+                  history: ['Delhi Sultanate (1348-1407)', 'Gujarat Sultanate (1407-1535)'] },
+                { id: 'parel', name: 'Parel', x: 60, y: 50, radius: 50, 
+                  info: 'Industrial center with textile mills during British rule.',
+                  history: ['Portuguese (1534-1661)', 'British (1661-1947)'] },
+                { id: 'bombay', name: 'Island of Bombay', x: 40, y: 60, radius: 70, 
+                  info: 'The largest island that gave the city its former name.',
+                  history: ['Marathas (1661-1739)', 'British East India Company (1668-1858)'] }
+            ],
+            causeways: [
+                { id: 'duncan', name: 'Duncan Causeway', connects: ['bombay', 'worli'], built: false },
+                { id: 'colaba', name: 'Colaba Causeway', connects: ['colaba', 'oldwoman'], built: false },
+                { id: 'mahim', name: 'Mahim Causeway', connects: ['mahim', 'bombay'], built: false }
+            ],
+            quiz: [
+                {
+                    question: "How many original islands formed Mumbai?",
+                    options: ["Five", "Seven", "Ten", "Three"],
+                    answer: 1
+                },
+                {
+                    question: "Which causeway connected Bombay Island to Worli?",
+                    options: ["Mahim Causeway", "Colaba Causeway", "Duncan Causeway", "Sion Causeway"],
+                    answer: 2
+                },
+                {
+                    question: "Which empire controlled Mumbai before the British?",
+                    options: ["Mughals", "Portuguese", "Dutch", "French"],
+                    answer: 1
+                }
+            ],
+            reclamationInfo: "Land reclamation began in the 18th century, connecting the seven islands through a series of causeways and landfills. This engineering feat transformed separate islands into a unified landmass, enabling Mumbai to become India's financial capital."
+        };
+
+        // Game state
+        const gameState = {
+            currentStep: 1,
+            exploredIslands: [],
+            builtCauseways: [],
+            currentQuiz: 0,
+            score: 0,
+            draggedCauseway: null
+        };
+
+        // Initialize game
+        function initGame() {
+            createIslands();
+            updateProgress();
+            setupEventListeners();
+        }
+
+        // Create island elements
+        function createIslands() {
+            const map = document.getElementById('map');
+            gameData.islands.forEach(island => {
+                const islandEl = document.createElement('div');
+                islandEl.className = 'island';
+                islandEl.id = island.id;
+                islandEl.style.width = `${island.radius * 2}px`;
+                islandEl.style.height = `${island.radius * 2}px`;
+                islandEl.style.left = `${island.x}%`;
+                islandEl.style.top = `${island.y}%`;
+                islandEl.innerHTML = island.name;
+                islandEl.dataset.name = island.name;
+                islandEl.dataset.info = island.info;
+                islandEl.dataset.history = JSON.stringify(island.history);
+                
+                islandEl.addEventListener('click', () => {
+                    if (gameState.currentStep === 1) {
+                        showIslandInfo(island);
+                        if (!gameState.exploredIslands.includes(island.id)) {
+                            gameState.exploredIslands.push(island.id);
+                            updateScore(10);
+                            updateProgress();
+                        }
+                    }
+                });
+                
+                map.appendChild(islandEl);
+            });
+        }
+
+        // Show island information
+        function showIslandInfo(island) {
+            document.getElementById('island-name').textContent = island.name;
+            document.getElementById('island-info').textContent = island.info;
+            
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = '';
+            
+            const history = JSON.parse(document.getElementById(island.id).dataset.history);
+            history.forEach(period => {
+                const periodEl = document.createElement('div');
+                periodEl.className = 'timeline-item';
+                periodEl.textContent = period;
+                timeline.appendChild(periodEl);
+            });
+            
+            document.getElementById('timeline-container').style.display = 'block';
+        }
+
+        // Update progress display
+        function updateProgress() {
+            document.getElementById('current-step').textContent = gameState.currentStep;
+            document.getElementById('progress-fill').style.width = `${(gameState.currentStep - 1) * 33}%`;
+            
+            if (gameState.currentStep === 1) {
+                document.getElementById('progress-text').textContent = 
+                    `Islands: ${gameState.exploredIslands.length}/7`;
+                document.getElementById('next').disabled = gameState.exploredIslands.length < 7;
+            } else if (gameState.currentStep === 2) {
+                document.getElementById('progress-text').textContent = 
+                    `Causeways: ${gameState.builtCauseways.length}/3`;
+                document.getElementById('next').disabled = gameState.builtCauseways.length < 3;
+            }
+        }
+
+        // Move to next step
+        function nextStep() {
+            gameState.currentStep++;
+            
+            if (gameState.currentStep === 2) {
+                document.getElementById('step-instructions').textContent = 
+                    "Drag and drop causeways to connect the islands and form Mumbai.";
+                document.getElementById('causeway-section').style.display = 'block';
+                document.getElementById('timeline-container').style.display = 'none';
+                document.getElementById('info-panel').style.display = 'none';
+            } else if (gameState.currentStep === 3) {
+                document.getElementById('causeway-section').style.display = 'none';
+                document.getElementById('step-instructions').style.display = 'none';
+                document.getElementById('quiz-container').style.display = 'block';
+                showQuiz();
+            }
+            
+            updateProgress();
+            document.getElementById('next').disabled = true;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Next button
+            document.getElementById('next').addEventListener('click', nextStep);
+            
+            // Restart button
+            document.getElementById('restart').addEventListener('click', restartGame);
+            
+            // Play again button
+            document.getElementById('play-again').addEventListener('click', restartGame);
+            
+            // Causeway drag and drop
+            const causeways = document.querySelectorAll('.causeway');
+            const dropzone = document.getElementById('dropzone');
+            
+            causeways.forEach(causeway => {
+                causeway.addEventListener('dragstart', (e) => {
+                    gameState.draggedCauseway = causeway.dataset.causeway;
+                    e.dataTransfer.setData('text/plain', causeway.dataset.causeway);
+                    dropzone.classList.add('active');
+                });
+                
+                causeway.addEventListener('dragend', () => {
+                    dropzone.classList.remove('active');
+                });
+            });
+            
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+            
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('active');
+                
+                if (gameState.draggedCauseway && !gameState.builtCauseways.includes(gameState.draggedCauseway)) {
+                    gameState.builtCauseweys.push(gameState.draggedCauseway);
+                    updateScore(15);
+                    updateProgress();
+                    
+                    // Visual feedback
+                    dropzone.textContent = `${gameData.causeways.find(c => c.id === gameState.draggedCauseway).name} built!`;
+                    setTimeout(() => {
+                        dropzone.textContent = 'Drop causeway here to build';
+                    }, 2000);
+                }
+                
+                gameState.draggedCauseway = null;
+            });
+        }
+
+        // Show quiz
+        function showQuiz() {
+            if (gameState.currentQuiz < gameData.quiz.length) {
+                const quiz = gameData.quiz[gameState.currentQuiz];
+                document.getElementById('quiz-question').textContent = quiz.question;
+                
+                const optionsContainer = document.getElementById('quiz-options');
+                optionsContainer.innerHTML = '';
+                
+                quiz.options.forEach((option, index) => {
+                    const optionEl = document.createElement('div');
+                    optionEl.className = 'quiz-option';
+                    optionEl.textContent = option;
+                    optionEl.dataset.index = index;
+                    
+                    optionEl.addEventListener('click', () => {
+                        checkAnswer(index);
+                    });
+                    
+                    optionsContainer.appendChild(optionEl);
+                });
+            } else {
+                showFinalView();
+            }
+        }
+
+        // Check quiz answer
+        function checkAnswer(selectedIndex) {
+            const quiz = gameData.quiz[gameState.currentQuiz];
+            const options = document.querySelectorAll('.quiz-option');
+            
+            if (selectedIndex === quiz.answer) {
+                options[selectedIndex].style.backgroundColor = '#a0d0a0';
+                updateScore(20);
+            } else {
+                options[selectedIndex].style.backgroundColor = '#d0a0a0';
+                options[quiz.answer].style.backgroundColor = '#a0d0a0';
+            }
+            
+            setTimeout(() => {
+                gameState.currentQuiz++;
+                showQuiz();
+            }, 1500);
+        }
+
+        // Show final view
+        function showFinalView() {
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('final-view').style.display = 'block';
+            document.getElementById('final-score').textContent = gameState.score;
+            document.getElementById('controls').style.display = 'none';
+        }
+
+        // Update score
+        function updateScore(points) {
+            gameState.score += points;
+            document.getElementById('score').textContent = gameState.score;
+        }
+
+        // Restart game
+        function restartGame() {
+            // Reset game state
+            gameState.currentStep = 1;
+            gameState.exploredIslands = [];
+            gameState.builtCauseways = [];
+            gameState.currentQuiz = 0;
+            gameState.score = 0;
+            
+            // Reset UI
+            document.getElementById('step-instructions').textContent = 
+                "Click on the islands to learn about their history and significance in Mumbai's formation.";
+            document.getElementById('step-instructions').style.display = 'block';
+            document.getElementById('causeway-section').style.display = 'none';
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('final-view').style.display = 'none';
+            document.getElementById('info-panel').style.display = 'block';
+            document.getElementById('timeline-container').style.display = 'none';
+            document.getElementById('island-name').textContent = 'Select an Island';
+            document.getElementById('island-info').textContent = 'Click on any island to see information about it.';
+            document.getElementById('dropzone').textContent = 'Drop causeway here to build';
+            document.getElementById('controls').
+    </script>
+</body>
+</html>

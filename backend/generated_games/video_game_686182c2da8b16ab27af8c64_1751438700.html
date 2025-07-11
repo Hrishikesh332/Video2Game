@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .graph-container {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        #graph {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: block;
+            margin: 0 auto;
+            touch-action: none;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        button {
+            background-color: #f1f3f4;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            color: #202124;
+        }
+
+        button:hover {
+            background-color: #e8eaed;
+        }
+
+        button:active {
+            background-color: #d2e3fc;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #5f6368;
+        }
+
+        .content-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #222;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            margin: 15px 0 10px;
+            color: #222;
+        }
+
+        p {
+            margin-bottom: 10px;
+        }
+
+        .instructions {
+            background-color: #f1f8e9;
+            border-left: 4px solid #7cb342;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 15px 0;
+        }
+
+        .level-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+        }
+
+        .level-dot.active {
+            background-color: #5f6368;
+        }
+
+        .outlier {
+            position: relative;
+        }
+
+        .outlier::after {
+            content: "";
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #f44336;
+            border-radius: 50%;
+            top: -8px;
+            left: -8px;
+        }
+
+        @media (max-width: 768px) {
+            #graph {
+                width: 100%;
+                height: auto;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Linear Regression Explorer</h1>
+        <p>Understand the relationship between height and shoe size</p>
+    </header>
+
+    <main class="game-container">
+        <section class="graph-container">
+            <canvas id="graph" width="700" height="500"></canvas>
+            
+            <div class="controls">
+                <button id="addPointBtn">Add Data Point Mode</button>
+                <button id="drawLineBtn">Draw Best Fit Line</button>
+                <button id="outlierBtn">Identify Outlier Mode</button>
+                <button id="removeBtn">Remove Point Mode</button>
+                <button id="resetBtn">Reset Graph</button>
+            </div>
+            
+            <div class="stats">
+                <div>Points: <span id="pointCount">0</span></div>
+                <div>Equation: <span id="equation">y = mx + b</span></div>
+                <div>Level: <span id="level">1</span>/3</div>
+            </div>
+            
+            <div class="level-indicator">
+                <div class="level-dot active" data-level="1"></div>
+                <div class="level-dot" data-level="2"></div>
+                <div class="level-dot" data-level="3"></div>
+            </div>
+        </section>
+        
+        <section class="content-section">
+            <div class="instructions" id="instructions">
+                <strong>Level 1:</strong> Click on the graph to add data points showing height (x-axis) and shoe size (y-axis). Add at least 5 points.
+            </div>
+            
+            <h2>About Linear Regression</h2>
+            <p>Linear regression is a supervised learning algorithm that models the relationship between a dependent variable (shoe size) and one or more independent variables (height).</p>
+            
+            <h3>Supervised Learning</h3>
+            <p>This algorithm learns from labeled datasets where both input data and correct outputs are provided.</p>
+            
+            <h3>Continuous vs Categorical Data</h3>
+            <p>Linear regression works best with continuous data (height, age, weight) rather than categorical data (gender, color). Continuous data can take any value within a range, making it suitable for regression analysis.</p>
+            
+            <h3>Best Fit Line</h3>
+            <p>The line drawn through your data points minimizes the total distance to all points, showing the overall trend between height and shoe size.</p>
+            
+            <h3>Outliers</h3>
+            <p>Outliers are data points that differ significantly from others. They can affect your regression line - try identifying them in Level 2!</p>
+        </section>
+    </main>
+
+    <script>
+        // Game state
+        const gameState = {
+            points: [],
+            line: null,
+            mode: 'add', // 'add', 'outlier', 'remove'
+            level: 1,
+            pointCount: 0
+        };
+
+        // DOM elements
+        const canvas = document.getElementById('graph');
+        const ctx = canvas.getContext('2d');
+        const pointCountEl = document.getElementById('pointCount');
+        const equationEl = document.getElementById('equation');
+        const levelEl = document.getElementById('level');
+        const instructionsEl = document.getElementById('instructions');
+        const levelDots = document.querySelectorAll('.level-dot');
+
+        // Button elements
+        const addPointBtn = document.getElementById('addPointBtn');
+        const drawLineBtn = document.getElementById('drawLineBtn');
+        const outlierBtn = document.getElementById('outlierBtn');
+        const removeBtn = document.getElementById('removeBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Graph dimensions and padding
+        const graphPadding = { top: 40, right: 40, bottom: 60, left: 60 };
+        const graphWidth = canvas.width - graphPadding.left - graphPadding.right;
+        const graphHeight = canvas.height - graphPadding.top - graphPadding.bottom;
+
+        // Data ranges
+        const xMin = 50, xMax = 80;   // Height in inches
+        const yMin = 5, yMax = 15;    // Shoe size (US)
+
+        // Initialize game
+        function init() {
+            drawGrid();
+            setupEventListeners();
+            updateUI();
+        }
+
+        // Draw graph grid and axes
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw graph area
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(graphPadding.left, graphPadding.top, graphWidth, graphHeight);
+            
+            // Draw grid lines
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            
+            // Vertical grid lines
+            for (let x = 0; x <= 10; x++) {
+                const xPos = graphPadding.left + (x / 10) * graphWidth;
+                ctx.beginPath();
+                ctx.moveTo(xPos, graphPadding.top);
+                ctx.lineTo(xPos, graphPadding.top + graphHeight);
+                ctx.stroke();
+            }
+            
+            // Horizontal grid lines
+            for (let y = 0; y <= 10; y++) {
+                const yPos = graphPadding.top + (y / 10) * graphHeight;
+                ctx.beginPath();
+                ctx.moveTo(graphPadding.left, yPos);
+                ctx.lineTo(graphPadding.left + graphWidth, yPos);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2;
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(graphPadding.left, graphPadding.top + graphHeight);
+            ctx.lineTo(graphPadding.left + graphWidth, graphPadding.top + graphHeight);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(graphPadding.left, graphPadding.top);
+            ctx.lineTo(graphPadding.left, graphPadding.top + graphHeight);
+            ctx.stroke();
+            
+            // Draw axis labels
+            ctx.fillStyle = '#000000';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            
+            // X-axis labels (Height)
+            for (let i = 0; i <= 10; i += 2) {
+                const value = xMin + (i / 10) * (xMax - xMin);
+                const xPos = graphPadding.left + (i / 10) * graphWidth;
+                ctx.fillText(value.toFixed(0), xPos, graphPadding.top + graphHeight + 20);
+            }
+            
+            // Y-axis labels (Shoe Size)
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 10; i += 2) {
+                const value = yMin + (i / 10) * (yMax - yMin);
+                const yPos = graphPadding.top + graphHeight - (i / 10) * graphHeight;
+                ctx.fillText(value.toFixed(1), graphPadding.left - 10, yPos + 5);
+            }
+            
+            // Axis titles
+            ctx.textAlign = 'center';
+            ctx.fillText('Height in Inches', canvas.width / 2, canvas.height - 15);
+            
+            ctx.save();
+            ctx.translate(15, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Shoe Size [US]', 0, 0);
+            ctx.restore();
+        }
+
+        // Convert data coordinates to canvas coordinates
+        function dataToCanvas(x, y) {
+            const canvasX = graphPadding.left + ((x - xMin) / (xMax - xMin)) * graphWidth;
+            const canvasY = graphPadding.top + graphHeight - ((y - yMin) / (yMax - yMin)) * graphHeight;
+            return { x: canvasX, y: canvasY };
+        }
+
+        // Convert canvas coordinates to data coordinates
+        function canvasToData(canvasX, canvasY) {
+            const x = xMin + ((canvasX - graphPadding.left) / graphWidth) * (xMax - xMin);
+            const y = yMin + ((graphPadding.top + graphHeight - canvasY) / graphHeight) * (yMax - yMin);
+            return { x, y };
+        }
+
+        // Draw data points
+        function drawPoints() {
+            gameState.points.forEach(point => {
+                const pos = dataToCanvas(point.x, point.y);
+                
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 6, 0, Math.PI * 2);
+                
+                if (point.isOutlier) {
+                    ctx.fillStyle = '#f44336';
+                } else {
+                    ctx.fillStyle = '#2196F3';
+                }
+                
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+        }
+
+        // Calculate linear regression
+        function calculateLinearRegression() {
+            const validPoints = gameState.points.filter(p => !p.isOutlier);
+            const n = validPoints.length;
+            
+            if (n < 2) return null;
+            
+            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+            
+            validPoints.forEach(point => {
+                sumX += point.x;
+                sumY += point.y;
+                sumXY += point.x * point.y;
+                sumXX += point.x * point.x;
+            });
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            return { slope, intercept };
+        }
+
+        // Draw regression line
+        function drawRegressionLine() {
+            const regression = calculateLinearRegression();
+            if (!regression) return;
+            
+            const { slope, intercept } = regression;
+            
+            // Calculate line endpoints
+            const y1 = slope * xMin + intercept;
+            const y2 = slope * xMax + intercept;
+            
+            const start = dataToCanvas(xMin, y1);
+            const end = dataToCanvas(xMax, y2);
+            
+            // Draw line
+            ctx.beginPath();
+            ctx.moveTo(start.x, start.y);
+            ctx.lineTo(end.x, end.y);
+            ctx.strokeStyle = '#4CAF50';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Update equation display
+            equationEl.textContent = `y = ${slope.toFixed(2)}x + ${intercept.toFixed(2)}`;
+        }
+
+        // Handle canvas click
+        function handleCanvasClick(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Check if click is within graph area
+            if (x < graphPadding.left || x > graphPadding.left + graphWidth || 
+                y < graphPadding.top || y > graphPadding.top + graphHeight) {
+                return;
+            }
+            
+            const dataPoint = canvasToData(x, y);
+            
+            if (gameState.mode === 'add') {
+                // Add new point
+                gameState.points.push({
+                    x: dataPoint.x,
+                    y: dataPoint.y,
+                    isOutlier: false
+                });
+                gameState.pointCount++;
+                pointCountEl.textContent = gameState.pointCount;
+                
+                // Check level completion
+                if (gameState.level === 1 && gameState.pointCount >= 5) {
+                    drawLineBtn.disabled = false;
+                }
+            } 
+            else if (gameState.mode === 'outlier') {
+                // Find closest point
+                let minDist = Infinity;
+                let closestPoint = null;
+                
+                gameState.points.forEach(point => {
+                    const pos = dataToCanvas(point.x, point.y);
+                    const dist = Math.sqrt(Math.pow(pos.x - x, 2) + Math.pow(pos.y - y, 2));
+                    
+                    if (dist < minDist && dist < 20) {
+                        minDist = dist;
+                        closestPoint = point;
+                    }
+                });
+                
+                // Toggle outlier status
+                if (closestPoint) {
+                    closestPoint.isOutlier = !closestPoint.isOutlier;
+                    
+                    // Check level completion
+                    if (gameState.level === 2 && gameState.points.some(p => p.isOutlier)) {
+                        drawLineBtn.disabled = false;
+                    }
+                }
+            } 
+            else if (gameState.mode === 'remove') {
+                // Find closest point
+                let minDist = Infinity;
+                let closestIndex = -1;
+                
+                gameState.points.forEach((point, index) => {
+                    const pos = dataToCanvas(point.x, point.y);
+                    const dist = Math.sqrt(Math.pow(pos.x - x, 2) + Math.pow(pos.y - y, 2));
+                    
+                    if (dist < minDist && dist < 20) {
+                        minDist = dist;
+                        closestIndex = index;
+                    }
+                });
+                
+                // Remove point
+                if (closestIndex !== -1) {
+                    gameState.points.splice(closestIndex, 1);
+                    gameState.pointCount--;
+                    pointCountEl.textContent = gameState.pointCount;
+                }
+            }
+            
+            redrawGraph();
+        }
+
+        // Redraw entire graph
+        function redrawGraph() {
+            drawGrid();
+            drawPoints();
+            
+            if (gameState.line) {
+                drawRegressionLine();
+            }
+        }
+
+        // Set game mode
+        function setMode(mode) {
+            gameState.mode = mode;
+            
+            // Update button states
+            addPointBtn.style.backgroundColor = mode === 'add' ? '#d2e3fc' : '#f1f3f4';
+            outlierBtn.style.backgroundColor = mode === 'outlier' ? '#d2e3fc' : '#f1f3f4';
+            removeBtn.style.backgroundColor = mode === 'remove' ? '#d2e3fc' : '#f1f3f4';
+        }
+
+        // Advance to next level
+        function nextLevel() {
+            if (gameState.level < 3) {
+                gameState.level++;
+                levelEl.textContent = gameState.level;
+                
+                // Update level indicator
+                levelDots.forEach(dot => {
+                    if (parseInt(dot.dataset.level) === gameState.level) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                });
+                
+                // Reset for new level
+                gameState.line = false;
+                drawLineBtn.disabled = true;
+                equationEl.textContent = 'y = mx + b';
+                
+                // Enable outlier mode in level 2+
+                if (gameState.level >= 2) {
+                    outlierBtn.disabled = false;
+                }
+                
+                // Enable remove mode in level 3
+                if (gameState.level >= 3) {
+                    removeBtn.disabled = false;
+                }
+                
+                updateInstructions();
+            }
+        }
+
+        // Update instructions based on current level
+        function updateInstructions() {
+            if (gameState.level === 1) {
+                instructionsEl.innerHTML = '<strong>Level 1:</strong> Click on the graph to add data points showing height (x-axis) and shoe size (y-axis). Add at least 5 points. Then click "Draw Best Fit Line" to see the regression line.';
+            } else if (gameState.level === 2) {
+                instructionsEl.innerHTML = '<strong>Level 2:</strong> Click "Identify Outlier Mode" then click on a point to mark it as an outlier (red). Notice how the best fit line changes when you recalculate.';
+            } else {
+                instructionsEl.innerHTML = '<strong>Level 3:</strong> Explore freely! Add, remove, or mark points as outliers. See how these changes affect the regression line. Try creating a scenario with a significant outlier.';
+            }
+        }
+
+        // Reset game
+        function resetGame() {
+            gameState.points = [];
+            gameState.line = null;
+            gameState.pointCount = 0;
+            gameState.level = 1;
+            
+            pointCountEl.textContent = '0';
+            equationEl.textContent = 'y = mx + b';
+            levelEl.textContent = '1';
+            
+            // Reset level indicator
+            levelDots.forEach((dot, index) => {
+                if (index === 0) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+            
+            // Reset buttons
+            drawLineBtn.disabled = true;
+            outlierBtn.disabled = true;
+            removeBtn.disabled = true;
+            setMode('add');
+            
+            updateInstructions();
+            redrawGraph();
+        }
+
+        // Update UI based on game state
+        function updateUI() {
+            updateInstructions();
+            
+            // Enable/disable buttons based on level
+            if (gameState.level >= 2) {
+                outlierBtn.disabled = false;
+            }
+            
+            if (gameState.level >= 3) {
+                removeBtn.disabled = false;
+            }
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Canvas interactions
+            canvas.addEventListener('click', handleCanvasClick);
+            
+            // Touch support for mobile
+            canvas.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                handleCanvasClick(e.touches[0]);
+            }, { passive: false });
+            
+            // Button event listeners
+            addPointBtn.addEventListener('click', () => setMode('add'));
+            outlierBtn.addEventListener('click', () => setMode('outlier'));
+            removeBtn.addEventListener('click', () => setMode('remove'));
+            
+            drawLineBtn.addEventListener('click', () => {
+                gameState.line = true;
+                redrawGraph();
+                
+                // After drawing line, advance to next level
+                if (gameState.level === 1 || gameState.level === 2) {
+                    setTimeout(nextLevel,
+    </script>
+</body>
+</html>

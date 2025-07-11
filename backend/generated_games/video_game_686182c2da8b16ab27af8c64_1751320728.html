@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .graph-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .info-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #222222;
+        }
+        
+        .graph-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .prediction-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        input {
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .explanation {
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        .heart {
+            position: absolute;
+            font-size: 2rem;
+            color: #ff6b6b;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+        
+        .challenge {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+        
+        .challenge.completed {
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .progress-bar {
+            flex: 1;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-right: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .summary {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Linear Regression Explorer</h1>
+        <p>Discover how machine learning predicts continuous data through interactive exploration</p>
+    </header>
+    
+    <div class="container">
+        <section class="graph-section">
+            <h2>Interactive Graph</h2>
+            <div class="graph-container">
+                <canvas id="regressionCanvas"></canvas>
+                <div class="heart" id="heart">❤️</div>
+            </div>
+            
+            <div class="controls">
+                <button id="resetBtn">Reset Graph</button>
+                <button id="removeBtn">Remove Last Point</button>
+            </div>
+            
+            <div class="prediction-form">
+                <input type="number" id="heightInput" placeholder="Enter height (inches)" min="0" max="100">
+                <button id="predictBtn">Predict Shoe Size</button>
+            </div>
+            <div id="predictionResult"></div>
+        </section>
+        
+        <section class="info-section">
+            <div class="explanation">
+                <h3>Understanding Linear Regression</h3>
+                <p>Linear regression is a supervised machine learning algorithm that predicts continuous numerical values based on labeled datasets. It finds the best-fit line through data points to model relationships between variables.</p>
+            </div>
+            
+            <div class="explanation">
+                <h3>Continuous vs Categorical Data</h3>
+                <p><strong>Continuous data</strong> (like height, age, or foot size) can take any value within a range and is ideal for regression. <strong>Categorical data</strong> (like color or gender) represents distinct groups and requires different algorithms.</p>
+            </div>
+            
+            <div class="challenge" id="challenge1">
+                <h3>Challenge 1: Create Your Dataset</h3>
+                <p>Add at least 5 data points to the graph by clicking. Observe how the best-fit line changes with each new point.</p>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress1"></div>
+                    </div>
+                    <span id="progressText1">0/5</span>
+                </div>
+            </div>
+            
+            <div class="challenge" id="challenge2">
+                <h3>Challenge 2: Explore Outliers</h3>
+                <p>Add an outlier point far from others, then remove it. Notice how outliers affect the best-fit line.</p>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress2"></div>
+                    </div>
+                    <span id="progressText2">0/1</span>
+                </div>
+            </div>
+            
+            <div class="summary">
+                <h3>Key Takeaways</h3>
+                <p>1. Linear regression models relationships between continuous variables</p>
+                <p>2. The best-fit line minimizes distance to all points</p>
+                <p>3. Outliers significantly impact model accuracy</p>
+                <p>4. Recognizing patterns enables accurate predictions</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('regressionCanvas');
+        const ctx = canvas.getContext('2d');
+        const heart = document.getElementById('heart');
+        
+        // Initialize canvas size
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            drawGraph();
+        }
+        
+        // Data storage
+        let dataPoints = [];
+        const authorPoint = { height: 67, shoeSize: 9.5 }; // Author's height/shoe size
+        
+        // DOM elements
+        const resetBtn = document.getElementById('resetBtn');
+        const removeBtn = document.getElementById('removeBtn');
+        const predictBtn = document.getElementById('predictBtn');
+        const heightInput = document.getElementById('heightInput');
+        const predictionResult = document.getElementById('predictionResult');
+        const progress1 = document.getElementById('progress1');
+        const progressText1 = document.getElementById('progressText1');
+        const progress2 = document.getElementById('progress2');
+        const progressText2 = document.getElementById('progressText2');
+        const challenge1 = document.getElementById('challenge1');
+        const challenge2 = document.getElementById('challenge2');
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            setupEventListeners();
+        });
+        
+        window.addEventListener('resize', resizeCanvas);
+        
+        function setupEventListeners() {
+            // Canvas interaction
+            canvas.addEventListener('click', handleCanvasClick);
+            
+            // Button events
+            resetBtn.addEventListener('click', resetGraph);
+            removeBtn.addEventListener('click', removeLastPoint);
+            predictBtn.addEventListener('click', predictShoeSize);
+        }
+        
+        function handleCanvasClick(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Convert pixel coordinates to data values
+            const height = Math.round((x / canvas.width) * 40 + 50); // 50-90 inches
+            const shoeSize = Math.round(((canvas.height - y) / canvas.height) * 15 + 3); // 3-18 US
+            
+            // Add data point
+            dataPoints.push({ height, shoeSize });
+            
+            // Check for author match
+            checkAuthorMatch(height, shoeSize);
+            
+            // Update challenges
+            updateChallenges();
+            
+            // Redraw graph
+            drawGraph();
+        }
+        
+        function checkAuthorMatch(height, shoeSize) {
+            const heightDiff = Math.abs(height - authorPoint.height);
+            const sizeDiff = Math.abs(shoeSize - authorPoint.shoeSize);
+            
+            if (heightDiff <= 1 && sizeDiff <= 0.5) {
+                // Show heart animation
+                heart.style.left = (canvas.width * (height - 50) / 40) + 'px';
+                heart.style.top = (canvas.height - (canvas.height * (shoeSize - 3) / 15)) + 'px';
+                heart.style.opacity = '1';
+                
+                setTimeout(() => {
+                    heart.style.opacity = '0';
+                }, 1500);
+            }
+        }
+        
+        function calculateRegression() {
+            if (dataPoints.length < 2) return null;
+            
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            
+            for (const point of dataPoints) {
+                sumX += point.height;
+                sumY += point.shoeSize;
+                sumXY += point.height * point.shoeSize;
+                sumX2 += point.height * point.height;
+            }
+            
+            const n = dataPoints.length;
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            return { slope, intercept };
+        }
+        
+        function drawGraph() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            
+            // Vertical grid lines (height)
+            for (let i = 0; i <= 10; i++) {
+                const x = (i / 10) * canvas.width;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+                
+                // Labels
+                ctx.fillStyle = '#666';
+                ctx.font = '12px sans-serif';
+                ctx.fillText((50 + i * 4).toString(), x - 10, canvas.height - 5);
+            }
+            
+            // Horizontal grid lines (shoe size)
+            for (let i = 0; i <= 6; i++) {
+                const y = (i / 6) * canvas.height;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+                
+                // Labels
+                ctx.fillStyle = '#666';
+                ctx.font = '12px sans-serif';
+                ctx.fillText((18 - i * 3).toString(), 5, y + 15);
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.moveTo(0, canvas.height);
+            ctx.lineTo(0, 0);
+            ctx.stroke();
+            
+            // Axis labels
+            ctx.fillStyle = '#222';
+            ctx.font = '14px sans-serif';
+            ctx.fillText('Height (inches)', canvas.width / 2 - 40, canvas.height - 10);
+            ctx.save();
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Shoe Size (US)', -canvas.height / 2 - 50, 15);
+            ctx.restore();
+            
+            // Draw data points
+            for (const point of dataPoints) {
+                const x = (point.height - 50) / 40 * canvas.width;
+                const y = canvas.height - (point.shoeSize - 3) / 15 * canvas.height;
+                
+                ctx.fillStyle = '#4A90E2';
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Draw regression line
+            const regression = calculateRegression();
+            if (regression) {
+                const { slope, intercept } = regression;
+                
+                // Calculate line endpoints
+                const x1 = 0;
+                const y1 = canvas.height - ((slope * 50 + intercept) - 3) / 15 * canvas.height;
+                const x2 = canvas.width;
+                const y2 = canvas.height - ((slope * 90 + intercept) - 3) / 15 * canvas.height;
+                
+                // Draw line
+                ctx.strokeStyle = '#E74C3C';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            }
+        }
+        
+        function resetGraph() {
+            dataPoints = [];
+            predictionResult.textContent = '';
+            updateChallenges();
+            drawGraph();
+        }
+        
+        function removeLastPoint() {
+            if (dataPoints.length > 0) {
+                dataPoints.pop();
+                updateChallenges();
+                drawGraph();
+            }
+        }
+        
+        function predictShoeSize() {
+            const height = parseFloat(heightInput.value);
+            
+            if (isNaN(height) || height < 50 || height > 90) {
+                predictionResult.textContent = 'Please enter a height between 50-90 inches';
+                predictionResult.style.color = '#E74C3C';
+                return;
+            }
+            
+            const regression = calculateRegression();
+            
+            if (!regression) {
+                predictionResult.textContent = 'Add at least 2 points to create a prediction model';
+                predictionResult.style.color = '#E74C3C';
+                return;
+            }
+            
+            const { slope, intercept } = regression;
+            const shoeSize = slope * height + intercept;
+            
+            predictionResult.textContent = `Predicted shoe size: ${shoeSize.toFixed(1)} (US)`;
+            predictionResult.style.color = '#27AE60';
+        }
+        
+        function updateChallenges() {
+            // Challenge 1: Add 5 points
+            const progressValue1 = Math.min(dataPoints.length, 5);
+            const percent1 = (progressValue1 / 5) * 100;
+            progress1.style.width = `${percent1}%`;
+            progressText1.textContent = `${progressValue1}/5`;
+            
+            if (progressValue1 >= 5) {
+                challenge1.classList.add('completed');
+            } else {
+                challenge1.classList.remove('completed');
+            }
+            
+            // Challenge 2: Add and remove an outlier
+            const hasOutlier = dataPoints.some(point => 
+                point.height < 55 || point.height > 85 || 
+                point.shoeSize < 5 || point.shoeSize > 15
+            );
+            
+            const progressValue2 = hasOutlier ? 1 : 0;
+            progress2.style.width = `${progressValue2 * 100}%`;
+            progressText2.textContent = `${progressValue2}/1`;
+            
+            if (progressValue2 >= 1) {
+                challenge2.classList.add('completed');
+            } else {
+                challenge2.classList.remove('completed');
+            }
+        }
+    </script>
+</body>
+</html>

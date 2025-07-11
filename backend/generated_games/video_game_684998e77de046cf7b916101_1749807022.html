@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Loan Data Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .data-table th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #f8f8f8;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .visualization-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .chart-container {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            margin-top: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chart-placeholder {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        select, button {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background-color: #7f8c8d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #6c7a7d;
+        }
+        
+        .btn-success {
+            background-color: #27ae60;
+        }
+        
+        .btn-success:hover {
+            background-color: #219653;
+        }
+        
+        .explanation {
+            background-color: #e8f4fc;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            border-radius: 0 6px 6px 0;
+            margin: 20px 0;
+        }
+        
+        .explanation h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .explanation p {
+            margin-bottom: 10px;
+        }
+        
+        .feedback {
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .feedback.incorrect {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .score-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        .pca-point {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .pca-point:hover {
+            transform: translate(-50%, -50%) scale(1.3);
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .cluster-0 { background-color: #3498db; }
+        .cluster-1 { background-color: #e74c3c; }
+        .cluster-2 { background-color: #2ecc71; }
+        
+        .point-info {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            min-width: 200px;
+        }
+        
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background-color: #ddd;
+            z-index: 1;
+        }
+        
+        .timeline-step {
+            text-align: center;
+            z-index: 2;
+            position: relative;
+            flex: 1;
+        }
+        
+        .timeline-bullet {
+            width: 40px;
+            height: 40px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .timeline-step.active .timeline-bullet {
+            background-color: #2ecc71;
+            transform: scale(1.1);
+            box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.3);
+        }
+        
+        .timeline-step.completed .timeline-bullet {
+            background-color: #27ae60;
+        }
+        
+        .timeline-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .instructions {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .visualization-container {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .timeline {
+                flex-wrap: wrap;
+            }
+            
+            .timeline-step {
+                flex: 0 0 50%;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCA Loan Data Explorer</h1>
+        <p class="subtitle">An interactive exploration of Principal Component Analysis for financial loan data</p>
+    </header>
+    
+    <div class="game-container">
+        <div class="timeline">
+            <div class="timeline-step active">
+                <div class="timeline-bullet">1</div>
+                <div class="timeline-label">Loan Data</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-bullet">2</div>
+                <div class="timeline-label">2D Visualization</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-bullet">3</div>
+                <div class="timeline-label">PCA Analysis</div>
+            </div>
+            <div class="timeline-step">
+                <div class="timeline-bullet">4</div>
+                <div class="timeline-label">Clusters</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Loan Dataset</h2>
+            <p>Explore the loan data with different financial attributes. This dataset contains information about six loans with four dimensions each.</p>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Loan ID</th>
+                        <th>Loan Amount ($)</th>
+                        <th>Credit Score</th>
+                        <th>Annual Income ($)</th>
+                        <th>Years in Home</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>LOAN 1</td>
+                        <td>85,000</td>
+                        <td>720</td>
+                        <td>65,000</td>
+                        <td>5</td>
+                    </tr>
+                    <tr>
+                        <td>LOAN 2</td>
+                        <td>120,000</td>
+                        <td>680</td>
+                        <td>82,000</td>
+                        <td>3</td>
+                    </tr>
+                    <tr>
+                        <td>LOAN 3</td>
+                        <td>65,000</td>
+                        <td>750</td>
+                        <td>58,000</td>
+                        <td>8</td>
+                    </tr>
+                    <tr>
+                        <td>LOAN 4</td>
+                        <td>150,000</td>
+                        <td>640</td>
+                        <td>95,000</td>
+                        <td>2</td>
+                    </tr>
+                    <tr>
+                        <td>LOAN 5</td>
+                        <td>95,000</td>
+                        <td>710</td>
+                        <td>72,000</td>
+                        <td>6</td>
+                    </tr>
+                    <tr>
+                        <td>LOAN 6</td>
+                        <td>110,000</td>
+                        <td>690</td>
+                        <td>78,000</td>
+                        <td>4</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="instructions">
+                <h3>Understanding the Data:</h3>
+                <p>Each loan has multiple attributes that make it multidimensional. Visualizing more than two dimensions is challenging. This is where PCA helps!</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">2D Visualization</h2>
+            <p>Select two variables to visualize in a 2D scatter plot. Notice how different combinations reveal different patterns.</p>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label for="x-axis">X-Axis Variable:</label>
+                    <select id="x-axis">
+                        <option value="loanAmount">Loan Amount</option>
+                        <option value="creditScore">Credit Score</option>
+                        <option value="annualIncome">Annual Income</option>
+                        <option value="yearsInHome">Years in Home</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="y-axis">Y-Axis Variable:</label>
+                    <select id="y-axis">
+                        <option value="creditScore">Credit Score</option>
+                        <option value="loanAmount">Loan Amount</option>
+                        <option value="annualIncome">Annual Income</option>
+                        <option value="yearsInHome">Years in Home</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="color-var">Color Variable:</label>
+                    <select id="color-var">
+                        <option value="annualIncome">Annual Income</option>
+                        <option value="loanAmount">Loan Amount</option>
+                        <option value="creditScore">Credit Score</option>
+                        <option value="yearsInHome">Years in Home</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3>Scatter Plot</h3>
+                <div class="chart" id="scatter-plot">
+                    <div class="chart-placeholder">Select variables to generate the scatter plot</div>
+                </div>
+            </div>
+            
+            <div class="explanation">
+                <h3>Why is this limited?</h3>
+                <p>With only two dimensions, we can't see the full picture. Real financial data has many dimensions. We need a way to visualize multidimensional data in 2D while preserving the most important patterns.</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">PCA Visualization</h2>
+            <p>Principal Component Analysis (PCA) reduces multidimensional data to 2D while preserving the most important patterns and relationships.</p>
+            
+            <div class="visualization-container">
+                <div class="chart-container">
+                    <h3>PCA Projection</h3>
+                    <div class="chart" id="pca-plot">
+                        <!-- PCA points will be generated here -->
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>PCA Explained Variance</h3>
+                    <div class="chart" id="variance-chart">
+                        <!-- Variance chart will be generated here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <button id="run-pca">Run PCA Analysis</button>
+                </div>
+            </div>
+            
+            <div class="explanation">
+                <h3>How PCA Works:</h3>
+                <p>PCA identifies the directions (principal components) where the data varies the most. The first principal component (PC1) captures the most variance, the second (PC2) captures the next most, and so on.</p>
+                <p>By projecting our 4-dimensional loan data onto the first two principal components, we can visualize complex relationships in a simple 2D plot.</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">Cluster Identification</h2>
+            <p>Based on the PCA visualization, identify clusters of similar loans. Click on each point to see loan details.</p>
+            
+            <div class="chart-container">
+                <div class="chart" id="cluster-plot">
+                    <!-- Cluster plot will be generated here -->
+                </div>
+            </div>
+            
+            <div class="feedback" id="cluster-feedback">
+                <!-- Feedback will appear here -->
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <button id="check-clusters">Check Cluster Identification</button>
+                </div>
+            </div>
+            
+            <div class="score-container">
+                <div class="score-label">Your Understanding Score:</div>
+                <div class="score-value">85%</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn-secondary" id="reset-btn">Reset Exploration</button>
+            <button class="btn-success" id="next-lesson">Next Lesson: Advanced PCA Applications</button>
+        </div>
+    </div>
+    
+    <script>
+        // Loan data
+        const loanData = [
+            { id: 1, loanAmount: 85000, creditScore: 720, annualIncome: 65000, yearsInHome: 5, cluster: 0 },
+            { id: 2, loanAmount: 120000, creditScore: 680, annualIncome: 82000, yearsInHome: 3, cluster: 1 },
+            { id: 3, loanAmount: 65000, creditScore: 750, annualIncome: 58000, yearsInHome: 8, cluster: 0 },
+            { id: 4, loanAmount: 150000, creditScore: 640, annualIncome: 95000, yearsInHome: 2, cluster: 1 },
+            { id: 5, loanAmount: 95000, creditScore: 710, annualIncome: 72000, yearsInHome: 6, cluster: 0 },
+            { id: 6, loanAmount: 110000, creditScore: 690, annualIncome: 78000, yearsInHome: 4, cluster: 1 }
+        ];
+        
+        // Color scale for annual income
+        const incomeColorScale = (income) => {
+            const minIncome = 50000;
+            const maxIncome = 100000;
+            const normalized = (income - minIncome) / (maxIncome - minIncome);
+            const hue = (1 - normalized) * 120; // Green (high) to Red (low)
+            return `hsl(${hue}, 70%, 50%)`;
+        };
+        
+        // Generate scatter plot
+        function generateScatterPlot() {
+            const xAxis = document.getElementById('x-axis').value;
+            const yAxis = document.getElementById('y-axis').value;
+            const colorVar = document.getElementById('color-var').value;
+            
+            const container = document.getElementById('scatter-plot');
+            container.innerHTML = '';
+            
+            // Create SVG element
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.setAttribute('viewBox', '0 0 400 300');
+            container.appendChild(svg);
+            
+            // Draw axes
+            const xAxisLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xAxisLine.setAttribute('x1', '50');
+            xAxisLine.setAttribute('y1', '250');
+            xAxisLine.setAttribute('x2', '350');
+            xAxisLine.setAttribute('y2', '250');
+            xAxisLine.setAttribute('stroke', '#333');
+            xAxisLine.setAttribute('stroke-width', '2');
+            svg.appendChild(xAxisLine);
+            
+            const yAxisLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            yAxisLine.setAttribute('x1', '50');
+            yAxisLine.setAttribute('y1', '50');
+            yAxisLine.setAttribute('x2', '50');
+            yAxisLine.setAttribute('y2', '250');
+            yAxisLine.setAttribute('stroke', '#333');
+            yAxisLine.setAttribute('stroke-width', '2');
+            svg.appendChild(yAxisLine);
+            
+            // Add axis labels
+            const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            xLabel.setAttribute('x', '200');
+            xLabel.setAttribute('y', '290');
+            xLabel.setAttribute('text-anchor', 'middle');
+            xLabel.setAttribute('fill', '#333');
+            xLabel.setAttribute('font-size', '14');
+            xLabel.textContent = xAxis;
+            svg.appendChild(xLabel);
+            
+            const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            yLabel.setAttribute('x', '15');
+            yLabel.setAttribute('y', '150');
+            yLabel.setAttribute('text-anchor', 'middle');
+            yLabel.setAttribute('fill', '#333');
+            yLabel.setAttribute('transform', 'rotate(-90, 15, 150)');
+            yLabel.setAttribute('font-size', '14');
+            yLabel.textContent = yAxis;
+            svg.appendChild(yLabel);
+            
+            // Plot data points
+            loanData.forEach(loan => {
+                const x = 50 + (loan[xAxis] / 200000) * 300;
+                const y = 250 - (loan[yAxis] / 1000) * 2;
+                const color = colorVar === 'annualIncome' ? incomeColorScale(loan.annualIncome) : 
+                             colorVar === 'loanAmount' ? incomeColorScale(loan.loanAmount) : 
+                             colorVar === 'creditScore' ? `hsl(${200 - (loan.creditScore - 600)}, 70%, 50%)` : 
+                             `hsl(${loan.yearsInHome * 40}, 70%, 50%)`;
+                
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', x);
+                circle.setAttribute('cy', y);
+                circle.setAttribute('r', '8');
+                circle.setAttribute('fill', color);
+                circle.setAttribute('stroke', '#333');
+                circle.setAttribute('stroke-width', '1');
+                circle.setAttribute('data-id', loan.id);
+                
+                // Add hover effect
+                circle.addEventListener('mouseenter', function() {
+                    circle.setAttribute('r', '10');
+                    circle.setAttribute('stroke-width', '2');
+                    
+                    // Show tooltip
+                    const tooltip = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    tooltip.setAttribute('x', Number(x) + 15);
+                    tooltip.setAttribute('y', Number(y) - 15);
+                    tooltip.setAttribute('fill', '#333');
+                    tooltip.setAttribute('font-size', '12');
+                    tooltip.setAttribute('id', `tooltip-${loan.id}`);
+                    tooltip.textContent = `Loan ${loan.id}`;
+                    svg.appendChild(tooltip);
+                });
+                
+                circle.addEventListener('mouseleave', function() {
+                    circle.setAttribute('r', '8');
+                    circle.setAttribute('stroke-width', '1');
+                    
+                    // Remove tooltip
+                    const tooltip = document.getElementById(`tooltip-${loan.id}`);
+                    if (tooltip) tooltip.remove();
+                });
+                
+                svg.appendChild(circle);
+            });
+        }
+        
+        // Generate PCA plot
+        function generatePCAPlot() {
+            const container = document.getElementById('pca-plot');
+            container.innerHTML = '';
+            
+            // Create SVG element
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.setAttribute('viewBox', '0 0 400 300');
+            container.appendChild(svg);
+            
+            // Draw axes
+            const xAxisLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xAxisLine.setAttribute('x1', '50');
+            xAxisLine.setAttribute('y1', '150');
+            xAxis
+    </script>
+</body>
+</html>

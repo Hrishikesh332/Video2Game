@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grok-3 Interactive Web App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .description {
+            color: #555555;
+            margin-bottom: 30px;
+        }
+        
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .mode-btn {
+            background-color: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+            color: #333333;
+            flex: 1;
+            min-width: 180px;
+            text-align: center;
+        }
+        
+        .mode-btn:hover {
+            background-color: #eeeeee;
+            transform: translateY(-2px);
+        }
+        
+        .mode-btn.active {
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
+        
+        .game-container {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            min-height: 400px;
+            margin-bottom: 25px;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        .chat-history {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #ffffff;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+        
+        .user-message {
+            background-color: #e3f2fd;
+            margin-left: auto;
+            border: 1px solid #bbdefb;
+        }
+        
+        .grok-message {
+            background-color: #f5f5f5;
+            margin-right: auto;
+            border: 1px solid #eeeeee;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #user-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        button {
+            padding: 12px 20px;
+            background-color: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #eeeeee;
+        }
+        
+        .problem-list {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .problem-item {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .problem-item:hover {
+            background-color: #f5f5f5;
+            transform: translateY(-2px);
+        }
+        
+        .step-container {
+            margin-top: 20px;
+        }
+        
+        .step {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        .challenge-container {
+            margin-bottom: 25px;
+        }
+        
+        .options {
+            display: grid;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        .option {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .option:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .option.correct {
+            background-color: #e8f5e9;
+            border-color: #c8e6c9;
+        }
+        
+        .option.incorrect {
+            background-color: #ffebee;
+            border-color: #ffcdd2;
+        }
+        
+        .feedback {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .correct-feedback {
+            background-color: #e8f5e9;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .incorrect-feedback {
+            background-color: #ffebee;
+            border: 1px solid #ffcdd2;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            flex: 1;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #4caf50;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .score-container {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .restart-btn {
+            background-color: #f5f5f5;
+            border: 1px solid #e0e0e0;
+        }
+        
+        @media (max-width: 600px) {
+            .mode-selector {
+                flex-direction: column;
+            }
+            
+            .mode-btn {
+                min-width: 100%;
+            }
+            
+            .input-area {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Grok-3 Interactive Web App</h1>
+        <p class="description">Explore Grok-3's capabilities through interactive challenges</p>
+    </header>
+    
+    <div class="mode-selector">
+        <button class="mode-btn active" data-mode="chat">Interactive Chat</button>
+        <button class="mode-btn" data-mode="think">Think Mode</button>
+        <button class="mode-btn" data-mode="brain">Big Brain Challenge</button>
+    </div>
+    
+    <div class="game-container">
+        <!-- Chat Mode Screen -->
+        <div id="chat-screen" class="screen active">
+            <div class="chat-history" id="chat-history">
+                <div class="message grok-message">
+                    Hello! I'm Grok-3. Ask me anything about AI, reasoning, or computational capabilities.
+                </div>
+            </div>
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="Type your question...">
+                <button id="send-btn">Send</button>
+            </div>
+        </div>
+        
+        <!-- Think Mode Screen -->
+        <div id="think-screen" class="screen">
+            <h2>Think Mode: Problem Solving</h2>
+            <div class="problem-list" id="problem-list">
+                <div class="problem-item" data-problem="1">Problem 1: Algorithm Optimization</div>
+                <div class="problem-item" data-problem="2">Problem 2: Logical Reasoning</div>
+            </div>
+            
+            <div id="problem-container" style="display: none;">
+                <h3 id="problem-title"></h3>
+                <p id="problem-description"></p>
+                
+                <div class="step-container">
+                    <div class="step" id="step-1"></div>
+                    <div class="step" id="step-2"></div>
+                    <div class="step" id="step-3"></div>
+                </div>
+                
+                <div class="controls">
+                    <button id="prev-step">Previous</button>
+                    <button id="next-step">Next Step</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Big Brain Mode Screen -->
+        <div id="brain-screen" class="screen">
+            <div class="progress-container">
+                <span id="current-challenge">Challenge 1/3</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <span>Score: <span id="score">0</span></span>
+            </div>
+            
+            <div class="challenge-container">
+                <h2 id="challenge-title">Big Brain Challenge</h2>
+                <p id="challenge-description"></p>
+                
+                <div class="options" id="options-container"></div>
+                
+                <div class="feedback" id="feedback"></div>
+                
+                <div class="controls">
+                    <button id="check-answer" disabled>Check Answer</button>
+                    <button id="next-challenge" style="display: none;">Next Challenge</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button class="restart-btn" id="restart-btn">Restart Game</button>
+    </div>
+
+    <script>
+        // Game state management
+        const gameState = {
+            currentMode: 'chat',
+            thinkMode: {
+                currentProblem: null,
+                currentStep: 0,
+                totalSteps: 3
+            },
+            brainMode: {
+                currentChallenge: 0,
+                score: 0,
+                challenges: [
+                    {
+                        title: "Challenge 1: Complex Reasoning",
+                        description: "If all Bloops are Razzies and some Razzies are Tubbies, which statement must be true?",
+                        options: [
+                            "All Bloops are Tubbies",
+                            "Some Bloops are Tubbies",
+                            "No Bloops are Tubbies",
+                            "It cannot be determined"
+                        ],
+                        correct: 3,
+                        explanation: "The correct answer is 'It cannot be determined'. While all Bloops are Razzies, and some Razzies are Tubbies, there's no direct relationship established between Bloops and Tubbies."
+                    },
+                    {
+                        title: "Challenge 2: Computational Efficiency",
+                        description: "Which algorithm has the best time complexity for sorting large datasets?",
+                        options: [
+                            "Bubble Sort: O(n²)",
+                            "Merge Sort: O(n log n)",
+                            "Quick Sort: O(n log n) average",
+                            "Heap Sort: O(n log n)"
+                        ],
+                        correct: 1,
+                        explanation: "While all options except Bubble Sort have O(n log n) complexity, Merge Sort consistently maintains this complexity in all cases, making it most reliable for large datasets."
+                    },
+                    {
+                        title: "Challenge 3: AI Ethics",
+                        description: "What is the primary concern when implementing AI decision systems in healthcare?",
+                        options: [
+                            "Computational power requirements",
+                            "Data privacy and security",
+                            "Algorithm accuracy rates",
+                            "Implementation costs"
+                        ],
+                        correct: 1,
+                        explanation: "While all are important concerns, data privacy and security are paramount when handling sensitive patient health information."
+                    }
+                ]
+            }
+        };
+
+        // DOM elements
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        const screens = document.querySelectorAll('.screen');
+        const chatHistory = document.getElementById('chat-history');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const problemList = document.getElementById('problem-list');
+        const problemContainer = document.getElementById('problem-container');
+        const problemTitle = document.getElementById('problem-title');
+        const problemDescription = document.getElementById('problem-description');
+        const steps = document.querySelectorAll('.step');
+        const prevStepBtn = document.getElementById('prev-step');
+        const nextStepBtn = document.getElementById('next-step');
+        const currentChallengeEl = document.getElementById('current-challenge');
+        const challengeDescription = document.getElementById('challenge-description');
+        const optionsContainer = document.getElementById('options-container');
+        const checkAnswerBtn = document.getElementById('check-answer');
+        const nextChallengeBtn = document.getElementById('next-challenge');
+        const feedbackEl = document.getElementById('feedback');
+        const scoreEl = document.getElementById('score');
+        const progressFill = document.getElementById('progress-fill');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Initialize game
+        function initGame() {
+            setupEventListeners();
+            updateProgressBar();
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Mode switching
+            modeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchMode(btn.dataset.mode);
+                });
+            });
+
+            // Chat functionality
+            sendBtn.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            // Think mode
+            document.querySelectorAll('.problem-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    selectProblem(parseInt(item.dataset.problem));
+                });
+            });
+
+            prevStepBtn.addEventListener('click', showPrevStep);
+            nextStepBtn.addEventListener('click', showNextStep);
+
+            // Big Brain mode
+            checkAnswerBtn.addEventListener('click', checkAnswer);
+            nextChallengeBtn.addEventListener('click', loadNextChallenge);
+
+            // Restart button
+            restartBtn.addEventListener('click', restartGame);
+        }
+
+        // Switch between game modes
+        function switchMode(mode) {
+            gameState.currentMode = mode;
+            
+            // Update UI
+            modeButtons.forEach(btn => {
+                if (btn.dataset.mode === mode) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            screens.forEach(screen => {
+                if (screen.id === `${mode}-screen`) {
+                    screen.classList.add('active');
+                } else {
+                    screen.classList.remove('active');
+                }
+            });
+            
+            // Reset think mode when switching away
+            if (mode !== 'think') {
+                resetThinkMode();
+            }
+            
+            // Load challenges when entering brain mode
+            if (mode === 'brain' && gameState.brainMode.currentChallenge === 0) {
+                loadChallenge();
+            }
+        }
+
+        // Chat functionality
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, 'user');
+            userInput.value = '';
+            
+            // Simulate Grok-3 response
+            setTimeout(() => {
+                const response = generateResponse(message);
+                addMessage(response, 'grok');
+            }, 1000);
+        }
+
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', `${sender}-message`);
+            messageDiv.textContent = text;
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function generateResponse(question) {
+            const responses = [
+                "Grok-3 uses advanced reasoning capabilities to analyze complex problems by breaking them down into smaller logical steps.",
+                "My computational architecture allows me to process information 10x faster than previous models while maintaining accuracy.",
+                "The key innovation in Grok-3 is its ability to understand context and nuance in problems that require multi-step reasoning.",
+                "Unlike simpler AI models, I can handle ambiguous problems by evaluating multiple solution paths simultaneously.",
+                "My training data includes diverse domains which enables me to provide insights across technical and philosophical questions.",
+                "Grok-3's neural network architecture features specialized modules for logical reasoning, pattern recognition, and contextual understanding."
+            ];
+            
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        // Think mode functionality
+        function selectProblem(problemId) {
+            gameState.thinkMode.currentProblem = problemId;
+            gameState.thinkMode.currentStep = 0;
+            
+            // Hide problem list
+            problemList.style.display = 'none';
+            
+            // Show problem container
+            problemContainer.style.display = 'block';
+            
+            // Set problem content
+            problemTitle.textContent = `Problem ${problemId}`;
+            
+            if (problemId === 1) {
+                problemDescription.textContent = "Optimize a sorting algorithm for large datasets with mixed data types while maintaining stability.";
+            } else {
+                problemDescription.textContent = "Determine the validity of a complex logical statement using predicate calculus and truth tables.";
+            }
+            
+            // Show first step
+            showStep(0);
+        }
+
+        function showStep(stepIndex) {
+            // Hide all steps
+            steps.forEach(step => step.classList.remove('active'));
+            
+            // Show current step
+            steps[stepIndex].classList.add('active');
+            
+            // Set step content
+            if (gameState.thinkMode.currentProblem === 1) {
+                const stepContents = [
+                    "Step 1: Analyze dataset characteristics - distribution, data types, and existing order",
+                    "Step 2: Select appropriate sorting strategy based on data profile (e.g., Timsort for mixed data)",
+                    "Step 3: Implement stability preservation through key preservation techniques"
+                ];
+                steps[stepIndex].textContent = stepContents[stepIndex];
+            } else {
+                const stepContents = [
+                    "Step 1: Convert the statement into formal logic notation using quantifiers and predicates",
+                    "Step 2: Construct truth tables for all component propositions",
+                    "Step 3: Evaluate the overall statement under all possible truth value combinations"
+                ];
+                steps[stepIndex].textContent = stepContents[stepIndex];
+            }
+            
+            // Update button states
+            prevStepBtn.disabled = (stepIndex === 0);
+            nextStepBtn.textContent = (stepIndex === steps.length - 1) ? 'Complete' : 'Next Step';
+        }
+
+        function showNextStep() {
+            if (gameState.thinkMode.currentStep < steps.length - 1) {
+                gameState.thinkMode.currentStep++;
+                showStep(gameState.thinkMode.currentStep);
+            } else {
+                resetThinkMode();
+            }
+        }
+
+        function showPrevStep() {
+            if (gameState.thinkMode.currentStep > 0) {
+                gameState.thinkMode.currentStep--;
+                showStep(gameState.thinkMode.currentStep);
+            }
+        }
+
+        function resetThinkMode() {
+            problemList.style.display = 'grid';
+            problemContainer.style.display = 'none';
+            gameState.thinkMode.currentProblem = null;
+        }
+
+        // Big Brain mode functionality
+        function loadChallenge() {
+            const challenge = gameState.brainMode.challenges[gameState.brainMode.currentChallenge];
+            
+            // Update UI
+            challengeDescription.textContent = challenge.description;
+            currentChallengeEl.textContent = `Challenge ${gameState.brainMode.currentChallenge + 1}/3`;
+            
+            // Create options
+            optionsContainer.innerHTML = '';
+            challenge.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.classList.add('option');
+                optionDiv.textContent = option;
+                optionDiv.dataset.index = index;
+                optionDiv.addEventListener('click', () => selectOption(optionDiv));
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            // Reset feedback and buttons
+            feedbackEl.style.display = 'none';
+            feedbackEl.className = 'feedback';
+            checkAnswerBtn.disabled = true;
+            nextChallengeBtn.style.display = 'none';
+            
+            // Update progress
+            updateProgressBar();
+        }
+
+        function selectOption(optionDiv) {
+            // Remove selection from all options
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Select clicked option
+            optionDiv.classList.add('selected');
+            checkAnswerBtn.disabled = false;
+        }
+
+        function checkAnswer() {
+            const selectedOption = document.querySelector('.option.selected');
+            if (!selectedOption) return;
+            
+            const selectedIndex = parseInt(selectedOption.dataset.index);
+            const challenge = gameState.brainMode.challenges[gameState.brainMode.currentChallenge];
+            const isCorrect = (selectedIndex === challenge.correct);
+            
+            // Show feedback
+            feedbackEl.textContent = challenge.explanation;
+            feedbackEl.classList.add(isCorrect ? 'correct-feedback' : 'incorrect-feedback');
+            feedbackEl.style.display = 'block';
+            
+            // Update option styling
+            document.querySelectorAll('.option').forEach((opt, index) => {
+                if (index === challenge.correct) {
+                    opt.classList.add('correct');
+                } else if (index === selectedIndex && !isCorrect) {
+                    opt.classList.add('incorrect');
+                }
+                opt.style.pointerEvents = 'none';
+            });
+            
+            // Update score if correct
+            if (isCorrect) {
+                gameState.brainMode.score += 10;
+                scoreEl.textContent = gameState.brainMode.score;
+            }
+            
+            // Show next challenge button
+            checkAnswerBtn.style.display = 'none';
+            nextChallengeBtn.style.display = 'block';
+        }
+
+        function loadNextChallenge() {
+            gameState.brainMode.currentChallenge++;
+            
+            if (gameState.brainMode.currentChallenge < gameState.brainMode.challenges.length) {
+                loadChallenge();
+            } else {
+                // Game completed
+                feedbackEl.textContent = `Game completed! Final score: ${gameState.brainMode.score}/30`;
+                feedbackEl.classList.add('correct-feedback');
+                feedbackEl.style.display = 'block';
+                optionsContainer.innerHTML = '';
+                nextChallengeBtn.style.display = 'none';
+                checkAnswerBtn.style.display = 'none';
+            }
+            
+            updateProgressBar();
+        }
+
+        function updateProgressBar() {
+            const progress = (gameState.brainMode.currentChallenge / gameState.brainMode.challenges.length) * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+
+        // Restart game
+        function restartGame() {
+            // Reset game state
+            gameState.brainMode.currentChallenge = 0;
+            gameState.brainMode.score = 0;
+            
+            // Reset UI
+            scoreEl.textContent = '0';
+            feedbackEl.style.display = 'none';
+            
+            // Reload current challenge
+            if (gameState.currentMode === 'brain') {
+                loadChallenge();
+            }
+            
+            // Reset chat
+            if (gameState.currentMode === 'chat') {
+                chatHistory.innerHTML = '<div class="message grok-message">Hello! I\'m Grok-3. Ask me anything about AI, reasoning, or computational capabilities.</div>';
+            }
+            
+            // Reset think mode
+            if (gameState.currentMode === 'think') {
+                resetThinkMode();
+            }
+        }
+
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

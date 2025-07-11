@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Women's 5000m Race Strategy Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .track-container {
+            position: relative;
+            height: 300px;
+            margin: 20px auto;
+            width: 90%;
+        }
+
+        .track {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 3px solid #ddd;
+            border-radius: 50%;
+        }
+
+        .lane {
+            position: absolute;
+            border: 1px dashed #ccc;
+            border-radius: 50%;
+        }
+
+        .lane-1 { top: 10%; left: 10%; right: 10%; bottom: 10%; }
+        .lane-2 { top: 20%; left: 20%; right: 20%; bottom: 20%; }
+        .lane-3 { top: 30%; left: 30%; right: 30%; bottom: 30%; }
+        .lane-4 { top: 40%; left: 40%; right: 40%; bottom: 40%; }
+
+        .runner {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            z-index: 10;
+        }
+
+        .runner:hover {
+            transform: scale(1.1);
+        }
+
+        .runner-info {
+            position: absolute;
+            background: rgba(255,255,255,0.9);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 20;
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .runner-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            width: 150px;
+            cursor: move;
+            text-align: center;
+        }
+
+        .runner-card h3 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .slider-container {
+            margin: 10px 0;
+        }
+
+        button {
+            background-color: #4a4a4a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #333;
+        }
+
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+
+        .strategy-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .lap-counter {
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .progress-container {
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #4a4a4a;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .results {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .results-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        .results-table th, .results-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .results-table th {
+            background-color: #f0f0f0;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .runner-card {
+                width: 100%;
+            }
+            
+            .strategy-options {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Women's 5000m Race Strategy</h1>
+        <p>Plan your race strategy and make tactical decisions to win!</p>
+    </header>
+
+    <div class="game-container">
+        <div id="setup-phase" class="panel">
+            <h2>Race Setup</h2>
+            <p>Drag runners to the track and adjust their starting positions</p>
+            
+            <div class="track-container">
+                <div class="track">
+                    <div class="lane lane-1"></div>
+                    <div class="lane lane-2"></div>
+                    <div class="lane lane-3"></div>
+                    <div class="lane lane-4"></div>
+                    <!-- Runners will be placed here dynamically -->
+                </div>
+            </div>
+            
+            <div class="controls">
+                <div class="runner-card" draggable="true" data-runner="1">
+                    <h3>🇺🇸 Emma</h3>
+                    <p>Strong finisher</p>
+                    <div class="slider-container">
+                        <label>Speed: <span id="speed-1">1.0</span>x</label>
+                        <input type="range" min="0.8" max="1.2" step="0.05" value="1.0" class="speed-slider" data-runner="1">
+                    </div>
+                </div>
+                
+                <div class="runner-card" draggable="true" data-runner="2">
+                    <h3>🇰🇪 Aisha</h3>
+                    <p>Consistent pace</p>
+                    <div class="slider-container">
+                        <label>Speed: <span id="speed-2">1.0</span>x</label>
+                        <input type="range" min="0.8" max="1.2" step="0.05" value="1.0" class="speed-slider" data-runner="2">
+                    </div>
+                </div>
+                
+                <div class="runner-card" draggable="true" data-runner="3">
+                    <h3>🇳🇱 Sofia</h3>
+                    <p>Fast starter</p>
+                    <div class="slider-container">
+                        <label>Speed: <span id="speed-3">1.0</span>x</label>
+                        <input type="range" min="0.8" max="1.2" step="0.05" value="1.0" class="speed-slider" data-runner="3">
+                    </div>
+                </div>
+                
+                <div class="runner-card" draggable="true" data-runner="4">
+                    <h3>🇯🇵 Yumi</h3>
+                    <p>Strategic runner</p>
+                    <div class="slider-container">
+                        <label>Speed: <span id="speed-4">1.0</span>x</label>
+                        <input type="range" min="0.8" max="1.2" step="0.05" value="1.0" class="speed-slider" data-runner="4">
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="start-race">Start Race</button>
+            </div>
+        </div>
+        
+        <div id="race-phase" class="panel hidden">
+            <h2>Race in Progress</h2>
+            <div class="lap-counter">Lap: <span id="current-lap">1</span>/12.5</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="race-progress"></div>
+            </div>
+            
+            <div class="track-container">
+                <div class="track">
+                    <div class="lane lane-1"></div>
+                    <div class="lane lane-2"></div>
+                    <div class="lane lane-3"></div>
+                    <div class="lane lane-4"></div>
+                    <!-- Runners will be animated here -->
+                </div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>Current Leader</h3>
+                    <p id="current-leader">-</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Your Position</h3>
+                    <p id="player-position">-</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Last Lap Time</h3>
+                    <p id="last-lap-time">-</p>
+                </div>
+            </div>
+            
+            <div id="strategy-prompt" class="hidden">
+                <h3>Critical Decision Point!</h3>
+                <p>It's the final lap. What's your strategy?</p>
+                <div class="strategy-options">
+                    <button id="sprint-option">Sprint Now</button>
+                    <button id="conserve-option">Conserve Energy</button>
+                    <button id="follow-option">Follow Leader</button>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="pause-race">Pause</button>
+            </div>
+        </div>
+        
+        <div id="results-phase" class="panel results hidden">
+            <h2>Race Results</h2>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Position</th>
+                        <th>Runner</th>
+                        <th>Time</th>
+                        <th>Strategy</th>
+                    </tr>
+                </thead>
+                <tbody id="results-body">
+                    <!-- Results will be populated here -->
+                </tbody>
+            </table>
+            <button id="replay-btn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            phase: 'setup', // 'setup', 'racing', 'results'
+            runners: [
+                { id: 1, name: "Emma", country: "USA", color: "#FF6B6B", baseSpeed: 1.0, speedFactor: 1.0, position: 0, lane: null, strategy: null },
+                { id: 2, name: "Aisha", country: "KEN", color: "#4ECDC4", baseSpeed: 1.05, speedFactor: 1.0, position: 0, lane: null, strategy: null },
+                { id: 3, name: "Sofia", country: "NED", color: "#FFD166", baseSpeed: 0.95, speedFactor: 1.0, position: 0, lane: null, strategy: null },
+                { id: 4, name: "Yumi", country: "JPN", color: "#6A0572", baseSpeed: 1.02, speedFactor: 1.0, position: 0, lane: null, strategy: null }
+            ],
+            playerRunner: null,
+            currentLap: 1,
+            totalLaps: 12.5,
+            raceTime: 0,
+            lastLapTime: 0,
+            isPaused: false,
+            animationId: null,
+            lastTimestamp: 0
+        };
+
+        // DOM Elements
+        const setupPhase = document.getElementById('setup-phase');
+        const racePhase = document.getElementById('race-phase');
+        const resultsPhase = document.getElementById('results-phase');
+        const startRaceBtn = document.getElementById('start-race');
+        const pauseRaceBtn = document.getElementById('pause-race');
+        const replayBtn = document.getElementById('replay-btn');
+        const currentLapEl = document.getElementById('current-lap');
+        const raceProgress = document.getElementById('race-progress');
+        const currentLeaderEl = document.getElementById('current-leader');
+        const playerPositionEl = document.getElementById('player-position');
+        const lastLapTimeEl = document.getElementById('last-lap-time');
+        const strategyPrompt = document.getElementById('strategy-prompt');
+        const sprintOption = document.getElementById('sprint-option');
+        const conserveOption = document.getElementById('conserve-option');
+        const followOption = document.getElementById('follow-option');
+        const resultsBody = document.getElementById('results-body');
+
+        // Initialize game
+        function initGame() {
+            setupDragAndDrop();
+            setupEventListeners();
+            updateSetupView();
+        }
+
+        // Set up drag and drop functionality
+        function setupDragAndDrop() {
+            const runnerCards = document.querySelectorAll('.runner-card');
+            const track = document.querySelector('.track');
+            
+            runnerCards.forEach(card => {
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+            });
+            
+            track.addEventListener('dragover', handleDragOver);
+            track.addEventListener('drop', handleDrop);
+        }
+
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.dataset.runner);
+            setTimeout(() => {
+                e.target.classList.add('dragging');
+            }, 0);
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const runnerId = parseInt(e.dataTransfer.getData('text/plain'));
+            const runner = gameState.runners.find(r => r.id === runnerId);
+            
+            if (runner && !runner.lane) {
+                // Assign lane (1-4)
+                runner.lane = Math.min(4, document.querySelectorAll('.runner').length + 1);
+                createRunnerOnTrack(runner);
+                updateSetupView();
+            }
+        }
+
+        function createRunnerOnTrack(runner) {
+            const track = document.querySelector('.track');
+            const runnerEl = document.createElement('div');
+            runnerEl.className = 'runner';
+            runnerEl.dataset.runnerId = runner.id;
+            runnerEl.style.backgroundColor = runner.color;
+            runnerEl.textContent = runner.id;
+            
+            // Position runner in their lane
+            const angle = Math.random() * Math.PI * 2;
+            positionRunner(runnerEl, runner.lane, angle);
+            
+            // Add info tooltip
+            runnerEl.addEventListener('mouseenter', () => showRunnerInfo(runner, runnerEl));
+            runnerEl.addEventListener('mouseleave', hideRunnerInfo);
+            
+            track.appendChild(runnerEl);
+        }
+
+        function positionRunner(element, lane, angle) {
+            const track = document.querySelector('.track-container');
+            const trackRect = track.getBoundingClientRect();
+            const centerX = trackRect.width / 2;
+            const centerY = trackRect.height / 2;
+            
+            // Calculate position based on lane
+            const radius = 120 - (lane * 20);
+            const x = centerX + radius * Math.cos(angle);
+            const y = centerY + radius * Math.sin(angle);
+            
+            element.style.left = `${x}px`;
+            element.style.top = `${y}px`;
+        }
+
+        function showRunnerInfo(runner, element) {
+            const infoEl = document.createElement('div');
+            infoEl.className = 'runner-info';
+            infoEl.innerHTML = `
+                <strong>${runner.name} (${runner.country})</strong><br>
+                Speed: ${(runner.baseSpeed * runner.speedFactor).toFixed(2)}x
+            `;
+            
+            const rect = element.getBoundingClientRect();
+            infoEl.style.left = `${rect.left}px`;
+            infoEl.style.top = `${rect.bottom + 5}px`;
+            infoEl.style.display = 'block';
+            
+            document.body.appendChild(infoEl);
+        }
+
+        function hideRunnerInfo() {
+            const info = document.querySelector('.runner-info');
+            if (info) info.remove();
+        }
+
+        function updateSetupView() {
+            // Update speed display values
+            document.querySelectorAll('.speed-slider').forEach(slider => {
+                const runnerId = slider.dataset.runner;
+                const value = parseFloat(slider.value);
+                document.getElementById(`speed-${runnerId}`).textContent = value.toFixed(2);
+                
+                // Update game state
+                const runner = gameState.runners.find(r => r.id === parseInt(runnerId));
+                if (runner) runner.speedFactor = value;
+            });
+            
+            // Enable start button if at least one runner is placed
+            startRaceBtn.disabled = gameState.runners.filter(r => r.lane).length === 0;
+        }
+
+        function setupEventListeners() {
+            // Speed sliders
+            document.querySelectorAll('.speed-slider').forEach(slider => {
+                slider.addEventListener('input', updateSetupView);
+            });
+            
+            // Start race button
+            startRaceBtn.addEventListener('click', startRace);
+            
+            // Pause race button
+            pauseRaceBtn.addEventListener('click', togglePause);
+            
+            // Strategy options
+            sprintOption.addEventListener('click', () => applyStrategy('sprint'));
+            conserveOption.addEventListener('click', () => applyStrategy('conserve'));
+            followOption.addEventListener('click', () => applyStrategy('follow'));
+            
+            // Replay button
+            replayBtn.addEventListener('click', resetGame);
+        }
+
+        function startRace() {
+            // Select a random runner as the player
+            const placedRunners = gameState.runners.filter(r => r.lane);
+            gameState.playerRunner = placedRunners[Math.floor(Math.random() * placedRunners.length)];
+            
+            // Switch to race view
+            setupPhase.classList.add('hidden');
+            racePhase.classList.remove('hidden');
+            gameState.phase = 'racing';
+            
+            // Start animation
+            gameState.lastTimestamp = performance.now();
+            gameState.isPaused = false;
+            pauseRaceBtn.textContent = 'Pause';
+            animateRace();
+        }
+
+        function animateRace(timestamp) {
+            if (gameState.isPaused || gameState.phase !== 'racing') return;
+            
+            const deltaTime = (timestamp - gameState.lastTimestamp) / 1000;
+            gameState.lastTimestamp = timestamp;
+            gameState.raceTime += deltaTime;
+            
+            // Update runner positions
+            gameState.runners.forEach(runner => {
+                if (runner.lane) {
+                    // Calculate movement based on speed
+                    const speed = runner.baseSpeed * runner.speedFactor;
+                    
+                    // Apply strategy modifier in last lap
+                    if (gameState.currentLap >= gameState.totalLaps - 1) {
+                        if (runner.strategy === 'sprint') speed *= 1.5;
+                        else if (runner.strategy === 'conserve') speed *= 0.8;
+                    }
+                    
+                    runner.position += speed * deltaTime * 0.2;
+                }
+            });
+            
+            // Update display
+            updateRaceView();
+            
+            // Check for lap completion
+            const maxPosition = Math.max(...gameState.runners.map(r => r.position));
+            const newLap = Math.floor(maxPosition) + 1;
+            
+            if (newLap > gameState.currentLap) {
+                gameState.currentLap = Math.min(newLap, gameState.totalLaps);
+                currentLapEl.textContent = gameState.currentLap;
+                
+                // Record lap time
+                gameState.lastLapTime = gameState.raceTime;
+                lastLapTimeEl.textContent = gameState.lastLapTime.toFixed(2) + 's';
+                
+                // Show strategy options in final lap
+                if (gameState.currentLap === Math.floor(gameState.totalLaps)) {
+                    strategyPrompt.classList.remove('hidden');
+                }
+            }
+            
+            // Update progress bar
+            const progress = (maxPosition / gameState.totalLaps) * 100;
+            raceProgress.style.width = `${Math.min(100, progress)}%`;
+            
+            // Check for race completion
+            if (maxPosition >= gameState.totalLaps) {
+                endRace();
+                return;
+            }
+            
+            // Continue animation
+            gameState.animationId = requestAnimationFrame(animateRace);
+        }
+    </script>
+</body>
+</html>

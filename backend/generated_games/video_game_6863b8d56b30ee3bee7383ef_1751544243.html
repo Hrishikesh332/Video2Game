@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: white;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .panel {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        h2 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #444;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+        
+        button {
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        button:hover {
+            background-color: #d0d0d0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        th {
+            background-color: #eee;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .info-panel {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .tutorial {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .tutorial-content {
+            display: none;
+            margin-top: 15px;
+        }
+        
+        .tutorial.active .tutorial-content {
+            display: block;
+        }
+        
+        .concept {
+            margin-bottom: 15px;
+        }
+        
+        .concept h3 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            color: #444;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .panel {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCA Explorer</h1>
+        <p>Interactive Principal Component Analysis</p>
+    </header>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Data Input</h2>
+            <div class="controls">
+                <button id="add-row">Add Row</button>
+                <button id="reset">Reset Data</button>
+            </div>
+            <table id="data-table">
+                <thead>
+                    <tr>
+                        <th>X</th>
+                        <th>Y</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="number" class="x-input" value="1"></td>
+                        <td><input type="number" class="y-input" value="2"></td>
+                        <td><button class="remove-row">Delete</button></td>
+                    </tr>
+                    <tr>
+                        <td><input type="number" class="x-input" value="2"></td>
+                        <td><input type="number" class="y-input" value="3"></td>
+                        <td><button class="remove-row">Delete</button></td>
+                    </tr>
+                    <tr>
+                        <td><input type="number" class="x-input" value="3"></td>
+                        <td><input type="number" class="y-input" value="1"></td>
+                        <td><button class="remove-row">Delete</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label>
+                        <input type="checkbox" id="center"> Center Data
+                    </label>
+                    <label>
+                        <input type="checkbox" id="scale"> Scale Data
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Scatter Plot</h2>
+            <div class="canvas-container">
+                <canvas id="scatter-plot"></canvas>
+            </div>
+            <div class="info-panel">
+                <p>PC1: <span id="pc1-info">Not calculated</span></p>
+                <p>PC2: <span id="pc2-info">Not calculated</span></p>
+                <p>Principal Components: <span id="pc-count">2</span></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tutorial" id="tutorial">
+        <h2>
+            Tutorial 
+            <button id="toggle-tutorial">Show</button>
+        </h2>
+        <div class="tutorial-content">
+            <div class="concept">
+                <h3>Centering</h3>
+                <p>Centering adjusts data so the mean becomes zero. This moves the origin to the center of your data.</p>
+            </div>
+            <div class="concept">
+                <h3>Scaling</h3>
+                <p>Scaling ensures all variables contribute equally by adjusting them to have the same range.</p>
+            </div>
+            <div class="concept">
+                <h3>Principal Components</h3>
+                <p>Principal Components (PCs) are new variables created from original ones. The number of PCs equals the number of original variables.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const dataTable = document.getElementById('data-table');
+        const scatterPlot = document.getElementById('scatter-plot');
+        const addRowBtn = document.getElementById('add-row');
+        const resetBtn = document.getElementById('reset');
+        const centerCheckbox = document.getElementById('center');
+        const scaleCheckbox = document.getElementById('scale');
+        const pc1Info = document.getElementById('pc1-info');
+        const pc2Info = document.getElementById('pc2-info');
+        const pcCount = document.getElementById('pc-count');
+        const toggleTutorialBtn = document.getElementById('toggle-tutorial');
+        const tutorial = document.getElementById('tutorial');
+        
+        // Canvas context
+        const ctx = scatterPlot.getContext('2d');
+        scatterPlot.width = scatterPlot.offsetWidth;
+        scatterPlot.height = scatterPlot.offsetHeight;
+        
+        // Initial data
+        let dataPoints = [
+            {x: 1, y: 2},
+            {x: 2, y: 3},
+            {x: 3, y: 1}
+        ];
+        
+        // Initialize
+        function init() {
+            renderTable();
+            drawScatterPlot();
+            setupEventListeners();
+            updatePCInfo();
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            addRowBtn.addEventListener('click', addRow);
+            resetBtn.addEventListener('click', resetData);
+            centerCheckbox.addEventListener('change', updatePlot);
+            scaleCheckbox.addEventListener('change', updatePlot);
+            toggleTutorialBtn.addEventListener('click', toggleTutorial);
+            
+            // Delegate events for table
+            dataTable.addEventListener('input', function(e) {
+                if (e.target.classList.contains('x-input') || e.target.classList.contains('y-input')) {
+                    updateDataFromTable();
+                    drawScatterPlot();
+                }
+            });
+            
+            dataTable.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-row')) {
+                    const row = e.target.closest('tr');
+                    const rowIndex = Array.from(row.parentNode.children).indexOf(row);
+                    if (dataPoints.length > 1) {
+                        dataPoints.splice(rowIndex, 1);
+                        renderTable();
+                        drawScatterPlot();
+                    }
+                }
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                scatterPlot.width = scatterPlot.offsetWidth;
+                scatterPlot.height = scatterPlot.offsetHeight;
+                drawScatterPlot();
+            });
+        }
+        
+        // Render data table
+        function renderTable() {
+            const tbody = dataTable.querySelector('tbody');
+            tbody.innerHTML = '';
+            
+            dataPoints.forEach(point => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="number" class="x-input" value="${point.x}"></td>
+                    <td><input type="number" class="y-input" value="${point.y}"></td>
+                    <td><button class="remove-row">Delete</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // Update PC count
+            pcCount.textContent = Math.min(dataPoints.length, 2);
+        }
+        
+        // Update data from table
+        function updateDataFromTable() {
+            const rows = dataTable.querySelectorAll('tbody tr');
+            dataPoints = [];
+            
+            rows.forEach(row => {
+                const xInput = row.querySelector('.x-input');
+                const yInput = row.querySelector('.y-input');
+                dataPoints.push({
+                    x: parseFloat(xInput.value) || 0,
+                    y: parseFloat(yInput.value) || 0
+                });
+            });
+        }
+        
+        // Add new row
+        function addRow() {
+            dataPoints.push({x: 0, y: 0});
+            renderTable();
+            drawScatterPlot();
+        }
+        
+        // Reset data to initial state
+        function resetData() {
+            dataPoints = [
+                {x: 1, y: 2},
+                {x: 2, y: 3},
+                {x: 3, y: 1}
+            ];
+            centerCheckbox.checked = false;
+            scaleCheckbox.checked = false;
+            renderTable();
+            drawScatterPlot();
+        }
+        
+        // Toggle tutorial visibility
+        function toggleTutorial() {
+            tutorial.classList.toggle('active');
+            toggleTutorialBtn.textContent = tutorial.classList.contains('active') ? 'Hide' : 'Show';
+        }
+        
+        // Update plot based on controls
+        function updatePlot() {
+    </script>
+</body>
+</html>

@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dance Studio Interactive App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #212529;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: #495057;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .feature-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            background-color: #e9ecef;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            color: #495057;
+        }
+        
+        .tab-btn.active {
+            background-color: #17A2B8;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            min-height: 400px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .dance-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .dancer-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .dancer-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .dancer-card.selected {
+            outline: 3px solid #17A2B8;
+        }
+        
+        .dancer-icon {
+            width: 80px;
+            height: 80px;
+            background-color: #e9ecef;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        
+        .dance-moves {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .move-card {
+            background-color: #e9ecef;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: grab;
+        }
+        
+        .timeline {
+            display: flex;
+            gap: 15px;
+            min-height: 80px;
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .timeline-slot {
+            width: 80px;
+            height: 80px;
+            background-color: #dee2e6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            background-color: #17A2B8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: #138496;
+        }
+        
+        .challenge-container {
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .countdown {
+            font-size: 3rem;
+            margin: 30px 0;
+            height: 80px;
+        }
+        
+        .feedback {
+            font-size: 1.5rem;
+            margin: 20px 0;
+            min-height: 40px;
+        }
+        
+        .progress-container {
+            margin: 30px 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: #28A745;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .level-indicator {
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .dance-board {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .timeline-slot {
+                width: 60px;
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Dance Studio Interactive App</h1>
+        <p class="description">Build choreography, synchronize moves, and master dance sequences</p>
+    </header>
+    
+    <div class="game-container">
+        <div class="feature-tabs">
+            <button class="tab-btn active" data-tab="choreography">Choreography Board</button>
+            <button class="tab-btn" data-tab="sequence">Sequence Builder</button>
+            <button class="tab-btn" data-tab="challenge">Synchronization Challenge</button>
+        </div>
+        
+        <div class="score-container">
+            <div>Score: <span id="score">0</span></div>
+            <div>Level: <span id="level">1</span></div>
+            <div>High Score: <span id="high-score">0</span></div>
+        </div>
+        
+        <!-- Choreography Board Tab -->
+        <div id="choreography" class="tab-content active">
+            <h2>Interactive Choreography Board</h2>
+            <p>Select dancers to view their movements and roles</p>
+            
+            <div class="dance-board">
+                <div class="dancer-card" data-dancer="1">
+                    <div class="dancer-icon">💃</div>
+                    <h3>Lead Dancer</h3>
+                    <p>Main performer</p>
+                </div>
+                <div class="dancer-card" data-dancer="2">
+                    <div class="dancer-icon">🕺</div>
+                    <h3>Support Dancer</h3>
+                    <p>Secondary performer</p>
+                </div>
+                <div class="dancer-card" data-dancer="3">
+                    <div class="dancer-icon">👯</div>
+                    <h3>Group Dancers</h3>
+                    <p>Background performers</p>
+                </div>
+            </div>
+            
+            <div id="dancer-details">
+                <p>Select a dancer to view their movement details</p>
+            </div>
+        </div>
+        
+        <!-- Sequence Builder Tab -->
+        <div id="sequence" class="tab-content">
+            <h2>Choreography Sequence Builder</h2>
+            <p>Drag dance moves to the timeline to create your sequence</p>
+            
+            <div class="dance-moves">
+                <div class="move-card" draggable="true" data-move="spin">Spin</div>
+                <div class="move-card" draggable="true" data-move="jump">Jump</div>
+                <div class="move-card" draggable="true" data-move="slide">Slide</div>
+                <div class="move-card" draggable="true" data-move="kick">Kick</div>
+                <div class="move-card" draggable="true" data-move="dip">Dip</div>
+            </div>
+            
+            <h3>Timeline</h3>
+            <div class="timeline" id="timeline">
+                <div class="timeline-slot" data-slot="1"></div>
+                <div class="timeline-slot" data-slot="2"></div>
+                <div class="timeline-slot" data-slot="3"></div>
+                <div class="timeline-slot" data-slot="4"></div>
+                <div class="timeline-slot" data-slot="5"></div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn" id="play-btn">Play Sequence</button>
+                <button class="btn" id="reset-btn">Reset</button>
+            </div>
+        </div>
+        
+        <!-- Synchronization Challenge Tab -->
+        <div id="challenge" class="tab-content">
+            <h2>Synchronization Challenge</h2>
+            <p>Press the button when the dancer should perform the move</p>
+            
+            <div class="level-indicator">Level: <span id="current-level">1</span></div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="challenge-progress"></div>
+                </div>
+            </div>
+            
+            <div class="challenge-container">
+                <div id="move-display">Get Ready!</div>
+                <div class="countdown" id="countdown">3</div>
+                <div class="feedback" id="feedback"></div>
+                
+                <button class="btn" id="action-btn">Perform Move</button>
+                <button class="btn" id="next-level-btn">Next Level</button>
+                <button class="btn" id="restart-btn">Restart Challenge</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentTab: 'choreography',
+            score: 0,
+            level: 1,
+            highScore: localStorage.getItem('danceHighScore') || 0,
+            challengeProgress: 0,
+            currentMove: '',
+            countdownValue: 3,
+            challengeActive: false,
+            sequence: []
+        };
+
+        // DOM Elements
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const dancerCards = document.querySelectorAll('.dancer-card');
+        const dancerDetails = document.getElementById('dancer-details');
+        const moveCards = document.querySelectorAll('.move-card');
+        const timelineSlots = document.querySelectorAll('.timeline-slot');
+        const playBtn = document.getElementById('play-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level');
+        const highScoreDisplay = document.getElementById('high-score');
+        const currentLevelDisplay = document.getElementById('current-level');
+        const progressBar = document.getElementById('challenge-progress');
+        const moveDisplay = document.getElementById('move-display');
+        const countdownDisplay = document.getElementById('countdown');
+        const feedbackDisplay = document.getElementById('feedback');
+        const actionBtn = document.getElementById('action-btn');
+        const nextLevelBtn = document.getElementById('next-level-btn');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Initialize game
+        function initGame() {
+            highScoreDisplay.textContent = gameState.highScore;
+            updateScore();
+            
+            // Tab switching
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.dataset.tab;
+                    switchTab(tabId);
+                });
+            });
+            
+            // Choreography board
+            dancerCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    dancerCards.forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    showDancerDetails(card.dataset.dancer);
+                });
+            });
+            
+            // Sequence builder
+            moveCards.forEach(card => {
+                card.addEventListener('dragstart', dragStart);
+            });
+            
+            timelineSlots.forEach(slot => {
+                slot.addEventListener('dragover', dragOver);
+                slot.addEventListener('drop', drop);
+            });
+            
+            playBtn.addEventListener('click', playSequence);
+            resetBtn.addEventListener('click', resetSequence);
+            
+            // Challenge
+            actionBtn.addEventListener('click', performMove);
+            nextLevelBtn.addEventListener('click', nextLevel);
+            restartBtn.addEventListener('click', restartChallenge);
+            
+            // Initialize challenge UI
+            updateChallengeUI();
+        }
+        
+        // Tab switching
+        function switchTab(tabId) {
+            tabBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabId);
+            });
+            
+            tabContents.forEach(content => {
+                content.classList.toggle('active', content.id === tabId);
+            });
+            
+            gameState.currentTab = tabId;
+            
+            if (tabId === 'challenge') {
+                startChallenge();
+            }
+        }
+        
+        // Choreography board functions
+        function showDancerDetails(dancerId) {
+            const dancers = {
+                '1': {
+                    name: 'Lead Dancer',
+                    moves: ['Spin', 'Leap', 'Twirl', 'Dip'],
+                    role: 'Primary performer who leads the choreography'
+                },
+                '2': {
+                    name: 'Support Dancer',
+                    moves: ['Slide', 'Kick', 'Turn', 'Jump'],
+                    role: 'Supports the lead dancer with complementary moves'
+                },
+                '3': {
+                    name: 'Group Dancers',
+                    moves: ['Step', 'Clap', 'Wave', 'Formation Change'],
+                    role: 'Background performers who create formations'
+                }
+            };
+            
+            const dancer = dancers[dancerId];
+            let movesHTML = dancer.moves.map(move => `<li>${move}</li>`).join('');
+            
+            dancerDetails.innerHTML = `
+                <h3>${dancer.name} Details</h3>
+                <p><strong>Role:</strong> ${dancer.role}</p>
+                <p><strong>Signature Moves:</strong></p>
+                <ul>${movesHTML}</ul>
+            `;
+        }
+        
+        // Sequence builder functions
+        function dragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.dataset.move);
+        }
+        
+        function dragOver(e) {
+            e.preventDefault();
+        }
+        
+        function drop(e) {
+            e.preventDefault();
+            const move = e.dataTransfer.getData('text/plain');
+            const slot = e.target;
+            
+            if (slot.classList.contains('timeline-slot')) {
+                slot.textContent = move.charAt(0).toUpperCase() + move.slice(1);
+                slot.dataset.filled = move;
+                gameState.sequence[parseInt(slot.dataset.slot) - 1] = move;
+            }
+        }
+        
+        function playSequence() {
+            if (gameState.sequence.filter(Boolean).length === 0) {
+                alert('Please add moves to the timeline first!');
+                return;
+            }
+            
+            feedbackDisplay.textContent = 'Playing sequence...';
+            setTimeout(() => {
+                feedbackDisplay.textContent = 'Sequence complete!';
+                gameState.score += 10;
+                updateScore();
+            }, 2000);
+        }
+        
+        function resetSequence() {
+            timelineSlots.forEach(slot => {
+                slot.textContent = '';
+                delete slot.dataset.filled;
+            });
+            gameState.sequence = [];
+            feedbackDisplay.textContent = '';
+        }
+        
+        // Challenge functions
+        function startChallenge() {
+            gameState.challengeProgress = 0;
+            gameState.level = 1;
+            gameState.score = 0;
+            updateScore();
+            updateChallengeUI();
+            prepareNextMove();
+        }
+        
+        function prepareNextMove() {
+            gameState.challengeActive = false;
+            feedbackDisplay.textContent = '';
+            moveDisplay.textContent = 'Get Ready!';
+            countdownDisplay.textContent = '3';
+            gameState.countdownValue = 3;
+            
+            const countdown = setInterval(() => {
+                gameState.countdownValue--;
+                countdownDisplay.textContent = gameState.countdownValue;
+                
+                if (gameState.countdownValue <= 0) {
+                    clearInterval(countdown);
+                    startMove();
+                }
+            }, 1000);
+        }
+        
+        function startMove() {
+            const moves = ['Spin', 'Jump', 'Slide', 'Kick', 'Dip'];
+            gameState.currentMove = moves[Math.floor(Math.random() * moves.length)];
+            moveDisplay.textContent = `Perform: ${gameState.currentMove}`;
+            gameState.challengeActive = true;
+        }
+        
+        function performMove() {
+            if (!gameState.challengeActive) {
+                feedbackDisplay.textContent = 'Too early! Wait for the move';
+                return;
+            }
+            
+            const timing = Math.random();
+            let points = 0;
+            
+            if (timing > 0.7) {
+                feedbackDisplay.textContent = 'Perfect! +20 points';
+                points = 20;
+            } else if (timing > 0.4) {
+                feedbackDisplay.textContent = 'Good! +10 points';
+                points = 10;
+            } else {
+                feedbackDisplay.textContent = 'Miss! Try again';
+                points = 0;
+            }
+            
+            gameState.score += points;
+            gameState.challengeProgress += 25;
+            updateScore();
+            updateChallengeUI();
+            gameState.challengeActive = false;
+            
+            if (gameState.challengeProgress >= 100) {
+                moveDisplay.textContent = 'Level Complete!';
+                nextLevelBtn.style.display = 'inline-block';
+            } else {
+                setTimeout(prepareNextMove, 1500);
+            }
+        }
+        
+        function nextLevel() {
+            gameState.level++;
+            gameState.challengeProgress = 0;
+            nextLevelBtn.style.display = 'none';
+            updateChallengeUI();
+            prepareNextMove();
+        }
+        
+        function restartChallenge() {
+            gameState.score = 0;
+            gameState.level = 1;
+            gameState.challengeProgress = 0;
+            updateScore();
+            updateChallengeUI();
+            prepareNextMove();
+            nextLevelBtn.style.display = 'none';
+        }
+        
+        function updateChallengeUI() {
+            currentLevelDisplay.textContent = gameState.level;
+            progressBar.style.width = `${gameState.challengeProgress}%`;
+            levelDisplay.textContent = gameState.level;
+        }
+        
+        function updateScore() {
+            scoreDisplay.textContent = gameState.score;
+            
+            if (gameState.score > gameState.highScore) {
+                gameState.highScore = gameState.score;
+                localStorage.setItem('danceHighScore', gameState.highScore);
+                highScoreDisplay.textContent = gameState.highScore;
+            }
+        }
+        
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

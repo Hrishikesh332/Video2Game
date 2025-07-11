@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Sequence Game: Financial Data Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .instructions {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 10px;
+        }
+        
+        .instructions h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .instructions p {
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        .sequence-area {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .graph-pool, .sequence-slots {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .section-title {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            text-align: center;
+        }
+        
+        .graphs-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            min-height: 200px;
+        }
+        
+        .graph-item {
+            width: 180px;
+            height: 150px;
+            background-color: #f0f2f5;
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .graph-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-color: #3498db;
+        }
+        
+        .graph-item.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+        
+        .graph-preview {
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(135deg, #ecf0f1, #bdc3c7);
+            border-radius: 6px 6px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .graph-label {
+            padding: 8px 0;
+            font-weight: 600;
+            color: #2c3e50;
+            text-align: center;
+            width: 100%;
+            background-color: #ecf0f1;
+        }
+        
+        .slot {
+            width: 100%;
+            min-height: 80px;
+            background-color: #f8f9fa;
+            border: 2px dashed #95a5a6;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .slot.highlight {
+            background-color: #e3f2fd;
+            border-color: #3498db;
+        }
+        
+        .slot.filled {
+            border-style: solid;
+            border-color: #bdc3c7;
+        }
+        
+        .slot-number {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background-color: #2c3e50;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            background-color: #2c3e50;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:hover {
+            background-color: #3498db;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #check-btn {
+            background-color: #27ae60;
+        }
+        
+        #check-btn:hover:not(:disabled) {
+            background-color: #2ecc71;
+        }
+        
+        #replay-btn {
+            background-color: #e74c3c;
+            display: none;
+        }
+        
+        #replay-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .feedback {
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background-color: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        .feedback.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        
+        .score-container {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 10px;
+        }
+        
+        .explanation {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-top: 20px;
+        }
+        
+        .explanation h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .explanation p {
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        .pca-concept {
+            background-color: #f0f7ff;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .conclusion {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .sequence-area {
+                flex-direction: column;
+            }
+            
+            .graph-item {
+                width: 150px;
+                height: 130px;
+            }
+        }
+        
+        /* Graph visualization styles */
+        .scatter-plot {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .axis {
+            position: absolute;
+            background-color: #34495e;
+        }
+        
+        .x-axis {
+            bottom: 10%;
+            left: 10%;
+            width: 80%;
+            height: 2px;
+        }
+        
+        .y-axis {
+            top: 10%;
+            left: 10%;
+            width: 2px;
+            height: 80%;
+        }
+        
+        .data-point {
+            position: absolute;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .cluster-1 {
+            background-color: #e74c3c;
+        }
+        
+        .cluster-2 {
+            background-color: #3498db;
+        }
+        
+        .pca-line {
+            position: absolute;
+            background-color: #27ae60;
+            height: 3px;
+            transform-origin: left center;
+        }
+        
+        .dimension-label {
+            position: absolute;
+            font-size: 10px;
+            color: #34495e;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCA Sequence Game: Financial Data Analysis</h1>
+        <p class="subtitle">Arrange the graphs in the correct order to understand how PCA simplifies complex financial data</p>
+    </header>
+    
+    <main class="game-container">
+        <div class="instructions">
+            <h2>How to Play</h2>
+            <p>Drag and drop the financial data visualizations into the correct sequence to demonstrate the Principal Component Analysis (PCA) process. Start with the original data and end with the PCA-transformed data.</p>
+            <p><strong>Educational Goal:</strong> Understand how PCA reduces dimensionality while preserving the most important patterns in financial data.</p>
+        </div>
+        
+        <div class="sequence-area">
+            <div class="graph-pool">
+                <h3 class="section-title">Financial Data Visualizations</h3>
+                <div class="graphs-container" id="graph-pool">
+                    <!-- Graph items will be added here dynamically -->
+                </div>
+            </div>
+            
+            <div class="sequence-slots">
+                <h3 class="section-title">PCA Process Sequence</h3>
+                <div id="sequence-container">
+                    <!-- Sequence slots will be added here dynamically -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="check-btn">Check Sequence</button>
+            <button id="replay-btn">Play Again</button>
+        </div>
+        
+        <div id="feedback" class="feedback"></div>
+        
+        <div class="score-container">
+            Score: <span id="score">0</span>
+        </div>
+        
+        <div class="explanation">
+            <h3>Understanding PCA in Financial Analysis</h3>
+            
+            <div class="pca-concept">
+                <p><strong>Principal Component Analysis (PCA)</strong> is a dimensionality reduction technique that transforms complex, high-dimensional data into a simpler format while preserving the most important patterns and relationships.</p>
+            </div>
+            
+            <p>In financial data analysis, PCA helps to:</p>
+            <ul>
+                <li>Simplify complex datasets with many variables (loan amounts, interest rates, payment history, etc.)</li>
+                <li>Identify hidden patterns and correlations between financial variables</li>
+                <li>Reduce noise and focus on the most significant factors</li>
+                <li>Visualize high-dimensional data in 2D or 3D space</li>
+                <li>Improve the efficiency of financial models and algorithms</li>
+            </ul>
+            
+            <p>The sequence you're building demonstrates how PCA transforms raw financial data into a simplified representation that captures the essential variance in the dataset.</p>
+        </div>
+    </main>
+    
+    <footer class="conclusion">
+        <p>This educational game helps visualize the PCA process for financial data analysis as explained in the tutorial video.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            let score = 0;
+            let attempts = 0;
+            const correctSequence = [1, 2, 3, 4]; // Correct order of graphs
+            let currentSequence = [];
+            
+            // Graph data
+            const graphs = [
+                {
+                    id: 1,
+                    title: "Original 2D Financial Data",
+                    description: "Shows loan amounts vs. interest rates with two distinct clusters representing different risk profiles."
+                },
+                {
+                    id: 2,
+                    title: "3D Financial Data",
+                    description: "Adds payment history as a third dimension, making visualization more complex."
+                },
+                {
+                    id: 3,
+                    title: "PCA Variance Analysis",
+                    description: "Identifies principal components that capture the most variance in the data."
+                },
+                {
+                    id: 4,
+                    title: "PCA-Transformed Data",
+                    description: "Financial data simplified to 2D using the top two principal components, preserving essential patterns."
+                }
+            ];
+            
+            // DOM elements
+            const graphPool = document.getElementById('graph-pool');
+            const sequenceContainer = document.getElementById('sequence-container');
+            const checkBtn = document.getElementById('check-btn');
+            const replayBtn = document.getElementById('replay-btn');
+            const feedbackEl = document.getElementById('feedback');
+            const scoreEl = document.getElementById('score');
+            
+            // Initialize the game
+            function initGame() {
+                // Reset game state
+                score = 0;
+                attempts = 0;
+                currentSequence = [];
+                feedbackEl.className = 'feedback';
+                feedbackEl.style.display = 'none';
+                replayBtn.style.display = 'none';
+                scoreEl.textContent = score;
+                checkBtn.disabled = true;
+                
+                // Clear containers
+                graphPool.innerHTML = '';
+                sequenceContainer.innerHTML = '';
+                
+                // Create sequence slots
+                for (let i = 0; i < graphs.length; i++) {
+                    const slot = document.createElement('div');
+                    slot.className = 'slot';
+                    slot.dataset.slotId = i + 1;
+                    slot.innerHTML = `<div class="slot-number">${i + 1}</div>`;
+                    sequenceContainer.appendChild(slot);
+                    
+                    // Add event listeners for drag and drop
+                    slot.addEventListener('dragover', handleDragOver);
+                    slot.addEventListener('dragenter', handleDragEnter);
+                    slot.addEventListener('dragleave', handleDragLeave);
+                    slot.addEventListener('drop', handleDrop);
+                }
+                
+                // Create draggable graph items
+                const shuffledGraphs = [...graphs].sort(() => Math.random() - 0.5);
+                
+                shuffledGraphs.forEach(graph => {
+                    const graphItem = createGraphElement(graph);
+                    graphPool.appendChild(graphItem);
+                });
+            }
+            
+            // Create a graph element
+            function createGraphElement(graph) {
+                const graphItem = document.createElement('div');
+                graphItem.className = 'graph-item';
+                graphItem.draggable = true;
+                graphItem.dataset.graphId = graph.id;
+                
+                graphItem.innerHTML = `
+                    <div class="graph-preview" id="graph-${graph.id}">
+                        <div class="scatter-plot">
+                            <div class="axis x-axis"></div>
+                            <div class="axis y-axis"></div>
+                            ${generateDataPoints(graph.id)}
+                        </div>
+                    </div>
+                    <div class="graph-label">${graph.title}</div>
+                `;
+                
+                // Add hover tooltip
+                graphItem.title = graph.description;
+                
+                // Add drag event listeners
+                graphItem.addEventListener('dragstart', handleDragStart);
+                graphItem.addEventListener('dragend', handleDragEnd);
+                
+                return graphItem;
+            }
+            
+            // Generate different data points for each graph
+            function generateDataPoints(graphId) {
+                let points = '';
+                const pointCount = 15;
+                
+                // Different visualization for each graph
+                if (graphId === 1) {
+                    // 2D scatter plot with two clusters
+                    for (let i = 0; i < pointCount; i++) {
+                        const x = 20 + Math.random() * 60;
+                        const y = 20 + Math.random() * 60;
+                        const cluster = i < pointCount/2 ? 'cluster-1' : 'cluster-2';
+                        const size = 5 + Math.random() * 3;
+                        points += `<div class="data-point ${cluster}" style="width:${size}px; height:${size}px; top:${y}%; left:${x}%;"></div>`;
+                    }
+                    points += `<div class="dimension-label" style="bottom:5%; left:50%;">Loan Amount</div>`;
+                    points += `<div class="dimension-label" style="top:50%; left:5%; transform:rotate(-90deg);">Interest Rate</div>`;
+                } 
+                else if (graphId === 2) {
+                    // 3D representation
+                    for (let i = 0; i < pointCount; i++) {
+                        const x = 20 + Math.random() * 60;
+                        const y = 20 + Math.random() * 60;
+                        const cluster = i < pointCount/2 ? 'cluster-1' : 'cluster-2';
+                        const size = 5 + Math.random() * 3;
+                        points += `<div class="data-point ${cluster}" style="width:${size}px; height:${size}px; top:${y}%; left:${x}%;"></div>`;
+                    }
+                    // Add perspective lines for 3D effect
+                    points += `<div class="pca-line" style="top:80%; left:20%; width:40%; transform:rotate(30deg);"></div>`;
+                    points += `<div class="dimension-label" style="bottom:5%; left:50%;">Loan Amount</div>`;
+                    points += `<div class="dimension-label" style="top:50%; left:5%; transform:rotate(-90deg);">Interest Rate</div>`;
+                    points += `<div class="dimension-label" style="top:85%; left:65%;">Payment History</div>`;
+                } 
+                else if (graphId === 3) {
+                    // Variance analysis
+                    points += `<div class="pca-line" style="top:50%; left:30%; width:40%; transform:rotate(20deg);"></div>`;
+                    points += `<div class="pca-line" style="top:50%; left:30%; width:30%; transform:rotate(70deg);"></div>`;
+                    points += `<div class="dimension-label" style="top:30%; left:50%;">PC1 (Max Variance)</div>`;
+                    points += `<div class="dimension-label" style="top:70%; left:60%;">PC2</div>`;
+                } 
+                else {
+                    // PCA transformed data
+                    for (let i = 0; i < pointCount; i++) {
+                        const x = 30 + Math.random() * 40;
+                        const y = 30 + Math.random() * 40;
+                        const cluster = i < pointCount/2 ? 'cluster-1' : 'cluster-2';
+                        const size = 5 + Math.random() * 3;
+                        points += `<div class="data-point ${cluster}" style="width:${size}px; height:${size}px; top:${y}%; left:${x}%;"></div>`;
+                    }
+                    points += `<div class="dimension-label" style="bottom:5%; left:50%;">Principal Component 1</div>`;
+                    points += `<div class="dimension-label" style="top:50%; left:5%; transform:rotate(-90deg);">Principal Component 2</div>`;
+                }
+                
+                return points;
+            }
+            
+            // Drag and drop handlers
+            let draggedItem = null;
+            
+            function handleDragStart(e) {
+                draggedItem = this;
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', this.dataset.graphId);
+            }
+            
+            function handleDragEnd() {
+                this.classList.remove('dragging');
+                draggedItem = null;
+            }
+            
+            function handleDragOver(e) {
+                e.preventDefault();
+                return false;
+            }
+            
+            function handleDragEnter(e) {
+                this.classList.add('highlight');
+            }
+            
+            function handleDragLeave() {
+                this.classList.remove('highlight');
+            }
+            
+            function handleDrop(e) {
+                e.preventDefault();
+                this.classList.remove('highlight');
+                
+                const graphId = e.dataTransfer.getData('text/plain');
+                const slotId = this.dataset.slotId;
+                
+                // If slot already has a graph, return it to the pool
+                if (this.children.length > 1) {
+                    const existingGraph = this.querySelector('.graph-item');
+                    if (existingGraph) {
+                        graphPool.appendChild(existingGraph);
+                    }
+                }
+                
+                // Add the graph to the slot
+                const graphElement = document.querySelector(`.graph-item[data-graph-id="${graphId}"]`);
+                this.appendChild(graphElement);
+                
+                // Update current sequence
+                updateSequence();
+                
+                return false;
+            }
+            
+            // Update the current sequence array
+            function updateSequence() {
+                currentSequence = [];
+                const slots = sequenceContainer.querySelectorAll('.slot');
+                
+                slots.forEach(slot => {
+                    const graphItem = slot.querySelector('.graph-item');
+                    if (graphItem) {
+                        currentSequence.push(parseInt(graphItem.dataset.graphId));
+                        slot.classList.add('filled');
+                    } else {
+                        slot.classList.remove('filled');
+                    }
+                });
+                
+                // Enable check button only if all slots are filled
+                checkBtn.disabled = currentSequence.length !== graphs.length;
+            }
+            
+            // Check if the sequence is correct
+            function checkSequence() {
+                attempts++;
+                
+                // Check if sequence matches correct order
+                const isCorrect = currentSequence.every((val, index) => val === correctSequence[index]);
+                
+                if (isCorrect) {
+                    // Calculate score (higher for fewer attempts)
+                    score += Math.max(0, 100 - (attempts - 1) * 20);
+                    scoreEl.textContent = score;
+                    
+                    feedbackEl.textContent = '✅ Correct! You have successfully sequenced the PCA process.';
+                    feedbackEl.className = 'feedback correct';
+                    feedbackEl.style.display = 'block';
+                    
+                    replayBtn.style.display = 'inline-block';
+                    checkBtn.disabled = true;
+                } else {
+                    feedbackEl.textContent = '❌ Incorrect sequence. Try rearranging the graphs. Remember: PCA simplifies data step by step.';
+                    feedbackEl.className = 'feedback incorrect';
+                    feedbackEl.style.display = 'block';
+                    
+                    // Hide feedback after 3 seconds
+                    setTimeout(() => {
+                        feedbackEl.style.display = 'none';
+                    }, 3000);
+                }
+            }
+            
+            // Event listeners
+            checkBtn.addEventListener
+    </script>
+</body>
+</html>

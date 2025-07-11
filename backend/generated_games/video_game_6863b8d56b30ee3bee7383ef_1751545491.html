@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #444;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .data-table th {
+            background-color: #f0f0f0;
+        }
+
+        .data-table input {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 500;
+            color: #555;
+        }
+
+        button {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background-color: #d0d0d0;
+        }
+
+        .plot-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .pca-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+
+        .tutorial {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .tutorial-step {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 4px;
+            border-left: 4px solid #d0d0d0;
+        }
+
+        .tutorial-step h3 {
+            margin-bottom: 10px;
+            color: #444;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            margin-left: 5px;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .level {
+            padding: 8px 15px;
+            background-color: #e0e0e0;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .level.active {
+            background-color: #d0d0d0;
+            font-weight: bold;
+        }
+
+        .progress-container {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #a0a0a0;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .score-display {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .feedback {
+            text-align: center;
+            margin: 15px 0;
+            min-height: 24px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .panel {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCA Explorer</h1>
+        <p class="subtitle">Interactive Principal Component Analysis Learning Tool</p>
+    </header>
+
+    <div class="level-indicator">
+        <div class="level active" data-level="1">Level 1: Basics</div>
+        <div class="level" data-level="2">Level 2: Scaling</div>
+        <div class="level" data-level="3">Level 3: Centering</div>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="score-display">
+        Score: <span id="score">0</span>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="container">
+        <div class="panel">
+            <h2 class="panel-title">Data Input</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Point</th>
+                        <th>Math Score</th>
+                        <th>Reading Score</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="dataBody">
+                    <tr>
+                        <td>1</td>
+                        <td><input type="number" class="math-input" value="80"></td>
+                        <td><input type="number" class="reading-input" value="70"></td>
+                        <td><button class="remove-btn">Remove</button></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><input type="number" class="math-input" value="90"></td>
+                        <td><input type="number" class="reading-input" value="85"></td>
+                        <td><button class="remove-btn">Remove</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button id="addRow">Add Data Point</button>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label>
+                        Scale Data
+                        <span class="tooltip">?
+                            <span class="tooltiptext">Scaling adjusts variables to have comparable ranges</span>
+                        </span>
+                    </label>
+                    <input type="checkbox" id="scaleData">
+                </div>
+                
+                <div class="control-group">
+                    <label>
+                        Center Data
+                        <span class="tooltip">?
+                            <span class="tooltiptext">Centering shifts data to have a mean of zero</span>
+                        </span>
+                    </label>
+                    <input type="checkbox" id="centerData">
+                </div>
+            </div>
+            
+            <button id="resetData">Reset Data</button>
+        </div>
+        
+        <div class="panel">
+            <h2 class="panel-title">PCA Visualization</h2>
+            <div class="plot-container">
+                <canvas id="scatterPlot"></canvas>
+            </div>
+            <div class="pca-info">
+                <p>PC1 Variance: <span id="pc1Var">0%</span></p>
+                <p>PC2 Variance: <span id="pc2Var">0%</span></p>
+                <p>Principal Components: <span id="pcCount">2</span></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tutorial">
+        <h2 class="panel-title">PCA Tutorial</h2>
+        <div class="tutorial-step">
+            <h3>Step 1: Understanding the Data</h3>
+            <p>Input your data points in the table. Each point represents a student's Math and Reading scores.</p>
+        </div>
+        <div class="tutorial-step">
+            <h3>Step 2: Visualizing Relationships</h3>
+            <p>The scatter plot shows the relationship between Math and Reading scores. Each dot represents a student.</p>
+        </div>
+        <div class="tutorial-step">
+            <h3>Step 3: Principal Components</h3>
+            <p>The red and blue lines show the principal components (PC1 and PC2). PC1 captures the most variance in the data.</p>
+        </div>
+        <div class="tutorial-step">
+            <h3>Step 4: Eigenvalues and Variance</h3>
+            <p>Eigenvalues <span class="tooltip">?
+                <span class="tooltiptext">Eigenvalues measure the variance captured by each principal component</span>
+            </span> determine how much variance each PC explains. Larger eigenvalues mean more variance captured.</p>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            score: 0,
+            currentLevel: 1,
+            progress: 0,
+            dataPoints: [
+                { math: 80, reading: 70 },
+                { math: 90, reading: 85 }
+            ],
+            scaled: false,
+            centered: false
+        };
+
+        // DOM elements
+        const dataBody = document.getElementById('dataBody');
+        const scatterCanvas = document.getElementById('scatterPlot');
+        const ctx = scatterCanvas.getContext('2d');
+        const pc1Var = document.getElementById('pc1Var');
+        const pc2Var = document.getElementById('pc2Var');
+        const pcCount = document.getElementById('pcCount');
+        const scoreDisplay = document.getElementById('score');
+        const feedback = document.getElementById('feedback');
+        const progressBar = document.getElementById('progressBar');
+        const scaleCheckbox = document.getElementById('scaleData');
+        const centerCheckbox = document.getElementById('centerData');
+        const levelIndicators = document.querySelectorAll('.level');
+
+        // Initialize canvas
+        scatterCanvas.width = scatterCanvas.parentElement.clientWidth;
+        scatterCanvas.height = scatterCanvas.parentElement.clientHeight;
+
+        // Initialize game
+        function initGame() {
+            renderDataTable();
+            drawScatterPlot();
+            updatePCAInfo();
+            updateScore();
+            updateLevels();
+            
+            // Event listeners
+            document.getElementById('addRow').addEventListener('click', addDataRow);
+            document.getElementById('resetData').addEventListener('click', resetData);
+            scaleCheckbox.addEventListener('change', toggleScaling);
+            centerCheckbox.addEventListener('change', toggleCentering);
+            
+            // Level selection
+            levelIndicators.forEach(level => {
+                level.addEventListener('click', () => {
+                    gameState.currentLevel = parseInt(level.dataset.level);
+                    updateLevels();
+                    updateGameState();
+                });
+            });
+            
+            // Window resize handling
+            window.addEventListener('resize', () => {
+                scatterCanvas.width = scatterCanvas.parentElement.clientWidth;
+                scatterCanvas.height = scatterCanvas.parentElement.clientHeight;
+                drawScatterPlot();
+            });
+        }
+
+        // Render data table
+        function renderDataTable() {
+            dataBody.innerHTML = '';
+            gameState.dataPoints.forEach((point, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><input type="number" class="math-input" value="${point.math}"></td>
+                    <td><input type="number" class="reading-input" value="${point.reading}"></td>
+                    <td><button class="remove-btn">Remove</button></td>
+                `;
+                dataBody.appendChild(row);
+                
+                // Add event listeners to inputs
+                const mathInput = row.querySelector('.math-input');
+                const readingInput = row.querySelector('.reading-input');
+                const removeBtn = row.querySelector('.remove-btn');
+                
+                mathInput.addEventListener('input', () => {
+                    gameState.dataPoints[index].math = parseFloat(mathInput.value) || 0;
+                    updateGameState();
+                });
+                
+                readingInput.addEventListener('input', () => {
+                    gameState.dataPoints[index].reading = parseFloat(readingInput.value) || 0;
+                    updateGameState();
+                });
+                
+                removeBtn.addEventListener('click', () => {
+                    if (gameState.dataPoints.length > 2) {
+                        gameState.dataPoints.splice(index, 1);
+                        renderDataTable();
+                        updateGameState();
+                    } else {
+                        feedback.textContent = "You need at least 2 data points!";
+                    }
+                });
+            });
+        }
+
+        // Add new data row
+        function addDataRow() {
+            gameState.dataPoints.push({ math: 50, reading: 60 });
+            renderDataTable();
+            updateGameState();
+        }
+
+        // Reset data to initial state
+        function resetData() {
+            gameState.dataPoints = [
+                { math: 80, reading: 70 },
+                { math: 90, reading: 85 }
+            ];
+            gameState.scaled = false;
+            gameState.centered = false;
+            scaleCheckbox.checked = false;
+            centerCheckbox.checked = false;
+            renderDataTable();
+            updateGameState();
+            feedback.textContent = "Data reset to initial values";
+        }
+
+        // Toggle data scaling
+        function toggleScaling() {
+            gameState.scaled = scaleCheckbox.checked;
+            updateGameState();
+        }
+
+        // Toggle data centering
+        function toggleCentering() {
+            gameState.centered = centerCheckbox.checked;
+            updateGameState();
+        }
+
+        // Draw scatter plot with PCA components
+        function drawScatterPlot() {
+            const width = scatterCanvas.width;
+            const height = scatterCanvas.height;
+            const padding = 50;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Find data ranges
+            const mathValues = gameState.dataPoints.map(p => p.math);
+            const readingValues = gameState.dataPoints.map(p => p.reading);
+            
+            const minMath = Math.min(...mathValues);
+            const maxMath = Math.max(...mathValues);
+            const minReading = Math.min(...readingValues);
+            const maxReading = Math.max(...readingValues);
+            
+            // Calculate scales
+            const xScale = (width - 2 * padding) / (maxMath - minMath || 1);
+            const yScale = (height - 2 * padding) / (maxReading - minReading || 1);
+            
+            // Draw axes
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw axis labels
+            ctx.font = '14px sans-serif';
+            ctx.fillStyle = '#333';
+            ctx.fillText('Math Score', width / 2, height - 10);
+            ctx.save();
+            ctx.translate(10, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Reading Score', 0, 0);
+            ctx.restore();
+            
+            // Draw grid lines
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            
+            // Draw data points
+            gameState.dataPoints.forEach(point => {
+                const x = padding + (point.math - minMath) * xScale;
+                const y = height - padding - (point.reading - minReading) * yScale;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#4a86e8';
+                ctx.fill();
+            });
+            
+            // Draw PCA components (simplified for demo)
+            if (gameState.dataPoints.length >= 2) {
+                // PC1 (main direction)
+                const pc1X = padding + (maxMath - minMath) * 0.7 * xScale;
+                const pc1Y = height - padding - (maxReading - minReading) * 0.7 * yScale;
+                
+                ctx.beginPath();
+                ctx.moveTo(padding, height - padding);
+                ctx.lineTo(pc1X, pc1Y);
+                ctx.strokeStyle = '#e74c3c';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // PC2 (orthogonal direction)
+                const pc2X = padding + (maxMath - minMath) * 0.3 * xScale;
+                const pc2Y = height - padding - (maxReading - minReading) * 0.9 * yScale;
+                
+                ctx.beginPath();
+                ctx.moveTo(padding, height - padding);
+                ctx.lineTo(pc2X, pc2Y);
+                ctx.strokeStyle = '#2ecc71';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Add labels
+                ctx.font = 'bold 16px sans-serif';
+                ctx.fillStyle = '#e74c3c';
+                ctx.fillText('PC1', pc1X - 20, pc1Y - 10);
+                
+                ctx.fillStyle = '#2ecc71';
+                ctx.fillText('PC2', pc2X - 20, pc2Y - 10);
+            }
+        }
+
+        // Update PCA information
+        function updatePCAInfo() {
+            // Simplified PCA calculations for demo
+            const variancePC1 = Math.min(95, 70 + Math.floor(gameState.dataPoints.length * 3));
+            const variancePC2 = 100 - variancePC1;
+            
+            pc1Var.textContent = `${variancePC1}%`;
+            pc2Var.textContent = `${variancePC2}%`;
+            pcCount.textContent = Math.min(2, gameState.dataPoints.length);
+        }
+
+        // Update game state
+        function updateGameState() {
+            drawScatterPlot();
+            updatePCAInfo();
+            
+            // Update score based on actions
+            gameState.score += 5;
+            if (gameState.dataPoints.length > 4) gameState.score += 10;
+            if (gameState.scaled) gameState.score += 15;
+            if (gameState.centered) gameState.score += 15;
+            
+            // Update progress
+            gameState.progress = Math.min(100, gameState.progress + 5);
+            
+            updateScore();
+            updateProgress();
+            
+            // Level-specific feedback
+            if (gameState.currentLevel === 1) {
+                feedback.textContent = "Try adding more data points to see how PCA changes";
+            } else if (gameState.currentLevel === 2) {
+                feedback.textContent = "Enable scaling to see how it affects the principal components";
+            } else {
+                feedback.textContent = "Enable centering to see how it affects the PCA results";
+            }
+        }
+
+        // Update score display
+        function updateScore() {
+            scoreDisplay.textContent = gameState.score;
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            progressBar.style.width = `${gameState.progress}%`;
+        }
+
+        // Update level indicators
+        function updateLevels() {
+            levelIndicators.forEach(level => {
+                level.classList.toggle('active', parseInt(level.dataset.level) === gameState.currentLevel);
+            });
+        }
+
+        // Initialize the game when page loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>

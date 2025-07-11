@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Dimension Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #000;
+            color: #0ff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 2px solid #ff00ff;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            text-align: center;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #0088ff;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #ff55ff;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+        
+        .screen {
+            display: none;
+            width: 100%;
+            background: rgba(10, 10, 30, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.3);
+            border: 1px solid #00ffff;
+            margin-bottom: 25px;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .instructions {
+            line-height: 1.6;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+        
+        .instructions p {
+            margin-bottom: 15px;
+        }
+        
+        .highlight {
+            color: #ff55ff;
+            font-weight: bold;
+        }
+        
+        .game-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            margin: 20px 0;
+        }
+        
+        .data-container {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0, 20, 40, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #00aaff;
+        }
+        
+        .data-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ff00ff;
+        }
+        
+        h2 {
+            color: #ff55ff;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .data-table th {
+            background: rgba(0, 100, 200, 0.3);
+            color: #00ffff;
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #0088ff;
+        }
+        
+        .data-table td {
+            padding: 10px;
+            border: 1px solid #0088ff;
+            color: #aaffff;
+        }
+        
+        .visualization {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0, 20, 40, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #00aaff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .graph-container {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            margin: 20px 0;
+            background: rgba(0, 10, 20, 0.8);
+            border: 1px solid #00ffff;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .graph {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .point {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 5px currentColor;
+        }
+        
+        .axis {
+            position: absolute;
+            background: #00ffff;
+            box-shadow: 0 0 5px #00ffff;
+        }
+        
+        .x-axis {
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+        }
+        
+        .y-axis {
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            transform: translateX(-50%);
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+            width: 100%;
+        }
+        
+        .dimension-btn {
+            background: linear-gradient(45deg, #003366, #0066cc);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 1px solid #00ffff;
+            box-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
+        }
+        
+        .dimension-btn:hover {
+            background: linear-gradient(45deg, #004488, #0088ff);
+            transform: translateY(-3px);
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.8);
+        }
+        
+        .dimension-btn.selected {
+            background: linear-gradient(45deg, #880088, #ff00ff);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.8);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(45deg, #008800, #00cc00);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 1px solid #00ff00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+            margin-top: 20px;
+        }
+        
+        .submit-btn:hover {
+            background: linear-gradient(45deg, #00aa00, #00ff00);
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .nav-btn {
+            background: linear-gradient(45deg, #333366, #6666cc);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 1px solid #8888ff;
+        }
+        
+        .nav-btn:hover {
+            background: linear-gradient(45deg, #444488, #8888ff);
+            transform: translateY(-3px);
+        }
+        
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.1rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid;
+        }
+        
+        .correct {
+            background: rgba(0, 100, 0, 0.3);
+            border-color: #00ff00;
+            color: #aaffaa;
+        }
+        
+        .incorrect {
+            background: rgba(100, 0, 0, 0.3);
+            border-color: #ff5555;
+            color: #ffaaaa;
+        }
+        
+        .score-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+            font-size: 1.2rem;
+        }
+        
+        .score-value {
+            font-weight: bold;
+            color: #ff55ff;
+            font-size: 1.8rem;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background: rgba(0, 30, 60, 0.6);
+            height: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            border: 1px solid #0088ff;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #003366, #0066cc, #0088ff);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .completion-screen {
+            text-align: center;
+        }
+        
+        .completion-screen h2 {
+            font-size: 2.5rem;
+            color: #00ffff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        
+        .final-score {
+            font-size: 3rem;
+            color: #ff55ff;
+            margin: 30px 0;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(45deg, #880088, #ff00ff);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 1px solid #ff55ff;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+            margin-top: 30px;
+        }
+        
+        .restart-btn:hover {
+            background: linear-gradient(45deg, #aa00aa, #ff55ff);
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.8);
+        }
+        
+        @media (max-width: 768px) {
+            .game-area {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .nav-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PCA Dimension Challenge</h1>
+        </header>
+        
+        <p class="subtitle">Reduce dimensions while preserving essential information</p>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <!-- Instruction Screen -->
+        <div class="screen active" id="instructionScreen">
+            <h2>Understanding Principal Component Analysis</h2>
+            <div class="instructions">
+                <p>Welcome to the <span class="highlight">PCA Dimension Challenge</span>! In this game, you'll learn how Principal Component Analysis simplifies complex datasets by reducing dimensions while preserving essential information.</p>
+                <p>Your task is to analyze financial loan data and determine which dimensions can be safely removed without losing critical patterns in the data.</p>
+                <p><span class="highlight">How to play:</span></p>
+                <p>1. Examine the loan dataset and the visualization of data points</p>
+                <p>2. Select which dimensions (columns) you believe can be removed</p>
+                <p>3. Submit your answer to see how much information is preserved</p>
+                <p>4. Complete all challenges to master PCA concepts!</p>
+            </div>
+            <button class="submit-btn" id="startBtn">Start Challenge</button>
+        </div>
+        
+        <!-- Game Screen -->
+        <div class="screen" id="gameScreen">
+            <h2>Loan Data Analysis Challenge</h2>
+            
+            <div class="game-area">
+                <div class="data-container">
+                    <div class="data-header">
+                        <h3>Loan Dataset</h3>
+                        <div class="score-container">
+                            <span>Score:</span>
+                            <span class="score-value" id="scoreValue">0</span>
+                        </div>
+                    </div>
+                    
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Income</th>
+                                <th>Credit Score</th>
+                                <th>Loan Amount</th>
+                                <th>Interest Rate</th>
+                                <th>Term (months)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>L1001</td>
+                                <td>$85,200</td>
+                                <td>720</td>
+                                <td>$35,000</td>
+                                <td>4.25%</td>
+                                <td>60</td>
+                            </tr>
+                            <tr>
+                                <td>L1002</td>
+                                <td>$62,500</td>
+                                <td>680</td>
+                                <td>$22,500</td>
+                                <td>5.75%</td>
+                                <td>36</td>
+                            </tr>
+                            <tr>
+                                <td>L1003</td>
+                                <td>$112,000</td>
+                                <td>780</td>
+                                <td>$45,000</td>
+                                <td>3.75%</td>
+                                <td>72</td>
+                            </tr>
+                            <tr>
+                                <td>L1004</td>
+                                <td>$78,400</td>
+                                <td>710</td>
+                                <td>$28,000</td>
+                                <td>4.95%</td>
+                                <td>48</td>
+                            </tr>
+                            <tr>
+                                <td>L1005</td>
+                                <td>$93,000</
+</body>
+</html>

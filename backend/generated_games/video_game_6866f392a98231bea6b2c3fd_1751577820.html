@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVM Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .plot-container {
+            position: relative;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 400px;
+        }
+        
+        #plot {
+            width: 100%;
+            height: 400px;
+            background-color: white;
+            border: 1px solid #ccc;
+            touch-action: none;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        button {
+            background-color: #e0e0e0;
+            border: 1px solid #ccc;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        button:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .form-container {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .form-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 80px;
+        }
+        
+        .info-panel {
+            display: flex;
+            gap: 20px;
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            flex-wrap: wrap;
+        }
+        
+        .info-box {
+            background-color: white;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            min-width: 150px;
+        }
+        
+        .info-box h3 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+            color: #444;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+        }
+        
+        .level-indicator {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background-color: #f8f8f8;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .level-btn {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #e0e0e0;
+            cursor: pointer;
+        }
+        
+        .level-btn.active {
+            background-color: #a0a0a0;
+            color: white;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted #666;
+            cursor: help;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .controls, .form-group, .info-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SVM Explorer</h1>
+        <p>Drag points and adjust the hyperplane to understand Support Vector Machines</p>
+    </header>
+    
+    <main class="game-container">
+        <div class="level-indicator">
+            <div class="level-btn active" data-level="1">Level 1: Linear Separation</div>
+            <div class="level-btn" data-level="2">Level 2: Non-Linear Challenge</div>
+        </div>
+        
+        <div class="plot-container">
+            <svg id="plot"></svg>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: blue;"></div>
+                    <span>Class +1</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: red;"></div>
+                    <span>Class -1</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: gold;"></div>
+                    <span>Support Vectors</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: rgba(0, 128, 0, 0.2);"></div>
+                    <span>Margin</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="reset-btn">Reset Points</button>
+            <button id="reset-hyperplane">Reset Hyperplane</button>
+            <button id="toggle-help">Show Help</button>
+        </div>
+        
+        <div class="form-container">
+            <h3>Add New Point</h3>
+            <div class="form-group">
+                <label>X: <input type="number" id="new-x" value="300"></label>
+                <label>Y: <input type="number" id="new-y" value="200"></label>
+                <button id="add-point">Add Point</button>
+                <button id="classify-btn">Classify Point</button>
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <div class="info-box">
+                <h3>Margin Width (γ)</h3>
+                <p id="margin-value">0.00</p>
+            </div>
+            <div class="info-box">
+                <h3>Objective Function</h3>
+                <p id="objective-value">0.00</p>
+            </div>
+            <div class="info-box">
+                <h3>Support Vectors</h3>
+                <p id="sv-count">0</p>
+            </div>
+        </div>
+        
+        <div class="info-panel" id="help-section" style="display: none;">
+            <h3>SVM Concepts</h3>
+            <p><span class="tooltip">Hyperplane<span class="tooltiptext">Decision boundary that separates classes</span></span>: 
+            Drag the green handles to adjust position and orientation</p>
+            <p><span class="tooltip">Margin<span class="tooltiptext">Distance between hyperplane and closest points</span></span>: 
+            Maximizing this improves model generalization</p>
+            <p><span class="tooltip">Support Vectors<span class="tooltiptext">Critical points that define the margin</span></span>: 
+            Highlighted in gold - they determine the hyperplane position</p>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // SVG elements
+            const svg = document.getElementById('plot');
+            const ns = 'http://www.w3.org/2000/svg';
+            
+            // Game state
+            let points = [];
+            let hyperplane = {
+                x1: 100, y1: 200,
+                x2: 500, y2: 200,
+                handles: {}
+            };
+            let currentLevel = 1;
+            let dragging = null;
+            let svgElements = {};
+            
+            // Initialize game
+            function initGame() {
+                // Set SVG dimensions
+                svg.setAttribute('width', '100%');
+                svg.setAttribute('height', '400');
+                svg.innerHTML = '';
+                
+                // Create hyperplane
+                createHyperplane();
+                
+                // Initialize points based on level
+                points = [];
+                if (currentLevel === 1) {
+                    createLinearPoints();
+                } else {
+                    createNonLinearPoints();
+                }
+                
+                // Update calculations
+                updateCalculations();
+            }
+            
+            // Create initial linear points
+            function createLinearPoints() {
+                // Class +1 (blue)
+                for (let i = 0; i < 8; i++) {
+                    const x = 150 + Math.random() * 150;
+                    const y = 100 + Math.random() * 150;
+                    addPoint(x, y, 1);
+                }
+                
+                // Class -1 (red)
+                for (let i = 0; i < 8; i++) {
+                    const x = 350 + Math.random() * 150;
+                    const y = 100 + Math.random() * 150;
+                    addPoint(x, y, -1);
+                }
+            }
+            
+            // Create non-linear points
+            function createNonLinearPoints() {
+                // Circular pattern (class +1 inside)
+                for (let i = 0; i < 10; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = 30 + Math.random() * 40;
+                    const x = 300 + Math.cos(angle) * radius;
+                    const y = 200 + Math.sin(angle) * radius;
+                    addPoint(x, y, 1);
+                }
+                
+                // Outer circle (class -1)
+                for (let i = 0; i < 10; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = 90 + Math.random() * 60;
+                    const x = 300 + Math.cos(angle) * radius;
+                    const y = 200 + Math.sin(angle) * radius;
+                    addPoint(x, y
+    </script>
+</body>
+</html>

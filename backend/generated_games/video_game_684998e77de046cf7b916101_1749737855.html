@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+   <html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>PCA Learning Game</title>
+      <style>
+        /* CSS here */
+      </style>
+   </head>
+   <body>
+      <div id="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen">
+          <h1>Principal Component Analysis</h1>
+          <p>Learn PCA by completing interactive challenges!</p>
+          <button id="start-btn">Start Game</button>
+        </div>
+
+        <!-- Level Container: initially hidden -->
+        <div id="level-container" class="screen hidden">
+          <div class="level" id="level1">
+            <h2>Level 1: Find the First Principal Component</h2>
+            <p>Draw the direction of maximum variance by clicking two points to define a line.</p>
+            <svg id="plot-level1" width="400" height="400" viewBox="0 0 100 100"></svg>
+            <button id="submit-level1">Submit</button>
+            <p id="feedback-level1"></p>
+          </div>
+          <!-- ... other levels similarly, only one level visible at a time -->
+        </div>
+
+        <!-- End
+    </script>
+</body>
+</body>
+</html>

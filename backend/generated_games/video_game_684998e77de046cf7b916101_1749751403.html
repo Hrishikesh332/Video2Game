@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Dimension Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #e0e0ff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(16, 18, 27, 0.85);
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.4);
+            overflow: hidden;
+            border: 1px solid rgba(0, 200, 255, 0.3);
+            padding: 30px;
+            position: relative;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(0, 200, 255, 0.3);
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00ffff, #00ffaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .game-screen {
+            display: none;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .screen-active {
+            display: block;
+        }
+
+        .instructions {
+            background: rgba(30, 30, 60, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(0, 200, 255, 0.2);
+        }
+
+        .instructions h2 {
+            color: #00ffff;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+
+        .instructions p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .instructions ul {
+            padding-left: 25px;
+            margin: 15px 0;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+        }
+
+        .game-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .data-visualization {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(20, 22, 37, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(0, 200, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .visual-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #00ffaa;
+            font-size: 1.4rem;
+        }
+
+        .graph-container {
+            height: 300px;
+            background: rgba(10, 12, 25, 0.7);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0, 150, 255, 0.3);
+        }
+
+        .data-point {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ffff;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.7);
+        }
+
+        .pca-line {
+            position: absolute;
+            height: 3px;
+            background: #ff00aa;
+            transform-origin: 0 0;
+            box-shadow: 0 0 10px rgba(255, 0, 170, 0.7);
+        }
+
+        .game-controls {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .dimension-control {
+            background: rgba(20, 22, 37, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(0, 200, 255, 0.2);
+        }
+
+        .dimension-control h3 {
+            color: #00ffaa;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .slider-container {
+            margin: 20px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 12px;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #00aaff, #ff00aa);
+            border-radius: 10px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(90deg, #00aaff, #0077ff);
+            color: white;
+            box-shadow: 0 0 15px rgba(0, 170, 255, 0.5);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(0, 170, 255, 0.8);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-check {
+            background: linear-gradient(90deg, #00ffaa, #00cc88);
+            box-shadow: 0 0 15px rgba(0, 255, 170, 0.5);
+        }
+
+        .btn-next {
+            background: linear-gradient(90deg, #ff00aa, #cc0088);
+            box-shadow: 0 0 15px rgba(255, 0, 170, 0.5);
+        }
+
+        .btn-restart {
+            background: linear-gradient(90deg, #ffaa00, #ff7700);
+            box-shadow: 0 0 15px rgba(255, 170, 0, 0.5);
+        }
+
+        .feedback {
+            background: rgba(20, 22, 37, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(0, 200, 255, 0.2);
+            min-height: 150px;
+        }
+
+        .feedback h3 {
+            color: #00ffaa;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .feedback-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(30, 30, 60, 0.7);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 200, 255, 0.2);
+        }
+
+        .score-box {
+            text-align: center;
+            padding: 15px;
+            flex: 1;
+        }
+
+        .score-label {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #00ffff;
+        }
+
+        .score-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00ffff, #00ffaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .progress-container {
+            margin: 25px 0;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: rgba(50, 50, 80, 0.7);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 150, 255, 0.3);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00aaff, #00ffaa);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+
+        .completion-screen {
+            text-align: center;
+            padding: 40px 20px;
+            display: none;
+        }
+
+        .completion-screen h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #00ffaa;
+        }
+
+        .final-score {
+            font-size: 4rem;
+            font-weight: 800;
+            margin: 30px 0;
+            background: linear-gradient(90deg, #00ffff, #ff00aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 0, 170, 0.5);
+        }
+
+        .message {
+            font-size: 1.4rem;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+
+        .nav-buttons {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            display: flex;
+            gap: 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes pointPulse {
+            0% { box-shadow: 0 0 8px rgba(0, 255, 255, 0.7); }
+            50% { box-shadow: 0 0 20px rgba(0, 255, 255, 1); }
+            100% { box-shadow: 0 0 8px rgba(0, 255, 255, 0.7); }
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .btn {
+                min-width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .nav-buttons {
+                position: static;
+                justify-content: center;
+                margin-top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PCA Dimension Challenge</h1>
+            <p class="subtitle">Reduce dimensions and reveal patterns in complex datasets</p>
+        </header>
+
+        <div class="nav-buttons">
+            <button class="btn btn-next" id="nextBtn">Next →</button>
+        </div>
+
+        <!-- Introduction Screen -->
+        <section id="introScreen" class="game-screen screen-active">
+            <div class="instructions">
+                <h2>Principal Component Analysis Challenge</h2>
+                <p>Welcome to the PCA Dimension Challenge! Your task is to reduce the dimensionality of complex datasets while preserving the most important patterns.</p>
+                
+                <p>In this game, you will:</p>
+                <ul>
+                    <li>Adjust the PCA components to reduce dimensions</li>
+                    <li>Find the optimal variance threshold</li>
+                    <li>Identify clusters in multidimensional data</li>
+                    <li>Balance information preservation and simplification</li>
+                </ul>
+                
+                <p>Watch how the data transforms as you adjust the PCA components. Your goal is to achieve at least 85% variance preservation while simplifying the dataset.</p>
+            </div>
+
+            <div class="game-area">
+                <div class="data-visualization">
+                    <h3 class="visual-title">Original High-Dimensional Data</h3>
+                    <div class="graph-container" id="originalData">
+                        <!-- Data points will be generated here -->
+                    </div>
+                </div>
+                
+                <div class="data-visualization">
+                    <h3 class="visual-title">PCA Reduced Data</h3>
+                    <div class="graph-container" id="pcaData">
+                        <!-- PCA transformed data will appear here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button class="btn" id="startBtn">Start Challenge</button>
+                <button class="btn btn-restart" id="howToBtn">How PCA Works</button>
+            </div>
+        </section>
+
+        <!-- Game Screen -->
+        <section id="gameScreen" class="game-screen">
+            <div class="instructions">
+                <h2>Challenge: Reduce Loan Dataset Dimensions</h2>
+                <p>Adjust the PCA components to reduce this 5-dimensional loan dataset to 2 dimensions while preserving at least 85% of the original variance. Find the optimal balance between simplification and information preservation.</p>
+            </div>
+
+            <div class="game-area">
+                <div class="data-visualization">
+                    <h3 class="visual-title">PCA Component Adjustment</h3>
+                    <div class="graph-container" id="gameData">
+                        <!-- Interactive PCA visualization -->
+                    </div>
+                </div>
+                
+                <div class="game-controls">
+                    <div class="dimension-control">
+                        <h3>PCA Controls</h3>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Component 1 Variance</span>
+                                <span id="comp1Value">62%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="62" class="slider" id="comp1Slider">
+                        </div>
+                        
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Component 2 Variance</span>
+                                <span id="comp2Value">23%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="23" class="slider" id="comp2Slider">
+                        </div>
+                    </div>
+                    
+                    <div class="feedback">
+                        <h3>Analysis Feedback</h3>
+                        <div class="feedback-content" id="feedbackText">
+                            Adjust the components to reduce dimensions while preserving variance. Watch how the clusters change as you modify the PCA parameters.
+                        </div>
+                    </div>
+                    
+                    <div class="buttons">
+                        <button class="btn btn-check" id="checkBtn">Analyze</button>
+                        <button class="btn btn-restart" id="resetBtn">Reset</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="score-container">
+                <div class="score-box">
+                    <div class="score-label">Variance Preserved</div>
+                    <div class="score-value" id="varianceScore">85%</div>
+                </div>
+                <div class="score-box">
+                    <div class="score-label">Dimensions Reduced</div>
+                    <div class="score-value" id="dimensionScore">5→2</div>
+                </div>
+                <div class="score-box">
+                    <div class="score-label">Current Score</div>
+                    <div class="score-value" id="currentScore">0</div>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                    <span>Challenge Progress</span>
+                    <span id="progressText">0/3</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Completion Screen -->
+        <section id="completionScreen" class="completion-screen">
+            <h2>Challenge Complete!</h2>
+            <div class="final-score" id="finalScore">0</div>
+            
+            <p class="message">You've successfully mastered dimensionality reduction with PCA! By finding the optimal components, you've revealed meaningful patterns in complex datasets.</p>
+            
+            <div class="feedback">
+                <h3>PCA Mastery Achieved</h3>
+                <div class="feedback-content">
+                    <p>Your analysis shows a strong understanding of how Principal Component Analysis transforms high-dimensional data while preserving essential variance.</p>
+                    <p>You've demonstrated the ability to balance information preservation with effective simplification - a crucial skill in data science!</p>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <button class="btn btn-restart" id="restartBtn">Play Again</button>
+                <button class="btn" id="learnMoreBtn">Learn More About PCA</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game state
+            const gameState = {
+                currentScreen: 'intro',
+                score: 0,
+                progress: 0,
+                maxProgress: 3,
+                challenge: 1,
+                variance: 85,
+                dimensions: 5
+            };
+
+            // DOM elements
+            const introScreen = document.getElementById('introScreen');
+            const gameScreen = document.getElementById('gameScreen');
+            const completionScreen = document.getElementById('completionScreen');
+            const startBtn = document.getElementById('startBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const checkBtn = document.getElementById('checkBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            const comp1Slider = document.getElementById('comp1Slider');
+            const comp2Slider = document.getElementById('comp2Slider');
+            const comp1Value = document.getElementById('comp1Value');
+            const comp2Value = document.getElementById('comp2Value');
+            const varianceScore = document.getElementById('varianceScore');
+            const dimensionScore = document.getElementById('dimensionScore');
+            const currentScore = document.getElementById('currentScore');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const finalScore = document.getElementById('finalScore');
+            const feedbackText = document.getElementById('feedbackText');
+            const originalData = document.getElementById('originalData');
+            const pcaData = document.getElementById('pcaData');
+            const gameData = document.getElementById('gameData');
+
+            // Initialize data visualizations
+            function initDataVisualizations() {
+                createDataPoints(originalData, 40, true);
+                createDataPoints(pcaData, 25, false);
+                createDataPoints(gameData, 30, true);
+                createPCALines(gameData);
+            }
+
+            // Create data points for visualization
+            function createDataPoints(container, count, isRandom) {
+                container.innerHTML = '';
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                
+                for (let i = 0; i < count; i++) {
+                    const point = document.createElement('div');
+                    point.className = 'data-point';
+                    
+                    if (isRandom) {
+                        point.style.left = `${10 + Math.random() * 80}%`;
+                        point.style.top = `${10 + Math.random() * 80}%`;
+                    } else {
+                        point.style.left = `${30 + Math.random() * 40}%`;
+                        point.style.top = `${30 + Math.random() * 40}%`;
+                    }
+                    
+                    // Add animation with random delay
+                    point.style.animation = `pointPulse ${2 + Math.random() * 2}s infinite`;
+                    point.style.animationDelay = `${Math.random() * 2}s`;
+                    
+                    container.appendChild(point);
+                }
+            }
+
+            // Create PCA direction lines
+            function createPCALines(container) {
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                
+                // Create main PCA line
+                const pcaLine = document.createElement('div');
+                pcaLine.className = 'pca-line';
+                pcaLine.style.width = `${width * 0.6}px`;
+                pcaLine.style.left = '50%';
+                pcaLine.style.top = '50%';
+                pcaLine.style.transform = 'rotate(-30deg)';
+                container.appendChild(pcaLine);
+                
+                // Create secondary line
+                const pcaLine2 = document.createElement('div');
+                pcaLine2.className = 'pca-line';
+                pcaLine2.style.width = `${width * 0.4}px`;
+                pcaLine2.style.left = '50%';
+                pcaLine2.style.top = '50%';
+                pcaLine2.style.background = '#00ffaa';
+                pcaLine2.style.transform = 'rotate(60deg)';
+                container.appendChild(pcaLine2);
+            }
+
+            // Update slider values
+            function updateSliderValues() {
+                comp1
+    </script>
+</body>
+</html>

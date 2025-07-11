@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Knowledge Quest</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .section:hover {
+            transform: translateY(-5px);
+        }
+        
+        .section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #444444;
+            border-bottom: 2px solid #cccccc;
+            padding-bottom: 10px;
+        }
+        
+        .module {
+            background-color: #e9e9e9;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .module:hover {
+            background-color: #dcdcdc;
+        }
+        
+        .game-container {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .progress-bar {
+            width: 200px;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .score-container {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .question-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .question-text {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .option {
+            background-color: #e9e9e9;
+            border-radius: 6px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .option:hover {
+            background-color: #dcdcdc;
+            transform: scale(1.03);
+        }
+        
+        .feedback {
+            text-align: center;
+            margin: 20px 0;
+            min-height: 30px;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            background-color: #555555;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #333333;
+        }
+        
+        .resources {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .resources h2 {
+            margin-bottom: 15px;
+            color: #444444;
+        }
+        
+        .resources ul {
+            padding-left: 20px;
+        }
+        
+        .resources li {
+            margin-bottom: 10px;
+        }
+        
+        .resources a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+        
+        .resources a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>AI Knowledge Quest</h1>
+        <p>Master the foundations of Artificial Intelligence</p>
+    </header>
+    
+    <div class="dashboard">
+        <div class="section">
+            <h2>Math Foundations</h2>
+            <div class="module" data-section="math" data-module="calculus">Calculus</div>
+            <div class="module" data-section="math" data-module="linear-algebra">Linear Algebra</div>
+            <div class="module" data-section="math" data-module="probability">Probability & Statistics</div>
+        </div>
+        
+        <div class="section">
+            <h2>Programming Fundamentals</h2>
+            <div class="module" data-section="programming" data-module="linux">Linux Command Line</div>
+            <div class="module" data-section="programming" data-module="oop">Object-Oriented Programming</div>
+            <div class="module" data-section="programming" data-module="dsa">Data Structures & Algorithms</div>
+            <div class="module" data-section="programming" data-module="python">Python</div>
+        </div>
+        
+        <div class="section">
+            <h2>AI Fundamentals</h2>
+            <div class="module" data-section="ai" data-module="ml">Machine Learning</div>
+            <div class="module" data-section="ai" data-module="ai-core">Artificial Intelligence</div>
+        </div>
+        
+        <div class="section">
+            <h2>Electives</h2>
+            <div class="module" data-section="electives" data-module="dl">Deep Learning</div>
+            <div class="module" data-section="electives" data-module="cv">Computer Vision</div>
+            <div class="module" data-section="electives" data-module="nlp">Natural Language Processing</div>
+        </div>
+    </div>
+    
+    <div class="game-container">
+        <div class="game-header">
+            <div class="progress-container">
+                <span>Progress:</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+            <div class="score-container">
+                Score: <span id="score">0</span>
+            </div>
+        </div>
+        
+        <div class="question-container">
+            <div class="question-text" id="question-text">Select a module to begin your challenge!</div>
+            <div class="options-container" id="options-container"></div>
+            <div class="feedback" id="feedback"></div>
+        </div>
+        
+        <div class="controls">
+            <button id="restart-btn">Restart Module</button>
+            <button id="next-btn">Next Question</button>
+        </div>
+    </div>
+    
+    <div class="resources">
+        <h2>Learning Resources</h2>
+        <ul>
+            <li><a href="#" target="_blank">Calculus Textbook</a></li>
+            <li><a href="#" target="_blank">Linear Algebra Interactive Guide</a></li>
+            <li><a href="#" target="_blank">Python Documentation</a></li>
+            <li><a href="#" target="_blank">Machine Learning Tutorials</a></li>
+            <li><a href="#" target="_blank">Deep Learning Specialization</a></li>
+        </ul>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentSection: null,
+            currentModule: null,
+            currentQuestion: 0,
+            score: 0,
+            progress: 0,
+            questions: [],
+            totalQuestions: 0
+        };
+
+        // DOM elements
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackEl = document.getElementById('feedback');
+        const scoreEl = document.getElementById('score');
+        const progressFill = document.getElementById('progress-fill');
+        const restartBtn = document.getElementById('restart-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const modules = document.querySelectorAll('.module');
+
+        // Question database
+        const questionDatabase = {
+            math: {
+                calculus: [
+                    {
+                        question: "What is the derivative of f(x) = 3x² + 2x?",
+                        options: ["6x + 2", "3x + 2", "6x² + 2", "3x² + 2"],
+                        answer: 0
+                    },
+                    {
+                        question: "What does the integral represent?",
+                        options: ["The slope of a curve", "The area under a curve", "The maximum value of a function", "The rate of change"],
+                        answer: 1
+                    },
+                    {
+                        question: "What is the limit of (x² - 4)/(x - 2) as x approaches 2?",
+                        options: ["0", "2", "4", "Undefined"],
+                        answer: 2
+                    }
+                ],
+                "linear-algebra": [
+                    {
+                        question: "What is the result of matrix multiplication for A = [[1,2],[3,4]] and B = [[5,6],[7,8]]?",
+                        options: ["[[19,22],[43,50]]", "[[5,12],[21,32]]", "[[6,8],[10,12]]", "[[23,34],[31,46]]"],
+                        answer: 0
+                    },
+                    {
+                        question: "What is a vector space?",
+                        options: ["A set of vectors closed under addition and scalar multiplication", 
+                                 "A collection of matrices", 
+                                 "A geometric representation of equations", 
+                                 "A space with only magnitude"],
+                        answer: 0
+                    }
+                ],
+                probability: [
+                    {
+                        question: "What does the Central Limit Theorem state?",
+                        options: ["Sample means approach normal distribution as sample size increases", 
+                                 "All probabilities sum to 1", 
+                                 "Variance decreases with sample size", 
+                                 "Correlation implies causation"],
+                        answer: 0
+                    },
+                    {
+                        question: "What is P(A|B) in probability?",
+                        options: ["Probability of A given B", 
+                                 "Probability of B given A", 
+                                 "Joint probability of A and B", 
+                                 "Marginal probability of A"],
+                        answer: 0
+                    }
+                ]
+            },
+            programming: {
+                linux: [
+                    {
+                        question: "Which command lists directory contents?",
+                        options: ["ls", "cd", "pwd", "mkdir"],
+                        answer: 0
+                    },
+                    {
+                        question: "What does 'grep' command do?",
+                        options: ["Search text using patterns", 
+                                 "Edit files", 
+                                 "Change permissions", 
+                                 "Compress files"],
+                        answer: 0
+                    }
+                ],
+                oop: [
+                    {
+                        question: "What are the four pillars of OOP?",
+                        options: ["Abstraction, Encapsulation, Inheritance, Polymorphism", 
+                                 "Classes, Objects, Methods, Properties", 
+                                 "Public, Private, Protected, Static", 
+                                 "Variables, Functions, Loops, Conditionals"],
+                        answer: 0
+                    },
+                    {
+                        question: "What is encapsulation?",
+                        options: ["Bundling data with methods that operate on that data", 
+                                 "Creating multiple instances of a class", 
+                                 "Hiding implementation details", 
+                                 "Reusing code from parent classes"],
+                        answer: 0
+                    }
+                ],
+                dsa: [
+                    {
+                        question: "What is the time complexity of a binary search?",
+                        options: ["O(log n)", "O(n)", "O(n log n)", "O(1)"],
+                        answer: 0
+                    },
+                    {
+                        question: "Which data structure uses LIFO principle?",
+                        options: ["Stack", "Queue", "Linked List", "Tree"],
+                        answer: 0
+                    }
+                ],
+                python: [
+                    {
+                        question: "Which library is used for numerical operations?",
+                        options: ["NumPy", "TensorFlow", "Pandas", "PyTorch"],
+                        answer: 0
+                    },
+                    {
+                        question: "How do you create a virtual environment?",
+                        options: ["python -m venv myenv", 
+                                 "pip install virtualenv", 
+                                 "conda create env", 
+                                 "python create env"],
+                        answer: 0
+                    }
+                ]
+            },
+            ai: {
+                ml: [
+                    {
+                        question: "What is supervised learning?",
+                        options: ["Learning with labeled data", 
+                                 "Learning without labeled data", 
+                                 "Learning from rewards", 
+                                 "Learning through neural networks"],
+                        answer: 0
+                    },
+                    {
+                        question: "Which algorithm is used for classification?",
+                        options: ["Logistic Regression", "Linear Regression", "K-Means", "PCA"],
+                        answer: 0
+                    }
+                ],
+                "ai-core": [
+                    {
+                        question: "What is a Markov Decision Process?",
+                        options: ["A mathematical framework for modeling decision making", 
+                                 "A type of neural network", 
+                                 "A clustering algorithm", 
+                                 "A feature extraction technique"],
+                        answer: 0
+                    },
+                    {
+                        question: "What is the minimax algorithm used for?",
+                        options: ["Game decision making", 
+                                 "Regression analysis", 
+                                 "Image recognition", 
+                                 "Natural language processing"],
+                        answer: 0
+                    }
+                ]
+            },
+            electives: {
+                dl: [
+                    {
+                        question: "What is an activation function in neural networks?",
+                        options: ["A function that determines neuron output", 
+                                 "A weight adjustment method", 
+                                 "A loss calculation technique", 
+                                 "A gradient descent variant"],
+                        answer: 0
+                    },
+                    {
+                        question: "What is backpropagation?",
+                        options: ["A method to update neural network weights", 
+                                 "A data preprocessing technique", 
+                                 "A type of neural network architecture", 
+                                 "An optimization algorithm"],
+                        answer: 0
+                    }
+                ],
+                cv: [
+                    {
+                        question: "What is the purpose of edge detection?",
+                        options: ["Identify boundaries in images", 
+                                 "Enhance image colors", 
+                                 "Reduce image noise", 
+                                 "Compress image data"],
+                        answer: 0
+                    }
+                ],
+                nlp: [
+                    {
+                        question: "What is tokenization in NLP?",
+                        options: ["Breaking text into words or phrases", 
+                                 "Converting words to vectors", 
+                                 "Identifying parts of speech", 
+                                 "Analyzing sentiment"],
+                        answer: 0
+                    }
+                ]
+            }
+        };
+
+        // Initialize game
+        function initGame() {
+            // Add event listeners to modules
+            modules.forEach(module => {
+                module.addEventListener('click', () => {
+                    const section = module.dataset.section;
+                    const moduleName = module.dataset.module;
+                    startModule(section, moduleName);
+                });
+            });
+
+            // Add event listeners to buttons
+            restartBtn.addEventListener('click', restartModule);
+            nextBtn.addEventListener('click', nextQuestion);
+        }
+
+        // Start a new module
+        function startModule(section, moduleName) {
+            gameState.currentSection = section;
+            gameState.currentModule = moduleName;
+            gameState.currentQuestion = 0;
+            gameState.score = 0;
+            gameState.progress = 0;
+            gameState.questions = [...questionDatabase[section][moduleName]];
+            gameState.totalQuestions = gameState.questions.length;
+            
+            updateScore();
+            updateProgress();
+            showQuestion();
+            
+            // Highlight selected module
+            modules.forEach(m => m.classList.remove('active'));
+            document.querySelector(`[data-section="${section}"][data-module="${moduleName}"]`).classList.add('active');
+        }
+
+        // Restart current module
+        function restartModule() {
+            if (gameState.currentModule) {
+                startModule(gameState.currentSection, gameState.currentModule);
+            }
+        }
+
+        // Show current question
+        function showQuestion() {
+            if (gameState.currentQuestion < gameState.totalQuestions) {
+                const question = gameState.questions[gameState.currentQuestion];
+                questionText.textContent = question.question;
+                
+                // Clear previous options
+                optionsContainer.innerHTML = '';
+                
+                // Create new options
+                question.options.forEach((option, index) => {
+                    const optionEl = document.createElement('div');
+                    optionEl.classList.add('option');
+                    optionEl.textContent = option;
+                    optionEl.dataset.index = index;
+                    optionEl.addEventListener('click', () => checkAnswer(index));
+                    optionsContainer.appendChild(optionEl);
+                });
+                
+                feedbackEl.textContent = '';
+                nextBtn.disabled = true;
+            } else {
+                endModule();
+            }
+        }
+
+        // Check selected answer
+        function checkAnswer(selectedIndex) {
+            const question = gameState.questions[gameState.currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            // Disable further selections
+            options.forEach(option => {
+                option.removeEventListener('click', checkAnswer);
+            });
+            
+            // Check answer
+            if (selectedIndex === question.answer) {
+                feedbackEl.textContent = 'Correct!';
+                feedbackEl.style.color = '#4CAF50';
+                gameState.score += 10;
+                options[selectedIndex].style.backgroundColor = '#c8e6c9';
+            } else {
+                feedbackEl.textContent = `Incorrect! The correct answer is: ${question.options[question.answer]}`;
+                feedbackEl.style.color = '#f44336';
+                options[selectedIndex].style.backgroundColor = '#ffcdd2';
+                options[question.answer].style.backgroundColor = '#c8e6c9';
+            }
+            
+            updateScore();
+            nextBtn.disabled = false;
+        }
+
+        // Move to next question
+        function nextQuestion() {
+            gameState.currentQuestion++;
+            gameState.progress = (gameState.currentQuestion / gameState.totalQuestions) * 100;
+            updateProgress();
+            showQuestion();
+        }
+
+        // Update score display
+        function updateScore() {
+            scoreEl.textContent = gameState.score;
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            progressFill.style.width = `${gameState.progress}%`;
+        }
+
+        // End module
+        function endModule() {
+            questionText.textContent = `Module Complete! Final Score: ${gameState.score}/${gameState.totalQuestions * 10}`;
+            optionsContainer.innerHTML = '';
+            feedbackEl.textContent = 'Select another module to continue learning!';
+            nextBtn.disabled = true;
+        }
+
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

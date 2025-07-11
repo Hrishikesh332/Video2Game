@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHAP Limitations Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #666666;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            background-color: #f5f5f5;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            color: #444444;
+        }
+        
+        .tab-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .tab-btn.active {
+            background-color: #333333;
+            color: white;
+        }
+        
+        .section {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #222222;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .explanation {
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+        
+        .interactive-area {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+        }
+        
+        select, button {
+            padding: 12px 18px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            background-color: white;
+            margin: 10px 0;
+        }
+        
+        button {
+            background-color: #333333;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #555555;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .supported {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .not-supported {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+        }
+        
+        canvas {
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            background-color: white;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .quote {
+            font-style: italic;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-left: 4px solid #333;
+            margin: 25px 0;
+        }
+        
+        .author {
+            text-align: right;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .scenario {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+        }
+        
+        .shap-plot {
+            height: 150px;
+            background-color: #f0f0f0;
+            margin: 15px 0;
+            border-radius: 4px;
+            display: flex;
+            align-items: flex-end;
+            padding: 10px;
+            gap: 30px;
+            justify-content: center;
+        }
+        
+        .bar {
+            width: 60px;
+            background-color: #333;
+            position: relative;
+            text-align: center;
+            color: white;
+            font-size: 0.9rem;
+            padding-top: 5px;
+        }
+        
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #333;
+        }
+        
+        .narrative {
+            font-size: 1.1rem;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        
+        .choices {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .choice-btn {
+            flex: 1;
+            padding: 12px;
+        }
+        
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .correct {
+            background-color: #e8f5e9;
+            border: 1px solid #a5d6a7;
+        }
+        
+        .incorrect {
+            background-color: #ffebee;
+            border: 1px solid #ef9a9a;
+        }
+        
+        .progress {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0 20px;
+            font-weight: bold;
+        }
+        
+        .completion-message {
+            text-align: center;
+            padding: 30px;
+            font-size: 1.2rem;
+            display: none;
+        }
+        
+        .restart-btn {
+            margin: 20px auto;
+            display: block;
+            padding: 12px 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .section {
+                padding: 20px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .choices {
+                flex-direction: column;
+            }
+            
+            .canvas-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Understanding SHAP Limitations</h1>
+        <p class="subtitle">An interactive exploration of key limitations in SHAP (SHapley Additive exPlanations)</p>
+    </header>
+    
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="model-support">Model Support</button>
+        <button class="tab-btn" data-tab="feature-dependencies">Feature Dependencies</button>
+        <button class="tab-btn" data-tab="causal-analysis">Causal Analysis</button>
+        <button class="tab-btn" data-tab="human-error">Human Error Game</button>
+    </div>
+    
+    <section id="model-support" class="section active">
+        <h2>Model Agnosticism in Practice</h2>
+        <p class="explanation">
+            While SHAP is theoretically model-agnostic, practical implementation support varies across machine learning frameworks. 
+            Select a framework below to see its current SHAP support status.
+        </p>
+        
+        <div class="interactive-area">
+            <label for="framework-select">Select a machine learning framework:</label>
+            <select id="framework-select">
+                <option value="">-- Choose a framework --</option>
+                <option value="scikit-learn">scikit-learn</option>
+                <option value="xgboost">XGBoost</option>
+                <option value="catboost">CatBoost</option>
+                <option value="pytorch">PyTorch</option>
+                <option value="keras">Keras</option>
+                <option value="tensorflow">TensorFlow</option>
+                <option value="lightgbm">LightGBM</option>
+            </select>
+            
+            <div id="support-result" class="result"></div>
+        </div>
+    </section>
+    
+    <section id="feature-dependencies" class="section">
+        <h2>Feature Dependencies</h2>
+        <p class="explanation">
+            SHAP values can be misleading when features are correlated. Permuting features independently may create unrealistic data points. 
+            Click on any data point to see how SHAP evaluates feature importance across realistic and unrealistic ranges.
+        </p>
+        
+        <div class="interactive-area">
+            <div class="canvas-container">
+                <canvas id="scatter-plot" width="800" height="400"></canvas>
+            </div>
+            
+            <div class="controls">
+                <button id="toggle-range">Show Unrealistic Range</button>
+                <div id="point-info">Click on a data point to examine it</div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="causal-analysis" class="section">
+        <h2>Not for Causal Analysis</h2>
+        <p class="explanation">
+            SHAP explains model behavior but does not establish real-world causality. High SHAP values indicate feature importance to the model, 
+            not necessarily real-world importance.
+        </p>
+        
+        <div class="quote">
+            "SHAP is not a measure of how important a given feature is in the real world, it simply shows how important a feature is to the model."
+            <div class="author">- Gianlucca Zuin</div>
+        </div>
+        
+        <div class="interactive-area">
+            <h3>Proxy Variable Example</h3>
+            <p>Adjust the ice cream sales and observe how it affects the sunburn prediction:</p>
+            
+            <div class="controls">
+                <label for="ice-cream-slider">Ice Cream Sales: </label>
+                <input type="range" id="ice-cream-slider" min="0" max="100" value="50">
+                <span id="ice-cream-value">50</span>
+            </div>
+            
+            <div class="shap-plot">
+                <div class="bar" style="height: 70px;">
+                    70
+                    <div class="bar-label">Ice Cream</div>
+                </div>
+                <div class="bar" style="height: 30px;">
+                    30
+                    <div class="bar-label">Sunscreen</div>
+                </div>
+                <div class="bar" style="height: 45px;">
+                    45
+                    <div class="bar-label">Beach Visits</div>
+                </div>
+            </div>
+            
+            <p id="proxy-explanation">
+                Notice how "Ice Cream Sales" appears highly important to the model, but this is actually due to its correlation with sunny weather (the real cause of sunburns). SHAP values reflect model behavior, not real-world causality.
+            </p>
+        </div>
+    </section>
+    
+    <section id="human-error" class="section">
+        <h2>Human Error Challenge</h2>
+        <p class="explanation">
+            Avoid drawing incorrect conclusions from SHAP values! In this game, you'll evaluate narratives based on SHAP plots. 
+            Identify which narratives are valid interpretations and which are misleading.
+        </p>
+        
+        <div class="interactive-area game-container">
+            <div class="progress">
+                <div>Score: <span id="score">0</span>/3</div>
+                <div>Question: <span id="current">1</span>/3</div>
+            </div>
+            
+            <div id="scenario-1" class="scenario">
+                <div class="shap-plot">
+                    <div class="bar" style="height: 120px;">
+                        120
+                        <div class="bar-label">Ice Cream</div>
+                    </div>
+                    <div class="bar" style="height: 40px;">
+                        40
+                        <div class="bar-label">Sunscreen</div>
+                    </div>
+                    <div class="bar" style="height: 80px;">
+                        80
+                        <div class="bar-label">Beach Visits</div>
+                    </div>
+                </div>
+                
+                <p class="narrative">"Ice cream consumption is the primary cause of sunburns."</p>
+                
+                <div class="choices">
+                    <button class="choice-btn" data-correct="false">Valid Interpretation</button>
+                    <button class="choice-btn" data-correct="true">Misleading Narrative</button>
+                </div>
+                
+                <div class="feedback">
+                    <p>Explanation: This confuses correlation with causation. Ice cream sales correlate with sunny weather, which is the actual cause.</p>
+                </div>
+            </div>
+            
+            <div id="scenario-2" class="scenario" style="display:none">
+                <div class="shap-plot">
+                    <div class="bar" style="height: 90px;">
+                        90
+                        <div class="bar-label">Car Age</div>
+                    </div>
+                    <div class="bar" style="height: 60px;">
+                        60
+                        <div class="bar-label">Mileage</div>
+                    </div>
+                    <div class="bar" style="height: 30px;">
+                        30
+                        <div class="bar-label">Brand</div>
+                    </div>
+                </div>
+                
+                <p class="narrative">"Older cars always have lower values according to this model."</p>
+                
+                <div class="choices">
+                    <button class="choice-btn" data-correct="false">Valid Interpretation</button>
+                    <button class="choice-btn" data-correct="true">Misleading Narrative</button>
+                </div>
+                
+                <div class="feedback">
+                    <p>Explanation: While generally true, classic cars can be exceptions. SHAP shows average impact, not universal rules.</p>
+                </div>
+            </div>
+            
+            <div id="scenario-3" class="scenario" style="display:none">
+                <div class="shap-plot">
+                    <div class="bar" style="height: 110px;">
+                        110
+                        <div class="bar-label">Education</div>
+                    </div>
+                    <div class="bar" style="height: 70px;">
+                        70
+                        <div class="bar-label">Experience</div>
+                    </div>
+                    <div class="bar" style="height: 40px;">
+                        40
+                        <div class="bar-label">Location</div>
+                    </div>
+                </div>
+                
+                <p class="narrative">"Education level is the most important factor for salary in this model."</p>
+                
+                <div class="choices">
+                    <button class="choice-btn" data-correct="true">Valid Interpretation</button>
+                    <button class="choice-btn" data-correct="false">Misleading Narrative</button>
+                </div>
+                
+                <div class="feedback">
+                    <p>Explanation: This correctly describes what the model has learned, without making causal claims beyond the model.</p>
+                </div>
+            </div>
+            
+            <div id="completion-message" class="completion-message">
+                <h3>Game Completed!</h3>
+                <p>Your final score: <span id="final-score">0</span>/3</p>
+                <button id="restart-btn" class="restart-btn">Play Again</button>
+            </div>
+        </div>
+    </section>
+    
+    <script>
+        // Tab navigation
+        document.querySelectorAll('.tab-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active tab
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                button.classList.add('active');
+                
+                // Show active section
+                const targetTab = button.getAttribute('data-tab');
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                document.getElementById(targetTab).classList.add('active');
+            });
+        });
+        
+        // Section 1: Model Support
+        const frameworkSelect = document.getElementById('framework-select');
+        const supportResult = document.getElementById('support-result');
+        
+        const supportStatus = {
+            'scikit-learn': 'Supported',
+            'xgboost': 'Supported',
+            'catboost': 'Supported',
+            'lightgbm': 'Supported',
+            'keras': 'Supported',
+            'tensorflow': 'Partially Supported',
+            'pytorch': 'Not Supported'
+        };
+        
+        frameworkSelect.addEventListener('change', () => {
+            const framework = frameworkSelect.value;
+            if (!framework) {
+                supportResult.textContent = '';
+                supportResult.className = 'result';
+                return;
+            }
+            
+            const status = supportStatus[framework] || 'Not Supported';
+            supportResult.textContent = `${framework}: ${status}`;
+            supportResult.className = `result ${status.includes('Not') ? 'not-supported' : 'supported'}`;
+        });
+        
+        // Section 2: Feature Dependencies
+        const canvas = document.getElementById('scatter-plot');
+        const ctx = canvas.getContext('2d');
+        const toggleBtn = document.getElementById('toggle-range');
+        const pointInfo = document.getElementById('point-info');
+        
+        let showUnrealistic = false;
+        let selectedPoint = null;
+        
+        // Generate sample data
+        const data = [];
+        for (let i = 0; i < 50; i++) {
+            const age = Math.floor(Math.random() * 20);
+            const km = 5000 + age * 2000 + Math.random() * 10000 - 5000;
+            data.push({ age, km: Math.max(0, km) });
+        }
+        
+        // Draw scatter plot
+        function drawScatterPlot() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(50, 350);
+            ctx.lineTo(750, 350);
+            ctx.moveTo(50, 50);
+            ctx.lineTo(50, 350);
+            ctx.stroke();
+            
+            // Draw labels
+            ctx.fillStyle = '#333';
+            ctx.font = '14px sans-serif';
+            ctx.fillText('Car Age (years)', 400, 390);
+            ctx.save();
+            ctx.rotate(-Math.PI/2);
+            ctx.fillText('Kilometers Driven', -200, 20);
+            ctx.restore();
+            
+            // Draw data points
+            data.forEach(point => {
+                const x = 50 + (point.age / 20) * 700;
+                const y = 350 - (point.km / 200000) * 300;
+                
+                ctx.fillStyle = point === selectedPoint ? '#c62828' : '#333';
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // Draw selected point analysis
+            if (selectedPoint) {
+                const x = 50 + (selectedPoint.age / 20) * 700;
+                const y = 350 - (selectedPoint.km / 200000) * 300;
+                
+                // Realistic range
+                ctx.strokeStyle = '#2e7d32';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x, 50);
+                ctx.lineTo(x, 350);
+                ctx.stroke();
+                
+                if (showUnrealistic) {
+                    // Unrealistic range
+                    ctx.strokeStyle = '#c62828';
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(50, y);
+                    ctx.lineTo(750, y);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                
+                // Point info
+                pointInfo.textContent = `Selected: ${selectedPoint.age} year old car with ${Math.round(selectedPoint.km)} km.`;
+            }
+        }
+        
+        // Initial draw
+        drawScatterPlot();
+        
+        // Point selection
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Find closest point
+            let minDist = Infinity;
+            let closestPoint = null;
+            
+            data.forEach(point => {
+                const pointX = 50 + (point.age / 20) * 700;
+                const pointY = 350 - (point.km / 200000) * 300;
+                const dist = Math.sqrt((x - pointX) ** 2 + (y - pointY) ** 2);
+                
+                if (dist < minDist && dist < 15) {
+                    minDist = dist;
+                    closestPoint = point;
+                }
+            });
+            
+            selectedPoint = closestPoint;
+            drawScatterPlot();
+        });
+        
+        // Toggle range
+        toggleBtn.addEventListener('click', () => {
+            showUnrealistic = !showUnrealistic;
+            toggleBtn.textContent = showUnrealistic ? 'Show Realistic Range' : 'Show Unrealistic Range';
+            drawScatterPlot();
+        });
+        
+        // Section 3: Proxy Variables
+        const iceCreamSlider = document.getElementById('ice-cream-slider');
+        const iceCreamValue = document.getElementById('ice-cream-value');
+        
+        iceCreamSlider.addEventListener('input', () => {
+            iceCreamValue.textContent = iceCreamSlider.value;
+        });
+        
+        // Section 4: Human Error Game
+        let score = 0;
+        let currentQuestion = 1;
+        const totalQuestions = 3;
+        
+        document.querySelectorAll('.choice-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const scenario = this.closest('.scenario');
+                const isCorrect = this.getAttribute('data-correct') === 'true';
+                const feedback = scenario.querySelector('.feedback');
+                
+                // Update score
+                if (isCorrect) {
+                    score++;
+                    feedback.className = 'feedback correct';
+                } else {
+                    feedback.className = 'feedback incorrect';
+                }
+                
+                // Show feedback
+                feedback.style.display = 'block';
+                
+                // Update score display
+                document.getElementById('score').textContent = score;
+                
+                // Disable buttons
+                scenario.querySelectorAll('.choice-btn').forEach(btn => {
+                    btn.disabled = true;
+                });
+                
+                // Move to next question after delay
+                setTimeout(() => {
+                    if (currentQuestion < totalQuestions) {
+                        scenario.style.display = 'none';
+                        document.getElementById(`scenario-${currentQuestion + 1}`).style.display = 'block';
+                        currentQuestion++;
+                        document.getElementById('current').textContent = currentQuestion;
+                    } else {
+                        // Game completed
+                        document.querySelectorAll('.scenario').forEach(s => {
+                            s.style.display = 'none';
+                        });
+                        document.getElementById('final-score').textContent = score;
+                        document.getElementById('completion-message').style.display = 'block';
+                    }
+                }, 2000);
+            });
+        });
+        
+        // Restart game
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            score = 0;
+            currentQuestion = 1;
+            
+            document.getElementById('score').textContent = '0';
+            document.getElementById('current').textContent = '1';
+            document.getElementById('completion-message').style.display = 'none';
+            
+            document.querySelectorAll('.scenario').forEach((scenario, index) => {
+                scenario.style.display = index === 0 ? 'block' : 'none';
+                scenario.querySelector('.feedback').style.display = 'none';
+                scenario.querySelectorAll('.choice-btn').forEach(btn => {
+                    btn.disabled = false;
+                });
+            });
+        });
+        
+        // Responsive canvas
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            drawScatterPlot();
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+    </script>
+</body>
+</html>

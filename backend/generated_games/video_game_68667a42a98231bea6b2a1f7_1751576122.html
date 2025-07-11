@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Analysis Challenge</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .game-container {
+            max-width: 800px;
+            width: 100%;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #222222;
+            margin-bottom: 20px;
+            font-size: 2.2rem;
+        }
+        
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .instructions {
+            background-color: #e9e9e9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .btn {
+            background-color: #333333;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #555555;
+        }
+        
+        .btn:disabled {
+            background-color: #aaaaaa;
+            cursor: not-allowed;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .option {
+            background-color: #e0e0e0;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #d0d0d0;
+            transform: translateY(-3px);
+        }
+        
+        .option.correct {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .option.incorrect {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #cccccc;
+            border-radius: 50%;
+            margin: 0 5px;
+        }
+        
+        .progress-dot.active {
+            background-color: #333333;
+        }
+        
+        .score-display {
+            font-size: 1.2rem;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .feedback {
+            min-height: 60px;
+            margin: 20px 0;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .high-score {
+            margin-top: 20px;
+            font-size: 1.1rem;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 15px;
+            }
+            
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active">
+            <h1>Video Analysis Challenge</h1>
+            <div class="instructions">
+                <p>Test your understanding of the video content! Complete 3 levels of challenges:</p>
+                <ul>
+                    <li>Level 1: Key Concepts</li>
+                    <li>Level 2: Detail Recognition</li>
+                    <li>Level 3: Critical Analysis</li>
+                </ul>
+                <p>Select the correct answers to earn points. Try to beat the high score!</p>
+            </div>
+            <button id="start-btn" class="btn">Start Challenge</button>
+            <div class="high-score">High Score: <span id="high-score-value">0</span></div>
+        </div>
+        
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <h1>Level <span id="level-indicator">1</span></h1>
+            <div class="progress-container">
+                <div class="progress-dot active" id="dot-1"></div>
+                <div class="progress-dot" id="dot-2"></div>
+                <div class="progress-dot" id="dot-3"></div>
+            </div>
+            <div class="score-display">Score: <span id="score">0</span></div>
+            <div id="question" class="question">Loading question...</div>
+            <div class="options-container" id="options-container"></div>
+            <div id="feedback" class="feedback"></div>
+            <button id="next-btn" class="btn" disabled>Next Question</button>
+        </div>
+        
+        <!-- End Screen -->
+        <div id="end-screen" class="screen">
+            <h1>Challenge Complete!</h1>
+            <div class="score-display">Final Score: <span id="final-score">0</span></div>
+            <div id="performance-comment" class="feedback"></div>
+            <div class="high-score">High Score: <span id="final-high-score">0</span></div>
+            <button id="restart-btn" class="btn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Game data
+        const gameData = {
+            levels: [
+                {
+                    title: "Key Concepts",
+                    questions: [
+                        {
+                            question: "What was the primary topic discussed in the video?",
+                            options: ["Technical specifications", "Historical context", "Practical applications", "Future predictions"],
+                            answer: 2
+                        },
+                        {
+                            question: "Which concept was emphasized as most important?",
+                            options: ["Efficiency", "Scalability", "Security", "Cost-effectiveness"],
+                            answer: 0
+                        },
+                        {
+                            question: "What was the main argument presented?",
+                            options: ["Traditional methods are obsolete", "Hybrid approaches are superior", "Innovation requires risk", "Standardization is essential"],
+                            answer: 1
+                        }
+                    ]
+                },
+                {
+                    title: "Detail Recognition",
+                    questions: [
+                        {
+                            question: "What specific example was used to demonstrate the concept?",
+                            options: ["Case Study A", "Case Study B", "Case Study C", "Case Study D"],
+                            answer: 0
+                        },
+                        {
+                            question: "Which statistic was mentioned regarding implementation?",
+                            options: ["25% improvement", "40% reduction", "60% adoption", "75% success rate"],
+                            answer: 3
+                        },
+                        {
+                            question: "What timeframe was referenced for the predictions?",
+                            options: ["1-2 years", "3-5 years", "5-10 years", "10+ years"],
+                            answer: 2
+                        }
+                    ]
+                },
+                {
+                    title: "Critical Analysis",
+                    questions: [
+                        {
+                            question: "What potential limitation was acknowledged?",
+                            options: ["Resource requirements", "Technical complexity", "Market readiness", "Regulatory challenges"],
+                            answer: 3
+                        },
+                        {
+                            question: "Which alternative approach was compared?",
+                            options: ["Method X", "Method Y", "Method Z", "Traditional method"],
+                            answer: 1
+                        },
+                        {
+                            question: "What was suggested as the key to successful implementation?",
+                            options: ["Expert training", "Infrastructure investment", "Stakeholder alignment", "Iterative development"],
+                            answer: 2
+                        }
+                    ]
+                }
+            ],
+            currentLevel: 0,
+            currentQuestion: 0,
+            score: 0,
+            highScore: localStorage.getItem('videoAnalysisHighScore') || 0
+        };
+
+        // DOM Elements
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const startBtn = document.getElementById('start-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const levelIndicator = document.getElementById('level-indicator');
+        const questionElement = document.getElementById('question');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackElement = document.getElementById('feedback');
+        const scoreElement = document.getElementById('score');
+        const finalScoreElement = document.getElementById('final-score');
+        const highScoreElement = document.getElementById('high-score-value');
+        const finalHighScoreElement = document.getElementById('final-high-score');
+        const performanceComment = document.getElementById('performance-comment');
+        const progressDots = [
+            document.getElementById('dot-1'),
+            document.getElementById('dot-2'),
+            document.getElementById('dot-3')
+        ];
+
+        // Initialize high score display
+        highScoreElement.textContent = gameData.highScore;
+        finalHighScoreElement.textContent = gameData.highScore;
+
+        // Event Listeners
+        startBtn.addEventListener('click', startGame);
+        nextBtn.addEventListener('click', nextQuestion);
+        restartBtn.addEventListener('click', restartGame);
+
+        // Game Functions
+        function startGame() {
+            gameData.currentLevel = 0;
+            gameData.currentQuestion = 0;
+            gameData.score = 0;
+            scoreElement.textContent = '0';
+            startScreen.classList.remove('active');
+            gameScreen.classList.add('active');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const level = gameData.levels[gameData.currentLevel];
+            const question = level.questions[gameData.currentQuestion];
+            
+            levelIndicator.textContent = gameData.currentLevel + 1;
+            questionElement.textContent = question.question;
+            optionsContainer.innerHTML = '';
+            
+            // Update progress dots
+            progressDots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === gameData.currentQuestion);
+            });
+            
+            // Create options
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('option');
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+                optionElement.addEventListener('click', selectOption);
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            feedbackElement.textContent = '';
+            nextBtn.disabled = true;
+        }
+
+        function selectOption(e) {
+            if (nextBtn.disabled) {
+                const selectedOption = e.target;
+                const selectedIndex = parseInt(selectedOption.dataset.index);
+                const correctIndex = gameData.levels[gameData.currentLevel].questions[gameData.currentQuestion].answer;
+                
+                // Disable all options
+                document.querySelectorAll('.option').forEach(option => {
+                    option.removeEventListener('click', selectOption);
+                    option.style.cursor = 'default';
+                });
+                
+                // Show correct/incorrect
+                if (selectedIndex === correctIndex) {
+                    selectedOption.classList.add('correct');
+                    feedbackElement.textContent = 'Correct! +10 points';
+                    gameData.score += 10;
+                    scoreElement.textContent = gameData.score;
+                } else {
+                    selectedOption.classList.add('incorrect');
+                    // Highlight correct answer
+                    document.querySelectorAll('.option')[correctIndex].classList.add('correct');
+                    feedbackElement.textContent = 'Incorrect! The correct answer is highlighted.';
+                }
+                
+                nextBtn.disabled = false;
+            }
+        }
+
+        function nextQuestion() {
+            gameData.currentQuestion++;
+            
+            // Check if level is complete
+            if (gameData.currentQuestion >= gameData.levels[gameData.currentLevel].questions.length) {
+                gameData.currentQuestion = 0;
+                gameData.currentLevel++;
+                
+                // Check if game is complete
+                if (gameData.currentLevel >= gameData.levels.length) {
+                    endGame();
+                    return;
+                }
+            }
+            
+            loadQuestion();
+        }
+
+        function endGame() {
+            // Update high score
+            if (gameData.score > gameData.highScore) {
+                gameData.highScore = gameData.score;
+                localStorage.setItem('videoAnalysisHighScore', gameData.highScore);
+                finalHighScoreElement.textContent = gameData.highScore;
+            }
+            
+            finalScoreElement.textContent = gameData.score;
+            
+            // Performance comment
+            const percentage = Math.round((gameData.score / 90) * 100);
+            let comment = '';
+            if (percentage >= 90) {
+                comment = 'Excellent! You demonstrated mastery of the video content.';
+            } else if (percentage >= 70) {
+                comment = 'Great job! You have a strong understanding of the material.';
+            } else if (percentage >= 50) {
+                comment = 'Good effort! Review the video to strengthen your knowledge.';
+            } else {
+                comment = 'Keep learning! Revisit the video to improve your understanding.';
+            }
+            performanceComment.textContent = comment;
+            
+            gameScreen.classList.remove('active');
+            endScreen.classList.add('active');
+        }
+
+        function restartGame() {
+            endScreen.classList.remove('active');
+            startGame();
+        }
+    </script>
+</body>
+</html>

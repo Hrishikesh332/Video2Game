@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Learning Roadmap</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .card {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #222222;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        
+        .module {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .module h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #444444;
+        }
+        
+        .resources {
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .resources a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        
+        .resources a:hover {
+            text-decoration: underline;
+        }
+        
+        .progress-container {
+            margin-top: 15px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #555555;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #333333;
+        }
+        
+        .quiz-container {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        
+        @media (min-width: 480px) {
+            .options {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .option {
+            padding: 12px;
+            background-color: #ffffff;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #f5f5f5;
+            border-color: #cccccc;
+        }
+        
+        .option.selected {
+            background-color: #e3f2fd;
+            border-color: #2196F3;
+        }
+        
+        .option.correct {
+            background-color: #e8f5e9;
+            border-color: #4CAF50;
+        }
+        
+        .option.incorrect {
+            background-color: #ffebee;
+            border-color: #f44336;
+        }
+        
+        .feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .score-container {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .completion-badge {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        .path-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .path {
+            flex: 1;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .path h3 {
+            margin-bottom: 10px;
+            color: #444444;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #666666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>AI Learning Roadmap</h1>
+        <p>Build your foundational knowledge for AI mastery</p>
+    </header>
+    
+    <div class="container">
+        <div class="card">
+            <h2>Foundational Knowledge</h2>
+            
+            <div class="module">
+                <h3>Calculus <span class="completion-badge hidden">✓</span></h3>
+                <p>Differential and integral calculus concepts</p>
+                <div class="resources">
+                    <p>Resources: <a href="https://www.khanacademy.org/math/calculus-1" target="_blank">Khan Academy</a></p>
+                    <p>Time commitment: 15 hours</p>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="calculus-progress"></div>
+                </div>
+                <button class="btn start-quiz" data-module="calculus">Start Quiz</button>
+            </div>
+            
+            <div class="module">
+                <h3>Linear Algebra <span class="completion-badge hidden">✓</span></h3>
+                <p>Vectors, matrices, and linear transformations</p>
+                <div class="resources">
+                    <p>Resources: <a href="https://ocw.mit.edu/courses/mathematics/18-06-linear-algebra-spring-2010/" target="_blank">MIT OpenCourseWare</a></p>
+                    <p>Time commitment: 20 hours</p>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="linear-progress"></div>
+                </div>
+                <button class="btn start-quiz" data-module="linear">Start Quiz</button>
+            </div>
+            
+            <div class="module">
+                <h3>Probability & Statistics <span class="completion-badge hidden">✓</span></h3>
+                <p>Probability distributions and statistical methods</p>
+                <div class="resources">
+                    <p>Resources: <a href="https://www.khanacademy.org/math/statistics-probability" target="_blank">Khan Academy</a></p>
+                    <p>Time commitment: 18 hours</p>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="stats-progress"></div>
+                </div>
+                <button class="btn start-quiz" data-module="stats">Start Quiz</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Programming Fundamentals</h2>
+            
+            <div class="module">
+                <h3>Python Programming <span class="completion-badge hidden">✓</span></h3>
+                <p>Python syntax and core programming concepts</p>
+                <div class="resources">
+                    <p>Resources: <a href="https://www.codecademy.com/learn/learn-python-3" target="_blank">Codecademy</a></p>
+                    <p>Time commitment: 25 hours</p>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="python-progress"></div>
+                </div>
+                <button class="btn start-quiz" data-module="python">Start Quiz</button>
+            </div>
+            
+            <div class="module">
+                <h3>Data Structures & Algorithms <span class="completion-badge hidden">✓</span></h3>
+                <p>Essential data structures and algorithmic thinking</p>
+                <div class="resources">
+                    <p>Resources: <a href="https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-006-introduction-to-algorithms-fall-2011/" target="_blank">MIT OpenCourseWare</a></p>
+                    <p>Time commitment: 30 hours</p>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="algo-progress"></div>
+                </div>
+                <button class="btn start-quiz" data-module="algo">Start Quiz</button>
+            </div>
+            
+            <div class="module">
+                <h3>Linux Command Line <span class="completion-badge hidden">✓</span></h3>
+                <p>Essential terminal commands and environment</p>
+                <div class="resources">
+                    <p>Resources: <a href="https://www.learnenough.com/command-line-tutorial" target="_blank">Learn Enough</a></p>
+                    <p>Time commitment: 10 hours</p>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="linux-progress"></div>
+                </div>
+                <button class="btn start-quiz" data-module="linux">Start Quiz</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>AI Fundamentals</h2>
+            <div class="path-container">
+                <div class="path">
+                    <h3>Machine Learning Path</h3>
+                    <p>Supervised/unsupervised learning, model evaluation</p>
+                    <div class="resources">
+                        <p>Resources: <a href="https://www.coursera.org/learn/machine-learning" target="_blank">Coursera</a></p>
+                    </div>
+                </div>
+                <div class="path">
+                    <h3>Artificial Intelligence Path</h3>
+                    <p>Search algorithms, knowledge representation, planning</p>
+                    <div class="resources">
+                        <p>Resources: <a href="https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-034-artificial-intelligence-fall-2010/" target="_blank">MIT OpenCourseWare</a></p>
+                    </div>
+                </div>
+            </div>
+            <button class="btn" id="ai-quiz-btn">Test AI Knowledge</button>
+        </div>
+        
+        <div class="card">
+            <h2>Projects & Specialization</h2>
+            <p>Apply knowledge through practical projects</p>
+            <div class="resources">
+                <p>Project ideas: Image classifier, sentiment analysis, recommendation system</p>
+                <p>Advanced topics: Deep Learning, NLP, Computer Vision</p>
+            </div>
+            <button class="btn" id="project-btn">Project Challenge</button>
+        </div>
+    </div>
+    
+    <div class="quiz-container hidden" id="quiz-screen">
+        <h2 id="quiz-title">Module Quiz</h2>
+        <div class="question" id="question-text">Question text goes here</div>
+        <div class="options" id="options-container">
+            <!-- Options will be inserted here by JavaScript -->
+        </div>
+        <div class="feedback" id="feedback"></div>
+        <button class="btn hidden" id="next-btn">Next Question</button>
+        <button class="btn hidden" id="finish-btn">Finish Quiz</button>
+        <div class="score-container">
+            Score: <span id="score">0</span>/<span id="total-questions">0</span>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Track your progress and build AI expertise step by step</p>
+    </footer>
+
+    <script>
+        // Quiz data for each module
+        const quizData = {
+            calculus: [
+                {
+                    question: "What is the derivative of x²?",
+                    options: ["2x", "x", "2", "x²"],
+                    correct: 0
+                },
+                {
+                    question: "Which concept is fundamental to gradient descent?",
+                    options: ["Integration", "Derivatives", "Limits", "Series"],
+                    correct: 1
+                },
+                {
+                    question: "What does the integral represent?",
+                    options: ["Slope of a curve", "Area under a curve", "Curvature", "Rate of change"],
+                    correct: 1
+                }
+            ],
+            linear: [
+                {
+                    question: "What is a matrix?",
+                    options: ["A single number", "A set of vectors", "A rectangular array of numbers", "A type of equation"],
+                    correct: 2
+                },
+                {
+                    question: "Which operation is essential in neural networks?",
+                    options: ["Matrix addition", "Matrix multiplication", "Matrix inversion", "Matrix transposition"],
+                    correct: 1
+                },
+                {
+                    question: "What do eigenvectors represent?",
+                    options: ["Directions that stay the same during transformation", "Magnitude of transformation", "Determinant values", "Inverse operations"],
+                    correct: 0
+                }
+            ],
+            stats: [
+                {
+                    question: "What does standard deviation measure?",
+                    options: ["Central tendency", "Data spread", "Data correlation", "Probability"],
+                    correct: 1
+                },
+                {
+                    question: "Which distribution is commonly used in hypothesis testing?",
+                    options: ["Uniform", "Normal", "Exponential", "Poisson"],
+                    correct: 1
+                },
+                {
+                    question: "What is Bayes' theorem used for?",
+                    options: ["Descriptive statistics", "Updating probabilities", "Regression analysis", "Data visualization"],
+                    correct: 1
+                }
+            ],
+            python: [
+                {
+                    question: "Which data structure uses key-value pairs?",
+                    options: ["List", "Tuple", "Dictionary", "Set"],
+                    correct: 2
+                },
+                {
+                    question: "How do you create a virtual environment?",
+                    options: ["python create env", "venv myenv", "python -m venv myenv", "virtual myenv"],
+                    correct: 2
+                },
+                {
+                    question: "Which library is essential for numerical operations?",
+                    options: ["Pandas", "Matplotlib", "NumPy", "Scikit-learn"],
+                    correct: 2
+                }
+            ],
+            algo: [
+                {
+                    question: "What is the time complexity of binary search?",
+                    options: ["O(1)", "O(n)", "O(log n)", "O(n²)"],
+                    correct: 2
+                },
+                {
+                    question: "Which data structure uses LIFO principle?",
+                    options: ["Queue", "Stack", "Heap", "Tree"],
+                    correct: 1
+                },
+                {
+                    question: "What does DFS stand for?",
+                    options: ["Depth-First Search", "Data File System", "Dynamic Function Structure", "Depth-Field Selection"],
+                    correct: 0
+                }
+            ],
+            linux: [
+                {
+                    question: "Which command lists directory contents?",
+                    options: ["cd", "ls", "pwd", "mkdir"],
+                    correct: 1
+                },
+                {
+                    question: "How do you create a new directory?",
+                    options: ["cd dirname", "touch dirname", "mkdir dirname", "new dirname"],
+                    correct: 2
+                },
+                {
+                    question: "What does 'grep' do?",
+                    options: ["Manage processes", "Search text patterns", "Compress files", "Change permissions"],
+                    correct: 1
+                }
+            ],
+            ai: [
+                {
+                    question: "What is overfitting in machine learning?",
+                    options: ["Model too simple", "Model memorizes training data", "Model ignores features", "Slow training"],
+                    correct: 1
+                },
+                {
+                    question: "Which algorithm is unsupervised?",
+                    options: ["Linear Regression", "K-Means", "SVM", "Decision Tree"],
+                    correct: 1
+                },
+                {
+                    question: "What does CNN stand for?",
+                    options: ["Common Neural Network", "Convolutional Neural Network", "Complex Node Network", "Centralized Neural Nodes"],
+                    correct: 1
+                }
+            ]
+        };
+
+        // Game state
+        const gameState = {
+            currentModule: null,
+            currentQuestion: 0,
+            score: 0,
+            progress: {
+                calculus: 0,
+                linear: 0,
+                stats: 0,
+                python: 0,
+                algo: 0,
+                linux: 0,
+                ai: 0
+            }
+        };
+
+        // DOM elements
+        const quizScreen = document.getElementById('quiz-screen');
+        const quizTitle = document.getElementById('quiz-title');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+        const nextBtn = document.getElementById('next-btn');
+        const finishBtn = document.getElementById('finish-btn');
+        const scoreElement = document.getElementById('score');
+        const totalQuestions = document.getElementById('total-questions');
+        const startQuizBtns = document.querySelectorAll('.start-quiz');
+        const aiQuizBtn = document.getElementById('ai-quiz-btn');
+        const projectBtn = document.getElementById('project-btn');
+        const completionBadges = document.querySelectorAll('.completion-badge');
+        const progressBars = {
+            calculus: document.getElementById('calculus-progress'),
+            linear: document.getElementById('linear-progress'),
+            stats: document.getElementById('stats-progress'),
+            python: document.getElementById('python-progress'),
+            algo: document.getElementById('algo-progress'),
+            linux: document.getElementById('linux-progress')
+        };
+
+        // Initialize game
+        function initGame() {
+            // Load progress from localStorage
+            const savedProgress = localStorage.getItem('aiRoadmapProgress');
+            if (savedProgress) {
+                gameState.progress = JSON.parse(savedProgress);
+                updateProgressUI();
+            }
+            
+            // Add event listeners
+            startQuizBtns.forEach(btn => {
+                btn.addEventListener('click', startQuiz);
+            });
+            
+            aiQuizBtn.addEventListener('click', () => {
+                startQuiz({ currentTarget: { dataset: { module: 'ai' } } });
+            });
+            
+            projectBtn.addEventListener('click', startProjectChallenge);
+            nextBtn.addEventListener('click', nextQuestion);
+            finishBtn.addEventListener('click', finishQuiz);
+        }
+
+        // Start quiz for a module
+        function startQuiz(event) {
+            const module = event.currentTarget.dataset.module;
+            gameState.currentModule = module;
+            gameState.currentQuestion = 0;
+            gameState.score = 0;
+            
+            quizTitle.textContent = `${module.charAt(0).toUpperCase() + module.slice(1)} Quiz`;
+            totalQuestions.textContent = quizData[module].length;
+            scoreElement.textContent = '0';
+            
+            showQuestion();
+            quizScreen.classList.remove('hidden');
+            
+            // Scroll to quiz
+            quizScreen.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Display current question
+        function showQuestion() {
+            const question = quizData[gameState.currentModule][gameState.currentQuestion];
+            questionText.textContent = question.question;
+            
+            optionsContainer.innerHTML = '';
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('option');
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+                optionElement.addEventListener('click', selectOption);
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            feedback.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            finishBtn.classList.add('hidden');
+        }
+
+        // Handle option selection
+        function selectOption(event) {
+            const selectedOption = event.currentTarget;
+            const selectedIndex = parseInt(selectedOption.dataset.index);
+            const question = quizData[gameState.currentModule][gameState.currentQuestion];
+            
+            // Disable all options
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.removeEventListener('click', selectOption);
+            });
+            
+            // Show correct/incorrect feedback
+            if (selectedIndex === question.correct) {
+                selectedOption.classList.add('correct');
+                feedback.textContent = 'Correct!';
+                feedback.style.backgroundColor = '#e8f5e9';
+                feedback.style.border = '1px solid #4CAF50';
+                gameState.score++;
+                scoreElement.textContent = gameState.score;
+            } else {
+                selectedOption.classList.add('incorrect');
+                // Highlight correct answer
+                document.querySelectorAll('.option')[question.correct].classList.add('correct');
+                feedback.textContent = `Incorrect. The correct answer is: ${question.options[question.correct]}`;
+                feedback.style.backgroundColor = '#ffebee';
+                feedback.style.border = '1px solid #f44336';
+            }
+            
+            feedback.classList.remove('hidden');
+            
+            // Show next/finish button
+            if (gameState.currentQuestion < quizData[gameState.currentModule].length - 1) {
+                nextBtn.classList.remove('hidden');
+            } else {
+                finishBtn.classList.remove('hidden');
+            }
+        }
+
+        // Move to next question
+        function nextQuestion() {
+            gameState.currentQuestion++;
+            showQuestion();
+        }
+
+        // Finish quiz and update progress
+        function finishQuiz() {
+            const module = gameState.currentModule;
+            const percentage = Math.round((gameState.score / quizData[module].length) * 100);
+            
+            // Update progress
+            gameState.progress[module] = Math.max(gameState.progress[module], percentage);
+            
+            // Save to localStorage
+            localStorage.setItem('aiRoadmapProgress', JSON.stringify(gameState.progress));
+            
+            // Update UI
+            updateProgressUI();
+            
+            // Hide quiz screen
+            quizScreen.classList.add('hidden');
+        }
+
+        // Update progress bars and badges
+        function updateProgressUI() {
+            // Update progress bars
+            for (const module in progressBars) {
+                progressBars[module].style.width = `${gameState.progress[module]}%`;
+            }
+            
+            // Update completion badges
+            completionBadges.forEach((badge, index) => {
+                const module = Object.keys(gameState.progress)[index];
+                if (gameState.progress[module] >= 80) {
+                    badge.classList.remove('hidden');
+                }
+            });
+        }
+
+        // Start project challenge
+        function startProjectChallenge() {
+            alert('Project Challenge: Build a simple image classifier using Python and scikit-learn. Use the MNIST dataset to recognize handwritten digits!');
+        }
+
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai: Seven Islands History</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .map-container {
+            position: relative;
+            height: 500px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            background-color: #a0a0a0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #888;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .island:hover {
+            transform: scale(1.05);
+            background-color: #888;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 25px;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #d0d0d0;
+        }
+
+        button.active {
+            background-color: #888;
+            color: white;
+        }
+
+        .info-panel {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            min-height: 200px;
+        }
+
+        .info-panel h2 {
+            margin-bottom: 15px;
+            color: #444;
+        }
+
+        .timeline {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 15px 0;
+            margin-bottom: 20px;
+        }
+
+        .timeline-item {
+            flex: 0 0 auto;
+            padding: 10px 15px;
+            background-color: #e0e0e0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .timeline-item:hover {
+            background-color: #d0d0d0;
+        }
+
+        .quiz-container {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            margin-top: 20px;
+        }
+
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            padding: 12px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-align: center;
+        }
+
+        .option:hover {
+            background-color: #d0d0d0;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .correct {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .incorrect {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            flex-grow: 1;
+            margin: 0 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #888;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .score-container {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .level-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+        }
+
+        .level-dot.active {
+            background-color: #888;
+        }
+
+        @media (max-width: 768px) {
+            .map-container {
+                height: 400px;
+            }
+            
+            .island {
+                font-size: 0.8rem;
+                padding: 5px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .map-container {
+                height: 300px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mumbai: From Seven Islands to One City</h1>
+        <p>Explore how land reclamation transformed Mumbai's geography</p>
+    </header>
+
+    <main class="game-container">
+        <div class="controls">
+            <button id="toggleView">Show Historical View</button>
+            <button id="startQuiz">Start Quiz</button>
+            <button id="resetGame">Reset Game</button>
+        </div>
+
+        <div class="level-indicator">
+            <div class="level-dot active" data-level="1"></div>
+            <div class="level-dot" data-level="2"></div>
+            <div class="level-dot" data-level="3"></div>
+        </div>
+
+        <div class="map-container" id="map">
+            <!-- Islands will be dynamically positioned -->
+        </div>
+
+        <div class="progress-container">
+            <span>Exploration Progress</span>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <span id="progressText">0%</span>
+        </div>
+
+        <div class="score-container">
+            Score: <span id="score">0</span>
+        </div>
+
+        <div class="timeline" id="timeline">
+            <!-- Timeline items will be added here -->
+        </div>
+
+        <div class="info-panel">
+            <h2>Information</h2>
+            <div id="infoContent">
+                Click on an island or timeline period to learn more about Mumbai's history.
+            </div>
+        </div>
+
+        <div class="quiz-container" id="quizSection" style="display: none;">
+            <div class="question" id="question"></div>
+            <div class="options" id="options"></div>
+            <div class="feedback" id="feedback"></div>
+            <button id="nextQuestion" style="display: none;">Next Question</button>
+        </div>
+    </main>
+
+    <script>
+        // Game data
+        const islands = [
+            { id: 'colaba', name: 'Colaba', x: 85, y: 85, radius: 60, info: 'Colaba was originally a separate island known for its deep natural harbor. It was connected to Bombay through the Colaba Causeway project in 1838.' },
+            { id: 'mazagaon', name: 'Mazagaon', x: 65, y: 40, radius: 50, info: 'Mazagaon was an island with several Portuguese churches. Land reclamation in the 19th century connected it to the main island.' },
+            { id: 'oldwoman', name: "Old Woman's Island", x: 75, y: 70, radius: 40, info: 'This small island was joined to Colaba through reclamation projects. It now forms the southern tip of Mumbai.' },
+            { id: 'worli', name: 'Worli', x: 40, y: 50, radius: 55, info: 'Worli was connected to Bombay Island through the Hornby Vellard project (1784), one of the first major reclamation efforts.' },
+            { id: 'mahim', name: 'Mahim', x: 25, y: 65, radius: 60, info: 'Mahim was connected to Bandra via the Mahim Causeway in 1845, linking the western suburbs to the main city.' },
+            { id: 'parel', name: 'Parel', x: 50, y: 65, radius: 45, info: 'Parel was originally an island that became the center of textile mills during British rule after reclamation connected it.' },
+            { id: 'bombay', name: 'Island of Bombay', x: 55, y: 35, radius: 70, info: 'The largest original island, it became the center of British administration and trade after the East India Company took control in 1668.' }
+        ];
+
+        const timelinePeriods = [
+            { id: 'satavahanas', name: 'Satavahanas (1st-3rd CE)', info: 'Early rulers who controlled the region, known for maritime trade.' },
+            { id: 'satraps', name: 'Western Satraps (2nd-4th CE)', info: 'Indo-Scythian rulers who succeeded the Satavahanas.' },
+            { id: 'abhira', name: 'Abhira Dynasty (3rd-5th CE)', info: 'Ruled the region before the Vakatakas.' },
+            { id: 'vakataka', name: 'Vakatakas (3rd-5th CE)', info: 'Controlled the area before the Chalukyas.' },
+            { id: 'kalachuris', name: 'Kalachuris (6th CE)', info: 'Briefly ruled the region.' },
+            { id: 'chalukyas', name: 'Chalukyas (6th-8th CE)', info: 'Powerful dynasty that controlled the west coast.' },
+            { id: 'rashtrakutas', name: 'Rashtrakutas (8th-10th CE)', info: 'Succeeded the Chalukyas as regional power.' },
+            { id: 'british', name: 'British East India Company (1668-1858)', info: 'Acquired Bombay in 1668 and initiated major land reclamation projects to connect the islands.' }
+        ];
+
+        const quizQuestions = [
+            {
+                question: "Which project connected Worli Island to Bombay Island?",
+                options: ["Colaba Causeway", "Hornby Vellard", "Mahim Causeway", "Marine Drive Project"],
+                answer: 1,
+                info: "The Hornby Vellard project (1784) was one of the first major reclamation efforts connecting Worli to Bombay."
+            },
+            {
+                question: "How many original islands formed Mumbai?",
+                options: ["5", "6", "7", "8"],
+                answer: 2,
+                info: "Mumbai was originally formed by seven separate islands that were connected through land reclamation."
+            },
+            {
+                question: "Which causeway connected Mahim to Bandra?",
+                options: ["Colaba Causeway", "Sion Causeway", "Mahim Causeway", "Worli Causeway"],
+                answer: 2,
+                info: "The Mahim Causeway, completed in 1845, connected Mahim to Bandra and the western suburbs."
+            },
+            {
+                question: "Which dynasty controlled Mumbai before the British?",
+                options: ["Mughals", "Marathas", "Portuguese", "Dutch"],
+                answer: 2,
+                info: "The Portuguese controlled the islands from 1534 until they were transferred to the British in 1661."
+            },
+            {
+                question: "What natural feature made Mumbai an important trading center?",
+                options: ["Deep natural harbor", "Fertile farmland", "Mountain passes", "River network"],
+                answer: 0,
+                info: "Mumbai's deep natural harbor made it an ideal location for maritime trade and contributed to its growth."
+            }
+        ];
+
+        // Game state
+        let gameState = {
+            currentView: 'modern',
+            currentLevel: 1,
+            score: 0,
+            exploredIslands: [],
+            exploredPeriods: [],
+            quizActive: false,
+            currentQuestion: 0,
+            quizScore: 0
+        };
+
+        // DOM elements
+        const mapContainer = document.getElementById('map');
+        const timelineContainer = document.getElementById('timeline');
+        const infoContent = document.getElementById('infoContent');
+        const toggleViewBtn = document.getElementById('toggleView');
+        const startQuizBtn = document.getElementById('startQuiz');
+        const resetGameBtn = document.getElementById('resetGame');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const scoreDisplay = document.getElementById('score');
+        const quizSection = document.getElementById('quizSection');
+        const questionElement = document.getElementById('question');
+        const optionsElement = document.getElementById('options');
+        const feedbackElement = document.getElementById('feedback');
+        const nextQuestionBtn = document.getElementById('nextQuestion');
+        const levelDots = document.querySelectorAll('.level-dot');
+
+        // Initialize game
+        function initGame() {
+            renderMap();
+            renderTimeline();
+            updateProgress();
+            updateScore();
+            loadGameState();
+        }
+
+        // Render islands on map
+        function renderMap() {
+            mapContainer.innerHTML = '';
+            
+            islands.forEach(island => {
+                const islandEl = document.createElement('div');
+                islandEl.className = 'island';
+                islandEl.id = island.id;
+                islandEl.textContent = island.name;
+                
+                // Position based on percentages
+                islandEl.style.left = `${island.x}%`;
+                islandEl.style.top = `${island.y}%`;
+                islandEl.style.width = `${island.radius * 2}px`;
+                islandEl.style.height = `${island.radius * 2}px`;
+                
+                islandEl.addEventListener('click', () => handleIslandClick(island));
+                mapContainer.appendChild(islandEl);
+            });
+        }
+
+        // Render timeline
+        function renderTimeline() {
+            timelineContainer.innerHTML = '';
+            
+            timelinePeriods.forEach(period => {
+                const periodEl = document.createElement('div');
+                periodEl.className = 'timeline-item';
+                periodEl.textContent = period.name;
+                periodEl.dataset.id = period.id;
+                
+                periodEl.addEventListener('click', () => handleTimelineClick(period));
+                timelineContainer.appendChild(periodEl);
+            });
+        }
+
+        // Handle island click
+        function handleIslandClick(island) {
+            if (gameState.quizActive) return;
+            
+            infoContent.innerHTML = `<h3>${island.name}</h3><p>${island.info}</p>`;
+            
+            if (!gameState.exploredIslands.includes(island.id)) {
+                gameState.exploredIslands.push(island.id);
+                gameState.score += 10;
+                updateProgress();
+                updateScore();
+                saveGameState();
+            }
+        }
+
+        // Handle timeline click
+        function handleTimelineClick(period) {
+            if (gameState.quizActive) return;
+            
+            infoContent.innerHTML = `<h3>${period.name}</h3><p>${period.info}</p>`;
+            
+            if (!gameState.exploredPeriods.includes(period.id)) {
+                gameState.exploredPeriods.push(period.id);
+                gameState.score += 5;
+                updateProgress();
+                updateScore();
+                saveGameState();
+            }
+        }
+
+        // Update exploration progress
+        function updateProgress() {
+            const totalItems = islands.length + timelinePeriods.length;
+            const exploredItems = gameState.exploredIslands.length + gameState.exploredPeriods.length;
+            const progress = (exploredItems / totalItems) * 100;
+            
+            progressFill.style.width = `${progress}%`;
+            progressText.textContent = `${Math.round(progress)}%`;
+        }
+
+        // Update score display
+        function updateScore() {
+            scoreDisplay.textContent = gameState.score;
+        }
+
+        // Toggle map view
+        toggleViewBtn.addEventListener('click', () => {
+            if (gameState.currentView === 'modern') {
+                gameState.currentView = 'historical';
+                toggleViewBtn.textContent = 'Show Modern View';
+                infoContent.innerHTML = '<h3>Historical View</h3><p>Viewing the seven islands before land reclamation projects connected them.</p>';
+            } else {
+                gameState.currentView = 'modern';
+                toggleViewBtn.textContent = 'Show Historical View';
+                infoContent.innerHTML = '<h3>Modern View</h3><p>Viewing Mumbai after land reclamation connected the islands into a single landmass.</p>';
+            }
+        });
+
+        // Start quiz
+        startQuizBtn.addEventListener('click', () => {
+            if (gameState.quizActive) return;
+            
+            gameState.quizActive = true;
+            gameState.currentQuestion = 0;
+            gameState.quizScore = 0;
+            quizSection.style.display = 'block';
+            showQuestion();
+        });
+
+        // Show quiz question
+        function showQuestion() {
+            const question = quizQuestions[gameState.currentQuestion];
+            questionElement.textContent = question.question;
+            optionsElement.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionEl = document.createElement('div');
+                optionEl.className = 'option';
+                optionEl.textContent = option;
+                optionEl.dataset.index = index;
+                
+                optionEl.addEventListener('click', () => checkAnswer(index));
+                optionsElement.appendChild(optionEl);
+            });
+            
+            feedbackElement.style.display = 'none';
+            nextQuestionBtn.style.display = 'none';
+        }
+
+        // Check quiz answer
+        function checkAnswer(selectedIndex) {
+            const question = quizQuestions[gameState.currentQuestion];
+            const options = document.querySelectorAll('.option');
+            
+            options.forEach(option => {
+                option.style.pointerEvents = 'none';
+            });
+            
+            if (selectedIndex === question.answer) {
+                feedbackElement.textContent = 'Correct! ' + question.info;
+                feedbackElement.className = 'feedback correct';
+                gameState.quizScore += 20;
+                gameState.score += 20;
+            } else {
+                feedbackElement.textContent = `Incorrect.
+    </script>
+</body>
+</html>

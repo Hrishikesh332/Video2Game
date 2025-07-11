@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KernelSHAP Explanation Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        
+        .game-container {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+        
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+        
+        .level-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            margin: 0 8px;
+        }
+        
+        .level-dot.active {
+            background-color: #3498db;
+        }
+        
+        .game-content {
+            min-height: 300px;
+        }
+        
+        .feature-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .feature-card {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card.active {
+            border-color: #3498db;
+            background-color: #e3f2fd;
+            box-shadow: 0 2px 5px rgba(52, 152, 219, 0.2);
+        }
+        
+        .feature-card h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .visualization {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            min-height: 150px;
+        }
+        
+        .formula {
+            font-family: monospace;
+            background-color: #f1f1f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .score-container {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .feedback {
+            text-align: center;
+            min-height: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .success {
+            color: #27ae60;
+        }
+        
+        .error {
+            color: #e74c3c;
+        }
+        
+        .slider-container {
+            margin: 20px 0;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 600px) {
+            .feature-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>KernelSHAP Explanation Game</h1>
+        <p class="description">Learn how feature contributions are calculated through interactive challenges</p>
+    </header>
+    
+    <div class="score-container">
+        Score: <span id="score">0</span> | Level: <span id="level">1</span>/3
+    </div>
+    
+    <div class="game-container">
+        <div class="level-indicator">
+            <div class="level-dot active" id="dot1"></div>
+            <div class="level-dot" id="dot2"></div>
+            <div class="level-dot" id="dot3"></div>
+        </div>
+        
+        <div class="game-content" id="gameContent">
+            <!-- Level content will be dynamically inserted here -->
+        </div>
+        
+        <div class="feedback" id="feedback"></div>
+        
+        <div class="controls">
+            <button id="restartBtn">Restart Level</button>
+            <button id="nextBtn" disabled>Next Level</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentLevel: 1,
+            score: 0,
+            selectedFeatures: [],
+            coalition: [],
+            shapleyValues: {},
+            weights: {},
+            completedLevels: []
+        };
+
+        // DOM elements
+        const gameContent = document.getElementById('gameContent');
+        const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level');
+        const nextBtn = document.getElementById('nextBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const feedback = document.getElementById('feedback');
+        const levelDots = [
+            document.getElementById('dot1'),
+            document.getElementById('dot2'),
+            document.getElementById('dot3')
+        ];
+
+        // Feature data
+        const features = [
+            { id: 'age', name: 'Age', description: 'Impact of customer age on purchase decision' },
+            { id: 'style', name: 'Style', description: 'Influence of product style preference' },
+            { id: 'color', name: 'Color', description: 'Effect of color choice on conversion' },
+            { id: 'price', name: 'Price', description: 'Sensitivity to product pricing' }
+        ];
+
+        // Initialize game
+        function initGame() {
+            updateScoreDisplay();
+            loadLevel(gameState.currentLevel);
+            updateLevelDots();
+            
+            // Event listeners
+            nextBtn.addEventListener('click', nextLevel);
+            restartBtn.addEventListener('click', restartLevel);
+        }
+
+        // Update score display
+        function updateScoreDisplay() {
+            scoreDisplay.textContent = gameState.score;
+            levelDisplay.textContent = gameState.currentLevel;
+        }
+
+        // Update level dots
+        function updateLevelDots() {
+            levelDots.forEach((dot, index) => {
+                if (index + 1 === gameState.currentLevel) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        // Load level content
+        function loadLevel(level) {
+            gameContent.innerHTML = '';
+            feedback.textContent = '';
+            nextBtn.disabled = true;
+            
+            switch(level) {
+                case 1:
+                    loadLevel1();
+                    break;
+                case 2:
+                    loadLevel2();
+                    break;
+                case 3:
+                    loadLevel3();
+                    break;
+            }
+        }
+
+        // Level 1: Feature Selection
+        function loadLevel1() {
+            gameContent.innerHTML = `
+                <h2>Level 1: Feature Impact Analysis</h2>
+                <p>Select features to see their individual impact on the prediction model. Toggle features to understand their contributions.</p>
+                
+                <div class="feature-container" id="featureContainer"></div>
+                
+                <div class="visualization">
+                    <h3>Feature Impact Visualization</h3>
+                    <div id="impactDisplay">Select features to see their impact...</div>
+                </div>
+            `;
+            
+            const featureContainer = document.getElementById('featureContainer');
+            features.forEach(feature => {
+                const card = document.createElement('div');
+                card.className = 'feature-card';
+                card.dataset.id = feature.id;
+                card.innerHTML = `
+                    <h3>${feature.name}</h3>
+                    <p>${feature.description}</p>
+                `;
+                card.addEventListener('click', () => toggleFeature(feature.id));
+                featureContainer.appendChild(card);
+            });
+        }
+
+        // Toggle feature selection
+        function toggleFeature(featureId) {
+            const card = document.querySelector(`.feature-card[data-id="${featureId}"]`);
+            const index = gameState.selectedFeatures.indexOf(featureId);
+            
+            if (index === -1) {
+                gameState.selectedFeatures.push(featureId);
+                card.classList.add('active');
+            } else {
+                gameState.selectedFeatures.splice(index, 1);
+                card.classList.remove('active');
+            }
+            
+            updateImpactDisplay();
+            checkLevel1Completion();
+        }
+
+        // Update impact display
+        function updateImpactDisplay() {
+            const impactDisplay = document.getElementById('impactDisplay');
+            
+            if (gameState.selectedFeatures.length === 0) {
+                impactDisplay.innerHTML = 'Select features to see their impact...';
+                return;
+            }
+            
+            let html = '<ul>';
+            gameState.selectedFeatures.forEach(featureId => {
+                const feature = features.find(f => f.id === featureId);
+                const impact = Math.floor(Math.random() * 20) - 10; // Random impact between -10 and 10
+                html += `<li><strong>${feature.name}:</strong> ${impact > 0 ? '+' : ''}${impact}%</li>`;
+            });
+            html += '</ul>';
+            
+            impactDisplay.innerHTML = html;
+        }
+
+        // Check level 1 completion
+        function checkLevel1Completion() {
+            if (gameState.selectedFeatures.length >= 2) {
+                feedback.textContent = 'Good job! You\'ve selected features to analyze.';
+                feedback.className = 'feedback success';
+                gameState.score += 20;
+                updateScoreDisplay();
+                nextBtn.disabled = false;
+            }
+        }
+
+        // Level 2: Coalition Generation
+        function loadLevel2() {
+            gameState.coalition = [];
+            
+            gameContent.innerHTML = `
+                <h2>Level 2: Coalition Formation</h2>
+                <p>Create coalitions by selecting features. Each coalition represents a combination of features being active or inactive.</p>
+                
+                <div class="feature-container" id="coalitionContainer"></div>
+                
+                <div class="visualization">
+                    <h3>Coalition Representation</h3>
+                    <div class="formula" id="coalitionDisplay">[0, 0, 0, 0]</div>
+                    <p>Binary representation: 1 = feature active, 0 = feature inactive</p>
+                </div>
+            `;
+            
+            const coalitionContainer = document.getElementById('coalitionContainer');
+            features.forEach(feature => {
+                const card = document.createElement('div');
+                card.className = 'feature-card';
+                card.dataset.id = feature.id;
+                card.innerHTML = `
+                    <h3>${feature.name}</h3>
+                    <p>Click to toggle state</p>
+                `;
+                card.addEventListener('click', () => toggleCoalitionFeature(feature.id));
+                coalitionContainer.appendChild(card);
+            });
+        }
+
+        // Toggle coalition feature
+        function toggleCoalitionFeature(featureId) {
+            const card = document.querySelector(`.feature-card[data-id="${featureId}"]`);
+            const index = features.findIndex(f => f.id === featureId);
+            
+            if (gameState.coalition[index] === 1) {
+                gameState.coalition[index] = 0;
+                card.classList.remove('active');
+            } else {
+                gameState.coalition[index] = 1;
+                card.classList.add('active');
+            }
+            
+            updateCoalitionDisplay();
+            checkLevel2Completion();
+        }
+
+        // Update coalition display
+        function updateCoalitionDisplay() {
+            const coalitionDisplay = document.getElementById('coalitionDisplay');
+            coalitionDisplay.textContent = `[${gameState.coalition.join(', ')}]`;
+        }
+
+        // Check level 2 completion
+        function checkLevel2Completion() {
+            const activeFeatures = gameState.coalition.filter(val => val === 1).length;
+            
+            if (activeFeatures >= 2) {
+                feedback.textContent = 'Well done! You created a valid coalition.';
+                feedback.className = 'feedback success';
+                gameState.score += 30;
+                updateScoreDisplay();
+                nextBtn.disabled = false;
+            }
+        }
+
+        // Level 3: Shapley Value Calculation
+        function loadLevel3() {
+            gameState.shapleyValues = {};
+            gameState.weights = {};
+            
+            gameContent.innerHTML = `
+                <h2>Level 3: Shapley Value Calculation</h2>
+                <p>Adjust weights to balance the model. Optimize the loss function to calculate accurate Shapley values.</p>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Age Weight</span>
+                        <span id="ageValue">0</span>
+                    </div>
+                    <input type="range" min="-10" max="10" value="0" class="weight-slider" id="ageSlider">
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Style Weight</span>
+                        <span id="styleValue">0</span>
+                    </div>
+                    <input type="range" min="-10" max="10" value="0" class="weight-slider" id="styleSlider">
+                </div>
+                
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Color Weight</span>
+                        <span id="colorValue">0</span>
+                    </div>
+                    <input type="range" min="-10" max="10" value="0" class="weight-slider" id="colorSlider">
+                </div>
+                
+                <div class="visualization">
+                    <h3>Loss Function Optimization</h3>
+                    <div class="formula">Loss = Σ(ŷ - y)<sup>2</sup></div>
+                    <p>Current Loss: <span id="lossValue">100.00</span></p>
+                    <div id="optimizationFeedback"></div>
+                </div>
+            `;
+            
+            // Set up sliders
+            document.getElementById('ageSlider').addEventListener('input', updateWeights);
+            document.getElementById('styleSlider').addEventListener('input', updateWeights);
+            document.getElementById('colorSlider').addEventListener('input', updateWeights);
+            
+            updateWeights();
+        }
+
+        // Update weights from sliders
+        function updateWeights() {
+            gameState.weights.age = parseInt(document.getElementById('ageSlider').value);
+            gameState.weights.style = parseInt(document.getElementById('styleSlider').value);
+            gameState.weights.color = parseInt(document.getElementById('colorSlider').value);
+            
+            document.getElementById('ageValue').textContent = gameState.weights.age;
+            document.getElementById('styleValue').textContent = gameState.weights.style;
+            document.getElementById('colorValue').textContent = gameState.weights.color;
+            
+            calculateLoss();
+        }
+
+        // Calculate loss function
+        function calculateLoss() {
+            // Simplified loss calculation
+            const target = { age: 3, style: 5, color: -2 };
+            const ageDiff = Math.abs(target.age - gameState.weights.age);
+            const styleDiff = Math.abs(target.style - gameState.weights.style);
+            const colorDiff = Math.abs(target.color - gameState.weights.color);
+            
+            const loss = (ageDiff + styleDiff + colorDiff) * 5;
+            document.getElementById('lossValue').textContent = loss.toFixed(2);
+            
+            if (loss < 15) {
+                feedback.textContent = 'Excellent! You optimized the loss function.';
+                feedback.className = 'feedback success';
+                gameState.score += 50;
+                updateScoreDisplay();
+                nextBtn.disabled = false;
+            } else if (loss < 30) {
+                feedback.textContent = 'Getting closer! Keep adjusting the weights.';
+                feedback.className = 'feedback';
+                nextBtn.disabled = true;
+            } else {
+                feedback.textContent = 'Adjust the weights to minimize the loss.';
+                feedback.className = 'feedback error';
+                nextBtn.disabled = true;
+            }
+        }
+
+        // Move to next level
+        function nextLevel() {
+            if (gameState.currentLevel < 3) {
+                gameState.currentLevel++;
+                loadLevel(gameState.currentLevel);
+                updateLevelDots();
+            } else {
+                // Game completed
+                gameContent.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <h2>Game Completed!</h2>
+                        <p>Congratulations! You've mastered the KernelSHAP concepts.</p>
+                        <p>Your final score: <strong>${gameState.score}</strong></p>
+                        <button id="playAgainBtn" style="margin-top: 20px;">Play Again</button>
+                    </div>
+                `;
+                
+                document.getElementById('playAgainBtn').addEventListener('click', resetGame);
+            }
+        }
+
+        // Restart current level
+        function restartLevel() {
+            gameState.score = Math.max(0, gameState.score - 10);
+            updateScoreDisplay();
+            loadLevel(gameState.currentLevel);
+        }
+
+        // Reset game to initial state
+        function resetGame() {
+            gameState.currentLevel = 1;
+            gameState.score = 0;
+            gameState.selectedFeatures = [];
+            gameState.coalition = [];
+            gameState.shapleyValues = {};
+            gameState.weights = {};
+            
+            updateScoreDisplay();
+            loadLevel(gameState.currentLevel);
+            updateLevelDots();
+        }
+
+        // Initialize the game when page loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>

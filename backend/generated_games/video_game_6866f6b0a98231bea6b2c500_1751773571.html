@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parisian Landmarks Quiz</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .screen {
+            display: none;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .question-container {
+            margin-bottom: 25px;
+        }
+        
+        .question-number {
+            font-size: 1.1rem;
+            color: #666666;
+            margin-bottom: 10px;
+        }
+        
+        .question {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .options {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .option {
+            background-color: #ffffff;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+        
+        .option:hover {
+            background-color: #f0f0f0;
+            border-color: #cccccc;
+        }
+        
+        .option.selected {
+            background-color: #e9e9e9;
+            border-color: #aaaaaa;
+            font-weight: bold;
+        }
+        
+        .option.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .option.incorrect {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .feedback {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            display: block;
+        }
+        
+        .feedback.incorrect {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            display: block;
+        }
+        
+        .fact {
+            font-style: italic;
+            margin-top: 10px;
+            color: #555555;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        button {
+            background-color: #333333;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #444444;
+        }
+        
+        button:disabled {
+            background-color: #aaaaaa;
+            cursor: not-allowed;
+        }
+        
+        .progress-container {
+            margin: 25px 0;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            height: 12px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #555555;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .results-container {
+            text-align: center;
+        }
+        
+        .score {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #222222;
+        }
+        
+        .comment {
+            font-size: 1.4rem;
+            margin-bottom: 30px;
+            color: #444444;
+        }
+        
+        .landmark-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .landmark-image.active {
+            display: block;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .screen {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .question {
+                font-size: 1.2rem;
+            }
+            
+            .option {
+                padding: 12px;
+                font-size: 1rem;
+            }
+            
+            button {
+                padding: 10px 20px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Parisian Landmarks Quiz</h1>
+        <p>Test your knowledge of Paris's iconic landmarks</p>
+    </header>
+    
+    <main>
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active">
+            <div class="question-container">
+                <p>Welcome to the Parisian Landmarks Quiz! You'll be tested on your knowledge of Paris's most famous landmarks including the Eiffel Tower, Louvre Museum, Notre-Dame Cathedral, and Arc de Triomphe.</p>
+                <p>There are 10 multiple-choice questions. Try to get the highest score!</p>
+            </div>
+            <div class="controls">
+                <button id="start-btn">Begin Quiz</button>
+            </div>
+        </div>
+        
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="screen">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <div class="question-number" id="question-number">Question 1 of 10</div>
+            
+            <div class="question-container">
+                <div class="question" id="question"></div>
+                <img id="landmark-image" class="landmark-image" alt="Paris landmark">
+                <div class="options" id="options"></div>
+            </div>
+            
+            <div class="feedback" id="feedback">
+                <div id="feedback-text"></div>
+                <div class="fact" id="fact"></div>
+            </div>
+            
+            <div class="controls">
+                <button id="prev-btn" disabled>Previous</button>
+                <button id="next-btn">Next Question</button>
+            </div>
+        </div>
+        
+        <!-- Results Screen -->
+        <div id="results-screen" class="screen">
+            <div class="results-container">
+                <h2>Quiz Completed!</h2>
+                <div class="score">Your Score: <span id="final-score">0</span>/10</div>
+                <div class="comment" id="comment"></div>
+                <div class="controls">
+                    <button id="restart-btn">Play Again</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Quiz questions data
+        const quizData = [
+            {
+                question: "Which Parisian landmark was originally built as the entrance to the 1889 World's Fair?",
+                options: ["Louvre Museum", "Eiffel Tower", "Notre-Dame Cathedral", "Arc de Triomphe"],
+                correctAnswer: 1,
+                fact: "The Eiffel Tower was constructed as the centerpiece for the 1889 Exposition Universelle (World's Fair) to celebrate the 100th anniversary of the French Revolution.",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'%3E%3Crect fill='%23aaa' width='100' height='150'/%3E%3Ctext fill='white' font-size='12' x='50' y='75' text-anchor='middle'%3EEiffel Tower%3C/text%3E%3C/svg%3E"
+            },
+            {
+                question: "Which famous painting is housed in the Louvre Museum?",
+                options: ["The Starry Night", "The Scream", "Mona Lisa", "The Persistence of Memory"],
+                correctAnswer: 2,
+                fact: "The Mona Lisa, painted by Leonardo da Vinci in the early 16th century, is one of the most famous artworks in the Louvre Museum.",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'%3E%3Crect fill='%23aaa' width='100' height='150'/%3E%3Ctext fill='white' font-size='12' x='50' y='75' text-anchor='middle'%3ELouvre Museum%3C/text%3E%3C/svg%3E"
+            },
+            {
+                question: "What architectural style is Notre-Dame Cathedral primarily known for?",
+                options: ["Baroque", "Renaissance", "Gothic", "Romanesque"],
+                correctAnswer: 2,
+                fact: "Notre-Dame Cathedral is considered one of the finest examples of French Gothic architecture, famous for its flying buttresses and gargoyles.",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'%3E%3Crect fill='%23aaa' width='100' height='150'/%3E%3Ctext fill='white' font-size='12' x='50' y='75' text-anchor='middle'%3ENotre-Dame Cathedral%3C/text%3E%3C/svg%3E"
+            },
+            {
+                question: "Which landmark stands at the western end of the Champs-Élysées?",
+                options: ["Eiffel Tower", "Louvre Pyramid", "Arc de Triomphe", "Sainte-Chapelle"],
+                correctAnswer: 2,
+                fact: "The Arc de Triomphe honors those who fought and died for France in the French Revolutionary and Napoleonic Wars, with the Tomb of the Unknown Soldier beneath its vault.",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'%3E%3Crect fill='%23aaa' width='100' height='150'/%3E%3Ctext fill='white' font-size='12' x='50' y='75' text-anchor='middle'%3EArc de Triomphe%3C/text%3E%3C/svg%3E"
+            },
+            {
+                question: "How tall is the Eiffel Tower?",
+                options: ["250 meters", "300 meters", "324 meters", "350 meters"],
+                correctAnswer: 2,
+                fact: "The Eiffel Tower stands at 324 meters (1,063 ft) tall, including its antennas. It was the tallest man-made structure in the world when completed in 1889.",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'%3E%3Crect fill='%23aaa' width='100' height='150'/%3E%3Ctext fill='white' font-size='12' x='50' y='75' text-anchor='middle'%3EEiffel Tower%3C/text%3E%3C/svg%3E"
+            },
+            {
+                question: "Which landmark suffered a major fire in April 2019?",
+                options: ["Sainte-Chapelle", "Palais Garnier", "Notre-Dame Cathedral", "Les Invalides"],
+                correctAnswer: 2,
+                fact: "Notre-Dame Cathedral suffered extensive damage from a fire on April 15, 2019, which destroyed the spire and most of the roof. Restoration efforts are ongoing.",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'%3E%3Crect fill='%23aaa' width='100' height='150'/%3E%3Ctext fill='white' font-size='12' x='50' y='75' text-anchor='middle'%3ENotre-Dame Cathedral%3C/text%3E%3C/svg%3E"
+            },
+            {
+                question: "What is the name of the glass pyramid in front of the Louvre?",
+                options: ["Horus Pyramid", "Napoleon Pyramid", "Pei Pyramid", "Grand Louvre Pyramid"],
+                correctAnswer: 2,
+                fact: "The Louvre Pyramid, designed by architect I.M. Pei, was completed in 1989 and serves as the main entrance to the Louvre Museum.",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'%3E%3Crect fill='%23aaa' width='100' height='150'/%3E%3Ctext fill='white' font-size='12' x='50' y='75' text-anchor='middle'%3ELouvre Pyramid%3C/text%3E%3C/svg%3E"
+            },
+            {
+                question: "Which Parisian landmark contains the tomb of Napoleon Bonaparte?",
+                options: ["Panthéon", "Arc de Triomphe", "Les Invalides", "Sainte-Chapelle"],
+                correctAnswer: 2,
+                fact: "Napoleon's tomb is located in the Dôme des Invalides, part of the Hôtel des Invalides complex, which was originally built as a hospital for war veterans.",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'%3E%3Crect fill='%23aaa' width='100' height='150'/%3E%3Ctext fill='white' font-size='12' x='50' y='75' text-anchor='middle'%3ELes Invalides%3C/text%3E%3C/svg%3E"
+            },
+            {
+                question: "What river flows through Paris, passing by many of its famous landmarks?",
+                options: ["Seine", "Loire", "Rhône", "Thames"],
+                correctAnswer: 0,
+                fact: "The Seine River flows through the heart of Paris, dividing the city into the Left Bank and Right Bank, with many landmarks located along its banks.",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'%3E%3Crect fill='%23aaa' width='100' height='150'/%3E%3Ctext fill='white' font-size='12' x='50' y='75' text-anchor='middle'%3ESeine River%3C/text%3E%3C/svg%3E"
+            },
+            {
+                question: "Which Parisian landmark was commissioned by Napoleon after his victory at Austerlitz?",
+                options: ["Eiffel Tower", "Louvre Pyramid", "Arc de Triomphe", "Place de la Concorde"],
+                correctAnswer: 2,
+                fact: "Napoleon commissioned the Arc de Triomphe in 1806 after his victory at the Battle of Austerlitz, but he never saw its completion as it was finished in 1836.",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 150'%3E%3Crect fill='%23aaa' width='100' height='150'/%3E%3Ctext fill='white' font-size='12' x='50' y='75' text-anchor='middle'%3EArc de Triomphe%3C/text%3E%3C/svg%3E"
+            }
+        ];
+
+        // Game state variables
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedOption = null;
+        let userAnswers = Array(quizData.length).fill(null);
+
+        // DOM elements
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const startBtn = document.getElementById('start-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const questionNumber = document.getElementById('question-number');
+        const questionElement = document.getElementById('question');
+        const optionsContainer = document.getElementById('options');
+        const feedbackElement = document.getElementById('feedback');
+        const feedbackText = document.getElementById('feedback-text');
+        const factElement = document.getElementById('fact');
+        const progressBar = document.getElementById('progress-bar');
+        const finalScore = document.getElementById('final-score');
+        const commentElement = document.getElementById('comment');
+        const landmarkImage = document.getElementById('landmark-image');
+
+        // Initialize the game
+        function initGame() {
+            startBtn.addEventListener('click', startQuiz);
+            prevBtn.addEventListener('click', showPreviousQuestion);
+            nextBtn.addEventListener('click', showNextQuestion);
+            restartBtn.addEventListener('click', restartQuiz);
+        }
+
+        // Start the quiz
+        function startQuiz() {
+            startScreen.classList.remove('active');
+            quizScreen.classList.add('active');
+            showQuestion();
+        }
+
+        // Display current question
+        function showQuestion() {
+            const question = quizData[currentQuestion];
+            
+            // Update question number
+            questionNumber.textContent = `Question ${currentQuestion + 1} of ${quizData.length}`;
+            
+            // Update question text
+            questionElement.textContent = question.question;
+            
+            // Update landmark image
+            landmarkImage.src = question.image;
+            landmarkImage.alt = question.options[question.correctAnswer];
+            landmarkImage.classList.add('active');
+            
+            // Clear options container
+            optionsContainer.innerHTML = '';
+            
+            // Create option elements
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('option');
+                optionElement.textContent = option;
+                
+                // Check if this option was previously selected
+                if (userAnswers[currentQuestion] === index) {
+                    optionElement.classList.add('selected');
+                    selectedOption = optionElement;
+                }
+                
+                optionElement.addEventListener('click', () => selectOption(optionElement, index));
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            // Update progress bar
+            progressBar.style.width = `${((currentQuestion) / quizData.length) * 100}%`;
+            
+            // Update feedback
+            feedbackElement.className = 'feedback';
+            
+            // Update navigation buttons
+            prevBtn.disabled = currentQuestion === 0;
+            
+            if (currentQuestion === quizData.length - 1) {
+                nextBtn.textContent = 'Finish Quiz';
+            } else {
+                nextBtn.textContent = 'Next Question';
+            }
+            
+            // Disable next button until an option is selected
+            nextBtn.disabled = userAnswers[currentQuestion] === null;
+        }
+
+        // Select an option
+        function selectOption(optionElement, optionIndex) {
+            // Deselect previous selection
+            if (selectedOption) {
+                selectedOption.classList.remove('selected');
+            }
+            
+            // Select new option
+            optionElement.classList.add('selected');
+            selectedOption = optionElement;
+            
+            // Store user's answer
+            userAnswers[currentQuestion] = optionIndex;
+            
+            // Enable next button
+            nextBtn.disabled = false;
+        }
+
+        // Show previous question
+        function showPreviousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        }
+
+        // Show next question or finish quiz
+        function showNextQuestion() {
+            // Check if answer is correct
+            const question = quizData[currentQuestion];
+            const isCorrect = userAnswers[currentQuestion] === question.correctAnswer;
+            
+            // Show feedback
+            feedbackElement.classList.add(isCorrect ? 'correct' : 'incorrect');
+            feedbackText.textContent = isCorrect ? 'Correct!' : 'Incorrect!';
+            factElement.textContent = question.fact;
+            
+            // Highlight correct and incorrect answers
+            const options = optionsContainer.querySelectorAll('.option');
+            options.forEach((option, index) => {
+                option.classList.remove('correct', 'incorrect');
+                if (index === question.correctAnswer) {
+                    option.classList.add('correct');
+                } else if (index === userAnswers[currentQuestion] && !isCorrect) {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            // Disable option selection
+            options.forEach(option => {
+                option.style.pointerEvents = 'none';
+            });
+            
+            // Update score if correct
+            if (isCorrect) {
+                score++;
+            }
+            
+            // Move to next question or show results
+            setTimeout(() => {
+                if (currentQuestion < quizData.length - 1) {
+                    currentQuestion++;
+                    showQuestion();
+                } else {
+                    showResults();
+                }
+            }, 2500);
+        }
+
+        // Show results screen
+        function showResults() {
+            quizScreen.classList.remove('active');
+            resultsScreen.classList.add('active');
+            
+            // Update final score
+            finalScore.textContent = score;
+            
+            // Add comment based on score
+            if (score >= 8) {
+                commentElement.textContent = 'Fantastic! You know Paris like a true local!';
+            } else if (score >= 5) {
+                commentElement.textContent = 'Great job! You have good knowledge of Paris landmarks.';
+            } else {
+                commentElement.textContent = 'Nice try! Explore more about Paris and try again!';
+            }
+        }
+
+        // Restart the quiz
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            selectedOption = null;
+            userAnswers = Array(quizData.length).fill(null);
+            
+            resultsScreen.classList.remove('active');
+            startScreen.classList.add('active');
+        }
+
+        // Initialize the game when the page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

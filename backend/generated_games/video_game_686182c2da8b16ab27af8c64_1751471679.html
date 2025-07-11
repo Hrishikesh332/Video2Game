@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .graph-container {
+            flex: 1;
+            min-width: 300px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .controls {
+            flex: 0 0 300px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        canvas {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            height: 400px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        button {
+            background: #555;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background 0.2s;
+            width: 100%;
+            margin-top: 5px;
+        }
+        
+        button:hover {
+            background: #444;
+        }
+        
+        .explanation {
+            background: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .explanation h2 {
+            margin-bottom: 15px;
+            color: #222;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: #e0e0e0;
+            position: relative;
+        }
+        
+        .progress-step.active {
+            background: #555;
+            color: white;
+        }
+        
+        .progress-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -10px;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 10px solid #e0e0e0;
+            z-index: 1;
+        }
+        
+        .progress-step.active:not(:last-child)::after {
+            border-left-color: #555;
+        }
+        
+        .instructions {
+            background: #e9e9e9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        
+        .outlier {
+            position: absolute;
+            color: red;
+            font-size: 1.5rem;
+            transform: translate(-50%, -50%);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Linear Regression Explorer</h1>
+        <p>Understand the relationship between height and shoe size</p>
+    </header>
+    
+    <div class="progress-container">
+        <div class="progress-step active">1: Add Data Points</div>
+        <div class="progress-step">2: Analyze Correlation</div>
+        <div class="progress-step">3: Identify Outliers</div>
+    </div>
+    
+    <div class="container">
+        <div class="graph-container">
+            <canvas id="regressionCanvas"></canvas>
+        </div>
+        
+        <div class="controls">
+            <div class="instructions">
+                <p>Add data points to see the linear regression line. Try adding at least 5 points.</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="height">Height (inches):</label>
+                <input type="number" id="height" min="50" max="90" placeholder="e.g., 65">
+            </div>
+            
+            <div class="form-group">
+                <label for="shoeSize">Shoe Size (US):</label>
+                <input type="number" id="shoeSize" min="5" max="15" placeholder="e.g., 9">
+            </div>
+            
+            <button id="addPoint">Add Data Point</button>
+            <button id="clearData">Clear All Points</button>
+            <button id="addOutlier">Add Author's Point (Outlier)</button>
+        </div>
+    </div>
+    
+    <div class="explanation">
+        <h2>About Linear Regression</h2>
+        <p>Linear regression is a supervised learning algorithm that models the relationship between a dependent variable (shoe size) and one or more independent variables (height).</p>
+        <p>This best-fit line shows the positive correlation between height and shoe size in continuous data. Outliers like the author's point (marked with ❤️) can affect the regression line.</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('regressionCanvas');
+            const ctx = canvas.getContext('2d');
+            const heightInput = document.getElementById('height');
+            const shoeSizeInput = document.getElementById('shoeSize');
+            const addPointBtn = document.getElementById('addPoint');
+            const clearDataBtn = document.getElementById('clearData');
+            const addOutlierBtn = document.getElementById('addOutlier');
+            
+            // Set canvas dimensions
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = 400;
+                drawGraph();
+            }
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            // Data storage
+            let dataPoints = [];
+            let outlierPoint = null;
+            
+            // Axis ranges
+            const xMin = 50, xMax = 90;   // Height in inches
+            const yMin = 5, yMax = 15;    // Shoe size
+            
+            // Draw graph with axes and labels
+            function drawGraph() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Set up margins
+                const margin = { top: 30, right: 30, bottom: 50, left: 60 };
+                const graphWidth = canvas.width - margin.left - margin.right;
+                const graphHeight = canvas.height - margin.top - margin.bottom;
+                
+                // Draw axes
+                ctx.beginPath();
+                ctx.moveTo(margin.left, margin.top);
+                ctx.lineTo(margin.left, margin.top + graphHeight);
+                ctx.lineTo(margin.left + graphWidth, margin.top + graphHeight);
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Draw axis labels
+                ctx.font = '14px sans-serif';
+                ctx.fillStyle = '#333';
+                ctx.textAlign = 'center';
+                ctx.fillText('Height in Inches', margin.left + graphWidth/2, canvas.height - 10);
+                
+                ctx.save();
+                ctx.translate(20, margin.top + graphHeight/2);
+                ctx.rotate(-Math.PI/2);
+                ctx.textAlign = 'center';
+                ctx.fillText('Shoe Size [US]', 0, 0);
+                ctx.restore();
+                
+                // Draw grid lines
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = 1;
+                
+                // X-axis grid
+                for (let i = 0; i <= 5; i++) {
+                    const x = margin.left + (i/5) * graphWidth;
+                    ctx.beginPath();
+                    ctx.moveTo(x, margin.top);
+                    ctx.lineTo(x, margin.top + graphHeight);
+                    ctx.stroke();
+                    
+                    // X-axis labels
+                    const value = xMin + (i/5) * (xMax - xMin);
+                    ctx.fillText(Math.round(value), x, margin.top + graphHeight + 20);
+                }
+                
+                // Y-axis grid
+                for (let i = 0; i <= 5; i++) {
+                    const y = margin.top + (i/5) * graphHeight;
+                    ctx.beginPath();
+                    ctx.moveTo(margin.left, y);
+                    ctx.lineTo(margin.left + graphWidth, y);
+                    ctx.stroke();
+                    
+                    // Y-axis labels
+                    const value = yMax - (i/5) * (yMax - yMin);
+                    ctx.fillText(Math.round(value), margin.left - 10, y + 5);
+                }
+                
+                // Convert data point to canvas coordinates
+                function toCanvasCoords(height, shoeSize) {
+                    const x = margin.left + ((height - xMin) / (xMax - xMin)) * graphWidth;
+                    const y = margin.top + ((yMax - shoeSize) / (yMax - yMin)) * graphHeight;
+                    return { x, y };
+                }
+                
+                // Draw data points
+                dataPoints.forEach(point => {
+                    const coords = toCanvasCoords(point.height, point.shoeSize);
+                    ctx.beginPath();
+                    ctx.arc(coords.x, coords.y, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = '#555';
+                    ctx.fill();
+                });
+                
+                // Draw outlier with heart symbol
+                if (outlierPoint) {
+                    const coords = toCanvasCoords(outlierPoint.height, outlierPoint.shoeSize);
+                    ctx.font = '20px Arial';
+                    ctx.fillStyle = 'red';
+                    ctx.fillText('❤️', coords.x, coords.y);
+                }
+                
+                // Draw regression line if we have enough points
+                if (dataPoints.length >= 2) {
+                    const regression = calculateRegression();
+                    if (regression) {
+                        // Calculate start and end points for the line
+                        const startX = xMin;
+                        const startY = regression.slope * startX + regression.intercept;
+                        const endX = xMax;
+                        const endY = regression.slope * endX + regression.intercept;
+                        
+                        const startCoords = toCanvasCoords(startX, startY);
+                        const endCoords = toCanvasCoords(endX, endY);
+                        
+                        // Draw the line
+                        ctx.beginPath();
+                        ctx.moveTo(startCoords.x, startCoords.y);
+                        ctx.lineTo(endCoords.x, endCoords.y);
+                        ctx.strokeStyle = 'blue';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            // Calculate linear regression (slope and intercept)
+            function calculateRegression() {
+                if (dataPoints.length < 2) return null;
+                
+                let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+                const n = dataPoints.length;
+                
+                dataPoints.forEach(point => {
+                    sumX += point.height;
+                    sumY += point.shoeSize;
+                    sumXY += point.height * point.shoeSize;
+                    sumXX += point.height * point.height;
+                });
+                
+                const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / n;
+                
+                return { slope, intercept };
+            }
+            
+            // Add data point
+            addPointBtn.addEventListener('click', function() {
+                const height = parseFloat(heightInput.value);
+                const shoeSize = parseFloat(shoeSizeInput.value);
+                
+                if (isNaN(height) || isNaN(shoeSize) || 
+                    height < xMin || height > xMax || 
+                    shoeSize < yMin || shoeSize > yMax) {
+                    alert('Please enter valid values: Height (50-90), Shoe Size (5-15)');
+                    return;
+                }
+                
+                dataPoints.push({ height, shoeSize });
+                heightInput.value = '';
+                shoeSizeInput.value = '';
+                drawGraph();
+            });
+            
+            // Add outlier point
+            addOutlierBtn.addEventListener('click', function() {
+                outlierPoint = { height: 75, shoeSize: 10 }; // Author's point
+                drawGraph();
+            });
+            
+            // Clear all data
+            clearDataBtn.addEventListener('click', function() {
+                dataPoints = [];
+                outlierPoint = null;
+                drawGraph();
+            });
+            
+            // Initial draw
+            drawGraph();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Financial Analysis Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-next {
+            background: #27ae60;
+        }
+
+        .btn-next:hover {
+            background: #219653;
+        }
+
+        .game-screen {
+            padding: 30px;
+            display: none;
+        }
+
+        .active-screen {
+            display: block;
+        }
+
+        .screen-title {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .pca-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .graph-container {
+            flex: 1;
+            min-width: 300px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .graph-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .graph {
+            height: 250px;
+            background: white;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+
+        .data-point {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .axis {
+            position: absolute;
+            background: #7f8c8d;
+        }
+
+        .x-axis {
+            bottom: 10%;
+            left: 5%;
+            width: 90%;
+            height: 2px;
+        }
+
+        .y-axis {
+            top: 5%;
+            left: 10%;
+            height: 90%;
+            width: 2px;
+        }
+
+        .axis-label {
+            position: absolute;
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+
+        .x-label {
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .y-label {
+            top: 50%;
+            left: 2%;
+            transform: translateY(-50%) rotate(-90deg);
+        }
+
+        .challenge-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .challenge-title {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .option:hover {
+            border-color: #3498db;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .option.selected {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+
+        .feedback {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+            gap: 15px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 12px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #27ae60;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .score-box {
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        .completion-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .completion-title {
+            font-size: 2rem;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+
+        .final-score {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 20px 0;
+        }
+
+        .restart-btn {
+            background: #e74c3c;
+            margin-top: 20px;
+        }
+
+        .restart-btn:hover {
+            background: #c0392b;
+        }
+
+        @media (max-width: 768px) {
+            .pca-container {
+                flex-direction: column;
+            }
+            
+            .options {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PRINCIPAL COMPONENT ANALYSIS</h1>
+            <p>Financial Data Clustering Challenge</p>
+            <div class="nav-buttons">
+                <button class="btn btn-prev" disabled>Previous</button>
+                <button class="btn btn-next">Next</button>
+            </div>
+        </header>
+
+        <!-- Introduction Screen -->
+        <section id="intro-screen" class="game-screen active-screen">
+            <h2 class="screen-title">Understanding Loan Data Clusters</h2>
+            <div class="instructions">
+                <p>Welcome to the PCA Financial Analysis Game! In this challenge, you'll analyze loan payment data using Principal Component Analysis.</p>
+                <p><strong>Objective:</strong> Identify which cluster new data points belong to based on annual income and loan payment patterns.</p>
+            </div>
+            
+            <div class="pca-container">
+                <div class="graph-container">
+                    <h3 class="graph-title">Income vs Loan Payments</h3>
+                    <div class="graph" id="intro-graph">
+                        <!-- Data points will be generated by JS -->
+                        <div class="axis x-axis"></div>
+                        <div class="axis y-axis"></div>
+                        <div class="axis-label x-label">Annual Income ($)</div>
+                        <div class="axis-label y-label">Loan Payment ($)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="challenge-container">
+                <h3 class="challenge-title">How to Play</h3>
+                <div class="instructions">
+                    <p>1. Analyze the scatter plot showing loan data clusters</p>
+                    <p>2. When presented with a new data point, determine which cluster it belongs to</p>
+                    <p>3. Select your answer from the options provided</p>
+                    <p>4. Earn points for correct classifications and complete all challenges!</p>
+                </div>
+                <button class="btn" id="start-btn">Start Analysis</button>
+            </div>
+        </section>
+
+        <!-- Challenge Screen -->
+        <section id="challenge-screen" class="game-screen">
+            <h2 class="screen-title">Cluster Identification Challenge</h2>
+            <div class="instructions">
+                <p>Analyze the data clusters and determine where the highlighted data point belongs. Consider both income and loan payment patterns.</p>
+            </div>
+            
+            <div class="pca-container">
+                <div class="graph-container">
+                    <h3 class="graph-title">Financial Data Clusters</h3>
+                    <div class="graph" id="challenge-graph">
+                        <!-- Data points will be generated by JS -->
+                        <div class="axis x-axis"></div>
+                        <div class="axis y-axis"></div>
+                        <div class="axis-label x-label">Annual Income ($)</div>
+                        <div class="axis-label y-label">Loan Payment ($)</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="challenge-container">
+                <h3 class="challenge-title">Which cluster does this data point belong to?</h3>
+                <div class="options" id="options-container">
+                    <!-- Options will be generated by JS -->
+                </div>
+                <div class="feedback" id="feedback"></div>
+                <button class="btn" id="submit-btn" disabled>Submit Answer</button>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <span id="progress-text">Question 1 of 5</span>
+            </div>
+            
+            <div class="score-container">
+                <div class="score-box">
+                    <div class="score-value" id="score-value">0</div>
+                    <div class="score-label">Current Score</div>
+                </div>
+                <div class="score-box">
+                    <div class="score-value" id="streak-value">0</div>
+                    <div class="score-label">Correct Streak</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Completion Screen -->
+        <section id="completion-screen" class="game-screen">
+            <div class="completion-screen">
+                <h2 class="completion-title">Analysis Complete!</h2>
+                <p>You've successfully classified financial data using PCA principles.</p>
+                
+                <div class="final-score" id="final-score">0</div>
+                <p>Your mastery of financial clustering patterns</p>
+                
+                <div class="score-container" style="max-width: 500px; margin: 30px auto;">
+                    <div class="score-box">
+                        <div class="score-value" id="correct-answers">0</div>
+                        <div class="score-label">Correct Answers</div>
+                    </div>
+                    <div class="score-box">
+                        <div class="score-value" id="accuracy-rate">0%</div>
+                        <div class="score-label">Accuracy Rate</div>
+                    </div>
+                </div>
+                
+                <button class="btn restart-btn" id="restart-btn">Analyze Another Dataset</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentScreen: 0,
+            score: 0,
+            streak: 0,
+            currentQuestion: 0,
+            totalQuestions: 5,
+            selectedOption: null,
+            correctCluster: null
+        };
+
+        // Cluster data
+        const clusters = [
+            { id: 1, name: "Low Income, Low Loans", color: "#e74c3c", meanIncome: 30000, meanLoan: 5000, stdDev: 5000 },
+            { id: 2, name: "Medium Income, Medium Loans", color: "#3498db", meanIncome: 60000, meanLoan: 15000, stdDev: 8000 },
+            { id: 3, name: "High Income, High Loans", color: "#2ecc71", meanIncome: 110000, meanLoan: 35000, stdDev: 12000 },
+            { id: 4, name: "High Income, Low Loans", color: "#f39c12", meanIncome: 100000, meanLoan: 10000, stdDev: 7000 }
+        ];
+
+        // DOM Elements
+        const screens = document.querySelectorAll('.game-screen');
+        const prevBtn = document.querySelector('.btn-prev');
+        const nextBtn = document.querySelector('.btn-next');
+        const startBtn = document.getElementById('start-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackEl = document.getElementById('feedback');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        const scoreValue = document.getElementById('score-value');
+        const streakValue = document.getElementById('streak-value');
+        const finalScore = document.getElementById('final-score');
+        const correctAnswers = document.getElementById('correct-answers');
+        const accuracyRate = document.getElementById('accuracy-rate');
+
+        // Initialize graphs
+        initIntroGraph();
+        
+        // Navigation functions
+        function showScreen(index) {
+            screens.forEach(screen => screen.classList.remove('active-screen'));
+            screens[index].classList.add('active-screen');
+            gameState.currentScreen = index;
+            
+            // Update nav buttons
+            prevBtn.disabled = index === 0;
+            
+            if (index === 0) {
+                nextBtn.textContent = 'Next';
+            } else if (index === 1) {
+                nextBtn.textContent = 'Next Challenge';
+                nextBtn.disabled = true;
+                startChallenge();
+            } else if (index === 2) {
+                nextBtn.textContent = 'Next';
+                nextBtn.disabled = true;
+                showResults();
+            }
+        }
+
+        function nextScreen() {
+            if (gameState.currentScreen < screens.length - 1) {
+                showScreen(gameState.currentScreen + 1);
+            }
+        }
+
+        function prevScreen() {
+            if (gameState.currentScreen > 0) {
+                showScreen(gameState.currentScreen - 1);
+            }
+        }
+
+        // Initialize intro graph
+        function initIntroGraph() {
+            const graph = document.getElementById('intro-graph');
+            graph.innerHTML = '<div class="axis x-axis"></div><div class="axis y-axis"></div><div class="axis-label x-label">Annual Income ($)</div><div class="axis-label y-label">Loan Payment ($)</div>';
+            
+            clusters.forEach(cluster => {
+                // Create multiple points for each cluster
+                for (let i = 0; i < 15; i++) {
+                    const point = document.createElement('div');
+                    point.className = 'data-point';
+                    point.style.backgroundColor = cluster.color;
+                    
+                    // Generate random position within cluster
+                    const income = cluster.meanIncome + (Math.random() - 0.5) * cluster.stdDev;
+                    const loan = cluster.meanLoan + (Math.random() - 0.5) * cluster.stdDev;
+                    
+                    // Scale to graph dimensions (income: 0-150k, loan: 0-50k)
+                    const x = 5 + (income / 150000 * 90);
+                    const y = 95 - (loan / 50000 * 90);
+                    
+                    point.style.left = `${x}%`;
+                    point.style.top = `${y}%`;
+                    
+                    graph.appendChild(point);
+                }
+            });
+        }
+
+        // Start challenge
+        function startChallenge() {
+            gameState.currentQuestion = 0;
+            gameState.score = 0;
+            gameState.streak = 0;
+            updateScore();
+            generateQuestion();
+        }
+
+        // Generate a new question
+        function generateQuestion() {
+            // Clear previous state
+            optionsContainer.innerHTML = '';
+            feedbackEl.className = 'feedback';
+            feedbackEl.style.display = 'none';
+            submitBtn.disabled = true;
+            gameState.selectedOption = null;
+            
+            // Update progress
+            const progressPercent = (gameState.currentQuestion / gameState.totalQuestions) * 100;
+            progressFill.style.width = `${progressPercent}%`;
+            progressText.textContent = `Question ${gameState.currentQuestion + 1} of ${gameState.totalQuestions}`;
+            
+            // Select a random cluster for the question
+            const clusterIndex = Math.floor(Math.random() * clusters.length);
+            gameState.correctCluster = clusters[clusterIndex];
+            
+            // Generate challenge graph
+            generateChallengeGraph();
+            
+            // Create options
+            clusters.forEach(cluster => {
+                const option = document.createElement('div');
+                option.className = 'option';
+                option.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 12px; height: 12px; border-radius: 50%; background: ${cluster.color}; margin-right: 10px;"></div>
+                        ${cluster.name}
+                    </div>
+                `;
+                
+                option.addEventListener('click', () => {
+                    // Deselect previous option
+                    document.querySelectorAll('.option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // Select this option
+                    option.classList.add('selected');
+                    gameState.selectedOption = cluster;
+                    submitBtn.disabled = false;
+                });
+                
+                optionsContainer.appendChild(option);
+            });
+        }
+
+        // Generate challenge graph
+        function generateChallengeGraph() {
+            const graph = document.getElementById('challenge-graph');
+            graph.innerHTML = '<div class="axis x-axis"></div><div class="axis y-axis"></div><div class="axis-label x-label">Annual Income ($)</div><div class="axis-label y-label">Loan Payment ($)</div>';
+            
+            // Create cluster points
+            clusters.forEach(cluster => {
+                for (let i = 0; i < 12; i++) {
+                    const point = document.createElement('div');
+                    point.className = 'data-point';
+                    point.style.backgroundColor = cluster.color;
+                    
+                    // Generate random position within cluster
+                    const income = cluster.meanIncome + (Math.random() - 0.5) * cluster.stdDev;
+                    const loan = cluster.meanLoan + (Math.random() - 0.5) * cluster.stdDev;
+                    
+                    // Scale to graph dimensions
+                    const x = 5 + (income / 150000 * 90);
+                    const y = 95 - (loan / 50000 * 90);
+                    
+                    point.style.left = `${x}%`;
+                    point.style.top = `${y}%`;
+                    
+                    graph.appendChild(point);
+                }
+            });
+            
+            // Create question point (highlighted)
+            const questionPoint = document.createElement('div');
+            questionPoint.className = 'data-point';
+            questionPoint.style.backgroundColor = '#2c3e50';
+            questionPoint.style.width = '16px';
+            questionPoint.style.height = '16px';
+            questionPoint.style.boxShadow = '0 0 0 3px rgba(44, 62, 80, 0.3)';
+            
+            // Generate position for question point within the correct cluster
+            const income = gameState.correctCluster.meanIncome + (Math.random() - 0.5) * gameState.correctCluster.stdDev * 0.7;
+            const loan = gameState.correctCluster.meanLoan + (Math.random() - 0.5) * gameState.correctCluster.stdDev * 0.7;
+            
+            // Scale to graph dimensions
+            const x = 5 + (income / 150000 * 90);
+            const y = 95 - (loan / 50000 * 90);
+            
+            questionPoint.style.left = `${x}%`;
+            questionPoint.style.top = `${y}%`;
+            
+            graph.appendChild(questionPoint);
+        }
+
+        // Submit answer
+        function submitAnswer() {
+            if (gameState.selectedOption === null) return;
+            
+            const isCorrect = gameState.selectedOption.id === gameState.correctCluster.id;
+            
+            // Update feedback
+            feedbackEl.textContent = isCorrect 
+                ? 'Correct! This data point belongs to the ' + gameState.correctCluster.name + ' cluster.' 
+                : 'Incorrect. This data point belongs to the ' + gameState.correctCluster.name + ' cluster.';
+            
+            feedbackEl.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+            feedbackEl.style.display = 'block';
+            
+            // Update score and streak
+            if (isCorrect) {
+                gameState.score += 100;
+                gameState.streak += 1;
+                // Bonus for streaks
+                if (gameState.streak > 1) {
+                    gameState.score += (gameState.streak - 1) * 50;
+                }
+            } else {
+                gameState.streak = 0;
+            }
+            
+            updateScore();
+            nextBtn.disabled = false;
+            submitBtn.disabled = true;
+        }
+
+        // Update score display
+        function updateScore() {
+            scoreValue.textContent = gameState.score;
+            streakValue.textContent = gameState.streak;
+        }
+
+        // Move to next question
+        function nextQuestion() {
+            gameState.currentQuestion++;
+            
+            if (gameState.currentQuestion < gameState.totalQuestions) {
+                nextBtn.disabled = true;
+                generateQuestion();
+            } else {
+                showScreen(2); // Show completion screen
+            }
+        }
+
+        // Show results on completion screen
+        function showResults() {
+            const correctCount = Math.round(gameState.score / 100);
+            const accuracy = Math.round((correctCount / gameState.totalQuestions) * 100);
+            
+            finalScore.textContent = gameState.score;
+            correctAnswers.textContent = `${correctCount}/${gameState.totalQuestions}`;
+            accuracyRate.textContent = `${accuracy}%`;
+        }
+
+        // Restart game
+        function restartGame() {
+            showScreen(0);
+        }
+
+        // Event listeners
+        prevBtn.addEventListener('click', prevScreen);
+        nextBtn.addEventListener('click', nextScreen);
+        startBtn.addEventListener('click', () => showScreen(1));
+        submitBtn.addEventListener('click', submitAnswer);
+        restartBtn.addEventListener('click', restartGame);
+        
+        // Next question handler
+        nextBtn.addEventListener('click', function() {
+            if (gameState.currentScreen === 1 && gameState.currentQuestion < gameState.totalQuestions - 1) {
+                nextQuestion();
+            }
+        });
+    </script>
+</body>
+</html>

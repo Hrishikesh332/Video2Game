@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<think>
+We are creating an interactive educational game about hard margin SVM classifiers.
+ The game will have:
+   - An interactive scatter plot where users can place points (positive and negative)
+   - Ability to draw a hyperplane (line) and adjust it
+   - Display of margin lines and support vectors
+   - Calculation and display of margin width and objective function
+   - Toggle between hyperplanes (we'll implement by letting the user adjust the hyperplane and see updates in real time)
+   - Explanation of the mathematical formulation
+   - Input for support vectors to calculate bias
+   - Classifier for new points
+
+ We'll structure the HTML with:
+   - A header with title and instructions
+   - A main area with:
+        * The interactive canvas for the scatter plot and hyperplane
+        * Controls for adding points (positive/negative), drawing the hyperplane, and toggling modes
+        * A section for displaying the margin, support vectors, and calculations
+        * A section for the mathematical explanation (collapsible?)
+        * A section for user input to set support vectors and calculate bias
+        * A section to classify new points
+
+ We'll use a canvas for drawing and handle mouse events.
+
+ Steps:
+
+ 1. Set up the HTML structure.
+ 2. Style the page with a clean, minimal design (white background, grey accents).
+ 3. Write JavaScript to handle:
+    - Drawing on the canvas: points (blue plus, red minus), hyperplane (green line), margins (dashed lines), support vectors (highlighted), and distance indicators.
+    - Mouse events: 
+        * Click to add a point (with a mode for positive or negative)
+        * Drag to adjust the hyperplane (we'll represent the hyperplane by a line segment that can be dragged by its endpoints or the middle)
+    - Calculate the hyperplane equation and the margin lines (parallel at a fixed distance? but note: the margin should be determined by the closest points). However, the specification says to display the margin lines as 'y=x-1' and 'y=x+1' for example. But in reality, the margin is determined by the hyperplane and the support vectors. We'll let the user adjust the hyperplane and then we'll compute the margin as the minimum distance to the points. But note: the specification also says to label the margin lines with equations. We might need to fix the hyperplane equation to a specific form? 
+
+    However, note requirement 3: "The app must display two dashed lines parallel to the hyperplane, representing the margins. These lines should be labeled as 'y=x-1' and 'y=x+1'." 
+    This seems to be an example. But in our app, we want to show the actual margins. So we will compute the margin based on the closest points.
+
+    Steps for the hyperplane and margins:
+      - The hyperplane is defined by: w0*x + w1*y + b = 0.
+      - We can represent the hyperplane by a line in the form: y = m*x + c (if it's not vertical). But to be general, we'll use the parametric form.
+
+    How we let the user adjust the hyperplane?
+      We can let the user draw a line by two points. Then we can compute the normal vector (w) and the bias (b) from that.
+
+    Then the margin lines are: w0*x + w1*y + b = ± delta, where delta is the margin (which we will compute as the minimum distance from the hyperplane to the closest point of each class, but note: in hard margin, the margin is set so that the closest points are exactly on the margin lines).
+
+    Actually, the margin lines are set so that the closest positive point is on one and the closest negative on the other. The margin width is then 2 / ||w||.
+
+    We'll do:
+      - Let the user adjust the hyperplane by dragging two control points (endpoints of a segment representing the hyperplane).
+      - Then we compute the normal vector w = (a, b) from the direction of the line (so if the line is defined by two points P0 and P1, then the direction vector is d = (dx, dy) = (x1-x0, y1-y0). Then a normal vector is (dy, -dx) or (-dy, dx). We'll choose one so that the positive class is on the positive side.
+
+    But note: we have to decide the orientation. We can set the hyperplane equation as: 
+        w0*(x - x0) + w1*(y - y0) = 0
+      where (w0, w1) is the normal vector.
+
+    Then the signed distance of a point (x,y) to the hyperplane is: (w0*(x-x0) + w1*(y-y0)) / ||w||
+
+    We can then find the closest positive point and the closest negative point. The margin will be the distance between the two parallel lines that pass through these points? Actually, the margin is the distance between the two margin lines (which are at the same distance from the hyperplane). The distance from the hyperplane to each margin line is the same (gamma). Then the total margin width is 2*gamma.
+
+    How to compute gamma? 
+        gamma = min_{i} | w·x_i + b | / ||w||   but note: in hard margin, we have that for positive points: w·x_i + b >= 1, and for negative: <= -1, and the margin lines are at 1 and -1 in the scaled space (where ||w|| is factored in). Actually, the standard formulation sets the margin lines at w·x + b = 1 and w·x + b = -1, and then the margin is 2/||w||.
+
+    So we can set:
+        We require that the hyperplane satisfies: 
+          for all positive points: w·x_i + b >= 1
+          for all negative points: w·x_i + b <= -1
+        and then the margin is 2/||w||.
+
+    But note: the hyperplane we draw is arbitrary. We are going to let the user adjust it arbitrarily. Then we can compute the minimal value of |w·x_i + b| for the points? and then set the margin lines at w·x + b = ± min |w·x_i + b|? That would be the minimal distance. But then the margin would be 2 * (min |w·x_i + b|) / ||w||.
+
+    However, the specification says to highlight the support vectors (the closest points). So we can do:
+
+      Step 1: Let the user place points and adjust the hyperplane.
+      Step 2: For the current hyperplane (defined by w and b), compute the signed distance for every point: d_i = (w·x_i + b) / ||w||
+      Step 3: For the positive class, find the point with the smallest d_i (which should be positive) and for the negative class, the point with the largest d_i (which should be negative). The support vectors are these points.
+      Step 4: The margin lines are then set at the hyperplane shifted by the distance of the support vectors? Actually, we set the margin lines at:
+          w·x + b = ± (min |d_i| * ||w||)   ??? 
+
+    Alternatively, we can set the margin lines at:
+        w·x + b = k and w·x + b = -k, where k is chosen as the minimum of |w·x_i + b| over the points? But note: the sign matters. We want the positive support vector to be on the positive margin and the negative on the negative.
+
+    Actually, we can set k = min( min_{positive} (w·x_i + b), min_{negative} |w·x_i + b| )? Not exactly.
+
+    Let me recall: in the hard margin SVM, the condition is that for positive points: w·x_i + b >= 1, and for negative: <= -1. The support vectors are the ones for which the equality holds. Then the margin is 2/||w||.
+
+    But in our interactive app, we are not solving the optimization problem. We are letting the user set the hyperplane arbitrarily. Then we can compute:
+
+        Let M = min( min_{positive} (w·x_i + b), min_{negative} -(w·x_i + b) )
+        Then we set the margin lines at w·x + b = M and w·x + b = -M? 
+
+    But note: if the hyperplane is not the optimal one, then M might be less than 1? Actually, we can scale w and b arbitrarily. So we can normalize the hyperplane so that the minimal value of the functional margin (w·x_i + b) for the positive points is 1 and for the negative points is -1? That would be the standard way. But we are not solving for w and b, we are letting the user set them arbitrarily.
+
+    We'll do:
+
+        We have the hyperplane defined by the user. We can compute the functional margin for each point: f_i = w·x_i + b.
+
+        Then we find:
+            m_positive = min_{i in positive} f_i
+            m_negative = min_{i in negative} (-f_i)   [which is the same as max_{negative} f_i but positive?]
+
+        Then the minimal functional margin is min(m_positive, m_negative). Let m = min(m_positive, m_negative).
+
+        Then we can set the margin lines at w·x + b = m and w·x + b = -m? But note: for the negative points, we want w·x_i + b <= -m? Actually, we want the margin lines to be at the support vectors. So we set:
+
+            margin_positive = m_positive
+            margin_negative = -m_negative   [because for negative points, we have f_i <= -m_negative?]
+
+        Actually, we can set the positive margin line at w·x + b = m_positive and the negative margin line at w·x + b = -m_negative? But then they are not symmetric? 
+
+    Alternatively, we can set the hyperplane to be at the middle? 
+
+    Given the complexity, and to match the specification (which says to label the margin lines as 'y=x-1' and 'y=x+1'), we might simplify:
+
+        We'll fix the margin to be 1 unit in the functional space? But that requires normalizing w and b.
+
+    How about we do:
+
+        We let the user adjust the hyperplane arbitrarily. Then we compute the minimal absolute functional margin: m = min_i |f_i|? But that doesn't separate the classes.
+
+    Actually, we can compute the geometric margin as the minimal distance to the hyperplane, and then set the margin lines at that distance? 
+
+        Let d_i = |f_i| / ||w||   [the absolute distance]
+        Then the minimal distance is d_min = min_i d_i.
+
+        Then we set the margin lines at a distance d_min from the hyperplane? Then the margin width would be 2*d_min.
+
+    But note: the support vectors are the points with d_i = d_min.
+
+    Then we can draw two lines parallel to the hyperplane at a distance d_min on each side.
+
+    How to draw a line parallel at a distance d? We shift the hyperplane by d in the direction of the normal and in the opposite direction.
+
+    So the two margin lines would be:
+
+        w0*x + w1*y + b = ± (d_min * ||w||)
+
+    But note: d_min = |f_i| / ||w|| for the closest point, so d_min * ||w|| = |f_i|. But we don't know the sign? Actually, we shift by d_min in the direction of the normal and by -d_min in the opposite.
+
+    However, we have two classes. We want one margin line to be on the positive side and one on the negative. So we shift by:
+
+        positive margin: shift in the direction of w by d_min (so the equation becomes w·x + b = d_min * ||w||)
+        negative margin: shift in the direction of -w by d_min (so w·x + b = -d_min * ||w||)
+
+    But note: the minimal distance d_min is the same for both sides? Not necessarily: the closest point might be on one side only. But we are taking the minimal over all points, so it's the same.
+
+    However, we want the margin to be defined by the closest point of each class? Then we would have two distances: d_positive (minimal distance from positive points) and d_negative (minimal distance from negative points). Then the margin lines would be at d_positive and d_negative from the hyperplane? But then the margin width would be d_positive + d_negative.
+
+    This is getting complex. Let's stick to the standard SVM representation: we set the hyperplane such that the functional margin is 1 for the support vectors. But we are not solving the optimization. We are letting the user set the hyperplane arbitrarily.
+
+    We'll do:
+
+        We compute the functional margin f_i = w·x_i + b for each point.
+
+        Then we find:
+            m = min_i |f_i|   [but this doesn't account for the sign?]
+
+        Actually, we want the minimal positive functional margin for the positive class and the minimal (in absolute value) negative functional margin for the negative class. Then we set:
+
+            Let m_pos = min_{i: positive} f_i
+            Let m_neg = max_{i: negative} f_i   (which is the least negative, so the closest to zero)
+
+        Then the positive margin line should be at f = m_pos and the negative at f = m_neg? But then the hyperplane is at f=0, so the distance for the positive points is m_pos / ||w|| and for the negative is |m_neg| / ||w||.
+
+        Then the margin width is (m_pos - m_neg) / ||w||? 
+
+    This is complicated. For simplicity and to match the specification, we will:
+
+        - Let the user adjust the hyperplane arbitrarily.
+        - Find the closest point (any class) to the hyperplane (in terms of Euclidean distance). Let d_min be that distance.
+        - Then we set the margin lines at a distance d_min from the hyperplane on each side? But that might not separate the classes if the hyperplane is not in the middle.
+
+    Alternatively, we can do:
+
+        We find the closest positive point and the closest negative point to the hyperplane (Euclidean distance). Then we set the margin lines to pass through these points? Then the margin lines are:
+
+          positive margin: passes through the closest positive point, parallel to the hyperplane.
+          negative margin: passes through the closest negative point, parallel to the hyperplane.
+
+    Then the hyperplane should be in the middle? But the user drew it arbitrarily. We are not moving the hyperplane, we are just showing the margins that would be enforced by the support vectors.
+
+    We'll do:
+
+        Step 1: For the current hyperplane, compute the Euclidean distance for every point to the hyperplane.
+        Step 2: Find the closest positive point and the closest negative point. These are the support vectors.
+        Step 3: The positive margin line is the line parallel to the hyperplane passing through the closest positive point.
+        Step 4: The negative margin line is the line parallel to the hyperplane passing through the closest negative point.
+
+    Then the margin width is the distance between these two parallel lines? That would be |d_positive - d_negative|? But if the hyperplane is not in the middle, then the margin lines are not symmetric.
+
+    Actually, the distance between the two margin lines is | (f_positive - f_negative) | / ||w||, where f_positive = w·x_positive + b, and f_negative = w·x_negative + b. Then the distance is |f_positive - f_negative| / ||w||.
+
+    But note: the hyperplane is at f=0, so the positive margin line is at f = f_positive, and the negative at f = f_negative? Then the distance between the two lines is |f_positive - f_negative| / ||w||.
+
+    We'll compute the margin width as that.
+
+    Then the objective function (1/2 * ||w||^2) is not directly related? But in standard SVM, we maximize the margin which is 2/||w||, so minimizing ||w||^2. We can display both.
+
+    We'll display:
+        Margin width (gamma) = |f_positive - f_negative| / ||w||
+        Objective function = 1/2 * ||w||^2
+
+    But note: the standard SVM sets the margin to be 2/||w||, so we are not exactly matching. However, for educational purposes, we can show both the actual margin (as the distance between the two margin lines) and the objective function.
+
+ 4. We'll create a section for the mathematical formulation (collapsible? we'll just put it in a div).
+
+ 5. We'll create an input for the user to set the support vectors (by clicking on them? or by entering coordinates?) and then calculate the bias. But note: the hyperplane is determined by the support vectors? Actually, the hyperplane is the one that is equidistant and with maximum margin. We can solve for the hyperplane given the support vectors? 
+
+    We'll do: 
+        The user selects two support vectors (one positive, one negative). Then the hyperplane is the perpendicular bisector of the segment joining them? 
+
+    But note: in 2D, for two points, the hyperplane (line) that is equidistant and with maximum margin is indeed the perpendicular bisector. Then the margin is the distance from either point to the line.
+
+    So we can let the user select two points (by clicking with a special mode) and then set the hyperplane to be the perpendicular bisector. Then we can compute w and b.
+
+ 6. Classifier for new points: the user inputs a coordinate, and we compute which side of the hyperplane it is on.
+
+ Implementation:
+
+   We'll have modes:
+     - Add positive point
+     - Add negative point
+     - Draw hyperplane (by two points) and then allow dragging of the endpoints to adjust
+     - Select support vectors (for calculating bias and setting hyperplane)
+
+   We'll have buttons to switch modes.
+
+   We'll use a canvas and handle:
+     - mousedown, mousemove, mouseup for drawing and dragging.
+
+   We'll store:
+     - points: array of {x, y, label, isSupportVector?}
+     - hyperplane: {p0: {x,y}, p1: {x,y}} for the endpoints of the segment representing the hyperplane.
+
+   Then we compute:
+        direction vector: d = (p1.x - p0.x, p1.y - p0.y)
+        normal vector: w = (-d.y, d.x) or (d.y, -d.x) ... we need to choose the orientation so that the positive class is on the positive side of w.
+
+        We can choose w = (d.y, -d.x) so that the normal is rotated 90 degrees counterclockwise? Then the side for a point can be computed by: (x - p0.x)*w0 + (y - p0.y)*w1.
+
+        But we can also define the hyperplane equation as: 
+            w0*(x - p0.x) + w1*(y - p0.y) = 0
+        Then the signed distance is (w0*(x-p0.x) + w1*(y-p0.y)) / ||w||
+
+        Alternatively, we can define the line equation: 
+            a*x + b*y + c = 0
+        We can compute a, b, c from two points.
+
+        Formula: 
+            a = p0.y - p1.y
+            b = p1.x - p0.x
+            c = p0.x*p1.y - p1.x*p0.y
+
+        Then the hyperplane equation: a*x + b*y + c = 0.
+
+        Then the functional margin for a point (x,y) is f = a*x + b*y + c.
+
+        The normal vector w = (a, b), and ||w|| = sqrt(a^2+b^2).
+
+        Then the signed distance is f / ||w||.
+
+   We'll use this representation.
+
+   Steps:
+
+        When the user draws the hyperplane by two points (p0, p1), we compute a, b, c.
+
+        Then for each point, we compute f = a*x + b*y + c.
+
+        Then we find:
+            positive support vector: the positive point with the smallest f (because f should be positive for positive points? but note: we haven't fixed the orientation) -> actually, we want the positive point with the smallest |f|? but that might be negative.
+
+        How to fix the orientation? We want the positive class to be on the side where f>0. We can let the user decide? Or we can set the orientation arbitrarily and then if we see that a positive point has negative f, we flip the signs of a, b, c.
+
+        We'll do: after drawing the hyperplane, we check the sign of f for the first positive point we find. If it's negative, we flip the signs of a, b, c.
+
+        Then we can proceed.
+
+        Then we find:
+            positive support vector: the positive point with the smallest positive f (i.e., the smallest f that is positive) -> actually the minimal positive value of f? but we want the one closest to the hyperplane, so the smallest |f|? but since we flipped, positive points have positive f? 
+
+        Actually, after flipping, we have:
+            for positive points: f >= some positive value? but we want the minimal f (which is the closest).
+
+        So: 
+            positive support vector: argmin_{positive points} f
+            negative support vector: argmax_{negative points} f   (because for negative points, we want them to be on the negative side, so f should be negative, and the one with the largest f (closest to zero) is the closest)
+
+        But note: after flipping, we want negative points to have negative f. So the negative support vector is the one with the largest f (which is the least negative).
+
+        Then we set the margin lines:
+            positive margin line: a*x + b*y + c = f_pos   (where f_pos is the f value of the positive support vector)
+            negative margin line: a*x + b*y + c = f_neg   (where f_neg is the f value of the negative support vector)
+
+        Then the margin width (the distance between the two lines) is |f_pos - f_neg| / ||w||.
+
+        And the objective function is 1/2 * ||w||^2 = 1/2*(a^2+b^2).
+
+   We'll display:
+        Margin width: |f_pos - f_neg| / ||w||
+        Objective: 1/2*(a^2+b^2)
+
+   But note: in standard SVM, the margin is 2/||w||, which would be achieved if we set f_pos=1 and f_neg=-1. But here we are not normalizing.
+
+   We can also provide a button to normalize the hyperplane so that the support vectors have f=±1? Then the margin becomes 2/||w||.
+
+   We'll do that in the "Calculate bias" section? 
+
+   Alternatively, we can let the user input the support vectors and then we set the hyperplane to be the perpendicular bisector and set the margin to 1? 
+
+   We'll implement:
+
+        Mode: "Set by support vectors"
+          - User selects one positive point and one negative point (by clicking on them in order? we'll have a button to capture the next click as positive support vector and then negative)
+          - Then we set the hyperplane as the perpendicular bisector of the segment joining the two points.
+
+        How to compute the perpendicular bisector:
+
+            Let A = (x1,y1) [positive], B = (x2,y2) [negative]
+            Midpoint M = ((x1+x2)/2, (y1+y2)/2)
+            The direction of the segment AB is (dx,dy) = (x2-x1, y2-y1)
+            Then the hyperplane is perpendicular to AB and passes through M.
+
+            So the hyperplane equation: 
+                dx*(x - M.x) + dy*(y - M.y) = 0
+
+            Then we can set:
+                a = dx
+                b = dy
+                c = -dx*M.x - dy*M.y
+
+            But note: we want the positive class to be on the side of A? We need to check the sign. We can set the equation so that for point A: 
+                f_A = dx*(x1 - M.x) + dy*(y1 - M.y) = dx*(dx/2) + dy*(dy/2) = (dx^2+dy^2)/2 > 0
+            So for A (positive) we have positive, and for B: f_B = dx*(-dx/2)+dy*(-dy/2) = - (dx^2+dy^2)/2 < 0.
+
+            Then we set the hyperplane with this a, b, c.
+
+        Then the margin lines? We can set them at f = (dx^2+dy^2)/2 and f = - (dx^2+dy^2)/2? But then the margin width is (dx^2+dy^2) / ||w||, where ||w|| = sqrt(dx^2+dy^2). So margin = (dx^2+dy^2) / (dx^2+dy^2) * sqrt(dx^2+dy^2) = sqrt(dx^2+dy^2). 
+
+        Actually, the distance between the two margin lines is |f_pos - f_neg| / ||w|| = ( (dx^2+dy^2) ) / sqrt(dx^2+dy^2) = sqrt(dx^2+dy^2) = distance between A and B.
+
+        So the margin width is the distance between the two support vectors.
+
+        And the objective function is 1/2 * ||w||^2 = 1/2*(dx^2+dy^2).
+
+   This matches.
+
+   So we'll provide this method as well.
+
+ 7. Classifier for new points: 
+        Input: x, y
+        Compute f = a*x + b*y + c
+        If f > 0, classify as positive; else negative.
+
+ 8. We'll also provide an input for the user to enter the number of support vectors? That doesn't make sense. Instead, we'll let the user select the support vectors by clicking.
+
+ 9. We'll create a section for the user to input a new point and see the classification.
+
+ Given the complexity, we'll break the implementation into steps.
+
+ We'll have the following modes (selected by radio buttons or buttons):
+
+   - Add Positive: next click adds a positive point
+   - Add Negative: next click adds a negative point
+   - Draw Hyperplane: next two clicks set the endpoints of the hyperplane segment (then we compute the line equation and allow dragging of the endpoints to adjust)
+   - Set Support Vectors: then the next two clicks (first positive, then negative) will set the hyperplane as the perpendicular bisector.
+
+ We'll also have a button to clear the canvas.
+
+ We'll draw:
+
+   - Points: positive as blue '+', negative as red '-'
+   - Hyperplane: green line segment (with endpoints as circles that can be dragged)
+   - Margin lines: dashed lines (positive margin: blue dashed? negative margin: red dashed? or both grey?) - we'll use grey dashed.
+   - Support vectors: highlight with a circle around them.
+
+   - Distance indicators: arrows from the support vectors to the hyperplane? We'll draw an arrow from the support vector to the projection on the hyperplane.
+
+ We'll display:
+
+   - The equation of the hyperplane: a*x + b*y + c = 0 -> we can write it as: ax + by + c = 0, but we'll format it nicely.
+   - The equations of the margin lines: ax+by+c = f_pos and ax+by+c = f_neg.
+   - The margin width: gamma = |f_pos - f_neg| / ||w||
+   - The objective function: 1/2 * ||w||^2 = 1/2*(a^2+b^2)
+
+   - The coordinates of the support vectors.
+
+ Implementation details:
+
+   We'll use an object to store the state:
+
+        state = {
+          points: [],   // {x, y, label, id?}
+          hyperplane: null, // { p0: {x,y}, p1: {x,y}, a, b, c, wNorm }
+          mode: 'addPositive', // or 'addNegative', 'drawHyperplane', 'setSupportVectors'
+          supportVectorPositive: null, // the point that is the positive support vector (by id or index)
+          supportVectorNegative: null,
+          dragging: null, // when dragging a point or hyperplane endpoint: {type: 'hyperplane0', 'hyperplane1', or 'point', index: ...}
+        }
+
+   We'll use a canvas and redraw on every change.
+
+   Steps in drawing:
+
+        Clear the canvas.
+
+        Draw the margin lines (if hyperplane exists and we have support vectors) -> but note: we can compute the support vectors from the hyperplane and points.
+
+        Draw the hyperplane segment.
+
+        Draw the points.
+
+        Draw the support vectors with a circle.
+
+        Draw the arrows for the distances.
+
+   We'll write functions:
+
+        computeHyperplaneEquation(hyperplane) -> sets hyperplane.a, hyperplane.b, hyperplane.c, and hyperplane.wNorm (||w||)
+
+        findSupportVectors() -> returns { positive: point, negative: point, fPositive: value, fNegative: value }
+
+        projectPointToHyperplane(x, y) -> returns the projection point on the hyperplane.
+
+   Due to the complexity, we'll start with a basic structure and then add features.
+
+   We'll also create a section for the mathematical explanation (static text).
+
+   We'll structure the HTML:
+
+        <div id="game-container">
+          <h1>Hard Margin Classifier</h1>
+          <div id="instructions">...</div>
+          <div id="controls">
+            <button id="btn-add-positive">Add Positive Point</button>
+            <button id="btn-add-negative">Add Negative Point</button>
+            <button id="btn-draw-hyperplane">Draw Hyperplane</button>
+            <button id="btn-set-support">Set by Support Vectors</button>
+            <button id="btn-clear">Clear</button>
+          </div>
+          <canvas id="canvas" width="800" height="500"></canvas>
+          <div id="info-panel">
+            <h2>Hyperplane Information</h2>
+            <div>Hyperplane equation: <span id="eq-hyperplane">None</span></div>
+            <div>Positive margin: <span id="eq-margin-pos">None</span></div>
+            <div>Negative margin: <span id="eq-margin-neg">None</span></div>
+            <div>Margin width (γ): <span id="margin-width">None</span></div>
+            <div>Objective function (1/2 ||w||^2): <span id="objective">None</span></div>
+            <div>Support vectors: 
+              Positive: <span id="sv-pos">None</span>
+              Negative: <span id="sv-neg">None</span>
+            </div>
+          </div>
+          <div id="classifier">
+            <h2>Classifier</h2>
+            <label>New point: 
+              x: <input type="number" id="new-x">
+              y: <input type="number" id="new-y">
+            </label>
+            <button id="btn-classify">Classify</button>
+            <div>Classification: <span id="classification-result"></span></div>
+          </div>
+          <div id="math-formulation">
+            <h2>Mathematical Formulation</h2>
+            <p>The goal of the hard margin SVM is to find a hyperplane that maximizes the margin between the two classes. The margin is defined as the distance between the hyperplane and the closest data points from each class (support vectors).</p>
+            <p>We minimize \( \frac{1}{2} \|\mathbf{w}\|^2 \) subject to \( y_i(\mathbf{w}\cdot\mathbf{x_i} + b) \geq 1 \) for all \( i \).</p>
+            <p>Using Lagrange multipliers, we form the Lagrangian: ... </p>
+          </div>
+        </div>
+
+   We'll make the canvas responsive.
+
+   Due to the length, we'll focus on the core functionality and then add the other features.
+
+   Note: This is a very complex app. We'll implement the basic functionality and then extend.
+
+   Steps in JavaScript:
+
+        // State
+        let state = {
+          points: [],
+          hyperplane: null, // { p0: {x,y}, p1: {x,y}, a:0, b:0, c:0, wNorm:0 }
+          mode: 'addPositive', // 'addNegative', 'drawHyperplane', 'setSupportVectors'
+          supportVectorPositive: null,
+          supportVectorNegative: null,
+          dragging: null, // { type: 'point', index: i } or { type: 'hyperplane0' } or { type: 'hyperplane1' }
+          tempHyperplanePoints: [] // when in drawHyperplane mode, store the two points
+        };
+
+        // Get canvas and context
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Event listeners for buttons
+        document.getElementById('btn-add-positive').addEventListener('click', () => state.mode = 'addPositive');
+        document.getElementById('btn-add-negative').addEventListener('click', () => state.mode = 'addNegative');
+        document.getElementById('btn-draw-hyperplane').addEventListener('click', () => {
+          state.mode = 'drawHyperplane';
+          state.tempHyperplanePoints = [];
+        });
+        document.getElementById('btn-set-support').addEventListener('click', () => {
+          state.mode = 'setSupportVectors';
+          state.supportVectorPositive = null;
+          state.supportVectorNegative = null;
+        });
+        document.getElementById('btn-clear').addEventListener('click', clearAll);
+
+        // Mouse events on canvas
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseup', handleMouseUp);
+
+        // Also for touch events? We'll do mouse for now.
+
+        // Functions:
+        function clearAll() {
+          state.points = [];
+          state.hyperplane = null;
+          state.supportVectorPositive = null;
+          state.supportVectorNegative = null;
+          state.tempHyperplanePoints = [];
+          draw();
+        }
+
+        function handleMouseDown(e) {
+          const rect = canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          if (state.mode === 'addPositive') {
+            state.points.push({x, y, label: 1});
+            draw();
+          } else if (state.mode === 'addNegative') {
+            state.points.push({x, y, label: -1});
+            draw();
+          } else if (state.mode === 'drawHyperplane') {
+            if (state.tempHyperplanePoints.length < 2) {
+              state.tempHyperplanePoints.push({x, y});
+              if (state.tempHyperplanePoints.length === 2) {
+                // Create the hyperplane
+                state.hyperplane = {
+                  p0: state.tempHyperplanePoints[0],
+                  p1: state.tempHyperplanePoints[1]
+                };
+                computeHyperplaneEquation(state.hyperplane);
+                state.mode = 'adjustHyperplane'; // we switch to a mode where we can drag the endpoints
+              }
+              draw();
+            }
+          } else if (state.mode === 'adjustHyperplane') {
+            // Check if we are dragging an endpoint
+            const threshold = 10;
+            if (distance(x, y, state.hyperplane.p0) < threshold) {
+              state.dragging = { type: 'hyperplane0' };
+            } else if (distance(x, y, state.hyperplane.p1) < threshold) {
+              state.dragging = { type: 'hyperplane1' };
+            }
+          } else if

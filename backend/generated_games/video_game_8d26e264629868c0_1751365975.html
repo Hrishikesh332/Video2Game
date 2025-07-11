@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        button, select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        button:hover, select:hover {
+            background-color: #f0f0f0;
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background-color: #4a4a4a;
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #3a3a3a;
+        }
+
+        .visualization {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        #scatter-plot {
+            flex: 1;
+            min-width: 300px;
+            height: 400px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .data-table {
+            flex: 1;
+            min-width: 300px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            font-weight: 600;
+        }
+
+        .instructions {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-left: 4px solid #4a90e2;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .step {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ddd;
+        }
+
+        .step.active {
+            background-color: #4a4a4a;
+        }
+
+        .progress-container {
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: #4a4a4a;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .score-display {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .feedback {
+            text-align: center;
+            min-height: 24px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+
+        .positive {
+            color: #2e7d32;
+        }
+
+        .negative {
+            color: #c62828;
+        }
+
+        .level-indicator {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .visualization {
+                flex-direction: column;
+            }
+            
+            #scatter-plot {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCA Explorer</h1>
+        <p>Understand Principal Component Analysis through interactive exploration</p>
+    </header>
+
+    <div class="game-container">
+        <div class="panel">
+            <div class="level-indicator">Level: <span id="level">1</span>/3</div>
+            <div class="score-display">Score: <span id="score">0</span></div>
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+            </div>
+            
+            <div class="step-indicator">
+                <div class="step active" data-step="1"></div>
+                <div class="step" data-step="2"></div>
+                <div class="step" data-step="3"></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="center-toggle">Center Data (Mean=0)</label>
+                    <button id="center-toggle">Apply Centering</button>
+                </div>
+                
+                <div class="control-group">
+                    <label for="scale-toggle">Scale Data (Unit Variance)</label>
+                    <button id="scale-toggle">Apply Scaling</button>
+                </div>
+                
+                <div class="control-group">
+                    <label for="pca-toggle">Show Principal Components</label>
+                    <button id="pca-toggle">Show PC1 & PC2</button>
+                </div>
+                
+                <div class="control-group">
+                    <label for="correlation">Set Correlation</label>
+                    <select id="correlation">
+                        <option value="random">Random</option>
+                        <option value="positive">Positive Correlation</option>
+                        <option value="negative">Negative Correlation</option>
+                        <option value="perfect">Perfect Correlation</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="instructions" id="instructions">
+                <strong>Level 1:</strong> Click on the plot to add data points. Observe how the data distribution affects PCA.
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="visualization">
+                <div id="scatter-plot"></div>
+                <div class="data-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Point</th>
+                                <th>Original X</th>
+                                <th>Original Y</th>
+                                <th>Scaled X</th>
+                                <th>Scaled Y</th>
+                                <th>PC1</th>
+                                <th>PC2</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div style="display: flex; justify-content: center; gap: 10px;">
+                <button id="reset-btn" class="btn-primary">Reset Data</button>
+                <button id="prev-level" class="btn-primary">Previous Level</button>
+                <button id="next-level" class="btn-primary">Next Level</button>
+                <button id="restart-btn" class="btn-primary">Restart Game</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentLevel: 1,
+            score: 0,
+            dataPoints: [],
+            centered: false,
+            scaled: false,
+            showPCA: false,
+            correlation: 'random',
+            maxLevel: 3
+        };
+
+        // DOM elements
+        const scatterPlot = document.getElementById('scatter-plot');
+        const tableBody = document.getElementById('table-body');
+        const centerToggle = document.getElementById('center-toggle');
+        const scaleToggle = document.getElementById('scale-toggle');
+        const pcaToggle = document.getElementById('pca-toggle');
+        const correlationSelect = document.getElementById('correlation');
+        const resetBtn = document.getElementById('reset-btn');
+        const prevLevelBtn = document.getElementById('prev-level');
+        const nextLevelBtn = document.getElementById('next-level');
+        const restartBtn = document.getElementById('restart-btn');
+        const levelDisplay = document.getElementById('level');
+        const scoreDisplay = document.getElementById('score');
+        const feedbackDisplay = document.getElementById('feedback');
+        const progressBar = document.getElementById('progress');
+        const instructions = document.getElementById('instructions');
+        const stepIndicators = document.querySelectorAll('.step');
+
+        // Initialize game
+        function initGame() {
+            resetGameState();
+            renderScatterPlot();
+            setupEventListeners();
+            updateUI();
+        }
+
+        // Reset game state
+        function resetGameState() {
+            gameState.currentLevel = 1;
+            gameState.score = 0;
+            gameState.dataPoints = generateInitialData();
+            gameState.centered = false;
+            gameState.scaled = false;
+            gameState.showPCA = false;
+            gameState.correlation = 'random';
+        }
+
+        // Generate initial data points
+        function generateInitialData() {
+            const points = [];
+            for (let i = 0; i < 5; i++) {
+                points.push({
+                    id: i,
+                    x: Math.random() * 8 - 4,
+                    y: Math.random() * 8 - 4,
+                    scaledX: 0,
+                    scaledY: 0,
+                    pc1: 0,
+                    pc2: 0
+                });
+            }
+            return points;
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            scatterPlot.addEventListener('click', handlePlotClick);
+            centerToggle.addEventListener('click', toggleCentering);
+            scaleToggle.addEventListener('click', toggleScaling);
+            pcaToggle.addEventListener('click', togglePCA);
+            correlationSelect.addEventListener('change', handleCorrelationChange);
+            resetBtn.addEventListener('click', resetData);
+            prevLevelBtn.addEventListener('click', goToPreviousLevel);
+            nextLevelBtn.addEventListener('click', goToNextLevel);
+            restartBtn.addEventListener('click', restartGame);
+        }
+
+        // Handle plot click (add data point)
+        function handlePlotClick(e) {
+            if (gameState.currentLevel !== 1) return;
+            
+            const rect = scatterPlot.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width * 10 - 5;
+            const y = 5 - (e.clientY - rect.top) / rect.height * 10;
+            
+            gameState.dataPoints.push({
+                id: gameState.dataPoints.length,
+                x: parseFloat(x.toFixed(2)),
+                y: parseFloat(y.toFixed(2)),
+                scaledX: 0,
+                scaledY: 0,
+                pc1: 0,
+                pc2: 0
+            });
+            
+            updateScore(5);
+            updateUI();
+        }
+
+        // Toggle data centering
+        function toggleCentering() {
+            gameState.centered = !gameState.centered;
+            centerToggle.textContent = gameState.centered ? 'Undo Centering' : 'Apply Centering';
+            updateScore(2);
+            updateUI();
+        }
+
+        // Toggle data scaling
+        function toggleScaling() {
+            gameState.scaled = !gameState.scaled;
+            scaleToggle.textContent = gameState.scaled ? 'Undo Scaling' : 'Apply Scaling';
+            updateScore(2);
+            updateUI();
+        }
+
+        // Toggle PCA display
+        function togglePCA() {
+            gameState.showPCA = !gameState.showPCA;
+            pcaToggle.textContent = gameState.showPCA ? 'Hide PC1 & PC2' : 'Show PC1 & PC2';
+            updateScore(3);
+            updateUI();
+        }
+
+        // Handle correlation change
+        function handleCorrelationChange() {
+            gameState.correlation = correlationSelect.value;
+            generateCorrelatedData();
+            updateScore(5);
+            updateUI();
+        }
+
+        // Generate correlated data based on selection
+        function generateCorrelatedData() {
+            gameState.dataPoints = [];
+            
+            if (gameState.correlation === 'random') {
+                for (let i = 0; i < 8; i++) {
+                    gameState.dataPoints.push({
+                        id: i,
+                        x: Math.random() * 8 - 4,
+                        y: Math.random() * 8 - 4,
+                        scaledX: 0,
+                        scaledY: 0,
+                        pc1: 0,
+                        pc2: 0
+                    });
+                }
+            } 
+            else if (gameState.correlation === 'positive') {
+                for (let i = 0; i < 8; i++) {
+                    const base = Math.random() * 6 - 3;
+                    gameState.dataPoints.push({
+                        id: i,
+                        x: base + (Math.random() - 0.5),
+                        y: base * 0.8 + (Math.random() - 0.5),
+                        scaledX: 0,
+                        scaledY: 0,
+                        pc1: 0,
+                        pc2: 0
+                    });
+                }
+            }
+            else if (gameState.correlation === 'negative') {
+                for (let i = 0; i < 8; i++) {
+                    const base = Math.random() * 6 - 3;
+                    gameState.dataPoints.push({
+                        id: i,
+                        x: base + (Math.random() - 0.5),
+                        y: -base * 0.8 + (Math.random() - 0.5),
+                        scaledX: 0,
+                        scaledY: 0,
+                        pc1: 0,
+                        pc2: 0
+                    });
+                }
+            }
+            else if (gameState.correlation === 'perfect') {
+                for (let i = 0; i < 8; i++) {
+                    const base = Math.random() * 6 - 3;
+                    gameState.dataPoints.push({
+                        id: i,
+                        x: base,
+                        y: base * 0.9,
+                        scaledX: 0,
+                        scaledY: 0,
+                        pc1: 0,
+                        pc2: 0
+                    });
+                }
+            }
+        }
+
+        // Reset data points
+        function resetData() {
+            gameState.dataPoints = generateInitialData();
+            gameState.centered = false;
+            gameState.scaled = false;
+            gameState.showPCA = false;
+            centerToggle.textContent = 'Apply Centering';
+            scaleToggle.textContent = 'Apply Scaling';
+            pcaToggle.textContent = 'Show PC1 & PC2';
+            correlationSelect.value = 'random';
+            updateUI();
+        }
+
+        // Go to previous level
+        function goToPreviousLevel() {
+            if (gameState.currentLevel > 1) {
+                gameState.currentLevel--;
+                updateLevel();
+            }
+        }
+
+        // Go to next level
+        function goToNextLevel() {
+            if (gameState.currentLevel < gameState.maxLevel) {
+                gameState.currentLevel++;
+                updateLevel();
+            }
+        }
+
+        // Update level display and instructions
+        function updateLevel() {
+            levelDisplay.textContent = gameState.currentLevel;
+            
+            // Update step indicators
+            stepIndicators.forEach((step, index) => {
+                if (index + 1 === gameState.currentLevel) {
+                    step.classList.add('active');
+                } else {
+                    step.classList.remove('active');
+                }
+            });
+            
+            // Update instructions based on level
+            if (gameState.currentLevel === 1) {
+                instructions.innerHTML = '<strong>Level 1: Data Exploration</strong> - Click on the plot to add data points. Observe how the data distribution affects PCA.';
+            } else if (gameState.currentLevel === 2) {
+                instructions.innerHTML = '<strong>Level 2: Transformation Effects</strong> - Apply centering and scaling to see how they affect the PCA components.';
+            } else if (gameState.currentLevel === 3) {
+                instructions.innerHTML = '<strong>Level 3: Correlation Patterns</strong> - Change the correlation type to see how it impacts the principal components.';
+            }
+            
+            // Reset data for new level
+            resetData();
+        }
+
+        // Restart game
+        function restartGame() {
+            resetGameState();
+            updateLevel();
+            updateUI();
+        }
+
+        // Update score
+        function updateScore(points) {
+            gameState.score += points;
+            scoreDisplay.textContent = gameState.score;
+            
+            // Show feedback
+            feedbackDisplay.textContent = `+${points} points!`;
+            feedbackDisplay.className = 'feedback positive';
+            
+            setTimeout(() => {
+                feedbackDisplay.textContent = '';
+            }, 1500);
+        }
+
+        // Render scatter plot
+        function renderScatterPlot() {
+            scatterPlot.innerHTML = '';
+            
+            // Create canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = scatterPlot.clientWidth;
+            canvas.height = scatterPlot.clientHeight;
+            scatterPlot.appendChild(canvas);
+            const ctx = canvas.getContext('2d');
+            
+            // Draw grid and axes
+            drawGrid(ctx, canvas.width, canvas.height);
+            
+            // Process data
+            const processedData = processData();
+            
+            // Draw data points
+            drawDataPoints(ctx, canvas.width, canvas.height, processedData);
+            
+            // Draw PCA components if enabled
+            if (gameState.showPCA) {
+                drawPCAComponents(ctx, canvas.width, canvas.height, processedData);
+            }
+        }
+
+        // Draw grid and axes
+        function drawGrid(ctx, width, height) {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#eee';
+            ctx.lineWidth = 1;
+            
+            // Vertical lines
+            for (let x = 0.5; x < width; x += width / 10) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            
+            // Horizontal lines
+            for (let y = 0.5; y < height; y += height / 10) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(0, height / 2);
+            ctx.lineTo(width, height / 2);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(width / 2, 0);
+            ctx.lineTo(width / 2, height);
+            ctx.stroke();
+            
+            // Draw axis labels
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            
+            // X-axis labels
+            for (let i = -5; i <= 5; i++) {
+                if (i === 0) continue;
+                const x = width / 2 + i * (width / 10);
+                ctx.fillText(i.toString(), x, height / 2 + 20);
+            }
+            
+            // Y-axis labels
+            for (let i = -5; i <= 5; i++) {
+                if (i === 0) continue;
+                const y = height / 2 - i * (height / 10);
+                ctx.fillText(i.toString(), width / 2 - 20, y);
+            }
+            
+            // Origin label
+            ctx.fillText('0', width / 2 - 10, height / 2 + 20);
+        }
+
+        // Process data (centering, scaling, PCA)
+        function processData() {
+            const data = JSON.parse(JSON.stringify(gameState.dataPoints));
+            
+            // Calculate means
+            let meanX = 0, meanY = 0;
+            data.forEach
+    </script>
+</body>
+</html>

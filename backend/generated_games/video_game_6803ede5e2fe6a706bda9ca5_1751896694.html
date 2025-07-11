@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Women's 5000m Race</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        @media (min-width: 768px) {
+            .game-container {
+                flex-direction: row;
+            }
+        }
+        
+        .track-container {
+            flex: 3;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #track {
+            width: 100%;
+            height: 300px;
+            background-color: #e8e8e8;
+            position: relative;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .lane {
+            height: 40px;
+            width: 100%;
+            border-bottom: 1px dashed #cccccc;
+            position: relative;
+        }
+        
+        .runner {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            position: absolute;
+            top: 5px;
+            left: 20px;
+            cursor: pointer;
+            transition: left 0.1s linear;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .marker {
+            position: absolute;
+            height: 100%;
+            width: 1px;
+            background-color: #999999;
+            top: 0;
+        }
+        
+        .marker-label {
+            position: absolute;
+            top: -25px;
+            font-size: 0.8rem;
+            color: #666666;
+        }
+        
+        .controls-container {
+            flex: 1;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .panel {
+            background-color: #ffffff;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #222222;
+        }
+        
+        h3 {
+            font-size: 1.1rem;
+            margin: 15px 0 10px;
+            color: #333333;
+        }
+        
+        .runner-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .runner-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: #eeeeee;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .runner-item:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .runner-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .slider-container {
+            margin: 15px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #444444;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #4a4a4a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 10px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: #333333;
+        }
+        
+        .btn-primary {
+            background-color: #2c7be5;
+        }
+        
+        .btn-primary:hover {
+            background-color: #1a68d1;
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #2c7be5;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .level-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .level {
+            text-align: center;
+            padding: 10px;
+            flex: 1;
+            background-color: #e0e0e0;
+            margin: 0 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .level.active {
+            background-color: #2c7be5;
+            color: white;
+        }
+        
+        .instructions {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        }
+        
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            z-index: 100;
+            max-width: 250px;
+            display: none;
+        }
+        
+        .strategy-hint {
+            background-color: #f8f8f8;
+            border-left: 4px solid #2c7be5;
+            padding: 10px 15px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+        
+        .results {
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+            font-size: 1.2rem;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Interactive Women's 5000m Race</h1>
+    </header>
+    
+    <main class="game-container">
+        <div class="track-container">
+            <div class="instructions">
+                <p>Drag runners to position them on the track. Adjust their pace and simulate the race to learn winning strategies.</p>
+            </div>
+            
+            <div id="track">
+                <!-- Track markers will be generated by JavaScript -->
+            </div>
+            
+            <div class="level-indicator">
+                <div class="level active" data-level="1">Setup</div>
+                <div class="level" data-level="2">Race</div>
+                <div class="level" data-level="3">Strategy</div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-text">Step 1 of 3: Position Runners</div>
+            </div>
+            
+            <div class="results" id="results"></div>
+            
+            <div class="actions">
+                <button class="btn" id="reset-btn">Reset</button>
+                <button class="btn btn-primary" id="next-btn">Next</button>
+            </div>
+        </div>
+        
+        <div class="controls-container">
+            <div class="panel">
+                <h2>Runner Profiles</h2>
+                <div class="runner-list" id="runner-list">
+                    <!-- Runner items will be generated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>Race Controls</h2>
+                <div id="pace-controls">
+                    <!-- Pace sliders will be generated by JavaScript -->
+                </div>
+                <div class="actions">
+                    <button class="btn" id="simulate-btn">Simulate Race</button>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>Winning Strategies</h2>
+                <div class="strategy-hint" id="strategy-hint">
+                    Position your runners strategically at the start. The inside lanes provide shorter paths but more congestion.
+                </div>
+                <div id="strategy-tips">
+                    <h3>Key Strategies:</h3>
+                    <ul>
+                        <li>Consistent pacing wins long races</li>
+                        <li>Save energy for the final lap sprint</li>
+                        <li>Draft behind other runners to conserve energy</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <div class="modal" id="runner-modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title">Runner Profile</h2>
+            <p><strong>Name:</strong> <span id="runner-name"></span></p>
+            <p><strong>Country:</strong> <span id="runner-country"></span></p>
+            <p><strong>Personal Best:</strong> <span id="runner-pb"></span></p>
+            <p><strong>Specialty:</strong> <span id="runner-specialty"></span></p>
+        </div>
+    </div>
+    
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentLevel: 1,
+            runners: [
+                { id: 1, name: "Sifan Hassan", country: "Netherlands", pb: "14:22.12", color: "#FF5252", lane: 1, position: 0, pace: 5, specialty: "Strong finisher" },
+                { id: 2, name: "Letesenbet Gidey", country: "Ethiopia", pb: "14:06.62", color: "#4CAF50", lane: 2, position: 0, pace: 5, specialty: "Front runner" },
+                { id: 3, name: "Gudaf Tsegay", country: "Ethiopia", pb: "14:13.32", color: "#2196F3", lane: 3, position: 0, pace: 5, specialty: "Consistent pace" },
+                { id: 4, name: "Hellen Obiri", country: "Kenya", pb: "14:18.37", color: "#FFC107", lane: 4, position: 0, pace: 5, specialty: "Tactical racer" }
+            ],
+            selectedRunner: null,
+            raceInProgress: false,
+            dragStartX: 0,
+            dragStartPosition: 0,
+            strategyTips: [
+                "Position your runners strategically at the start. The inside lanes provide shorter paths but more congestion.",
+                "Maintain a consistent pace throughout the race. Drastic speed changes waste energy.",
+                "Save energy for the final 400m. The last lap is where races are often won or lost.",
+                "Draft behind other runners to conserve energy, especially in windy conditions."
+            ]
+        };
+
+        // DOM Elements
+        const trackEl = document.getElementById('track');
+        const runnerListEl = document.getElementById('runner-list');
+        const paceControlsEl = document.getElementById('pace-controls');
+        const simulateBtn = document.getElementById('simulate-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progressFill = document.getElementById('progress-fill');
+        const levelIndicators = document.querySelectorAll('.level');
+        const runnerModal = document.getElementById('runner-modal');
+        const tooltipEl = document.getElementById('tooltip');
+        const strategyHint = document.getElementById('strategy-hint');
+        const resultsEl = document.getElementById('results');
+
+        // Initialize the game
+        function initGame() {
+            createTrack();
+            createRunnerElements();
+            createPaceControls();
+            updateProgress();
+            updateLevelIndicator();
+            setupEventListeners();
+        }
+
+        // Create the track with markers
+        function createTrack() {
+            trackEl.innerHTML = '';
+            
+            // Create lanes
+            for (let i = 0; i < 6; i++) {
+                const lane = document.createElement('div');
+                lane.className = 'lane';
+                lane.dataset.lane = i + 1;
+                trackEl.appendChild(lane);
+            }
+            
+            // Create distance markers
+            const distances = [0, 1000, 2000, 3000, 4000, 5000];
+            const trackWidth = trackEl.offsetWidth;
+            
+            distances.forEach(distance => {
+                const marker = document.createElement('div');
+                marker.className = 'marker';
+                marker.style.left = `${(distance / 5000) * 90 + 5}%`;
+                
+                const label = document.createElement('div');
+                label.className = 'marker-label';
+                label.textContent = `${distance}m`;
+                label.style.left = `${(distance / 5000) * 90 + 5}%`;
+                
+                trackEl.appendChild(marker);
+                trackEl.appendChild(label);
+            });
+        }
+
+        // Create runner elements on the track
+        function createRunnerElements() {
+            runnerListEl.innerHTML = '';
+            
+            gameState.runners.forEach(runner => {
+                // Create runner on track
+                const runnerEl = document.createElement('div');
+                runnerEl.className = 'runner';
+                runnerEl.id = `runner-${runner.id}`;
+                runnerEl.style.backgroundColor = runner.color;
+                runnerEl.style.top = `${50 + (runner.lane - 1) * 40}px`;
+                runnerEl.style.left = '20px';
+                runnerEl.dataset.runnerId = runner.id;
+                trackEl.appendChild(runnerEl);
+                
+                // Create runner in list
+                const runnerItem = document.createElement('div');
+                runnerItem.className = 'runner-item';
+                runnerItem.dataset.runnerId = runner.id;
+                
+                const colorBox = document.createElement('div');
+                colorBox.className = 'runner-color';
+                colorBox.style.backgroundColor = runner.color;
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = runner.name;
+                
+                runnerItem.appendChild(colorBox);
+                runnerItem.appendChild(nameSpan);
+                runnerListEl.appendChild(runnerItem);
+                
+                // Add event listeners
+                runnerEl.addEventListener('mousedown', startDrag);
+                runnerEl.addEventListener('touchstart', startDragTouch);
+                runnerItem.addEventListener('click', () => showRunnerModal(runner));
+            });
+        }
+
+        // Create pace controls
+        function createPaceControls() {
+            paceControlsEl.innerHTML = '<h3>Adjust Pace (m/s)</h3>';
+            
+            gameState.runners.forEach(runner => {
+                const container = document.createElement('div');
+                container.className = 'slider-container';
+                
+                const label = document.createElement('label');
+                label.htmlFor = `pace-${runner.id}`;
+                label.textContent = runner.name;
+                
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.id = `pace-${runner.id}`;
+                slider.min = '4';
+                slider.max = '7';
+                slider.step = '0.1';
+                slider.value = runner.pace;
+                slider.dataset.runnerId = runner.id;
+                
+                const value = document.createElement('span');
+                value.id = `pace-value-${runner.id}`;
+                value.textContent = runner.pace + ' m/s';
+                
+                container.appendChild(label);
+                container.appendChild(slider);
+                container.appendChild(value);
+                paceControlsEl.appendChild(container);
+                
+                slider.addEventListener('input', () => {
+                    const pace = parseFloat(slider.value);
+                    document.getElementById(`pace-value-${runner.id}`).textContent = pace.toFixed(1) + ' m/s';
+                    runner.pace = pace;
+                });
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            simulateBtn.addEventListener('click', startSimulation);
+            resetBtn.addEventListener('click', resetGame);
+            nextBtn.addEventListener('click', nextLevel);
+            
+            document.addEventListener('mousemove', dragRunner);
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchmove', dragRunnerTouch, { passive: false });
+            document.addEventListener('touchend', endDrag);
+            
+            document.querySelector('.close').addEventListener('click', () => {
+                runnerModal.style.display = 'none';
+            });
+            
+            levelIndicators.forEach(indicator => {
+                indicator.addEventListener('click', () => {
+                    const level = parseInt(indicator.dataset.level);
+                    if (level <= gameState.currentLevel) {
+                        setLevel(level);
+                    }
+                });
+            });
+        }
+
+        // Drag and drop functions
+        function startDrag(e) {
+            e.preventDefault();
+            const runnerId = e.target.dataset.runnerId;
+            gameState.selectedRunner = gameState.runners.find(r => r.id == runnerId);
+            gameState.dragStartX = e.clientX;
+            gameState.dragStartPosition = gameState.selectedRunner.position;
+            document.body.style.cursor = 'grabbing';
+        }
+
+        function startDragTouch(e) {
+            e.preventDefault();
+            const runnerId = e.target.dataset.runnerId;
+            gameState.selectedRunner = gameState.runners.find(r => r.id == runnerId);
+            gameState.dragStartX = e.touches[0].clientX;
+            gameState.dragStartPosition = gameState.selectedRunner.position;
+            document.body.style.cursor = 'grabbing';
+        }
+
+        function dragRunner(e) {
+            if (!gameState.selectedRunner) return;
+            e.preventDefault();
+            
+            const deltaX = e.clientX - gameState.dragStartX;
+            const trackWidth = trackEl.offsetWidth - 40;
+            const newPosition = Math.min(Math.max(gameState.dragStartPosition + (deltaX / trackWidth) * 100, 0), 100);
+            
+            gameState.selectedRunner.position = newPosition;
+            updateRunnerPosition(gameState.selectedRunner);
+        }
+
+        function dragRunnerTouch(e) {
+            if (!gameState.selectedRunner) return;
+            e.preventDefault();
+            
+            const deltaX = e.touches[0].clientX - gameState.dragStartX;
+            const trackWidth = trackEl.offsetWidth - 40;
+            const newPosition = Math.min(Math.max(gameState.dragStartPosition + (deltaX / trackWidth) * 100, 0), 100);
+            
+            gameState.selectedRunner.position = newPosition;
+            updateRunnerPosition(gameState.selectedRunner);
+        }
+
+        function endDrag() {
+            if (!gameState.selectedRunner) return;
+            
+            // Show tooltip with positioning tip
+            showTooltip(
+                gameState.selectedRunner.name,
+                "Position affects race strategy. Inside lanes have shorter distance but more congestion.",
+                document.getElementById(`runner-${gameState.selectedRunner.id}`)
+            );
+    </script>
+</body>
+</html>

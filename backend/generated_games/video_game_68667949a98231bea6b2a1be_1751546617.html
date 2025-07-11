@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Elusive Answer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .game-container {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+        
+        .level-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #555555;
+        }
+        
+        .progress-container {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #4a4a4a;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .question-container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .option {
+            background-color: #e9e9e9;
+            border: none;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #333333;
+        }
+        
+        .option:hover {
+            background-color: #dcdcdc;
+            transform: translateY(-2px);
+        }
+        
+        .option.correct {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .option.incorrect {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        #next-btn {
+            background-color: #4a4a4a;
+            color: white;
+        }
+        
+        #next-btn:disabled {
+            background-color: #b0b0b0;
+            cursor: not-allowed;
+        }
+        
+        #restart-btn {
+            background-color: #333333;
+            color: white;
+        }
+        
+        .feedback {
+            text-align: center;
+            min-height: 30px;
+            margin: 15px 0;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .level-complete {
+            text-align: center;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 600px) {
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .question-container {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>The Elusive Answer</h1>
+        <p>Navigate through complex questions where definitive answers are hard to find</p>
+    </header>
+    
+    <main>
+        <div class="game-container">
+            <div class="level-indicator">
+                <span>Level: <span id="current-level">1</span>/3</span>
+                <span>Score: <span id="current-score">0</span></span>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <div class="question-container">
+                <p id="question-text">Loading question...</p>
+            </div>
+            
+            <div class="options-container" id="options-container">
+                <!-- Options will be generated here -->
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="score-container">
+                <span>High Score: <span id="high-score">0</span></span>
+                <span>Attempts: <span id="attempts">0</span>/3</span>
+            </div>
+            
+            <div class="controls">
+                <button id="restart-btn">Restart Game</button>
+                <button id="next-btn" disabled>Next Level</button>
+            </div>
+        </div>
+        
+        <div class="level-complete hidden" id="level-complete">
+            <h2>Level Complete!</h2>
+            <p>You've navigated this complex question successfully.</p>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            const gameState = {
+                currentLevel: 1,
+                score: 0,
+                attempts: 0,
+                maxAttempts: 3,
+                highScore: localStorage.getItem('elusiveAnswerHighScore') || 0,
+                levels: [
+                    {
+                        question: "What is the nature of this complex question?",
+                        options: [
+                            "Easily definable",
+                            "Subject to interpretation",
+                            "Absolutely knowable",
+                            "Beyond current understanding"
+                        ],
+                        correct: 3
+                    },
+                    {
+                        question: "How should we approach questions without clear answers?",
+                        options: [
+                            "With absolute certainty",
+                            "Through rigid frameworks",
+                            "With curiosity and humility",
+                            "By dismissing them entirely"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        question: "What does it mean when an answer eludes our understanding?",
+                        options: [
+                            "The question is invalid",
+                            "Our knowledge is complete",
+                            "We should stop inquiring",
+                            "There's more to discover"
+                        ],
+                        correct: 3
+                    }
+                ]
+            };
+
+            // DOM elements
+            const questionText = document.getElementById('question-text');
+            const optionsContainer = document.getElementById('options-container');
+            const currentLevelEl = document.getElementById('current-level');
+            const currentScoreEl = document.getElementById('current-score');
+            const highScoreEl = document.getElementById('high-score');
+            const attemptsEl = document.getElementById('attempts');
+            const nextBtn = document.getElementById('next-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const feedbackEl = document.getElementById('feedback');
+            const progressBar = document.getElementById('progress-bar');
+            const levelComplete = document.getElementById('level-complete');
+
+            // Initialize game
+            function initGame() {
+                gameState.currentLevel = 1;
+                gameState.score = 0;
+                gameState.attempts = 0;
+                updateUI();
+                loadLevel();
+            }
+
+            // Load current level
+            function loadLevel() {
+                const level = gameState.levels[gameState.currentLevel - 1];
+                questionText.textContent = level.question;
+                optionsContainer.innerHTML = '';
+                
+                level.options.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'option';
+                    button.textContent = option;
+                    button.addEventListener('click', () => checkAnswer(index));
+                    optionsContainer.appendChild(button);
+                });
+                
+                gameState.attempts = 0;
+                updateUI();
+                levelComplete.classList.add('hidden');
+                nextBtn.disabled = true;
+                feedbackEl.textContent = '';
+            }
+
+            // Check selected answer
+            function checkAnswer(selectedIndex) {
+                const level = gameState.levels[gameState.currentLevel - 1];
+                const options = document.querySelectorAll('.option');
+                
+                // Disable all buttons after selection
+                options.forEach(option => {
+                    option.disabled = true;
+                });
+                
+                // Mark correct and incorrect answers
+                options[level.correct].classList.add('correct');
+                if (selectedIndex !== level.correct) {
+                    options[selectedIndex].classList.add('incorrect');
+                    gameState.attempts++;
+                    feedbackEl.textContent = "That's not quite the elusive answer we're seeking";
+                } else {
+                    gameState.score += 100 * gameState.currentLevel;
+                    feedbackEl.textContent = "You've grasped the complexity!";
+                    nextBtn.disabled = false;
+                }
+                
+                updateUI();
+                
+                // Check if level should end
+                if (gameState.attempts >= gameState.maxAttempts || selectedIndex === level.correct) {
+                    if (selectedIndex !== level.correct) {
+                        feedbackEl.textContent = "The answer remains elusive. Try again?";
+                    }
+                    setTimeout(() => {
+                        if (selectedIndex === level.correct) {
+                            levelComplete.classList.remove('hidden');
+                        }
+                    }, 1000);
+                }
+            }
+
+            // Update UI elements
+            function updateUI() {
+                currentLevelEl.textContent = gameState.currentLevel;
+                currentScoreEl.textContent = gameState.score;
+                attemptsEl.textContent = gameState.attempts;
+                highScoreEl.textContent = gameState.highScore;
+                
+                // Update progress bar
+                const progress = (gameState.currentLevel - 1) / 3 * 100;
+                progressBar.style.width = `${progress}%`;
+            }
+
+            // Next level handler
+            nextBtn.addEventListener('click', () => {
+                if (gameState.currentLevel < 3) {
+                    gameState.currentLevel++;
+                    loadLevel();
+                } else {
+                    // Game completed
+                    if (gameState.score > gameState.highScore) {
+                        gameState.highScore = gameState.score;
+                        localStorage.setItem('elusiveAnswerHighScore', gameState.highScore);
+                        highScoreEl.textContent = gameState.highScore;
+                        feedbackEl.textContent = "New High Score! You've mastered the elusive!";
+                    } else {
+                        feedbackEl.textContent = "Game Completed! You've navigated the complexity.";
+                    }
+                    
+                    // Show restart option
+                    nextBtn.disabled = true;
+                    levelComplete.classList.remove('hidden');
+                    levelComplete.querySelector('h2').textContent = "Game Completed!";
+                    levelComplete.querySelector('p').textContent = `Final Score: ${gameState.score}`;
+                }
+            });
+
+            // Restart game handler
+            restartBtn.addEventListener('click', initGame);
+
+            // Initialize the game
+            initGame();
+        });
+    </script>
+</body>
+</html>

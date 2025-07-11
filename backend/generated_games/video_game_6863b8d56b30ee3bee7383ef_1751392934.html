@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .panel {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #444444;
+        }
+        
+        .visualization {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 25px;
+        }
+        
+        .plot-container {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        #scatter-plot {
+            width: 100%;
+            height: 400px;
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        
+        .controls {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 6px;
+        }
+        
+        .control-label {
+            width: 120px;
+            font-weight: 500;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            margin: 0 15px;
+        }
+        
+        .scale-value {
+            width: 50px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .data-table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background-color: #f0f0f0;
+            font-weight: 600;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background-color: #4a4a4a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: #333333;
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .stat-box {
+            flex: 1;
+            min-width: 200px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #6a6a6a;
+        }
+        
+        .instructions {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .level-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: #d0d0d0;
+        }
+        
+        .level-dot.active {
+            background-color: #4a4a4a;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            margin-left: 5px;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .visualization {
+                flex-direction: column;
+            }
+            
+            .stats {
+                flex-direction: column;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCA Explorer</h1>
+        <p>Interactive Principal Component Analysis Learning Tool</p>
+    </header>
+    
+    <div class="game-container">
+        <div class="level-indicator">
+            <div class="level-dot active"></div>
+            <div class="level-dot"></div>
+            <div class="level-dot"></div>
+        </div>
+        
+        <div class="instructions">
+            <h2>Level 1: Data Input & Visualization</h2>
+            <p>Enter data points and observe how they appear on the scatter plot. Each point represents a student's scores.</p>
+        </div>
+        
+        <div class="panel">
+            <div class="visualization">
+                <div class="plot-container">
+                    <h2>Scatter Plot <span class="tooltip">?
+                        <span class="tooltiptext">Visualization of your data points. PC1 and PC2 represent the principal components.</span>
+                    </span></h2>
+                    <canvas id="scatter-plot"></canvas>
+                </div>
+                
+                <div class="controls">
+                    <h2>Controls</h2>
+                    
+                    <div class="control-group">
+                        <h3>Scaling <span class="tooltip">?
+                            <span class="tooltiptext">Adjust the scale of each variable to see how it affects the principal components.</span>
+                        </span></h3>
+                        <div class="control-row">
+                            <div class="control-label">Math</div>
+                            <input type="range" id="math-scale" min="0.1" max="3" step="0.1" value="1">
+                            <div class="scale-value" id="math-value">1.0</div>
+                        </div>
+                        <div class="control-row">
+                            <div class="control-label">Reading</div>
+                            <input type="range" id="reading-scale" min="0.1" max="3" step="0.1" value="1">
+                            <div class="scale-value" id="reading-value">1.0</div>
+                        </div>
+                        <div class="control-row">
+                            <div class="control-label">Gym</div>
+                            <input type="range" id="gym-scale" min="0.1" max="3" step="0.1" value="1">
+                            <div class="scale-value" id="gym-value">1.0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>Centering <span class="tooltip">?
+                            <span class="tooltiptext">Center the data around the mean to see how it affects the principal components.</span>
+                        </span></h3>
+                        <div class="control-row">
+                            <label>
+                                <input type="checkbox" id="center-data">
+                                Center Data (Subtract Mean)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>Principal Components</h3>
+                        <div class="control-row">
+                            <div class="control-label">PC1 Eigenvalue</div>
+                            <div id="pc1-eigen">0.00</div>
+                        </div>
+                        <div class="control-row">
+                            <div class="control-label">PC2 Eigenvalue</div>
+                            <div id="pc2-eigen">0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Data Table <span class="tooltip">?
+                <span class="tooltiptext">Add, remove, or modify data points to see how they affect the principal components.</span>
+            </span></h2>
+            <div class="data-table-container">
+                <table id="data-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Math</th>
+                            <th>Reading</th>
+                            <th>Gym</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Rows will be added dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="btn-group">
+                <button id="add-row" class="btn">Add Student</button>
+                <button id="reset-data" class="btn">Reset Data</button>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>PCA Insights</h2>
+            <div class="stats">
+                <div class="stat-box">
+                    <h3>Scaling Effect</h3>
+                    <p id="scaling-insight">Scaling adjusts variable importance. Try changing scales to see how eigenvalues shift.</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Centering Effect</h3>
+                    <p id="centering-insight">Centering moves data to origin. Enable centering to see how it affects component directions.</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Components Limit</h3>
+                    <p id="components-insight">Maximum components equals data points. Add more students to see additional components.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="btn-group" style="justify-content: center; margin-top: 20px;">
+            <button id="prev-btn" class="btn">Previous</button>
+            <button id="next-btn" class="btn">Next Level</button>
+            <button id="restart-btn" class="btn">Restart</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentLevel: 1,
+            dataPoints: [
+                {math: 80, reading: 70, gym: 60},
+                {math: 60, reading: 90,
+    </script>
+</body>
+</html>

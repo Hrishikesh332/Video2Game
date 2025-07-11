@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai Formation: Seven Islands Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .game-panel {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #444;
+            text-align: center;
+        }
+        
+        .map-container {
+            position: relative;
+            height: 400px;
+            background-color: #e9e9e9;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+        
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            background-color: #d0d0d0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #a0a0a0;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .island:hover {
+            background-color: #c0c0c0;
+            transform: scale(1.05);
+        }
+        
+        .info-panel {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 150px;
+            margin-bottom: 20px;
+        }
+        
+        .timeline-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 25px 0;
+            position: relative;
+            height: 60px;
+        }
+        
+        .timeline-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background-color: #b0b0b0;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+        
+        .timeline-event {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            cursor: pointer;
+            width: 100px;
+        }
+        
+        .timeline-dot {
+            width: 20px;
+            height: 20px;
+            background-color: #909090;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .timeline-event.active .timeline-dot {
+            background-color: #606060;
+            transform: scale(1.3);
+        }
+        
+        .reclamation-area {
+            background-color: #e0e0e0;
+            height: 300px;
+            border-radius: 8px;
+            position: relative;
+            margin: 25px 0;
+            overflow: hidden;
+        }
+        
+        .earth-pile {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background-color: #8c6d46;
+            border-radius: 50%;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .causeway {
+            position: absolute;
+            height: 20px;
+            background-color: #8c6d46;
+            border-radius: 10px;
+            transform-origin: left center;
+            display: none;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            background-color: #707070;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #505050;
+        }
+        
+        button:disabled {
+            background-color: #b0b0b0;
+            cursor: not-allowed;
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #707070;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .level-indicator {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .completion-message {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2rem;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .map-container {
+                height: 300px;
+            }
+            
+            .timeline-container {
+                flex-wrap: wrap;
+                height: auto;
+                gap: 15px;
+            }
+            
+            .timeline-event {
+                width: 45%;
+            }
+            
+            .timeline-line {
+                display: none;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mumbai: From Seven Islands to a Metropolis</h1>
+        <p>Explore how land reclamation transformed Mumbai's geography</p>
+    </header>
+    
+    <main class="game-container">
+        <div class="game-panel">
+            <h2>Level 1: Explore the Islands</h2>
+            <div class="map-container" id="map">
+                <!-- Islands will be positioned by JavaScript -->
+            </div>
+            <div class="info-panel" id="island-info">
+                <p>Click on an island to learn about its history and significance.</p>
+            </div>
+            <div class="progress-container">
+                <div class="level-indicator">Progress: <span id="progress-count">0</span>/7 islands explored</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="level1-progress"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-panel">
+            <h2>Historical Timeline</h2>
+            <div class="timeline-container">
+                <div class="timeline-line"></div>
+                <div class="timeline-event" data-period="pre-colonial">
+                    <div class="timeline-dot"></div>
+                    <div>Pre-Colonial Era</div>
+                </div>
+                <div class="timeline-event" data-period="british">
+                    <div class="timeline-dot"></div>
+                    <div>British Control</div>
+                </div>
+                <div class="timeline-event" data-period="reclamation">
+                    <div class="timeline-dot"></div>
+                    <div>Land Reclamation</div>
+                </div>
+                <div class="timeline-event" data-period="modern">
+                    <div class="timeline-dot"></div>
+                    <div>Modern Mumbai</div>
+                </div>
+            </div>
+            <div class="info-panel" id="timeline-info">
+                <p>Select a historical period to learn about key developments.</p>
+            </div>
+        </div>
+        
+        <div class="game-panel">
+            <h2>Level 2: Land Reclamation Challenge</h2>
+            <div class="reclamation-area" id="reclamation-area">
+                <!-- Causeways will be added by JavaScript -->
+                <div class="earth-pile" id="earth-pile">DRAG EARTH</div>
+            </div>
+            <div class="info-panel" id="causeway-info">
+                <p>Drag earth to connect islands in historical order: Colaba Causeway (1838), Mahim Causeway (1845), then others.</p>
+            </div>
+            <div class="progress-container">
+                <div class="level-indicator">Causeways built: <span id="causeway-count">0</span>/3</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="level2-progress"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="completion-message" id="completion-message">
+            <h2>Congratulations! You've completed the game.</h2>
+            <p>You've learned how Mumbai transformed from seven islands to a unified metropolis through land reclamation.</p>
+        </div>
+        
+        <div class="controls">
+            <button id="reset-btn">Reset Game</button>
+            <button id="next-level" disabled>Next Level</button>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            const gameState = {
+                level: 1,
+                exploredIslands: [],
+                currentPeriod: null,
+                builtCauseways: [],
+                causewayOrder: ['colaba', 'mahim', 'worli']
+            };
+            
+            // Island data
+            const islands = [
+                { id: 'colaba', name: 'Colaba', info: 'Southernmost island, home to the Gateway of India. Major trading port during British rule.', x: 20, y: 80, radius: 50 },
+                { id: 'old-woman', name: "Old Woman's Island", info: 'Small island between Colaba and Bombay. Site of early Portuguese settlements.', x: 25, y: 180, radius: 40 },
+                { id: 'bombay', name: 'Bombay Island', info: 'The largest island, center of British administration. Now hosts Fort area and Chhatrapati Shivaji Terminus.', x: 150, y: 120, radius: 70 },
+                { id: 'mazagaon', name: 'Mazagaon', info: 'Known for its docks and shipbuilding industry. Had important Portuguese fortifications.', x: 300, y: 100, radius: 45 },
+                { id: 'worli', name: 'Worli', name: 'Worli', info: 'Fishing community with Koli settlements. Connected to Bombay Island in 1784.', x: 200, y: 200, radius: 55 },
+                { id: 'parel', name: 'Parel', info: 'Industrial center with textile mills during British era. Now hosts Bhabha Atomic Research Centre.', x: 350, y: 180, radius: 50 },
+                { id: 'mahim', name: 'Mahim', info: 'Northern island with strategic importance. Mahim Causeway connected it to Bandra in 1845.', x: 250, y: 280, radius: 60 }
+            ];
+            
+            // Timeline data
+            const timelineInfo = {
+                'pre-colonial': 'Before British rule, the islands were controlled by indigenous communities and later Portuguese settlers who established trading posts.',
+                'british': 'The British East India Company acquired the islands in 1668. They developed Bombay into a major trading hub and naval base.',
+                'reclamation': 'Massive land reclamation projects (1784-1845) connected the islands through causeways, creating a unified landmass.',
+                'modern': 'Post-independence development transformed Mumbai into India\'s financial capital with continued coastal reclamation projects.'
+            };
+            
+            // Causeway data
+            const causeways = [
+                { id: 'colaba', name: 'Colaba Causeway', year: 1838, info: 'Connected Colaba to Bombay Island. Completed in 1838, enabling urban expansion southward.', from: 'colaba', to: 'bombay', angle: 30, length: 120 },
+                { id: 'mahim', name: 'Mahim Causeway', year: 1845, info: 'Connected Mahim to Bandra (not shown). Vital link between island groups, completed in 1845.', from: 'mahim', to: 'bombay', angle: 330, length: 150 },
+                { id: 'worli', name: 'Worli Connector', year: 1784, info: 'Early connection between Worli and Bombay Island. Built in 1784, first major reclamation project.', from: 'worli', to: 'bombay', angle: 0, length: 80 }
+            ];
+            
+            // DOM elements
+            const mapContainer = document.getElementById('map');
+            const islandInfo = document.getElementById('island-info');
+            const timelineInfoEl = document.getElementById('timeline-info');
+            const causewayInfo = document.getElementById('causeway-info');
+            const progressCount = document.getElementById('progress-count');
+            const causewayCount = document.getElementById('causeway-count');
+            const level1Progress = document.getElementById('level1-progress');
+            const level2Progress = document.getElementById('level2-progress');
+            const resetBtn = document.getElementById('reset-btn');
+            const nextLevelBtn = document.getElementById('next-level');
+            const completionMessage = document.getElementById('completion-message');
+            const earthPile = document.getElementById('earth-pile');
+            const reclamationArea = document.getElementById('reclamation-area');
+            
+            // Initialize game
+            function initGame() {
+                createIslands();
+                createTimelineEvents();
+                createCauseways();
+                setupEventListeners();
+                updateProgress();
+            }
+            
+            // Create island elements
+            function createIslands() {
+                islands.forEach(island => {
+                    const el = document.createElement('div');
+                    el.className = 'island';
+                    el.id = island.id;
+                    el.textContent = island.name;
+                    el.style.width = `${island.radius * 2}px`;
+                    el.style.height = `${island.radius * 2}px`;
+                    el.style.left = `${island.x}px`;
+                    el.style.top = `${island.y}px`;
+                    el.dataset.info = island.info;
+                    
+                    el.addEventListener('click', () => {
+                        if (!gameState.exploredIslands.includes(island.id)) {
+                            gameState.exploredIslands.push(island.id);
+                            updateProgress();
+                        }
+                        islandInfo.innerHTML = `<h3>${island.name}</h3><p>${island.info}</p>`;
+                    });
+                    
+                    mapContainer.appendChild(el);
+                });
+            }
+            
+            // Create timeline event handlers
+            function createTimelineEvents() {
+                const events = document.querySelectorAll('.timeline-event');
+                events.forEach(event => {
+                    event.addEventListener('click', () => {
+                        const period = event.dataset.period;
+                        gameState.currentPeriod = period;
+                        
+                        // Update UI
+                        events.forEach(e => e.classList.remove('active'));
+                        event.classList.add('active');
+                        
+                        timelineInfoEl.innerHTML = `<h3>${event.textContent.trim()}</h3><p>${timelineInfo[period]}</p>`;
+                    });
+                });
+            }
+            
+            // Create causeway elements
+            function createCauseways() {
+                causeways.forEach(causeway => {
+                    const el = document.createElement('div');
+                    el.className = 'causeway';
+                    el.id = `causeway-${causeway.id}`;
+                    el.style.width = `${causeway.length}px`;
+                    el.style.transform = `rotate(${causeway.angle}deg)`;
+                    el.style.left = '200px';
+                    el.style.top = '150px';
+                    reclamationArea.appendChild(el);
+                });
+            }
+            
+            // Setup event listeners
+            function setupEventListeners() {
+                resetBtn.addEventListener('click', resetGame);
+                nextLevelBtn.addEventListener('click', () => {
+                    gameState.level = 2;
+                    document.querySelectorAll('.game-panel')[0].style.display = 'none';
+                    document.querySelectorAll('.game-panel')[1].style.display = 'none';
+                    nextLevelBtn.disabled = true;
+                    updateProgress();
+                });
+                
+                // Earth pile dragging functionality
+                let isDragging = false;
+                let offsetX, offsetY;
+                
+                earthPile.addEventListener('mousedown', startDrag);
+                earthPile.addEventListener('touchstart', startDragTouch);
+                
+                function startDrag(e) {
+                    isDragging = true;
+                    offsetX = e.clientX - earthPile.getBoundingClientRect().left;
+                    offsetY = e.clientY - earthPile.getBoundingClientRect().top;
+                    earthPile.style.cursor = 'grabbing';
+                    document.addEventListener('mousemove', drag);
+                    document.addEventListener('mouseup', stopDrag);
+                }
+                
+                function startDragTouch(e) {
+                    isDragging = true;
+                    const touch = e.touches[0];
+                    offsetX = touch.clientX - earthPile.getBoundingClientRect().left;
+                    offsetY = touch.clientY - earthPile.getBoundingClientRect().top;
+                    earthPile.style.cursor = 'grabbing';
+                    document.addEventListener('touchmove', dragTouch);
+                    document.addEventListener('touchend', stopDrag);
+                }
+                
+                function drag(e) {
+                    if (!isDragging) return;
+                    earthPile.style.left = `${e.clientX - offsetX - reclamationArea.getBoundingClientRect().left}px`;
+                    earthPile.style.top = `${e.clientY - offsetY - reclamationArea.getBoundingClientRect().top}px`;
+                }
+                
+                function dragTouch(e) {
+                    if (!isDragging) return;
+                    const touch = e.touches[0];
+                    earthPile.style.left = `${touch.clientX - offsetX - reclamationArea.getBoundingClientRect().left}px`;
+                    earthPile.style.top = `${touch.clientY - offsetY - reclamationArea.getBoundingClientRect().top}px`;
+                }
+                
+                function stopDrag() {
+                    isDragging = false;
+                    earthPile.style.cursor = 'grab';
+                    document.removeEventListener('mousemove', drag);
+                    document.removeEventListener('touchmove', dragTouch);
+                    
+                    // Check if earth pile is near a causeway
+                    const earthRect = earthPile.getBoundingClientRect();
+                    const earthCenterX = earthRect.left + earthRect.width/2;
+                    const earthCenterY = earthRect.top + earthRect.height/2;
+                    
+                    causeways.forEach(causeway => {
+                        const causewayEl = document.getElementById(`causeway-${causeway.id}`);
+                        const causewayRect = causewayEl.getBoundingClientRect();
+                        
+                        // Simple collision detection
+                        if (earthCenterX > causewayRect.left && earthCenterX < causewayRect.right &&
+                            earthCenterY > causewayRect.top && earthCenterY < causewayRect.bottom) {
+                            
+                            // Check if it's the correct next causeway
+                            if (causeway.id === gameState.causewayOrder[gameState.builtCauseways.length]) {
+                                causewayEl.style.display = 'block';
+                                gameState.builtCauseways.push(causeway.id);
+                                causewayInfo.innerHTML = `<h3>${causeway.name} (${causeway.year})</h3><p>${causeway.info}</p>`;
+                                updateProgress();
+                            }
+                        }
+                    });
+                    
+                    // Reset earth pile position
+                    earthPile.style.left = '50%';
+                    earthPile.style.top = 'auto';
+                    earthPile.style.bottom = '20px';
+                    earthPile.style.transform = 'translateX(-50%)';
+                }
+            }
+            
+            // Update progress indicators
+            function updateProgress() {
+                // Level 1 progress
+                progressCount.textContent = gameState.exploredIslands.length;
+                const progressPercent = (gameState.exploredIslands.length / 7) * 100;
+                level1Progress.style.width = `${progressPercent}%`;
+                
+                // Enable next level button when all islands explored
+                nextLevelBtn.disabled = gameState.exploredIslands.length < 7;
+                
+                // Level 2 progress
+                if (gameState.level === 2) {
+                    causewayCount.textContent = gameState.builtCauseways.length;
+                    const causewayPercent = (gameState.builtCauseways.length / 3) * 100;
+                    level2Progress.style.width = `${causewayPercent}%`;
+                    
+                    // Show completion message when all causeways built
+                    if (gameState.builtCauseways.length === 3) {
+                        completionMessage.style.display = 'block';
+                    }
+                }
+            }
+            
+            // Reset game state
+            function resetGame() {
+                gameState.level = 1;
+                gameState.exploredIslands = [];
+                gameState.builtCauseways = [];
+                gameState.currentPeriod = null;
+                
+                // Reset UI
+                islandInfo.innerHTML = '<p>Click on an island to learn about its history and significance.</p>';
+                timelineInfoEl.innerHTML = '<p>Select a historical period to learn about key developments.</p>';
+                causewayInfo.innerHTML = '<p>Drag earth to connect islands in historical order: Colaba Causeway (1838), Mahim Causeway (1845), then others.</p>';
+                
+                document.querySelectorAll('.timeline-event').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.causeway').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.game-panel').forEach(el => el.style.display = 'block');
+                completionMessage.style.display = 'none';
+                
+                updateProgress();
+            }
+            
+            // Initialize the game
+            initGame();
+        });
+    </script>
+</body>
+</html>

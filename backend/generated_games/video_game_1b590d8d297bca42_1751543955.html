@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grok-3 Interactive Web App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        h1 {
+            color: #212529;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            color: #495057;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            background-color: #e9ecef;
+            border: none;
+            padding: 12px 24px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-btn.active {
+            background-color: #007BFF;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            min-height: 400px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section-title {
+            margin-bottom: 20px;
+            text-align: center;
+            color: #212529;
+        }
+        
+        /* Brain Model Styles */
+        .brain-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .brain-model {
+            width: 300px;
+            height: 300px;
+            background-color: #e9ecef;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .brain-region {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .brain-region:hover {
+            transform: scale(1.05);
+        }
+        
+        .region-info {
+            width: 300px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* Puzzle Styles */
+        .puzzle-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .puzzle-question {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .step-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .step-option {
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            cursor: move;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+        
+        .step-option:hover {
+            background-color: #e9ecef;
+        }
+        
+        .step-sequence {
+            min-height: 200px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .sequence-item {
+            background-color: white;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border-left: 4px solid #007BFF;
+        }
+        
+        /* Challenge Styles */
+        .scenario-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .option {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .option:hover {
+            border-color: #007BFF;
+        }
+        
+        .feedback {
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        /* Common Components */
+        .btn {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            display: block;
+            margin: 20px auto;
+        }
+        
+        .btn:hover {
+            background-color: #0069d9;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .progress-step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .progress-step.active {
+            background-color: #007BFF;
+            color: white;
+        }
+        
+        .progress-step.completed {
+            background-color: #28A745;
+            color: white;
+        }
+        
+        .score-display {
+            text-align: center;
+            font-size: 18px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .brain-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Grok-3 Interactive Web App</h1>
+        <p class="description">Explore advanced reasoning and computational thinking through interactive challenges</p>
+    </header>
+    
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="brain">Brain Model</button>
+        <button class="tab-btn" data-tab="puzzle">Think Mode</button>
+        <button class="tab-btn" data-tab="challenge">Big Brain Mode</button>
+    </div>
+    
+    <div class="score-display">Score: <span id="score">0</span></div>
+    
+    <div class="progress-container">
+        <div class="progress-step active">1</div>
+        <div class="progress-step">2</div>
+        <div class="progress-step">3</div>
+    </div>
+    
+    <!-- Brain Model Tab -->
+    <div id="brain" class="tab-content active">
+        <h2 class="section-title">Interactive Brain Model</h2>
+        <p style="text-align: center; margin-bottom: 20px;">Click on different brain regions to learn about their functions in advanced reasoning</p>
+        
+        <div class="brain-container">
+            <div class="brain-model">
+                <div class="brain-region" id="frontal-lobe" style="width: 120px; height: 90px; top: 50px; left: 90px; background-color: rgba(0, 123, 255, 0.6);"></div>
+                <div class="brain-region" id="parietal-lobe" style="width: 100px; height: 100px; top: 100px; left: 50px; background-color: rgba(255, 193, 7, 0.6);"></div>
+                <div class="brain-region" id="temporal-lobe" style="width: 80px; height: 80px; top: 170px; left: 110px; background-color: rgba(40, 167, 69, 0.6);"></div>
+            </div>
+            
+            <div class="region-info">
+                <h3 id="region-title">Select a Brain Region</h3>
+                <p id="region-description">Click on a highlighted area in the brain model to learn about its function in reasoning and problem-solving.</p>
+            </div>
+        </div>
+        
+        <button class="btn" id="next-brain">Next Challenge</button>
+    </div>
+    
+    <!-- Think Mode Puzzle Tab -->
+    <div id="puzzle" class="tab-content">
+        <h2 class="section-title">Think Mode Puzzle</h2>
+        <p style="text-align: center; margin-bottom: 20px;">Arrange the steps in the correct logical sequence to solve the problem</p>
+        
+        <div class="puzzle-container">
+            <div class="puzzle-question">
+                <h3>Problem: Calculate the area of a triangle</h3>
+                <p>You have a triangle with base = 10 units and height = 5 units. What steps would you take to calculate its area?</p>
+            </div>
+            
+            <div class="step-options" id="step-options">
+                <div class="step-option" draggable="true" data-step="1">Identify the base and height measurements</div>
+                <div class="step-option" draggable="true" data-step="2">Recall the area formula: Area = ½ × base × height</div>
+                <div class="step-option" draggable="true" data-step="3">Substitute values into the formula</div>
+                <div class="step-option" draggable="true" data-step="4">Perform the multiplication: ½ × 10 × 5</div>
+                <div class="step-option" draggable="true" data-step="5">Calculate the result: 25 square units</div>
+            </div>
+            
+            <h4>Your Sequence:</h4>
+            <div class="step-sequence" id="step-sequence"></div>
+            
+            <button class="btn" id="check-sequence">Check Solution</button>
+            <div class="feedback" id="puzzle-feedback"></div>
+        </div>
+    </div>
+    
+    <!-- Big Brain Mode Challenge Tab -->
+    <div id="challenge" class="tab-content">
+        <h2 class="section-title">Big Brain Mode Challenge</h2>
+        <p style="text-align: center; margin-bottom: 20px;">Solve this complex problem by selecting the best course of action</p>
+        
+        <div class="scenario-container">
+            <h3>Scenario: Resource Allocation</h3>
+            <p>You're managing a project with three teams working on different features. Team A has 5 developers, Team B has 3, and Team C has 4. The project deadline is in 2 weeks. Team A is ahead of schedule, Team B is on track, but Team C is falling behind due to unexpected technical challenges. You have a budget to hire 2 additional developers. How should you allocate these resources?</p>
+        </div>
+        
+        <div class="options-container">
+            <div class="option" data-option="1">
+                <h4>Option 1</h4>
+                <p>Assign both developers to Team C since they're falling behind</p>
+            </div>
+            <div class="option" data-option="2">
+                <h4>Option 2</h4>
+                <p>Assign one developer to Team B and one to Team C to balance progress</p>
+            </div>
+            <div class="option" data-option="3">
+                <h4>Option 3</h4>
+                <p>Assign both to Team A to accelerate their progress and have them help others later</p>
+            </div>
+            <div class="option" data-option="4">
+                <h4>Option 4</h4>
+                <p>Assign both to Team C but shift one developer from Team A to mentor them</p>
+            </div>
+        </div>
+        
+        <div class="feedback" id="challenge-feedback"></div>
+        <button class="btn" id="restart-btn">Play Again</button>
+    </div>
+
+    <script>
+        // Global game state
+        const gameState = {
+            score: 0,
+            currentTab: 'brain',
+            completed: {
+                brain: false,
+                puzzle: false,
+                challenge: false
+            }
+        };
+
+        // DOM Elements
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const progressSteps = document.querySelectorAll('.progress-step');
+        const scoreDisplay = document.getElementById('score');
+        const nextBrainBtn = document.getElementById('next-brain');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Initialize game
+        function initGame() {
+            // Load saved state or initialize
+            const savedState = localStorage.getItem('grokGameState');
+            if (savedState) {
+                Object.assign(gameState, JSON.parse(savedState));
+                scoreDisplay.textContent = gameState.score;
+                updateProgress();
+            }
+            
+            // Set up tab switching
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.dataset.tab;
+                    switchTab(tabId);
+                });
+            });
+            
+            // Set up brain model interactions
+            setupBrainModel();
+            
+            // Set up puzzle interactions
+            setupPuzzle();
+            
+            // Set up challenge interactions
+            setupChallenge();
+            
+            // Navigation buttons
+            nextBrainBtn.addEventListener('click', () => switchTab('puzzle'));
+            restartBtn.addEventListener('click', restartGame);
+        }
+
+        // Switch between tabs
+        function switchTab(tabId) {
+            // Update UI
+            tabContents.forEach(content => content.classList.remove('active'));
+            tabBtns.forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+            
+            // Update game state
+            gameState.currentTab = tabId;
+            saveGameState();
+        }
+
+        // Update progress indicators
+        function updateProgress() {
+            progressSteps.forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                
+                if (index === 0 && gameState.completed.brain) step.classList.add('completed');
+                if (index === 1 && gameState.completed.puzzle) step.classList.add('completed');
+                if (index === 2 && gameState.completed.challenge) step.classList.add('completed');
+                
+                if (index === 0 && gameState.currentTab === 'brain') step.classList.add('active');
+                if (index === 1 && gameState.currentTab === 'puzzle') step.classList.add('active');
+                if (index === 2 && gameState.currentTab === 'challenge') step.classList.add('active');
+            });
+        }
+
+        // Set up brain model interactions
+        function setupBrainModel() {
+            const regions = document.querySelectorAll('.brain-region');
+            const regionTitle = document.getElementById('region-title');
+            const regionDesc = document.getElementById('region-description');
+            
+            const regionInfo = {
+                'frontal-lobe': {
+                    title: 'Frontal Lobe',
+                    description: 'Responsible for executive functions, decision-making, problem-solving, and planning. This region is crucial for advanced reasoning and logical thinking processes.'
+                },
+                'parietal-lobe': {
+                    title: 'Parietal Lobe',
+                    description: 'Processes sensory information and integrates it with other inputs. Essential for mathematical reasoning, spatial awareness, and logical sequencing.'
+                },
+                'temporal-lobe': {
+                    title: 'Temporal Lobe',
+                    description: 'Involved in memory formation, language comprehension, and pattern recognition. Plays a key role in understanding complex concepts and relationships.'
+                }
+            };
+            
+            regions.forEach(region => {
+                region.addEventListener('click', () => {
+                    const regionId = region.id;
+                    regionTitle.textContent = regionInfo[regionId].title;
+                    regionDesc.textContent = regionInfo[regionId].description;
+                    
+                    // Award points on first interaction
+                    if (!gameState.completed.brain) {
+                        gameState.score += 10;
+                        scoreDisplay.textContent = gameState.score;
+                        gameState.completed.brain = true;
+                        updateProgress();
+                        saveGameState();
+                    }
+                });
+            });
+        }
+
+        // Set up puzzle interactions
+        function setupPuzzle() {
+            const stepOptions = document.querySelectorAll('.step-option');
+            const stepSequence = document.getElementById('step-sequence');
+            const checkBtn = document.getElementById('check-sequence');
+            const feedback = document.getElementById('puzzle-feedback');
+            
+            let draggedItem = null;
+            
+            // Drag and drop functionality
+            stepOptions.forEach(option => {
+                option.addEventListener('dragstart', () => {
+                    draggedItem = option;
+                    setTimeout(() => option.style.opacity = '0.4', 0);
+                });
+                
+                option.addEventListener('dragend', () => {
+                    setTimeout(() => {
+                        draggedItem.style.opacity = '1';
+                        draggedItem = null;
+                    }, 0);
+                });
+            });
+            
+            stepSequence.addEventListener('dragover', e => {
+                e.preventDefault();
+            });
+            
+            stepSequence.addEventListener('dragenter', e => {
+                e.preventDefault();
+                stepSequence.style.backgroundColor = '#d8e2f9';
+            });
+            
+            stepSequence.addEventListener('dragleave', () => {
+                stepSequence.style.backgroundColor = '#e9ecef';
+            });
+            
+            stepSequence.addEventListener('drop', e => {
+                e.preventDefault();
+                stepSequence.style.backgroundColor = '#e9ecef';
+                
+                if (draggedItem) {
+                    // Create a new item for the sequence
+                    const sequenceItem = document.createElement('div');
+                    sequenceItem.className = 'sequence-item';
+                    sequenceItem.textContent = draggedItem.textContent;
+                    sequenceItem.dataset.step = draggedItem.dataset.step;
+                    stepSequence.appendChild(sequenceItem);
+                    
+                    // Remove from options
+                    draggedItem.remove();
+                }
+            });
+            
+            // Check solution
+            checkBtn.addEventListener('click', () => {
+                const sequenceItems = stepSequence.querySelectorAll('.sequence-item');
+                const sequence = Array.from(sequenceItems).map(item => parseInt(item.dataset.step));
+                const correctSequence = [1, 2, 3, 4, 5];
+                
+                if (sequence.length === 0) {
+                    feedback.textContent = 'Please arrange the steps in the sequence area.';
+                    feedback.style.display = 'block';
+                    return;
+                }
+                
+                // Check if sequence is correct
+                const isCorrect = sequence.every((step, index) => step === correctSequence[index]);
+                
+                if (isCorrect) {
+                    feedback.innerHTML = '✅ Correct! You\'ve arranged the steps in the proper logical sequence. This demonstrates effective step-by-step problem solving.';
+                    feedback.style.backgroundColor = '#d4edda';
+                    
+                    // Award points if not already completed
+                    if (!gameState.completed.puzzle) {
+                        gameState.score += 20;
+                        scoreDisplay.textContent = gameState.score;
+                        gameState.completed.puzzle = true;
+                        updateProgress();
+                        saveGameState();
+                    }
+                } else {
+                    feedback.innerHTML = '❌ Incorrect sequence. Remember the logical steps for solving mathematical problems: Identify known values → Recall formula → Substitute values → Perform calculation → State result.';
+                    feedback.style.backgroundColor = '#f8d7da';
+                }
+                
+                feedback.style.display = 'block';
+            });
+        }
+
+        // Set up challenge interactions
+        function setupChallenge() {
+            const options = document.querySelectorAll('.option');
+            const feedback = document.getElementById('challenge-feedback');
+            
+            options.forEach(option => {
+                option.addEventListener('click', () => {
+                    // Remove previous selections
+                    options.forEach(opt => opt.style.borderColor = '#e9ecef');
+                    
+                    // Highlight selected option
+                    option.style.borderColor = '#007BFF';
+                    
+                    // Show feedback based on selection
+                    const optionNum = option.dataset.option;
+                    let feedbackText = '';
+                    
+                    switch(optionNum) {
+                        case '1':
+                            feedbackText = 'While this helps Team C, it may not be the most efficient solution. Consider whether Team C can effectively integrate two new developers immediately.';
+                            break;
+                        case '2':
+                            feedbackText = 'This balances resources but may not address the root cause of Team C\'s challenges. Consider if Team C needs additional expertise rather than just more developers.';
+                            break;
+                        case '3':
+                            feedbackText = 'Accelerating Team A might create imbalance. They could finish too early and be idle while Team C struggles. Consider cross-team collaboration.';
+                            break;
+                        case '4':
+                            feedbackText = '✅ Excellent choice! Pairing new developers with an experienced mentor from Team A addresses both resource and knowledge gaps. This demonstrates advanced problem-solving by considering multiple factors.';
+                            
+                            // Award points if not already completed
+                            if (!gameState.completed.challenge) {
+                                gameState.score += 30;
+                                scoreDisplay.textContent = gameState.score;
+                                gameState.completed.challenge = true;
+                                updateProgress();
+                                saveGameState();
+                            }
+                            break;
+                    }
+                    
+                    feedback.innerHTML = feedbackText;
+                    feedback.style.display = 'block';
+                    feedback.style.backgroundColor = optionNum === '4' ? '#d4edda' : '#fff3cd';
+                });
+            });
+        }
+
+        // Save game state to localStorage
+        function saveGameState() {
+            localStorage.setItem('grokGameState', JSON.stringify(gameState));
+        }
+
+        // Restart game
+        function restartGame() {
+            // Reset game state
+            gameState.score = 0;
+            gameState.completed = {
+                brain: false,
+                puzzle: false,
+                challenge: false
+            };
+            
+            // Reset UI
+            scoreDisplay.textContent = '0';
+            document.getElementById('region-title').textContent = 'Select a Brain Region';
+            document.getElementById('region-description').textContent = 'Click on a highlighted area in the brain model to learn about its function in reasoning and problem-solving.';
+            
+            // Reset puzzle
+            const stepSequence = document.getElementById('step-sequence');
+            stepSequence.innerHTML = '';
+            
+            const stepOptionsContainer = document.getElementById('step-options');
+            stepOptionsContainer.innerHTML = `
+                <div class="step-option" draggable="true" data-step="1">Identify the base and height measurements</div>
+                <div class="step-option" draggable="true" data-step="2">Recall the area formula: Area = ½ × base × height</div>
+                <div class="step-option" draggable="true" data-step="3">Substitute values into the formula</div>
+                <div class="step-option" draggable="true" data-step="4">Perform the multiplication: ½ × 10 × 5</div>
+                <div class="step-option" draggable="true" data-step="5">Calculate the result: 25 square units</div>
+            `;
+            
+            document.getElementById('puzzle-feedback').style.display = 'none';
+            document.getElementById('challenge-feedback').style.display = 'none';
+            
+            // Reinitialize event listeners
+            setupPuzzle();
+            
+            // Reset challenge selection
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.style.borderColor = '#e9ecef';
+            });
+            
+            // Switch to first tab
+            switchTab('brain');
+            updateProgress();
+            saveGameState();
+        }
+
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

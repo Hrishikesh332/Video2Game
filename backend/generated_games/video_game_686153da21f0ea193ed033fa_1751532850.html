@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3-Minute Stretch Routine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            max-width: 100vw;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .timer-container {
+            background-color: #f0f0f0;
+            border-radius: 50px;
+            padding: 10px 20px;
+            margin: 15px auto;
+            width: 150px;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        .container {
+            background-color: #f8f8f8;
+            border-radius: 15px;
+            padding: 25px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .exercise-container {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #444;
+        }
+        
+        .instructions {
+            background-color: #e9e9e9;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 1.1rem;
+        }
+        
+        .animation-area {
+            height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .figure {
+            position: relative;
+            width: 120px;
+            height: 220px;
+        }
+        
+        .head {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #555;
+            border-radius: 50%;
+            top: 0;
+            left: 35px;
+        }
+        
+        .body {
+            position: absolute;
+            width: 10px;
+            height: 80px;
+            background-color: #555;
+            top: 50px;
+            left: 55px;
+        }
+        
+        .arm {
+            position: absolute;
+            width: 70px;
+            height: 8px;
+            background-color: #555;
+            top: 60px;
+            transform-origin: left center;
+        }
+        
+        .left-arm {
+            left: 55px;
+        }
+        
+        .right-arm {
+            left: 55px;
+        }
+        
+        .torso {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            top: 130px;
+            left: 30px;
+            border: 3px solid #555;
+            border-radius: 5px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #333;
+        }
+        
+        button:hover {
+            background-color: #d0d0d0;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .primary-btn {
+            background-color: #555;
+            color: white;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            height: 12px;
+            margin: 25px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #555;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .motivation {
+            font-style: italic;
+            margin: 15px 0;
+            text-align: center;
+            min-height: 40px;
+            font-size: 1.1rem;
+            color: #555;
+        }
+        
+        .feedback {
+            display: none;
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .stars {
+            margin: 20px 0;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+        
+        .star {
+            color: #ccc;
+            transition: color 0.2s;
+        }
+        
+        .star:hover,
+        .star.active {
+            color: gold;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin: 15px 0;
+            resize: none;
+            font-size: 1rem;
+        }
+        
+        .completed-message {
+            font-size: 1.5rem;
+            margin: 20px 0;
+            color: #444;
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .animation-area {
+                height: 200px;
+            }
+            
+            button {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>3-Minute Stretch Routine</h1>
+        <div class="timer-container">03:00</div>
+    </header>
+    
+    <main>
+        <div class="container">
+            <div class="exercise-container">
+                <h2 id="exercise-title">Breathing Exercise</h2>
+                <div class="instructions" id="instructions">
+                    Inhale as you raise your arms above your head, then exhale as you cross them in front of your chest.
+                </div>
+                <div class="animation-area">
+                    <div class="figure" id="figure">
+                        <div class="head"></div>
+                        <div class="body"></div>
+                        <div class="arm left-arm"></div>
+                        <div class="arm right-arm"></div>
+                        <div class="torso"></div>
+                    </div>
+                </div>
+                <div class="motivation" id="motivation">Let's begin! Take a deep breath.</div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <div class="controls">
+                <button id="prev-btn">Previous</button>
+                <button id="pause-btn">Pause</button>
+                <button id="next-btn" class="primary-btn">Next</button>
+                <button id="repeat-btn">Repeat</button>
+            </div>
+        </div>
+        
+        <div class="feedback" id="feedback">
+            <div class="completed-message">Great job! You completed the routine.</div>
+            <p>How was your experience?</p>
+            <div class="stars" id="stars">
+                <span class="star" data-value="1">★</span>
+                <span class="star" data-value="2">★</span>
+                <span class="star" data-value="3">★</span>
+                <span class="star" data-value="4">★</span>
+                <span class="star" data-value="5">★</span>
+            </div>
+            <textarea id="comments" placeholder="Any suggestions for improvement?"></textarea>
+            <button id="submit-btn" class="primary-btn">Submit Feedback</button>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            const state = {
+                currentExercise: 0,
+                isPaused: false,
+                timer: 180, // 3 minutes in seconds
+                progress: 0,
+                rating: 0,
+                motivationMessages: [
+                    "Great start!",
+                    "You're doing awesome!",
+                    "Keep breathing deeply!",
+                    "Focus on your form!",
+                    "Halfway there!",
+                    "You're almost done!",
+                    "Fantastic job!",
+                    "You're a stretching pro!"
+                ]
+            };
+            
+            // Exercises data
+            const exercises = [
+                {
+                    title: "Breathing Exercise",
+                    instructions: "Inhale as you raise your arms above your head, then exhale as you cross them in front of your chest.",
+                    animation: "breathing"
+                },
+                {
+                    title: "Arm Stretches",
+                    instructions: "Extend your arms horizontally and lean to one side, then the other.",
+                    animation: "armStretch"
+                },
+                {
+                    title: "Elbow Rotations",
+                    instructions: "Rotate your elbows in circular motions, both clockwise and counterclockwise.",
+                    animation: "elbowRotation"
+                },
+                {
+                    title: "Torso Twists",
+                    instructions: "Twist your upper body from side to side while maintaining a steady pace and breathing rhythm.",
+                    animation: "torsoTwist"
+                }
+            ];
+            
+            // DOM elements
+            const exerciseTitle = document.getElementById('exercise-title');
+            const instructions = document.getElementById('instructions');
+            const figure = document.getElementById('figure');
+            const motivation = document.getElementById('motivation');
+            const timerDisplay = document.querySelector('.timer-container');
+            const progressBar = document.getElementById('progress-bar');
+            const prevBtn = document.getElementById('prev-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const repeatBtn = document.getElementById('repeat-btn');
+            const feedbackSection = document.getElementById('feedback');
+            const stars = document.querySelectorAll('.star');
+            const comments = document.getElementById('comments');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            // Initialize
+            updateExercise();
+            startTimer();
+            updateMotivation();
+            
+            // Event listeners
+            prevBtn.addEventListener('click', () => {
+                if (state.currentExercise > 0) {
+                    state.currentExercise--;
+                    updateExercise();
+                }
+            });
+            
+            nextBtn
+    </script>
+</body>
+</html>

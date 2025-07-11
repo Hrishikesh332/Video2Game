@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Women's 5000m Race</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: white;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .instructions {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #888;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .track-container {
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            min-height: 300px;
+        }
+        
+        #trackCanvas {
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            touch-action: none;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .runner-control {
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        
+        .slider-container {
+            margin: 10px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #444;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin: 8px 0;
+        }
+        
+        .value-display {
+            text-align: center;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #ddd;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #333;
+            transition: background-color 0.2s;
+            flex-grow: 1;
+        }
+        
+        button:hover {
+            background-color: #ccc;
+        }
+        
+        button.primary {
+            background-color: #888;
+            color: white;
+        }
+        
+        .progress-container {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #ddd;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #888;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .level-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .close-modal {
+            float: right;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            max-width: 250px;
+            z-index: 10;
+        }
+        
+        @media (max-width: 600px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Women's 5000m Race Strategy</h1>
+        <p>Drag runners, adjust pace, and learn race strategies</p>
+    </header>
+    
+    <div class="instructions">
+        <p><strong>How to play:</strong> Drag runners onto the track. Click on runners to see profiles. Adjust pace sliders and simulate the race to see strategies in action!</p>
+    </div>
+    
+    <div class="game-container">
+        <div class="track-container">
+            <canvas id="trackCanvas" width="800" height="400"></canvas>
+            <div id="tooltip" class="tooltip"></div>
+        </div>
+        
+        <div class="controls">
+            <div class="runner-control">
+                <h3>Runner 1: Kenya</h3>
+                <div class="slider-container">
+                    <label for="pace1">Pace (seconds per lap):</label>
+                    <input type="range" id="pace1" min="60" max="90" value="75">
+                    <div class="value-display"><span id="paceValue1">75</span> sec</div>
+                </div>
+                <p><strong>Strategy:</strong> Strong finisher</p>
+            </div>
+            
+            <div class="runner-control">
+                <h3>Runner 2: Ethiopia</h3>
+                <div class="slider-container">
+                    <label for="pace2">Pace (seconds per lap):</label>
+                    <input type="range" id="pace2" min="60" max="90" value="72">
+                    <div class="value-display"><span id="paceValue2">72</span> sec</div>
+                </div>
+                <p><strong>Strategy:</strong> Consistent pace</p>
+            </div>
+            
+            <div class="runner-control">
+                <h3>Runner 3: Netherlands</h3>
+                <div class="slider-container">
+                    <label for="pace3">Pace (seconds per lap):</label>
+                    <input type="range" id="pace3" min="60" max="90" value="78">
+                    <div class="value-display"><span id="paceValue3">78</span> sec</div>
+                </div>
+                <p><strong>Strategy:</strong> Drafting technique</p>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button id="simulateBtn" class="primary">Simulate Race</button>
+            <button id="resetBtn">Reset Runners</button>
+            <button id="restartBtn">Restart Game</button>
+            <button id="nextLevelBtn">Next Level</button>
+        </div>
+        
+        <div class="progress-container">
+            <h3>Game Progress</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="level-indicator">
+                <span>Level: <span id="currentLevel">1</span>/3</span>
+                <span>Race Completion: <span id="raceCompletion">0</span>%</span>
+            </div>
+        </div>
+    </div>
+    
+    <div id="runnerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modalTitle">Runner Profile</h2>
+            <div id="modalContent">
+                <p><strong>Country:</strong> <span id="runnerCountry"></span></p>
+                <p><strong>Name:</strong> <span id="runnerName"></span></p>
+                <p><strong>Personal Best:</strong> <span id="runnerPB"></span></p>
+                <p><strong>Strategy:</strong> <span id="runnerStrategy"></span></p>
+                <p id="strategyTip"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            level: 1,
+            progress: 0,
+            runners: [
+                { id: 1, name: "Hellen Obiri", country: "Kenya", color: "#FF69B4", x: 150, y: 200, pace: 75, strategy: "Strong finisher - conserves energy for final sprint", pb: "14:18.37" },
+                { id: 2, name: "Gudaf Tsegay", country: "Ethiopia", color: "#008000", x: 300, y: 200, pace: 72, strategy: "Consistent pace - maintains speed throughout", pb: "14:00.21" },
+                { id: 3, name: "Sifan Hassan", country: "Netherlands", color: "#FFD700", x: 450, y: 200, pace: 78, strategy: "Drafting - stays behind leaders to conserve energy", pb: "14:22.12" }
+            ],
+            selectedRunner: null,
+            is
+    </script>
+</body>
+</html>

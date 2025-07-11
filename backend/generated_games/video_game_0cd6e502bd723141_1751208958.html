@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morning Stretch & Breath</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 500px;
+            background-color: #f8f8f8;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .screen {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 500px;
+        }
+
+        h1, h2 {
+            color: #222;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .btn {
+            background-color: #e0e0e0;
+            color: #333;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            min-width: 120px;
+        }
+
+        .btn:hover {
+            background-color: #d0d0d0;
+            transform: translateY(-2px);
+        }
+
+        .btn.primary {
+            background-color: #4a4a4a;
+            color: white;
+        }
+
+        .btn.primary:hover {
+            background-color: #333;
+        }
+
+        #avatar-container {
+            width: 200px;
+            height: 200px;
+            margin: 25px auto;
+            position: relative;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .avatar-part {
+            position: absolute;
+            background-color: #333;
+            border-radius: 3px;
+        }
+
+        .head {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            top: 10px;
+            left: 75px;
+        }
+
+        .body {
+            width: 10px;
+            height: 70px;
+            top: 60px;
+            left: 95px;
+        }
+
+        .arm {
+            width: 60px;
+            height: 8px;
+            top: 70px;
+        }
+
+        .left-arm {
+            left: 35px;
+            transform-origin: right center;
+        }
+
+        .right-arm {
+            left: 105px;
+            transform-origin: left center;
+        }
+
+        .breathing-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid #4a4a4a;
+            margin: 20px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            transition: all 1.5s ease-in-out;
+        }
+
+        .inhale {
+            transform: scale(1.3);
+            background-color: rgba(74, 74, 74, 0.1);
+        }
+
+        .exhale {
+            transform: scale(1);
+            background-color: transparent;
+        }
+
+        .timer {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #4a4a4a;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .exercise-instructions {
+            background-color: #e8e8e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            width: 100%;
+            text-align: center;
+        }
+
+        .quote {
+            font-style: italic;
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+            padding: 0 10px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .benefits-list {
+            text-align: left;
+            margin: 20px 0;
+            padding-left: 20px;
+        }
+
+        .benefits-list li {
+            margin-bottom: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 500px) {
+            .screen {
+                padding: 20px 15px;
+            }
+            
+            #avatar-container {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .breathing-circle {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="screen">
+            <h1>Morning Stretch & Breath</h1>
+            <p>Start your day with energizing stretches and breathing exercises.</p>
+            <div id="avatar-container">
+                <div class="avatar">
+                    <div class="avatar-part head"></div>
+                    <div class="avatar-part body"></div>
+                    <div class="avatar-part arm left-arm"></div>
+                    <div class="avatar-part arm right-arm"></div>
+                </div>
+            </div>
+            <p>Complete 3 exercises to boost your energy and focus!</p>
+            <button id="start-btn" class="btn primary">Begin Routine</button>
+        </div>
+
+        <!-- Exercise Screen -->
+        <div id="exercise-screen" class="screen hidden">
+            <h2 id="exercise-title">Exercise Name</h2>
+            <div class="exercise-instructions">
+                <p id="exercise-description">Exercise instructions will appear here</p>
+            </div>
+            <div id="avatar-container">
+                <div class="avatar" id="exercise-avatar">
+                    <div class="avatar-part head"></div>
+                    <div class="avatar-part body"></div>
+                    <div class="avatar-part arm left-arm"></div>
+                    <div class="avatar-part arm right-arm"></div>
+                </div>
+            </div>
+            <div class="breathing-circle" id="breathing-circle">Inhale</div>
+            <div class="timer" id="timer">30</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <p class="quote" id="motivational-quote">"Take a deep breath. You've got this!"</p>
+            <div class="controls">
+                <button id="prev-btn" class="btn">Previous</button>
+                <button id="next-btn" class="btn primary">Next</button>
+            </div>
+        </div>
+
+        <!-- Completion Screen -->
+        <div id="completion-screen" class="screen hidden">
+            <h2>Great Job!</h2>
+            <p>You've completed the morning routine.</p>
+            <div id="avatar-container">
+                <div class="avatar">
+                    <div class="avatar-part head"></div>
+                    <div class="avatar-part body"></div>
+                    <div class="avatar-part arm left-arm"></div>
+                    <div class="avatar-part arm right-arm"></div>
+                </div>
+            </div>
+            <p>Benefits of this routine:</p>
+            <ul class="benefits-list">
+                <li>Increased energy and alertness</li>
+                <li>Improved flexibility and posture</li>
+                <li>Reduced stress and anxiety</li>
+                <li>Enhanced focus and mental clarity</li>
+            </ul>
+            <button id="replay-btn" class="btn primary">Repeat Routine</button>
+        </div>
+    </div>
+
+    <script>
+        // Game data
+        const exercises = [
+            {
+                name: "Side-to-Side Torso Bends",
+                description: "Stand with feet shoulder-width apart. Gently bend your torso from side to side.",
+                duration: 30,
+                animation: "torsoBend"
+            },
+            {
+                name: "Arm Raises",
+                description: "Slowly raise both arms overhead, then lower them back down.",
+                duration: 30,
+                animation: "armRaise"
+            },
+            {
+                name: "Elbow Rotations",
+                description: "Rotate your elbows in circular motions, first forward then backward.",
+                duration: 30,
+                animation: "elbowRotation"
+            }
+        ];
+
+        const quotes = [
+            "Take a deep breath. You've got this!",
+            "Every stretch brings you closer to a better day.",
+            "Focus on your breath. It's your anchor.",
+            "You are doing great! Keep going."
+        ];
+
+        // Game state
+        let currentExercise = 0;
+        let timer;
+        let timeLeft;
+        let isInhale = true;
+        let breathingInterval;
+
+        // DOM elements
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const exerciseScreen = document.getElementById('exercise-screen');
+        const completionScreen = document.getElementById('completion-screen');
+        const startBtn = document.getElementById('start-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const replayBtn = document.getElementById('replay-btn');
+        const exerciseTitle = document.getElementById('exercise-title');
+        const exerciseDescription = document.getElementById('exercise-description');
+        const timerDisplay = document.getElementById('timer');
+        const progressBar = document.getElementById('progress-bar');
+        const breathingCircle = document.getElementById('breathing-circle');
+        const motivationalQuote = document.getElementById('motivational-quote');
+        const exerciseAvatar = document.getElementById('exercise-avatar');
+
+        // Initialize game
+        function initGame() {
+            startBtn.addEventListener('click', startRoutine);
+            prevBtn.addEventListener('click', prevExercise);
+            nextBtn.addEventListener('click', nextExercise);
+            replayBtn.addEventListener('click', startRoutine);
+        }
+
+        // Start the exercise routine
+        function startRoutine() {
+            currentExercise = 0;
+            welcomeScreen.classList.add('hidden');
+            completionScreen.classList.add('hidden');
+            exerciseScreen.classList.remove('hidden');
+            loadExercise(currentExercise);
+        }
+
+        // Load exercise data
+        function loadExercise(index) {
+            const exercise = exercises[index];
+            exerciseTitle.textContent = exercise.name;
+            exerciseDescription.textContent = exercise.description;
+            timeLeft = exercise.duration;
+            timerDisplay.textContent = timeLeft;
+            
+            // Update progress bar
+            progressBar.style.width = `${(index / exercises.length) * 100}%`;
+            
+            // Show motivational quote
+            showRandomQuote();
+            
+            // Start animations
+            startBreathingCycle();
+            animateAvatar(exercise.animation);
+            startTimer();
+        }
+
+        // Animate avatar based on exercise
+        function animateAvatar(animationType) {
+            // Reset any previous animations
+            exerciseAvatar.style.animation = 'none';
+            
+            // Apply new animation
+            switch(animationType) {
+                case 'torsoBend':
+                    exerciseAvatar.style.animation = 'torsoBend 2s infinite alternate';
+                    break;
+                case 'armRaise':
+                    document.querySelector('.left-arm').style.animation = 'armRaise 3s infinite alternate';
+                    document.querySelector('.right-arm').style.animation = 'armRaise 3s infinite alternate';
+                    break;
+                case 'elbowRotation':
+                    document.querySelector('.left-arm').style.animation = 'elbowRotation 4s infinite linear';
+                    document.querySelector('.right-arm').style.animation = 'elbowRotation 4s infinite linear reverse';
+                    break;
+            }
+        }
+
+        // Start breathing cycle
+        function startBreathingCycle() {
+            clearInterval(breathingInterval);
+            isInhale = true;
+            updateBreathingVisual();
+            
+            breathingInterval = setInterval(() => {
+                isInhale = !isInhale;
+                updateBreathingVisual();
+            }, 4000);
+        }
+
+        // Update breathing visual
+        function updateBreathingVisual() {
+            if (isInhale) {
+                breathingCircle.textContent = "INHALE";
+                breathingCircle.classList.remove('exhale');
+                breathingCircle.classList.add('inhale');
+            } else {
+                breathingCircle.textContent = "EXHALE";
+                breathingCircle.classList.remove('inhale');
+                breathingCircle.classList.add('exhale');
+            }
+        }
+
+        // Start timer for current exercise
+        function startTimer() {
+            clearInterval(timer);
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    if (currentExercise < exercises.length - 1) {
+                        nextExercise();
+                    } else {
+                        completeRoutine();
+                    }
+                }
+            }, 1000);
+        }
+
+        // Show random motivational quote
+        function showRandomQuote() {
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            motivationalQuote.textContent = `"${quotes[randomIndex]}"`;
+        }
+
+        // Navigate to next exercise
+        function nextExercise() {
+            if (currentExercise < exercises.length - 1) {
+                currentExercise++;
+                loadExercise(currentExercise);
+            } else {
+                completeRoutine();
+            }
+        }
+
+        // Navigate to previous exercise
+        function prevExercise() {
+            if (currentExercise > 0) {
+                currentExercise--;
+                loadExercise(currentExercise);
+            }
+        }
+
+        // Complete the routine
+        function completeRoutine() {
+            clearInterval(timer);
+            clearInterval(breathingInterval);
+            exerciseScreen.classList.add('hidden');
+            completionScreen.classList.remove('hidden');
+        }
+
+        // Add CSS animations dynamically
+        function addAnimations() {
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes torsoBend {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(20px); }
+                }
+                
+                @keyframes armRaise {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(-90deg); }
+                }
+                
+                @keyframes elbowRotation {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Initialize the game when page loads
+        window.onload = function() {
+            addAnimations();
+            initGame();
+        };
+    </script>
+</body>
+</html>

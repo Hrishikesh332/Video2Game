@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .graph-container {
+            flex: 1 1 600px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            min-height: 400px;
+        }
+
+        .controls {
+            flex: 1 1 300px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        canvas {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            height: 100%;
+            min-height: 350px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #4a5568;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background-color: #2d3748;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .explanation {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .explanation h2 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .data-types {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .data-card {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .data-card h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .points-list {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .point-item {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .point-item button {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .progress-step {
+            text-align: center;
+            flex: 1;
+            padding: 10px;
+            position: relative;
+        }
+
+        .progress-step.active {
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .progress-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 0;
+            width: 50%;
+            height: 2px;
+            background-color: #cbd5e0;
+            transform: translateY(-50%);
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .feedback.success {
+            background-color: #f0fff4;
+            border: 1px solid #c6f6d5;
+            color: #2f855a;
+            display: block;
+        }
+
+        .feedback.error {
+            background-color: #fff5f5;
+            border: 1px solid #fed7d7;
+            color: #c53030;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .progress-step:not(:last-child)::after {
+                width: 40%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Linear Regression Explorer</h1>
+        <p>Understand how machine learning predicts continuous data through interactive exploration</p>
+    </header>
+
+    <div class="progress-container">
+        <div class="progress-step active">1. Add Data Points</div>
+        <div class="progress-step">2. Draw Best Fit Line</div>
+        <div class="progress-step">3. Identify Outliers</div>
+        <div class="progress-step">4. Explore Concepts</div>
+    </div>
+
+    <div class="container">
+        <div class="graph-container">
+            <canvas id="regressionCanvas"></canvas>
+        </div>
+        
+        <div class="controls">
+            <h2>Data Input</h2>
+            <div class="form-group">
+                <label for="height">Height (inches):</label>
+                <input type="number" id="height" min="50" max="90" placeholder="Enter height (50-90 inches)">
+            </div>
+            <div class="form-group">
+                <label for="shoeSize">Shoe Size (US):</label>
+                <input type="number" id="shoeSize" min="4" max="15" placeholder="Enter shoe size (4-15)">
+            </div>
+            
+            <button id="addPoint">Add Data Point</button>
+            <button id="drawLine">Draw Best Fit Line</button>
+            <button id="reset">Reset Graph</button>
+            
+            <div class="points-list" id="pointsList">
+                <!-- Points will be added here dynamically -->
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+        </div>
+    </div>
+
+    <div class="explanation">
+        <h2>Understanding Linear Regression</h2>
+        <p>Linear regression is a supervised machine learning algorithm used to predict continuous numerical values based on labeled datasets. It finds the best straight line (regression line) that represents the relationship between input and output variables.</p>
+        
+        <div class="data-types">
+            <div class="data-card">
+                <h3>Continuous Data</h3>
+                <p>Numerical values that can be measured:</p>
+                <ul>
+                    <li>Height (inches)</li>
+                    <li>Shoe Size</li>
+                    <li>Age</li>
+                    <li>Temperature</li>
+                </ul>
+            </div>
+            
+            <div class="data-card">
+                <h3>Categorical Data</h3>
+                <p>Values that represent categories:</p>
+                <ul>
+                    <li>Gender (Male/Female)</li>
+                    <li>Color (Red/Blue/Green)</li>
+                    <li>Vehicle Type (Car/Truck)</li>
+                    <li>Country</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <h3>Why Linear Regression Matters</h3>
+            <p>Linear regression helps us make predictions based on existing data. For example, we can predict someone's shoe size based on their height, or estimate house prices based on square footage. It's fundamental in data science for understanding relationships between variables.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Canvas setup
+            const canvas = document.getElementById('regressionCanvas');
+            const ctx = canvas.getContext('2d');
+            const pointsList = document.getElementById('pointsList');
+            const feedback = document.getElementById('feedback');
+            
+            // Set canvas dimensions
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                drawGraph();
+            }
+            
+            // Initialize canvas
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Data storage
+            let dataPoints = [];
+            let bestFitLine = null;
+            let outlierIndex = -1;
+            
+            // DOM elements
+            const heightInput = document.getElementById('height');
+            const shoeSizeInput = document.getElementById('shoeSize');
+            const addPointBtn = document.getElementById('addPoint');
+            const drawLineBtn = document.getElementById('drawLine');
+            const resetBtn = document.getElementById('reset');
+            
+            // Draw graph with axes
+            function drawGraph() {
+                const width = canvas.width;
+                const height = canvas.height;
+                const padding = 40;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+                
+                // Draw axes
+                ctx.beginPath();
+                ctx.strokeStyle = '#4a5568';
+                ctx.lineWidth = 2;
+                
+                // X-axis
+                ctx.moveTo(padding, height - padding);
+                ctx.lineTo(width - padding, height - padding);
+                
+                // Y-axis
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, height - padding);
+                
+                ctx.stroke();
+                
+                // Draw axis labels
+                ctx.font = '14px Arial';
+                ctx.fillStyle = '#4a5568';
+                ctx.textAlign = 'center';
+                
+                // X-axis label
+                ctx.fillText('Height in Inches', width / 2, height - 10);
+                
+                // Y-axis label
+                ctx.save();
+                ctx.translate(15, height / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText('Shoe Size [US]', 0, 0);
+                ctx.restore();
+                
+                // Draw grid lines
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1;
+                
+                // Vertical grid lines
+                for (let i = 1; i < 10; i++) {
+                    const x = padding + (i * (width - 2 * padding) / 10);
+                    ctx.beginPath();
+                    ctx.moveTo(x, padding);
+                    ctx.lineTo(x, height - padding);
+                    ctx.stroke();
+                }
+                
+                // Horizontal grid lines
+                for (let i = 1; i < 10; i++) {
+                    const y = height - padding - (i * (height - 2 * padding) / 10);
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(width - padding, y);
+                    ctx.stroke();
+                }
+                
+                // Draw data points
+                dataPoints.forEach((point, index) => {
+                    const x = padding + (point.height - 50) * (width - 2 * padding) / 40;
+                    const y = height - padding - (point.shoeSize - 4) * (height - 2 * padding) / 11;
+                    
+                    ctx.beginPath();
+                    ctx.fillStyle = index === outlierIndex ? '#e53e3e' : '#3182ce';
+                    ctx.arc(x, y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Add point label
+                    ctx.fillStyle = '#4a5568';
+                    ctx.font = '12px Arial';
+                    ctx.fillText(`(${point.height}, ${point.shoeSize})`, x + 10, y - 10);
+                });
+                
+                // Draw best fit line
+                if (bestFitLine) {
+                    const x1 = padding;
+                    const y1 = height - padding - (bestFitLine(50) - 4) * (height - 2 * padding) / 11;
+                    const x2 = width - padding;
+                    const y2 = height - padding - (bestFitLine(90) - 4) * (height - 2 * padding) / 11;
+                    
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#38a169';
+                    ctx.lineWidth = 2;
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                }
+            }
+            
+            // Add data point
+            function addDataPoint() {
+                const height = parseFloat(heightInput.value);
+                const shoeSize = parseFloat(shoeSizeInput.value);
+                
+                if (isNaN(height) || isNaN(shoeSize)) {
+                    showFeedback('Please enter valid numbers for both fields', 'error');
+                    return;
+                }
+                
+                if (height < 50 || height > 90 || shoeSize < 4 || shoeSize > 15) {
+                    showFeedback('Height must be between 50-90 inches. Shoe size between 4-15.', 'error');
+                    return;
+                }
+                
+                dataPoints.push({ height, shoeSize });
+                updatePointsList();
+                drawGraph();
+                showFeedback(`Point added: (${height}, ${shoeSize})`, 'success');
+                
+                // Clear inputs
+                heightInput.value = '';
+                shoeSizeInput.value = '';
+                heightInput.focus();
+            }
+            
+            // Update points list display
+            function updatePointsList() {
+                pointsList.innerHTML = '';
+                
+                dataPoints.forEach((point, index) => {
+                    const pointItem = document.createElement('div');
+                    pointItem.className = 'point-item';
+                    pointItem.innerHTML = `
+                        <span>Height: ${point.height}", Shoe: ${point.shoeSize}</span>
+                        <button class="remove-point" data-index="${index}">Remove</button>
+                    `;
+                    pointsList.appendChild(pointItem);
+                });
+                
+                // Add event listeners to remove buttons
+                document.querySelectorAll('.remove-point').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        dataPoints.splice(index, 1);
+                        updatePointsList();
+                        drawGraph();
+                        
+                        if (index === outlierIndex) {
+                            outlierIndex = -1;
+                        }
+                    });
+                });
+            }
+            
+            // Calculate best fit line
+            function calculateBestFitLine() {
+                if (dataPoints.length < 2) {
+                    showFeedback('Add at least 2 points to draw a line', 'error');
+                    return null;
+                }
+                
+                // Calculate means
+                const n = dataPoints.length;
+                let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+                
+                dataPoints.forEach(point => {
+                    sumX += point.height;
+                    sumY += point.shoeSize;
+                    sumXY += point.height * point.shoeSize;
+                    sumXX += point.height * point.height;
+                });
+                
+                // Calculate slope (m) and intercept (b)
+                const m = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+                const b = (sumY - m * sumX) / n;
+                
+                return x => m * x + b;
+            }
+            
+            // Draw best fit line
+            function drawBestFitLine() {
+                bestFitLine = calculateBestFitLine();
+                
+                if (bestFitLine) {
+                    drawGraph();
+                    showFeedback('Best fit line drawn! Notice the positive correlation', 'success');
+                    
+                    // Add an outlier for the next step
+                    if (dataPoints.length >= 3 && outlierIndex === -1) {
+                        setTimeout(() => {
+                            dataPoints.push({ height: 70, shoeSize: 15 });
+                            outlierIndex = dataPoints.length - 1;
+                            updatePointsList();
+                            drawGraph();
+                            showFeedback('An outlier has been added. Click on it to identify!', 'success');
+                        }, 1500);
+                    }
+                }
+            }
+            
+            // Reset graph
+            function resetGraph() {
+                dataPoints = [];
+                bestFitLine = null;
+                outlierIndex = -1;
+                updatePointsList();
+                drawGraph();
+                showFeedback('Graph has been reset', 'success');
+            }
+            
+            // Show feedback message
+            function showFeedback(message, type) {
+                feedback.textContent = message;
+                feedback.className = 'feedback ' + type;
+                
+                // Auto-hide after 3 seconds
+                setTimeout(() => {
+                    feedback.style.display = 'none';
+                }, 3000);
+            }
+            
+            // Handle canvas click to identify outliers
+            canvas.addEventListener('click', function(event) {
+                if (outlierIndex === -1) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                const padding = 40;
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                // Check if clicked on the outlier
+                const point = dataPoints[outlierIndex];
+                const pointX = padding + (point.height - 50) * (width - 2 * padding) / 40;
+                const pointY = height - padding - (point.shoeSize - 4) * (height - 2 * padding) / 11;
+                
+                const distance = Math.sqrt(Math.pow(x - pointX, 2) + Math.pow(y - pointY, 2));
+                
+                if (distance < 15) {
+                    showFeedback('Correct! This point is an outlier that doesn\'t follow the general trend', 'success');
+                    outlierIndex = -1;
+                }
+            });
+            
+            // Event listeners
+            addPointBtn.addEventListener('click', addDataPoint);
+            drawLineBtn.addEventListener('click', drawBestFitLine);
+            resetBtn.addEventListener('click', resetGraph);
+            
+            // Allow Enter key to add point
+            heightInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addDataPoint();
+            });
+            
+            shoeSizeInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addDataPoint();
+            });
+            
+            // Initial draw
+            drawGraph();
+        });
+    </script>
+</body>
+</html>

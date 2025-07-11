@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Principal Component Analysis Interactive App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            color: #7f8c8d;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .visualization-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .plot-container {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        canvas {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            touch-action: none;
+        }
+        
+        .controls {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            background-color: #ecf0f1;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #2c3e50;
+            font-weight: bold;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            background-color: #d5dbdb;
+        }
+        
+        button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .slider-container {
+            margin: 15px 0;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .instructions {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .level-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .level {
+            text-align: center;
+            padding: 10px;
+            flex: 1;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .level.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .level.completed {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            height: 10px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #3498db;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .score-container {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .concept-explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4f8;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+        }
+        
+        @media (max-width: 768px) {
+            .visualization-section {
+                flex-direction: column;
+            }
+            
+            .level-indicator {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Principal Component Analysis Interactive App</h1>
+        <p class="description">An interactive tool to learn PCA concepts through visualization and experimentation</p>
+    </header>
+    
+    <div class="game-container">
+        <div class="level-indicator">
+            <div class="level active" data-level="1">Level 1: Data Points</div>
+            <div class="level" data-level="2">Level 2: Components</div>
+            <div class="level" data-level="3">Level 3: Transformation</div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="score-container">
+            Score: <span id="score">0</span>
+        </div>
+        
+        <div class="visualization-section">
+            <div class="plot-container">
+                <h2>Data Visualization</h2>
+                <canvas id="mainCanvas" width="500" height="400"></canvas>
+            </div>
+            
+            <div class="controls">
+                <h2>Controls</h2>
+                <div class="control-group">
+                    <h3>Data Points</h3>
+                    <div class="btn-group">
+                        <button id="addBtn" class="active">Add Points</button>
+                        <button id="moveBtn">Move Points</button>
+                        <button id="removeBtn">Remove Points</button>
+                    </div>
+                    <button id="resetBtn">Reset Points</button>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Principal Components</h3>
+                    <div class="btn-group">
+                        <button id="showComponentsBtn">Show Components</button>
+                        <button id="hideComponentsBtn">Hide Components</button>
+                    </div>
+                    <div class="slider-container">
+                        <label for="componentScale">Component Scale:</label>
+                        <input type="range" id="componentScale" min="1" max="10" value="5">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Transformation</h3>
+                    <button id="transformBtn">Apply PCA Transformation</button>
+                    <button id="nextLevelBtn">Next Level</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h2>Instructions</h2>
+            <p id="instructionText">Level 1: Add at least 5 data points to the canvas. Observe how the principal components change as you add points.</p>
+            
+            <div class="concept-explanation">
+                <h3>About PCA</h3>
+                <p>Principal Component Analysis (PCA) is a technique for reducing the dimensionality of datasets. It transforms data to a new coordinate system where the greatest variance lies on the first axis (principal component), the second greatest on the next axis, and so on.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            points: [],
+            mode: 'add',
+            level: 1,
+            score: 0,
+            componentsVisible: false,
+            componentScale: 5,
+            pcaVectors: null,
+            transformed: false,
+            completedLevels: [true, false, false]
+        };
+
+        // DOM elements
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const instructionText = document.getElementById('instructionText');
+        const scoreElement = document.getElementById('score');
+        const progressBar = document.getElementById('progressBar');
+        const componentScale = document.getElementById('componentScale');
+
+        // Buttons
+        const addBtn = document.getElementById('addBtn');
+        const moveBtn = document.getElementById('moveBtn');
+        const removeBtn = document.getElementById('removeBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const showComponentsBtn = document.getElementById('showComponentsBtn');
+        const hideComponentsBtn = document.getElementById('hideComponentsBtn');
+        const transformBtn = document.getElementById('transformBtn');
+        const nextLevelBtn = document.getElementById('nextLevelBtn');
+        
+        // Level indicators
+        const levelIndicators = document.querySelectorAll('.level');
+
+        // Initialize canvas
+        function initCanvas() {
+            // Set canvas dimensions
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            // Draw initial grid
+            drawGrid();
+            
+            // Add event listeners
+            canvas.addEventListener('click', handleCanvasClick);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            
+            // Button event listeners
+            addBtn.addEventListener('click', () => setMode('add'));
+            moveBtn.addEventListener('click', () => setMode('move'));
+            removeBtn.addEventListener('click', () => setMode('remove'));
+            resetBtn.addEventListener('click', resetPoints);
+            showComponentsBtn.addEventListener('click', () => {
+                gameState.componentsVisible = true;
+                draw();
+            });
+            hideComponentsBtn.addEventListener('click', () => {
+                gameState.componentsVisible = false;
+                draw();
+            });
+            transformBtn.addEventListener('click', applyPCA);
+            nextLevelBtn.addEventListener('click', nextLevel);
+            componentScale.addEventListener('input', () => {
+                gameState.componentScale = parseInt(componentScale.value);
+                draw();
+            });
+            
+            // Level indicator event listeners
+            levelIndicators.forEach(level => {
+                level.addEventListener('click', () => {
+                    const levelNum = parseInt(level.dataset.level);
+                    if (gameState.completedLevels[levelNum - 1]) {
+                        setLevel(levelNum);
+                    }
+                });
+            });
+            
+            // Initial draw
+            draw();
+        }
+
+        // Set game mode
+        function setMode(mode) {
+            gameState.mode = mode;
+            
+            // Update button states
+            addBtn.classList.toggle('active', mode === 'add');
+            moveBtn.classList.toggle('active', mode === 'move');
+            removeBtn.classList.toggle('active', mode === 'remove');
+        }
+
+        // Set game level
+        function setLevel(level) {
+            gameState.level = level;
+            gameState.transformed = false;
+            
+            // Update level indicators
+            levelIndicators.forEach((indicator, index) => {
+                indicator.classList.remove('active', 'completed');
+                if (index + 1 === level) {
+                    indicator.classList.add('active');
+                } else if (gameState.completedLevels[index]) {
+                    indicator.classList.add('completed');
+                }
+            });
+            
+            // Update instructions
+            switch(level) {
+                case 1:
+                    instructionText.textContent = "Level 1: Add at least 5 data points to the canvas. Observe how the principal components change as you add points.";
+                    break;
+                case 2:
+                    instructionText.textContent = "Level 2: Principal components are shown as arrows. Adjust their scale and observe how they capture data variance.";
+                    gameState.componentsVisible = true;
+                    break;
+                case 3:
+                    instructionText.textContent = "Level 3: Click 'Apply PCA Transformation' to see the data in the new coordinate system defined by the principal components.";
+                    gameState.componentsVisible = true;
+                    break;
+            }
+            
+            // Update progress bar
+            progressBar.style.width = `${((level - 1) / 3) * 100}%`;
+            
+            draw();
+        }
+
+        // Move to next level
+        function nextLevel() {
+            if (gameState.level < 3) {
+                gameState.completedLevels[gameState.level] = true;
+                setLevel(gameState.level + 1);
+                updateScore(50);
+            }
+        }
+
+        // Reset data points
+        function resetPoints() {
+            gameState.points = [];
+            gameState.pcaVectors = null;
+            gameState.transformed = false;
+            draw();
+        }
+
+        // Handle canvas click
+        function handleCanvasClick(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (gameState.mode === 'add') {
+                // Add new point
+                gameState.points.push({x, y});
+                updateScore(10);
+            } else if (gameState.mode === 'remove') {
+                // Remove closest point
+                const pointIndex = findClosestPoint(x, y);
+                if (pointIndex !== -1) {
+                    gameState.points.splice(pointIndex, 1);
+                }
+            }
+            
+            draw();
+        }
+
+        // Handle mouse move (for moving points)
+        function handleMouseMove(e) {
+            if (gameState.mode !== 'move') return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (e.buttons === 1) { // Left mouse button pressed
+                const pointIndex = findClosestPoint(x, y);
+                if (pointIndex !== -1) {
+                    gameState.points[pointIndex] = {x, y};
+                    draw();
+                }
+            }
+        }
+
+        // Handle touch events
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            if (gameState.mode === 'add') {
+                gameState.points.push({x, y});
+                updateScore(10);
+            } else if (gameState.mode === 'remove') {
+                const pointIndex = findClosestPoint(x, y);
+                if (pointIndex !== -1) {
+                    gameState.points.splice(pointIndex, 1);
+                }
+            }
+            
+            draw();
+        }
+
+        function handleTouchMove(e) {
+            if (gameState.mode !== 'move') return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            const pointIndex = findClosestPoint(x, y);
+            if (pointIndex !== -1) {
+                gameState.points[pointIndex] = {x, y};
+                draw();
+            }
+        }
+
+        // Find closest point to coordinates
+        function findClosestPoint(x, y) {
+            let minDist = Infinity;
+            let closestIndex = -1;
+            
+            for (let i = 0; i < gameState.points.length; i++) {
+                const point = gameState.points[i];
+                const dist = Math.sqrt((point.x - x) ** 2 + (point.y - y) ** 2);
+                
+                if (dist < 20 && dist < minDist) {
+                    minDist = dist;
+                    closestIndex = i;
+                }
+            }
+            
+            return closestIndex;
+        }
+
+        // Update score
+        function updateScore(points) {
+            gameState.score += points;
+            scoreElement.textContent = gameState.score;
+        }
+
+        // Draw grid and axes
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#ecf0f1';
+            ctx.lineWidth = 1;
+            
+            // Vertical lines
+            for (let x = 0; x <= canvas.width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Horizontal lines
+            for (let y = 0; y <= canvas.height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#7f8c8d';
+            ctx.lineWidth = 2;
+            
+            // X axis
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+            
+            // Y axis
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+        }
+
+        // Draw data points
+        function drawPoints() {
+            for (const point of gameState.points) {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#3498db';
+                ctx.fill();
+                ctx.strokeStyle = '#2980b9';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+
+        // Calculate and draw PCA components
+        function drawPCAComponents() {
+            if (gameState.points.length < 2) return;
+            
+            // Calculate mean
+            let meanX = 0;
+            let meanY = 0;
+            for (const point of gameState.points) {
+                meanX += point.x;
+                meanY += point.y;
+            }
+            meanX /= gameState.points.length;
+            meanY /= gameState.points.length;
+            
+            // Calculate covariance matrix
+            let covXX = 0;
+            let covXY = 0;
+            let covYY = 0;
+            
+            for (const point of gameState.points) {
+                const dx = point.x - meanX;
+                const dy = point.y - meanY;
+                covXX += dx * dx;
+                covXY += dx * dy;
+                covYY += dy * dy;
+            }
+            
+            covXX /= gameState.points.length - 1;
+            covXY /= gameState.points.length - 1;
+            covYY /= gameState.points.length - 1;
+            
+            // Calculate eigenvalues and eigenvectors
+            const trace = covXX + covYY;
+            const determinant = covXX * covYY - covXY * covXY;
+            const discriminant = Math.sqrt(trace * trace - 4 * determinant);
+            
+            const eigenValue1 = (trace + discriminant) / 2;
+            const eigenValue2 = (trace - discriminant) / 2;
+            
+            // Calculate eigenvectors
+            let eigenVector1, eigenVector2;
+            
+            if (covXY !== 0) {
+                eigenVector1 = {x: eigenValue1 - covYY, y: covXY};
+                eigenVector2 = {x: eigenValue2 - covYY, y: covXY};
+            } else {
+                eigenVector1 = {x: 1, y: 0};
+                eigenVector2 = {x: 0, y: 1};
+            }
+            
+            // Normalize vectors
+            const length1 = Math.sqrt(eigenVector1.x * eigenVector1.x + eigenVector1.y * eigenVector1.y);
+            const length2 = Math.sqrt(eigenVector2.x * eigenVector2.x + eigenVector2.y * eigenVector2.y);
+            
+            eigenVector1.x /= length1;
+            eigenVector1.y /= length1;
+            eigenVector2.x /= length2;
+            eigenVector2.y /= length2;
+            
+            // Store vectors
+            gameState.pcaVectors = {
+                mean: {x: meanX, y: meanY},
+                vec1: eigenVector1,
+                vec2: eigenVector2,
+                val1: eigenValue1,
+                val2: eigenValue2
+            };
+            
+            // Draw vectors if visible
+            if (gameState.componentsVisible) {
+                const scale = gameState.componentScale * 5;
+                
+                // Draw first principal component
+                ctx.beginPath();
+                ctx.moveTo(meanX, meanY);
+                ctx.lineTo(
+                    meanX + eigenVector1.x * scale * Math.sqrt(eigenValue1),
+                    meanY + eigenVector1.y * scale * Math.sqrt(eigenValue1)
+                );
+                ctx.strokeStyle = '#e74c3c';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Draw arrowhead
+                drawArrowhead(
+                    meanX + eigenVector1.x * scale * Math.sqrt(eigenValue1),
+                    meanY + eigenVector1.y * scale * Math.sqrt(eigenValue1),
+                    Math.atan2(eigenVector1.y, eigenVector1.x)
+                );
+                
+                // Draw second principal component
+                ctx.beginPath();
+                ctx.moveTo(meanX, meanY);
+                ctx.lineTo(
+                    meanX + eigenVector2.x * scale * Math.sqrt(eigenValue2),
+                    meanY + eigenVector2.y * scale * Math.sqrt(eigenValue2)
+                );
+                ctx.strokeStyle = '#f1c40f';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Draw arrowhead
+                drawArrowhead(
+                    meanX + eigenVector2.x * scale * Math.sqrt(eigenValue2),
+                    meanY + eigenVector2.y * scale * Math.sqrt(eigenValue2),
+                    Math.atan2(eigenVector2.y, eigenVector2.x)
+                );
+                
+                // Draw mean point
+                ctx.beginPath();
+                ctx.arc(meanX, meanY, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#2c3e50';
+                ctx.fill();
+            }
+        }
+
+        // Draw arrowhead for vectors
+        function drawArrowhead(x, y, angle) {
+            const size = 10;
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-size, -size/2);
+            ctx.lineTo(-size, size/2);
+            ctx.closePath();
+            
+            ctx.restore();
+            
+            ctx.fillStyle = ctx.strokeStyle;
+            ctx.fill();
+        }
+
+        // Apply PCA transformation
+        function applyPCA() {
+            if (gameState.level === 3 && gameState.pcaVectors) {
+                gameState.transformed = true;
+                
+                // Transform points to new coordinate system
+                for (let i = 0; i < gameState.points.length; i++) {
+                    const point = gameState.points[i];
+                    const dx = point.x - gameState.pcaVectors.mean.x;
+                    const dy = point.y - gameState.pcaVectors.mean.y;
+                    
+                    // Project onto principal components
+                    const newX = dx * gameState.pcaVectors.vec1.x + dy * gameState.pcaVectors.vec1.y;
+                    const newY = dx * gameState.pcaVectors.vec2.x + dy * gameState.pcaVectors.vec2.y;
+                    
+                    // Scale to fit canvas
+                    point.x = canvas.width/2 + newX * 2;
+                    point.y = canvas.height/2 - newY * 2;
+                }
+                
+                updateScore(30);
+                draw();
+            }
+        }
+
+        // Main draw function
+        function draw() {
+            drawGrid();
+            drawPoints();
+            
+            if (gameState.level >= 2) {
+                drawPCAComponents();
+            }
+            
+            // Level-specific instructions
+            if (gameState.level === 1 && gameState.points.length >= 5) {
+                instructionText.textContent = "Great! You've added enough points. Click 'Next Level' to proceed.";
+                nextLevelBtn.disabled = false;
+            }
+        }
+
+        // Initialize game
+        window.onload = initCanvas;
+    </script>
+</body>
+</html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Learning Challenge</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .container {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .btn {
+            background-color: #e0e0e0;
+            color: #333333;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background-color: #d0d0d0;
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background-color: #4a4a4a;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a3a3a;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin: 25px 0;
+        }
+        
+        .option {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 2px solid #e0e0e0;
+            transition: all 0.2s ease;
+        }
+        
+        .option:hover {
+            border-color: #b0b0b0;
+            background-color: #f9f9f9;
+        }
+        
+        .option.selected {
+            border-color: #4a4a4a;
+            background-color: #f0f0f0;
+        }
+        
+        .feedback {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background-color: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            display: block;
+        }
+        
+        .feedback.incorrect {
+            background-color: #ffebee;
+            border: 1px solid #ef9a9a;
+            display: block;
+        }
+        
+        .progress-container {
+            margin: 25px 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #4a4a4a;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+        
+        .level-indicator {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #4a4a4a;
+        }
+        
+        .result-screen {
+            text-align: center;
+        }
+        
+        .result-screen h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        
+        .score-display {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 20px 0;
+            color: #4a4a4a;
+        }
+        
+        .question-text {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .explanation {
+            margin-top: 10px;
+            font-style: italic;
+            color: #555555;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .question-text {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>AI Learning Challenge</h1>
+        <p>Test your knowledge of AI fundamentals</p>
+    </header>
+    
+    <main>
+        <div id="welcome-screen" class="screen active container">
+            <h2>Welcome to the AI Learning Challenge!</h2>
+            <p>Test your knowledge across key AI domains:</p>
+            <ul style="margin: 20px; list-style-position: inside;">
+                <li>Math Foundations</li>
+                <li>Programming Fundamentals</li>
+                <li>AI Concepts</li>
+                <li>Specialized Electives</li>
+            </ul>
+            <p>Complete all levels to become an AI expert!</p>
+            <button id="start-btn" class="btn btn-primary">Start Challenge</button>
+        </div>
+        
+        <div id="game-screen" class="screen container">
+            <div class="level-indicator">Level <span id="level-num">1</span>: <span id="level-name">Math Foundations</span></div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="stats">
+                    <span>Question: <span id="current-q">1</span>/<span id="total-q">5</span></span>
+                    <span>Score: <span id="score">0</span></span>
+                </div>
+            </div>
+            
+            <div class="question-text" id="question-text"></div>
+            
+            <div class="options-container" id="options-container"></div>
+            
+            <div class="feedback" id="feedback">
+                <div id="feedback-text"></div>
+                <div class="explanation" id="explanation"></div>
+            </div>
+            
+            <button id="next-btn" class="btn btn-primary" style="display: none;">Next Question</button>
+        </div>
+        
+        <div id="results-screen" class="screen container result-screen">
+            <h2>Challenge Complete!</h2>
+            <div class="score-display">Score: <span id="final-score">0</span></div>
+            <p id="result-message"></p>
+            <div style="margin: 30px 0;">
+                <button id="restart-btn" class="btn btn-primary">Play Again</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Game data - questions organized by level
+        const gameData = {
+            levels: [
+                {
+                    name: "Math Foundations",
+                    questions: [
+                        {
+                            question: "Which mathematical concept is fundamental for understanding gradient descent in machine learning?",
+                            options: ["Matrix multiplication", "Partial derivatives", "Eigenvalues", "Bayesian probability"],
+                            answer: 1,
+                            explanation: "Partial derivatives are essential for gradient descent as they help determine the direction of steepest descent during optimization."
+                        },
+                        {
+                            question: "In linear algebra, what does PCA (Principal Component Analysis) primarily help with?",
+                            options: ["Solving linear equations", "Dimensionality reduction", "Calculating determinants", "Matrix inversion"],
+                            answer: 1,
+                            explanation: "PCA is a dimensionality reduction technique that transforms data into a new coordinate system with orthogonal axes of maximum variance."
+                        },
+                        {
+                            question: "Which probability distribution is commonly used to model binary classification outcomes?",
+                            options: ["Normal distribution", "Poisson distribution", "Bernoulli distribution", "Uniform distribution"],
+                            answer: 2,
+                            explanation: "The Bernoulli distribution models binary outcomes (success/failure) and is fundamental in logistic regression for classification."
+                        },
+                        {
+                            question: "What mathematical concept is essential for understanding backpropagation in neural networks?",
+                            options: ["Taylor series", "Chain rule", "Fourier transform", "Euler's method"],
+                            answer: 1,
+                            explanation: "The chain rule from calculus allows gradients to be efficiently computed through multiple layers during backpropagation."
+                        },
+                        {
+                            question: "Which concept helps measure the uncertainty in predictions made by machine learning models?",
+                            options: ["Eigenvectors", "Confidence intervals", "Determinants", "Eigenvalues"],
+                            answer: 1,
+                            explanation: "Confidence intervals provide a range of values that likely contain the true parameter value, quantifying prediction uncertainty."
+                        }
+                    ]
+                },
+                {
+                    name: "Programming Fundamentals",
+                    questions: [
+                        {
+                            question: "Which data structure provides O(1) average time complexity for insertion and lookup?",
+                            options: ["Linked list", "Binary search tree", "Hash table", "Array"],
+                            answer: 2,
+                            explanation: "Hash tables provide average constant-time complexity for insertion and lookup operations when collisions are minimized."
+                        },
+                        {
+                            question: "In Python, what is the purpose of virtual environments?",
+                            options: ["Creating 3D graphics", "Isolating project dependencies", "Running multiple OS instances", "Virtual reality development"],
+                            answer: 1,
+                            explanation: "Virtual environments allow you to manage separate package installations for different projects, preventing version conflicts."
+                        },
+                        {
+                            question: "Which algorithm has the worst-case time complexity of O(n log n) for sorting?",
+                            options: ["Bubble sort", "Insertion sort", "Merge sort", "Quick sort"],
+                            answer: 2,
+                            explanation: "Merge sort consistently achieves O(n log n) time complexity in all cases, making it efficient for large datasets."
+                        },
+                        {
+                            question: "What is the primary purpose of object-oriented programming?",
+                            options: ["To make code run faster", "To organize code into reusable components", "To reduce memory usage", "To enable parallel processing"],
+                            answer: 1,
+                            explanation: "OOP organizes code into objects that encapsulate data and behavior, promoting reusability and maintainability."
+                        },
+                        {
+                            question: "Which command would you use to list files in a Linux terminal?",
+                            options: ["dir", "list", "show", "ls"],
+                            answer: 3,
+                            explanation: "The 'ls' command lists directory contents in Linux and Unix-based operating systems."
+                        }
+                    ]
+                },
+                {
+                    name: "AI Fundamentals",
+                    questions: [
+                        {
+                            question: "What is the primary goal of supervised learning?",
+                            options: ["Discover patterns without labels", "Learn from labeled examples", "Optimize decision processes", "Simulate human cognition"],
+                            answer: 1,
+                            explanation: "Supervised learning uses labeled training data to learn a mapping from inputs to outputs."
+                        },
+                        {
+                            question: "Which technique helps prevent overfitting in machine learning models?",
+                            options: ["Feature scaling", "Regularization", "Data augmentation", "All of the above"],
+                            answer: 3,
+                            explanation: "Regularization adds constraints to model complexity, feature scaling normalizes inputs, and data augmentation increases training diversity - all help prevent overfitting."
+                        },
+                        {
+                            question: "What does the 'bias' term represent in a linear regression model?",
+                            options: ["Systematic error", "Intercept of the regression line", "Measurement inaccuracy", "Algorithm preference"],
+                            answer: 1,
+                            explanation: "The bias term (intercept) allows the regression line to cross the y-axis at a value other than zero when all features are zero."
+                        },
+                        {
+                            question: "Which evaluation metric is most appropriate for imbalanced classification problems?",
+                            options: ["Accuracy", "Precision-Recall curve", "Mean squared error", "R-squared"],
+                            answer: 1,
+                            explanation: "Precision-Recall curves provide better insight than accuracy for imbalanced datasets where one class dominates."
+                        },
+                        {
+                            question: "What is the key innovation of convolutional neural networks (CNNs)?",
+                            options: ["Recurrent connections", "Parameter sharing", "Backpropagation", "Activation functions"],
+                            answer: 1,
+                            explanation: "Parameter sharing in convolutional layers allows CNNs to efficiently detect spatial patterns regardless of their position in the input."
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // Game state variables
+        let currentLevel = 0;
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedOption = null;
+        let gameCompleted = false;
+
+        // DOM elements
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const startBtn = document.getElementById('start-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+        const feedbackText = document.getElementById('feedback-text');
+        const explanation = document.getElementById('explanation');
+        const progressFill = document.getElementById('progress-fill');
+        const currentQ = document.getElementById('current-q');
+        const totalQ = document.getElementById('total-q');
+        const scoreDisplay = document.getElementById('score');
+        const levelNum = document.getElementById('level-num');
+        const levelName = document.getElementById('level-name');
+        const finalScore = document.getElementById('final-score');
+        const resultMessage = document.getElementById('result-message');
+
+        // Initialize game
+        function initGame() {
+            currentLevel = 0;
+            currentQuestion = 0;
+            score = 0;
+            gameCompleted = false;
+            loadQuestion();
+            updateProgress();
+            updateScore();
+        }
+
+        // Load current question
+        function loadQuestion() {
+            const level = gameData.levels[currentLevel];
+            const question = level.questions[currentQuestion];
+            
+            levelNum.textContent = currentLevel + 1;
+            levelName.textContent = level.name;
+            questionText.textContent = question.question;
+            currentQ.textContent = currentQuestion + 1;
+            totalQ.textContent = level.questions.length;
+            
+            // Clear previous options
+            optionsContainer.innerHTML = '';
+            
+            // Create new options
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('option');
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+                optionElement.addEventListener('click', selectOption);
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            // Reset UI elements
+            feedback.style.display = 'none';
+            feedback.className = 'feedback';
+            nextBtn.style.display = 'none';
+            selectedOption = null;
+        }
+
+        // Handle option selection
+        function selectOption(e) {
+            if (selectedOption !== null) return;
+            
+            selectedOption = parseInt(e.target.dataset.index);
+            
+            // Highlight selected option
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            e.target.classList.add('selected');
+            
+            // Check answer
+            const correctIndex = gameData.levels[currentLevel].questions[currentQuestion].answer;
+            const isCorrect = (selectedOption === correctIndex);
+            
+            // Show feedback
+            if (isCorrect) {
+                feedback.classList.add('correct');
+                feedbackText.textContent = 'Correct!';
+                score += 10;
+                updateScore();
+            } else {
+                feedback.classList.add('incorrect');
+                feedbackText.textContent = 'Incorrect!';
+            }
+            
+            explanation.textContent = gameData.levels[currentLevel].questions[currentQuestion].explanation;
+            feedback.style.display = 'block';
+            nextBtn.style.display = 'inline-block';
+        }
+
+        // Move to next question
+        function nextQuestion() {
+            currentQuestion++;
+            const level = gameData.levels[currentLevel];
+            
+            if (currentQuestion >= level.questions.length) {
+                currentQuestion = 0;
+                currentLevel++;
+                
+                if (currentLevel >= gameData.levels.length) {
+                    endGame();
+                    return;
+                }
+            }
+            
+            loadQuestion();
+            updateProgress();
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const level = gameData.levels[currentLevel];
+            const progress = ((currentQuestion) / level.questions.length) * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+
+        // Update score display
+        function updateScore() {
+            scoreDisplay.textContent = score;
+        }
+
+        // End game and show results
+        function endGame() {
+            gameCompleted = true;
+            gameScreen.classList.remove('active');
+            resultsScreen.classList.add('active');
+            finalScore.textContent = score;
+            
+            if (score >= 120) {
+                resultMessage.textContent = "AI Expert! You've mastered the fundamentals.";
+            } else if (score >= 80) {
+                resultMessage.textContent = "Great job! You have a solid understanding of AI concepts.";
+            } else {
+                resultMessage.textContent = "Good effort! Review the concepts and try again.";
+            }
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', () => {
+            welcomeScreen.classList.remove('active');
+            gameScreen.classList.add('active');
+            initGame();
+        });
+        
+        nextBtn.addEventListener('click', nextQuestion);
+        
+        restartBtn.addEventListener('click', () => {
+            resultsScreen.classList.remove('active');
+            gameScreen.classList.add('active');
+            initGame();
+        });
+
+        // Initialize UI
+        updateProgress();
+    </script>
+</body>
+</html>

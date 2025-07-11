@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression Learning App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            flex: 1;
+            min-width: 300px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #444;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        button {
+            background: #555;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+            margin: 5px 0;
+        }
+
+        button:hover {
+            background: #333;
+        }
+
+        #graph-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background: #f0f0f0;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .slider-container {
+            margin: 10px 0;
+        }
+
+        .explanation {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-size: 0.95rem;
+        }
+
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .level-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ddd;
+        }
+
+        .level-dot.active {
+            background: #555;
+        }
+
+        .heart {
+            color: #ff6b6b;
+            font-size: 1.2rem;
+            margin: 0 3px;
+        }
+
+        .outlier {
+            background-color: rgba(255, 107, 107, 0.3);
+        }
+
+        .highlight {
+            background-color: rgba(255, 235, 59, 0.3);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #777;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .panel {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Linear Regression Learning App <span class="heart">❤</span></h1>
+        <p>Understand supervised learning through interactive exploration</p>
+    </header>
+
+    <div class="level-indicator">
+        <div class="level-dot active" id="level1-dot"></div>
+        <div class="level-dot" id="level2-dot"></div>
+        <div class="level-dot" id="level3-dot"></div>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <h2>Data Input</h2>
+            <div class="input-group">
+                <label for="x-input">Independent Variable (X):</label>
+                <input type="number" id="x-input" placeholder="e.g., Height (inches)">
+            </div>
+            <div class="input-group">
+                <label for="y-input">Dependent Variable (Y):</label>
+                <input type="number" id="y-input" placeholder="e.g., Shoe Size (US)">
+            </div>
+            <button id="add-point">Add Data Point</button>
+            <button id="add-outlier">Add Author's Point</button>
+            <button id="clear-data">Clear All Data</button>
+
+            <h3>Data Points</h3>
+            <table id="data-table">
+                <thead>
+                    <tr>
+                        <th>X Value</th>
+                        <th>Y Value</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="data-body">
+                    <!-- Data rows will be added here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="panel">
+            <h2>Regression Visualization</h2>
+            <div id="graph-container">
+                <canvas id="regression-canvas"></canvas>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <h3>Best Fit Line</h3>
+                    <p>Equation: <span id="equation">y = mx + b</span></p>
+                    <p>R² Value: <span id="r-squared">0.00</span></p>
+                    <button id="calculate-regression">Calculate Best Fit</button>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Manual Adjustment</h3>
+                    <div class="slider-container">
+                        <label for="slope">Slope (m): <span id="slope-value">1.0</span></label>
+                        <input type="range" id="slope" min="-5" max="5" step="0.1" value="1">
+                    </div>
+                    <div class="slider-container">
+                        <label for="intercept">Intercept (b): <span id="intercept-value">0</span></label>
+                        <input type="range" id="intercept" min="-50" max="50" step="1" value="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Learning Center</h2>
+        <div class="explanation">
+            <h3>What is Linear Regression?</h3>
+            <p>Linear regression is a supervised learning algorithm that models the relationship between a dependent variable and one or more independent variables. It's used to predict continuous outcomes based on numerical data.</p>
+        </div>
+        
+        <div class="explanation">
+            <h3>Continuous vs. Categorical Data</h3>
+            <p><strong>Continuous data</strong> can take any value within a range (e.g., height, temperature). <strong>Categorical data</strong> represents distinct groups (e.g., colors, types). Linear regression works best with continuous data.</p>
+        </div>
+        
+        <div class="explanation">
+            <h3>Understanding Outliers</h3>
+            <p>Outliers are data points that differ significantly from other observations. They can greatly affect your regression model. The author's point is highlighted in <span class="highlight">yellow</span>.</p>
+        </div>
+    </div>
+
+    <div class="controls" style="justify-content: center; margin-top: 20px;">
+        <button id="next-level">Next Level</button>
+        <button id="restart">Restart Game</button>
+        <button id="save-data">Save Data</button>
+    </div>
+
+    <footer>
+        <p>Explore how changing data points affects the regression model. Adjust parameters manually to see their impact!</p>
+    </footer>
+
+    <script>
+        // Game state
+        const gameState = {
+            level: 1,
+            dataPoints: [],
+            outlier: null,
+            bestFit: { slope: 1, intercept: 0, rSquared: 0 },
+            manual: { slope: 1, intercept: 0 }
+        };
+
+        // DOM elements
+        const elements = {
+            canvas: document.getElementById('regression-canvas'),
+            ctx: null,
+            xInput: document.getElementById('x-input'),
+            yInput: document.getElementById('y-input'),
+            dataBody: document.getElementById('data-body'),
+            equation: document.getElementById('equation'),
+            rSquared: document.getElementById('r-squared'),
+            slope: document.getElementById('slope'),
+            intercept: document.getElementById('intercept'),
+            slopeValue: document.getElementById('slope-value'),
+            interceptValue: document.getElementById('intercept-value'),
+            levelDots: [
+                document.getElementById('level1-dot'),
+                document.getElementById('level2-dot'),
+                document.getElementById('level3-dot')
+            ]
+        };
+
+        // Initialize canvas
+        function initCanvas() {
+            const container = document.getElementById('graph-container');
+            elements.canvas.width = container.clientWidth;
+            elements.canvas.height = container.clientHeight;
+            elements.ctx = elements.canvas.getContext('2d');
+            drawGraph();
+        }
+
+        // Draw graph with axes and points
+        function drawGraph() {
+            const ctx = elements.ctx;
+            const width = elements.canvas.width;
+            const height = elements.canvas.height;
+            const padding = 40;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            
+            // Vertical grid lines
+            for (let x = padding; x < width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, height - padding);
+                ctx.stroke();
+            }
+            
+            // Horizontal grid lines
+            for (let y = padding; y < height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.stroke();
+            
+            // Draw data points
+            gameState.dataPoints.forEach(point => {
+                const x = padding + (point.x / 20) * (width - 2 * padding);
+                const y = height - padding - (point.y / 20) * (height - 2 * padding);
+                
+                ctx.fillStyle = point.outlier ? '#ff6b6b' : '#555';
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // Draw best fit line
+            if (gameState.bestFit) {
+                const x1 = padding;
+                const y1 = height - padding - (gameState.bestFit.intercept / 20) * (height - 2 * padding);
+                const x2 = width - padding;
+                const y2 = height - padding - ((gameState.bestFit.slope * 20 + gameState.bestFit.intercept) / 20) * (height - 2 * padding);
+                
+                ctx.strokeStyle = '#4CAF50';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            }
+            
+            // Draw manual line
+            const x1Manual = padding;
+            const y1Manual = height - padding - (gameState.manual.intercept / 20) * (height - 2 * padding);
+            const x2Manual = width - padding;
+            const y2Manual = height - padding - ((gameState.manual.slope * 20 + gameState.manual.intercept) / 20) * (height - 2 * padding);
+            
+            ctx.strokeStyle = '#2196F3';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(x1Manual, y1Manual);
+            ctx.lineTo(x2Manual, y2Manual);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Add data point
+        function addDataPoint(x, y, isOutlier = false) {
+            gameState.dataPoints.push({ x, y, outlier: isOutlier });
+            updateDataTable();
+            drawGraph();
+        }
+
+        // Update data table
+        function updateDataTable() {
+            elements.dataBody.innerHTML = '';
+            
+            gameState.dataPoints.forEach((point, index) => {
+                const row = document.createElement('tr');
+                if (point.outlier) row.classList.add('outlier');
+                
+                row.innerHTML = `
+                    <td>${point.x.toFixed(1)}</td>
+                    <td>${point.y.toFixed(1)}</td>
+                    <td><button class="remove-point" data-index="${index}">Remove</button></td>
+                `;
+                
+                elements.dataBody.appendChild(row);
+            });
+            
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-point').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    gameState.dataPoints.splice(index, 1);
+                    updateDataTable();
+                    drawGraph();
+                });
+            });
+        }
+
+        // Calculate linear regression
+        function calculateRegression() {
+            if (gameState.dataPoints.length < 2) return;
+            
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            const n = gameState.dataPoints.length;
+            
+            gameState.dataPoints.forEach(point => {
+                sumX += point.x;
+                sumY += point.y;
+                sumXY += point.x * point.y;
+                sumX2 += point.x * point.x;
+            });
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            // Calculate R-squared
+            let ssTotal = 0, ssResidual = 0;
+            const meanY = sumY / n;
+            
+            gameState.dataPoints.forEach(point => {
+                ssTotal += Math.pow(point.y - meanY, 2);
+                const predictedY = slope * point.x + intercept;
+                ssResidual += Math.pow(point.y - predictedY, 2);
+            });
+            
+            const rSquared = 1 - (ssResidual / ssTotal);
+            
+            gameState.bestFit = { slope, intercept, rSquared };
+            
+            // Update display
+            elements.equation.textContent = `y = ${slope.toFixed(2)}x + ${intercept.toFixed(2)}`;
+            elements.rSquared.textContent = rSquared.toFixed(2);
+            
+            drawGraph();
+        }
+
+        // Update level display
+        function updateLevelDisplay() {
+            elements.levelDots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === gameState.level - 1);
+            });
+        }
+
+        // Initialize game
+        function initGame() {
+            initCanvas();
+            updateLevelDisplay();
+            
+            // Add sample data for level 1
+            if (gameState.level === 1) {
+                addDataPoint(60, 7);
+                addDataPoint(62, 7.5);
+                addDataPoint(65, 8);
+                addDataPoint(68, 9);
+                addDataPoint(70, 10);
+                calculateRegression();
+            }
+            
+            // Level-specific setup
+            if (gameState.level === 2) {
+                document.getElementById('add-outlier').classList.remove('hidden');
+            }
+            
+            if (gameState.level === 3) {
+                document.getElementById('slope').disabled = false;
+                document.getElementById('intercept').disabled = false;
+            }
+        }
+
+        // Event listeners
+        document.getElementById('add-point').addEventListener('click', function() {
+            const x = parseFloat(elements.xInput.value);
+            const y = parseFloat(elements.yInput.value);
+            
+            if (!isNaN(x) && !isNaN(y)) {
+                addDataPoint(x, y);
+                elements.xInput.value = '';
+                elements.yInput.value = '';
+                elements.xInput.focus();
+            }
+        });
+        
+        document.getElementById('add-outlier').addEventListener('click', function() {
+            addDataPoint(80, 6, true); // Author's point
+        });
+        
+        document.getElementById('clear-data').addEventListener('click', function() {
+            gameState.dataPoints = [];
+            updateDataTable();
+            drawGraph();
+        });
+        
+        document.getElementById('calculate-regression').addEventListener('click', calculateRegression);
+        
+        document.getElementById('slope').addEventListener('input', function() {
+            gameState.manual.slope = parseFloat(this.value);
+            elements.slopeValue.textContent = this.value;
+            drawGraph();
+        });
+        
+        document.getElementById('intercept').addEventListener('input', function() {
+            gameState.manual.intercept = parseFloat(this.value);
+            elements.interceptValue.textContent = this.value;
+            drawGraph();
+        });
+        
+        document.getElementById('next-level').addEventListener('click', function() {
+            if (gameState.level < 3) {
+                gameState.level++;
+                initGame();
+            }
+        });
+        
+        document.getElementById('restart').addEventListener('click', function() {
+            gameState.level = 1;
+            gameState.dataPoints = [];
+            gameState.outlier = null;
+            initGame();
+        });
+        
+        document.getElementById('save-data').addEventListener('click', function() {
+            localStorage.setItem('regressionData', JSON.stringify(gameState.dataPoints));
+            alert('Data saved successfully! ❤');
+        });
+
+        // Initialize on window load
+        window.addEventListener('load', initGame);
+        window.addEventListener('resize', initCanvas);
+    </script>
+</body>
+</html>

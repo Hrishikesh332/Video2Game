@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3-Minute Stretch Routine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background-color: #f5f5f5;
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .screen {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            flex: 1;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+        
+        .stretch-card {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .avatar-container {
+            display: flex;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+        
+        .avatar {
+            position: relative;
+            width: 150px;
+            height: 200px;
+        }
+        
+        .avatar-body {
+            position: absolute;
+            width: 20px;
+            height: 80px;
+            background-color: #333;
+            top: 70px;
+            left: 65px;
+        }
+        
+        .avatar-head {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: #333;
+            border-radius: 50%;
+            top: 30px;
+            left: 55px;
+        }
+        
+        .avatar-arm {
+            position: absolute;
+            width: 70px;
+            height: 10px;
+            background-color: #333;
+            top: 75px;
+        }
+        
+        .avatar-arm.left {
+            left: -10px;
+            transform-origin: right center;
+        }
+        
+        .avatar-arm.right {
+            right: -10px;
+            transform-origin: left center;
+        }
+        
+        .avatar-leg {
+            position: absolute;
+            width: 10px;
+            height: 70px;
+            background-color: #333;
+            top: 150px;
+        }
+        
+        .avatar-leg.left {
+            left: 65px;
+        }
+        
+        .avatar-leg.right {
+            left: 85px;
+        }
+        
+        .timer {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .progress-container {
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            height: 10px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        button {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        button.primary {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+        
+        button.primary:hover {
+            background-color: #45a049;
+        }
+        
+        .benefits {
+            background-color: #f0f0f0;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .menu-item {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .menu-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .progress-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        
+        .stat-box {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 1rem;
+            flex: 1;
+            margin: 0 0.5rem;
+        }
+        
+        .resources {
+            margin-top: 1rem;
+        }
+        
+        .resource-list {
+            list-style-type: none;
+            margin-top: 0.5rem;
+        }
+        
+        .resource-list li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .resource-list a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        
+        .resource-list a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 600px) {
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .progress-stats {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .stat-box {
+                margin: 0.5rem 0;
+            }
+        }
+        
+        /* Animation classes */
+        .breathing .avatar-body {
+            animation: breathing 4s infinite ease-in-out;
+        }
+        
+        @keyframes breathing {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(1.2); }
+        }
+        
+        .arm-stretch .avatar-arm.left {
+            animation: armStretchLeft 3s infinite alternate;
+        }
+        
+        .arm-stretch .avatar-arm.right {
+            animation: armStretchRight 3s infinite alternate;
+        }
+        
+        @keyframes armStretchLeft {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-90deg); }
+        }
+        
+        @keyframes armStretchRight {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(90deg); }
+        }
+        
+        .elbow-rotation .avatar-arm.left {
+            animation: elbowRotation 4s infinite linear;
+            transform-origin: right center;
+        }
+        
+        @keyframes elbowRotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .torso-twist .avatar-body {
+            animation: torsoTwist 3s infinite alternate;
+            transform-origin: center top;
+        }
+        
+        @keyframes torsoTwist {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(30deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>3-Minute Stretch Routine</h1>
+    </header>
+    
+    <div class="container">
+        <!-- Main Menu Screen -->
+        <div id="menu-screen" class="screen active">
+            <div class="stretch-card">
+                <h2>Welcome to Your Daily Stretch</h2>
+                <p>A quick 3-minute routine to start your day with energy and mindfulness.</p>
+            </div>
+            
+            <div class="menu-grid">
+                <div class="menu-item" data-screen="routine-screen">
+                    <h3>Full Routine</h3>
+                    <p>Complete 3-minute stretch</p>
+                </div>
+                <div class="menu-item" data-screen="stretch-select-screen">
+                    <h3>Individual Stretches</h3>
+                    <p>Practice specific exercises</p>
+                </div>
+                <div class="menu-item" data-screen="progress-screen">
+                    <h3>My Progress</h3>
+                    <p>Track your achievements</p>
+                </div>
+                <div class="menu-item" data-screen="resources-screen">
+                    <h3>Resources</h3>
+                    <p>Tips and articles</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Routine Screen -->
+        <div id="routine-screen" class="screen">
+            <div class="stretch-card">
+                <h2 id="current-stretch-name">Breathing Exercise</h2>
+                <div class="avatar-container">
+                    <div class="avatar" id="stretch-avatar">
+                        <div class="avatar-head"></div>
+                        <div class="avatar-body"></div>
+                        <div class="avatar-arm left"></div>
+                        <div class="avatar-arm right"></div>
+                        <div class="avatar-leg left"></div>
+                        <div class="avatar-leg right"></div>
+                    </div>
+                </div>
+                <div class="timer" id="stretch-timer">00:30</div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="stretch-progress"></div>
+                </div>
+                <p id="stretch-description">Stand with feet shoulder-width apart. Inhale deeply through the nose, then exhale through the mouth.</p>
+                <div class="benefits">
+                    <strong>Benefits:</strong> <span id="stretch-benefits">Calms the mind and prepares the body for movement.</span>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="pause-btn">Pause</button>
+                <button id="next-btn">Next</button>
+                <button id="back-to-menu">Menu</button>
+            </div>
+        </div>
+        
+        <!-- Stretch Selection Screen -->
+        <div id="stretch-select-screen" class="screen">
+            <div class="stretch-card">
+                <h2>Select a Stretch</h2>
+                <div class="menu-grid">
+                    <div class="menu-item" data-stretch="0">
+                        <h3>Breathing Exercise</h3>
+                        <p>30 seconds</p>
+                    </div>
+                    <div class="menu-item" data-stretch="1">
+                        <h3>Arm Stretches</h3>
+                        <p>30 seconds</p>
+                    </div>
+                    <div class="menu-item" data-stretch="2">
+                        <h3>Elbow Rotations</h3>
+                        <p>30 seconds</p>
+                    </div>
+                    <div class="menu-item" data-stretch="3">
+                        <h3>Torso Twists</h3>
+                        <p>30 seconds</p>
+                    </div>
+                </div>
+            </div>
+            <div class="controls">
+                <button id="back-to-menu-2">Back to Menu</button>
+            </div>
+        </div>
+        
+        <!-- Progress Screen -->
+        <div id="progress-screen" class="screen">
+            <div class="stretch-card">
+                <h2>Your Progress</h2>
+                <div class="progress-stats">
+                    <div class="stat-box">
+                        <h3 id="total-completed">0</h3>
+                        <p>Total Completed</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3 id="current-streak">0</h3>
+                        <p>Day Streak</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3 id="last-completed">Never</h3>
+                        <p>Last Completed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="controls">
+                <button id="back-to-menu-3">Back to Menu</button>
+            </div>
+        </div>
+        
+        <!-- Resources Screen -->
+        <div id="resources-screen" class="screen">
+            <div class="stretch-card">
+                <h2>Stretching Resources</h2>
+                <div class="resources">
+                    <h3>Tips for Success</h3>
+                    <ul class="resource-list">
+                        <li>• Practice your stretches at the same time each day</li>
+                        <li>• Focus on your breathing during each movement</li>
+                        <li>• Maintain good posture throughout the exercises</li>
+                        <li>• Listen to your body and don't push too hard</li>
+                    </ul>
+                    
+                    <h3>Learn More</h3>
+                    <ul class="resource-list">
+                        <li>• <a href="#">The Benefits of Morning Stretching</a></li>
+                        <li>• <a href="#">Breathing Techniques for Stress Relief</a></li>
+                        <li>• <a href="#">Building a Daily Mindfulness Practice</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="controls">
+                <button id="rewatch-btn">Re-watch Routine</button>
+                <button id="back-to-menu-4">Back to Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Stretch data
+        const stretches = [
+            {
+                name: "Breathing Exercise",
+                description: "Stand with feet shoulder-width apart. Inhale deeply through the nose, then exhale through the mouth.",
+                duration: 30,
+                benefits: "Calms the mind and prepares the body for movement.",
+                animation: "breathing"
+            },
+            {
+                name: "Arm Stretches",
+                description: "Raise your arms above your head and stretch upwards, then bring them down to your sides.",
+                duration: 30,
+                benefits: "Improves shoulder flexibility and relieves tension.",
+                animation: "arm-stretch"
+            },
+            {
+                name: "Elbow Rotations",
+                description: "Place your hands on your shoulders and rotate your elbows in circles, first forward then backward.",
+                duration: 30,
+                benefits: "Increases mobility in the shoulder joints.",
+                animation: "elbow-rotation"
+            },
+            {
+                name: "Torso Twists",
+                description: "Stand with feet apart and hands on hips. Gently twist your torso from side to side.",
+                duration: 30,
+                benefits: "Enhances spinal mobility and stretches the back muscles.",
+                animation: "torso-twist"
+            }
+        ];
+
+        // App state
+        let currentScreen = "menu-screen";
+        let currentStretchIndex = 0;
+        let timerInterval;
+        let timeRemaining = 0;
+        let isPaused = false;
+        let stretchStartTime = 0;
+        let totalDuration = stretches.reduce((sum, stretch) => sum + stretch.duration, 0);
+        let completedRoutines = parseInt(localStorage.getItem('completedRoutines') || '0');
+        let lastCompletedDate = localStorage.getItem('lastCompletedDate') || '';
+        let currentStreak = parseInt(localStorage.getItem('currentStreak') || '0');
+
+        // DOM elements
+        const screens = {
+            menu: document.getElementById('menu-screen'),
+            routine: document.getElementById('routine-screen'),
+            stretchSelect: document.getElementById('stretch-select-screen'),
+            progress: document.getElementById('progress-screen'),
+            resources: document.getElementById('resources-screen')
+        };
+
+        const stretchNameEl = document.getElementById('current-stretch-name');
+        const stretchDescEl = document.getElementById('stretch-description');
+        const stretchBenefitsEl = document.getElementById('stretch-benefits');
+        const stretchTimerEl = document.getElementById('stretch-timer');
+        const stretchProgressEl = document.getElementById('stretch-progress');
+        const avatarEl = document.getElementById('stretch-avatar');
+        const pauseBtn = document.getElementById('pause-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const totalCompletedEl = document.getElementById('total-completed');
+        const currentStreakEl = document.getElementById('current-streak');
+        const lastCompletedEl = document.getElementById('last-completed');
+
+        // Navigation functions
+        function showScreen(screenId) {
+            screens[currentScreen].classList.remove('active');
+            screens[screenId].classList.add('active');
+            currentScreen = screenId;
+            
+            if (screenId === 'progress-screen') {
+                updateProgressStats();
+            }
+        }
+
+        // Initialize event listeners
+        function init() {
+            // Menu navigation
+            document.querySelectorAll('.menu-item[data-screen]').forEach(item => {
+                item.addEventListener('click', () => {
+                    showScreen(item.dataset.screen);
+                });
+            });
+            
+            // Back to menu buttons
+            document.querySelectorAll('[id^="back-to-menu"]').forEach(btn => {
+                btn.addEventListener('click', () => showScreen('menu-screen'));
+            });
+            
+            // Rewatch button
+            document.getElementById('rewatch-btn').addEventListener('click', () => {
+                showScreen('routine-screen');
+                startRoutine();
+            });
+            
+            // Stretch selection
+            document.querySelectorAll('.menu-item[data-stretch]').forEach(item => {
+                item.addEventListener('click', () => {
+                    currentStretchIndex = parseInt(item.dataset.stretch);
+                    showScreen('routine-screen');
+                    startStretch(currentStretchIndex);
+                });
+            });
+            
+            // Routine controls
+            pauseBtn.addEventListener('click', togglePause);
+            nextBtn.addEventListener('click', nextStretch);
+            
+            // Initialize progress stats
+            updateProgressStats();
+        }
+
+        // Start the full routine
+        function startRoutine() {
+            currentStretchIndex = 0;
+            startStretch(currentStretchIndex);
+        }
+
+        // Start a specific stretch
+        function startStretch(index) {
+            const stretch = stretches[index];
+            
+            // Update UI
+            stretchNameEl.textContent = stretch.name;
+            stretchDescEl.textContent = stretch.description;
+            stretchBenefitsEl.textContent = stretch.benefits;
+            timeRemaining = stretch.duration;
+            stretchStartTime = stretch.duration;
+            updateTimerDisplay();
+            
+            // Set up avatar animation
+            avatarEl.className = 'avatar ' + stretch.animation;
+            
+            // Start timer
+            if (timerInterval) clearInterval(timerInterval);
+            isPaused = false;
+            pauseBtn.textContent = 'Pause';
+            
+            timerInterval = setInterval(() => {
+                if (!isPaused) {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                    
+                    if (timeRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        if (currentScreen === 'routine-screen') {
+                            // Auto-advance to next stretch in routine mode
+                            setTimeout(nextStretch, 1000);
+                        }
+                    }
+                }
+            }, 1000);
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            stretchTimerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update progress bar
+            const progressPercent = 100 - (timeRemaining / stretchStartTime * 100);
+            stretchProgressEl.style.width = `${progressPercent}%`;
+        }
+
+        // Toggle pause state
+        function togglePause() {
+            isPaused = !isPaused;
+            pauseBtn.textContent = isPaused ? 'Resume' : 'Pause';
+        }
+
+        // Move to next stretch
+        function nextStretch() {
+            if (currentStretchIndex < stretches.length - 1) {
+                currentStretchIndex++;
+                startStretch(currentStretchIndex);
+            } else {
+                // Routine completed
+                clearInterval(timerInterval);
+                completeRoutine();
+                showScreen('menu-screen');
+            }
+        }
+
+        // Handle routine completion
+        function completeRoutine() {
+            // Update completion stats
+            completedRoutines++;
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Update streak
+            if (lastCompletedDate) {
+                const lastDate = new Date(lastCompletedDate);
+                const todayDate = new Date();
+                const diffTime = Math.abs(todayDate - lastDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 1) {
+                    currentStreak++;
+                } else if (diffDays > 1) {
+                    currentStreak = 1;
+                }
+            } else {
+                currentStreak = 1;
+            }
+            
+            lastCompletedDate = today;
+            
+            // Save to localStorage
+            localStorage.setItem('completedRoutines', completedRoutines.toString());
+            localStorage.setItem('lastCompletedDate', lastCompletedDate);
+            localStorage.setItem('currentStreak', currentStreak.toString());
+            
+            updateProgressStats();
+        }
+
+        // Update progress stats display
+        function updateProgressStats() {
+            totalCompletedEl.textContent = completedRoutines;
+            currentStreakEl.textContent = currentStreak;
+            lastCompletedEl.textContent = lastCompletedDate || 'Never';
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

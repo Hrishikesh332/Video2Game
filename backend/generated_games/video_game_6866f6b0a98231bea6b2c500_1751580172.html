@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parisian Landmarks Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            color: #555;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .game-section {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #222;
+            text-align: center;
+        }
+        
+        .map-container {
+            position: relative;
+            height: 400px;
+            background-color: #e9e9e9;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .landmark {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #008000;
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            transition: transform 0.2s;
+        }
+        
+        .landmark:hover {
+            transform: translate(-50%, -50%) scale(1.3);
+        }
+        
+        .landmark-info {
+            display: none;
+            position: absolute;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 10;
+            max-width: 300px;
+        }
+        
+        .timeline {
+            display: flex;
+            overflow-x: auto;
+            gap: 20px;
+            padding: 15px 0;
+            scrollbar-width: thin;
+        }
+        
+        .event-card {
+            flex: 0 0 auto;
+            width: 250px;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .event-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .event-year {
+            font-weight: bold;
+            color: #008000;
+            margin-bottom: 8px;
+        }
+        
+        .quiz-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            flex-grow: 1;
+            margin: 0 15px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #008000;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .question {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .option {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .option:hover {
+            border-color: #008000;
+        }
+        
+        .option.selected {
+            border-color: #008000;
+            background-color: rgba(0, 128, 0, 0.05);
+        }
+        
+        .feedback {
+            min-height: 60px;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background-color: rgba(0, 128, 0, 0.1);
+            border: 1px solid #008000;
+            color: #008000;
+            display: block;
+        }
+        
+        .feedback.incorrect {
+            background-color: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff0000;
+            color: #ff0000;
+            display: block;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            background-color: #008000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #006400;
+        }
+        
+        button:disabled {
+            background-color: #a0a0a0;
+            cursor: not-allowed;
+        }
+        
+        .score-container {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+        
+        .high-score {
+            font-weight: bold;
+            color: #008000;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #008000;
+        }
+        
+        .modal p {
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .options {
+                grid-template-columns: 1fr;
+            }
+            
+            .event-card {
+                width: 200px;
+            }
+            
+            .map-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Parisian Landmarks Explorer</h1>
+        <p class="description">Discover iconic Paris landmarks, explore historical events, and test your knowledge!</p>
+    </header>
+    
+    <main class="game-container">
+        <!-- Interactive Map Section -->
+        <section class="game-section">
+            <h2 class="section-title">Interactive Map</h2>
+            <div class="map-container" id="map">
+                <!-- Landmarks will be added dynamically -->
+            </div>
+            <p>Click on the landmarks to learn about Paris's iconic locations</p>
+        </section>
+        
+        <!-- Historical Timeline Section -->
+        <section class="game-section">
+            <h2 class="section-title">Historical Timeline</h2>
+            <div class="timeline" id="timeline">
+                <!-- Events will be added dynamically -->
+            </div>
+            <p>Scroll through the timeline to explore key events in Parisian history</p>
+        </section>
+        
+        <!-- Cultural Quiz Section -->
+        <section class="game-section">
+            <h2 class="section-title">Cultural Quiz</h2>
+            <div class="quiz-container">
+                <div class="progress-container">
+                    <span class="progress-text">Question <span id="current-q">1</span> of 5</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+                
+                <div class="question" id="question">Loading question...</div>
+                
+                <div class="options" id="options">
+                    <!-- Options will be added dynamically -->
+                </div>
+                
+                <div class="feedback" id="feedback"></div>
+                
+                <div class="controls">
+                    <button id="submit-btn" disabled>Submit Answer</button>
+                    <button id="next-btn" disabled>Next Question</button>
+                </div>
+                
+                <div class="score-container">
+                    Score: <span id="score">0</span> | 
+                    High Score: <span id="high-score" class="high-score">0</span>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Modal for landmarks and events -->
+    <div class="modal" id="info-modal">
+        <div class="modal-content">
+            <h2 id="modal-title"></h2>
+            <p id="modal-description"></p>
+            <button id="close-modal">Close</button>
+        </div>
+    </div>
+    
+    <script>
+        // Game data
+        const landmarks = [
+            {
+                id: 1,
+                name: "Eiffel Tower",
+                description: "Built in 1889 for the World's Fair, the Eiffel Tower is the most iconic symbol of Paris. Designed by Gustave Eiffel, it stands 324 meters tall and was the world's tallest man-made structure for 41 years.",
+                x: 25,
+                y: 70
+            },
+            {
+                id: 2,
+                name: "Louvre Museum",
+                description: "The world's largest art museum, housing over 380,000 objects including the Mona Lisa and Venus de Milo. Originally built as a fortress in the 12th century, it became a museum during the French Revolution.",
+                x: 40,
+                y: 50
+            },
+            {
+                id: 3,
+                name: "Notre-Dame Cathedral",
+                description: "A masterpiece of French Gothic architecture, construction began in 1163 and took nearly 200 years to complete. Known for its flying buttresses, gargoyles, and stunning rose windows.",
+                x: 45,
+                y: 45
+            },
+            {
+                id: 4,
+                name: "Arc de Triomphe",
+                description: "Commissioned by Napoleon in 1806 to honor the French army, this iconic monument stands at the western end of the Champs-Élysées. It features intricate reliefs and houses the Tomb of the Unknown Soldier.",
+                x: 20,
+                y: 40
+            },
+            {
+                id: 5,
+                name: "Sacre-Coeur Basilica",
+                description: "This Roman Catholic church sits atop Montmartre, the highest point in Paris. Built between 1875 and 1914, its white travertine stone gives it a distinctive appearance that becomes whiter with age.",
+                x: 30,
+                y: 20
+            }
+        ];
+        
+        const timelineEvents = [
+            {
+                year: "52 BC",
+                title: "Foundation of Paris",
+                description: "Paris began as the Celtic settlement of Lutetia on the Île de la Cité, conquered by the Romans who developed it into a Gallo-Roman town."
+            },
+            {
+                year: "1163",
+                title: "Notre-Dame Construction",
+                description: "Construction began on Notre-Dame Cathedral, which would take nearly 200 years to complete and become a masterpiece of French Gothic architecture."
+            },
+            {
+                year: "1345",
+                title: "Completion of Notre-Dame",
+                description: "After 182 years of construction, Notre-Dame Cathedral was completed, becoming the religious heart of medieval Paris."
+            },
+            {
+                year: "1546",
+                title: "Louvre Reconstruction",
+                description: "King Francis I began transforming the Louvre from a medieval fortress into a Renaissance palace, starting its journey to becoming a world-class museum."
+            },
+            {
+                year: "1889",
+                title: "Eiffel Tower Built",
+                description: "The Eiffel Tower was completed for the 1889 World's Fair, becoming the tallest structure in the world and an enduring symbol of Paris."
+            }
+        ];
+        
+        const quizQuestions = [
+            {
+                question: "In which year was the Eiffel Tower completed?",
+                options: ["1879", "1889", "1899", "1909"],
+                correctAnswer: 1,
+                explanation: "The Eiffel Tower was completed in 1889 for the World's Fair celebrating the 100th anniversary of the French Revolution."
+            },
+            {
+                question: "Which Paris landmark houses the Mona Lisa?",
+                options: ["Musée d'Orsay", "Centre Pompidou", "Louvre Museum", "Palais Garnier"],
+                correctAnswer: 2,
+                explanation: "The Louvre Museum is home to Leonardo da Vinci's Mona Lisa, one of the most famous paintings in the world."
+            },
+            {
+                question: "What architectural style is Notre-Dame Cathedral?",
+                options: ["Romanesque", "Baroque", "Gothic", "Renaissance"],
+                correctAnswer: 2,
+                explanation: "Notre-Dame is a prime example of French Gothic architecture, known for its flying buttresses, rose windows, and gargoyles."
+            },
+            {
+                question: "Which Paris landmark sits atop Montmartre?",
+                options: ["Pantheon", "Sacre-Coeur", "Opera Garnier", "Les Invalides"],
+                correctAnswer: 1,
+                explanation: "The Sacré-Coeur Basilica is located at the summit of Montmartre, the highest point in Paris, offering panoramic views of the city."
+            },
+            {
+                question: "Who commissioned the construction of the Arc de Triomphe?",
+                options: ["Louis XIV", "Napoleon Bonaparte", "Charles de Gaulle", "Marie Antoinette"],
+                correctAnswer: 1,
+                explanation: "Napoleon Bonaparte commissioned the Arc de Triomphe in 1806 to honor the French army, though he never saw its completion in 1836."
+            }
+        ];
+        
+        // Game state
+        let currentQuestion = 0;
+        let score = 0;
+        let highScore = localStorage.getItem('parisQuizHighScore') || 0;
+        let selectedOption = null;
+        
+        // DOM elements
+        const mapContainer = document.getElementById('map');
+        const timelineContainer = document.getElementById('timeline');
+        const questionElement = document.getElementById('question');
+        const optionsContainer = document.getElementById('options');
+        const feedbackElement = document.getElementById('feedback');
+        const submitButton = document.getElementById('submit-btn');
+        const nextButton = document.getElementById('next-btn');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('high-score');
+        const currentQElement
+    </script>
+</body>
+</html>

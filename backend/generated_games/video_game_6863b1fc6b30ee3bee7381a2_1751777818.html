@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai: Island City Evolution</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #666666;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .game-section {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #222222;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .map-container {
+            position: relative;
+            height: 500px;
+            background-color: #e6f7ff;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid #d0d0d0;
+        }
+        
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            background-color: #d9d9d9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #a0a0a0;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .island:hover {
+            background-color: #c0c0c0;
+            transform: scale(1.05);
+        }
+        
+        .causeway {
+            position: absolute;
+            height: 15px;
+            background-color: #a0a0a0;
+            transform-origin: 0 0;
+            z-index: 5;
+            border-radius: 5px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 25px;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        button:hover {
+            background-color: #d0d0d0;
+        }
+        
+        button.active {
+            background-color: #a0a0a0;
+            color: white;
+        }
+        
+        .timeline-container {
+            display: flex;
+            overflow-x: auto;
+            padding: 20px 0;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .era-card {
+            min-width: 250px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e0e0e0;
+        }
+        
+        .era-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .era-period {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .reclamation-process {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .step-number {
+            background-color: #d0d0d0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .info-panel {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e0e0e0;
+            display: none;
+        }
+        
+        .info-panel.active {
+            display: block;
+        }
+        
+        .info-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #222;
+        }
+        
+        .trading-icons {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .icon {
+            width: 80px;
+            height: 80px;
+            background-color: #e0e0e0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            padding: 0 20px;
+        }
+        
+        .progress-step {
+            text-align: center;
+            position: relative;
+            flex: 1;
+        }
+        
+        .progress-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            right: 0;
+            height: 3px;
+            background-color: #d0d0d0;
+            z-index: 1;
+        }
+        
+        .step-indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #d0d0d0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-indicator.active {
+            background-color: #a0a0a0;
+            color: white;
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .btn-next {
+            background-color: #a0a0a0;
+            color: white;
+            padding: 12px 35px;
+        }
+        
+        .btn-next:hover {
+            background-color: #909090;
+        }
+        
+        .btn-next:disabled {
+            background-color: #d0d0d0;
+            cursor: not-allowed;
+        }
+        
+        @media (max-width: 768px) {
+            .map-container {
+                height: 400px;
+            }
+            
+            .island {
+                font-size: 0.8rem;
+                padding: 5px;
+            }
+            
+            .era-card {
+                min-width: 200px;
+            }
+            
+            .step {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .map-container {
+                height: 300px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.4rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mumbai: Island City Evolution</h1>
+        <p class="subtitle">Explore how seven islands transformed into India's financial capital through land reclamation and historical development</p>
+    </header>
+    
+    <div class="progress-container">
+        <div class="progress-step">
+            <div class="step-indicator active">1</div>
+            <div>Islands</div>
+        </div>
+        <div class="progress-step">
+            <div class="step-indicator">2</div>
+            <div>Timeline</div>
+        </div>
+        <div class="progress-step">
+            <div class="step-indicator">3</div>
+            <div>Reclamation</div>
+        </div>
+    </div>
+    
+    <div class="game-container">
+        <div class="game-section">
+            <h2>The Seven Islands of Mumbai</h2>
+            <div class="map-container" id="map">
+                <!-- Islands will be positioned by JavaScript -->
+            </div>
+            
+            <div class="controls">
+                <button id="btn-historical" class="active">Historical View</button>
+                <button id="btn-modern">Modern View</button>
+            </div>
+            
+            <div class="info-panel" id="island-info">
+                <h3 class="info-title" id="info-title">Island Information</h3>
+                <p id="info-description">Select an island to learn about its history and significance.</p>
+            </div>
+        </div>
+        
+        <div class="game-section">
+            <h2>Historical Timeline</h2>
+            <div class="timeline-container" id="timeline">
+                <!-- Timeline cards will be added by JavaScript -->
+            </div>
+            
+            <div class="info-panel" id="era-info">
+                <h3 class="info-title" id="era-title">Select a Historical Era</h3>
+                <p id="era-description">Click on a timeline card to learn about rulers and their contributions to Mumbai's development.</p>
+            </div>
+        </div>
+        
+        <div class="game-section">
+            <h2>Land Reclamation Process</h2>
+            <div class="map-container" id="reclamation-map">
+                <!-- Reclamation map will be handled by JavaScript -->
+            </div>
+            
+            <div class="reclamation-process">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div>
+                        <h3>Hornby Vellard (1784)</h3>
+                        <p>The first major reclamation project connecting Mahalaxmi to Worli</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div>
+                        <h3>Colaba Causeway (1838)</h3>
+                        <p>Connected Colaba to Old Woman's Island</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div>
+                        <h3>Duncan Causeway (1845)</h3>
+                        <p>Connected Salsette Island to Mahim</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-section">
+            <h2>Commercial Transformation</h2>
+            <p>Mumbai evolved from a collection of fishing villages to become India's financial capital and a major global trading hub.</p>
+            
+            <div class="trading-icons">
+                <div class="icon">🏦</div>
+                <div class="icon">📈</div>
+                <div class="icon">🚢</div>
+                <div class="icon">🏭</div>
+                <div class="icon">💎</div>
+            </div>
+            
+            <div class="info-panel active">
+                <p>The British East India Company developed Mumbai into a major trading port. After independence, Mumbai became the financial capital of India, home to the Bombay Stock Exchange and numerous multinational corporations.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="navigation">
+        <button class="btn-next" id="btn-next" disabled>Next Section</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Island data
+            const islands = [
+                { id: 'colaba', name: 'Colaba', top: '80%', left: '85%', width: '10%', height: '10%', 
+                  info: 'Colaba was originally two separate islands: Old Woman\'s Island and Colaba. It became an important British military outpost.' },
+                { id: 'bombay', name: 'Bombay', top: '50%', left: '60%', width: '15%', height: '15%', 
+                  info: 'The main island where the British established their headquarters. Now home to the Fort area and Chhatrapati Shivaji Terminus.' },
+                { id: 'mazagaon', name: 'Mazagaon', top: '60%', left: '75%', width: '12%', height: '12%', 
+                  info: 'Originally a fishing village, Mazagaon became an important dockyard area during British rule.' },
+                { id: 'parel', name: 'Parel', top: '40%', left: '65%', width: '14%', height: '14%', 
+                  info: 'Parel was known for its textile mills during the industrial revolution, earning Mumbai the name "Manchester of the East".' },
+                { id: 'worli', name: 'Worli', top: '30%', left: '50%', width: '12%', height: '12%', 
+                  info: 'Worli was a separate island until connected by the Hornby Vellard project. Now famous for the Bandra-Worli Sea Link.' },
+                { id: 'mahim', name: 'Mahim', top: '20%', left: '35%', width: '13%', height: '13%', 
+                  info: 'Mahim was the capital of the Mumbai islands under the Sultanate of Gujarat. Home to the historic Mahim Fort.' },
+                { id: 'oldmans', name: 'Old Man\'s Island', top: '70%', left: '45%', width: '8%', height: '8%', 
+                  info: 'A small island that was connected to Bombay through reclamation projects. Now part of the Mumbai Port Trust area.' }
+            ];
+            
+            // Timeline data
+            const timelineData = [
+                { title: 'Satavahanas', period: '1st-3rd Century CE', 
+                  info: 'The Satavahanas established early trade routes and ports in the region, facilitating commerce with Roman empires.' },
+                { title: 'Western Satraps', period: '1st-4th Century CE', 
+                  info: 'Indo-Scythian rulers who developed coastal infrastructure and promoted maritime trade.' },
+                { title: 'Abhiras & Vakatakas', period: '3rd-5th Century CE', 
+                  info: 'These dynasties continued developing the region as a trading hub between northern and southern India.' },
+                { title: 'Kalachuris & Chalukyas', period: '5th-8th Century CE', 
+                  info: 'Strengthened regional administration and built early Hindu temples across the islands.' },
+                { title: 'Rashtrakutas', period: '8th-10th Century CE', 
+                  info: 'Expanded maritime trade networks to Southeast Asia and the Middle East.' },
+                { title: 'British East India Company', period: '1668-1858', 
+                  info: 'Transformed the islands into a major trading port, initiated land reclamation projects, and established the modern city infrastructure.' }
+            ];
+            
+            // Game state
+            const gameState = {
+                currentView: 'historical',
+                selectedIsland: null,
+                selectedEra: null,
+                currentSection: 0
+            };
+            
+            // Initialize map with islands
+            const mapContainer = document.getElementById('map');
+            islands.forEach(island => {
+                const islandEl = document.createElement('div');
+                islandEl.className = 'island';
+                islandEl.id = island.id;
+                islandEl.textContent = island.name;
+                islandEl.style.top = island.top;
+                islandEl.style.left = island.left;
+                islandEl.style.width = island.width;
+                islandEl.style.height = island.height;
+                
+                islandEl.addEventListener('click', () => {
+                    gameState.selectedIsland = island.id;
+                    document.getElementById('info-title').textContent = island.name;
+                    document.getElementById('info-description').textContent = island.info;
+                    document.getElementById('island-info').classList.add('active');
+                    
+                    // Enable next button after interaction
+                    if (gameState.currentSection === 0) {
+                        document.getElementById('btn-next').disabled = false;
+                    }
+                });
+                
+                mapContainer.appendChild(islandEl);
+            });
+            
+            // Initialize timeline
+            const timelineContainer = document.getElementById('timeline');
+            timelineData.forEach(era => {
+                const eraCard = document.createElement('div');
+                eraCard.className = 'era-card';
+                eraCard.innerHTML = `
+                    <div class="era-title">${era.title}</div>
+                    <div class="era-period">${era.period}</div>
+                    <p>Click to learn more</p>
+                `;
+                
+                eraCard.addEventListener('click', () => {
+                    gameState.selectedEra = era.title;
+                    document.getElementById('era-title').textContent = era.title;
+                    document.getElementById('era-description').textContent = era.info;
+                    document.getElementById('era-info').classList.add('active');
+                    
+                    // Enable next button after interaction
+                    if (gameState.currentSection === 1) {
+                        document.getElementById('btn-next').disabled = false;
+                    }
+                });
+                
+                timelineContainer.appendChild(eraCard);
+            });
+            
+            // Initialize reclamation map
+            const recMap = document.getElementById('reclamation-map');
+            islands.forEach(island => {
+                const islandEl = document.createElement('div');
+                islandEl.className = 'island';
+                islandEl.textContent = island.name;
+                islandEl.style.top = island.top;
+                islandEl.style.left = island.left;
+                islandEl.style.width = island.width;
+                islandEl.style.height = island.height;
+                recMap.appendChild(islandEl);
+            });
+            
+            // Add causeways to reclamation map
+            const causeways = [
+                { from: 'mahim', to: 'worli', width: '25%', angle: '45deg', top: '25%', left: '42%' },
+                { from: 'bombay', to: 'colaba', width: '20%', angle: '30deg', top: '65%', left: '72%' },
+                { from: 'mahim', to: 'oldmans', width: '30%', angle: '120deg', top: '45%', left: '40%' }
+            ];
+            
+            causeways.forEach(causeway => {
+                const causewayEl = document.createElement('div');
+                causewayEl.className = 'causeway';
+                causewayEl.style.width = causeway.width;
+                causewayEl.style.top = causeway.top;
+                causewayEl.style.left = causeway.left;
+                causewayEl.style.transform = `rotate(${causeway.angle})`;
+                recMap.appendChild(causewayEl);
+            });
+            
+            // View toggle functionality
+            document.getElementById('btn-historical').addEventListener('click', function() {
+                gameState.currentView = 'historical';
+                this.classList.add('active');
+                document.getElementById('btn-modern').classList.remove('active');
+                // In a full implementation, this would change the map appearance
+            });
+            
+            document.getElementById('btn-modern').addEventListener('click', function() {
+                gameState.currentView = 'modern';
+                this.classList.add('active');
+                document.getElementById('btn-historical').classList.remove('active');
+                // In a full implementation, this would change the map appearance
+            });
+            
+            // Navigation functionality
+            document.getElementById('btn-next').addEventListener('click', function() {
+                if (gameState.currentSection < 2) {
+                    gameState.currentSection++;
+                    updateProgress();
+                    this.disabled = true;
+                    
+                    // Reset info panels
+                    document.getElementById('island-info').classList.remove('active');
+                    document.getElementById('era-info').classList.remove('active');
+                }
+                
+                // On last section, change button text
+                if (gameState.currentSection === 2) {
+                    this.textContent = 'Finish Exploration';
+                }
+                
+                // After last section, reset
+                if (gameState.currentSection > 2) {
+                    gameState.currentSection = 0;
+                    updateProgress();
+                    this.textContent = 'Next Section';
+                    this.disabled = true;
+                }
+            });
+            
+            // Update progress indicators
+            function updateProgress() {
+                document.querySelectorAll('.step-indicator').forEach((indicator, index) => {
+                    if (index === gameState.currentSection) {
+                        indicator.classList.add('active');
+                    } else {
+                        indicator.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

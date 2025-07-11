@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Principal Component Analysis Interactive App</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .visualization {
+            height: 500px;
+            position: relative;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: #34495e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-primary {
+            background: #3498db;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+        }
+        
+        .btn-success:hover {
+            background: #219653;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .explanation {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .explanation h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .explanation p {
+            margin-bottom: 15px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        
+        .step-number {
+            background: #3498db;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .pca-components {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .component-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            flex: 1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .component-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .component-value {
+            font-size: 1.2rem;
+            color: #3498db;
+        }
+        
+        .instructions {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #f1c40f;
+        }
+        
+        .instructions h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        .challenge {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .challenge h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .challenge-options {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .challenge-option {
+            background: white;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .challenge-option:hover {
+            border-color: #3498db;
+            transform: translateY(-3px);
+        }
+        
+        .challenge-option.selected {
+            border-color: #27ae60;
+            background: rgba(39, 174, 96, 0.05);
+        }
+        
+        .feedback {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background: rgba(39, 174, 96, 0.15);
+            color: #27ae60;
+            display: block;
+        }
+        
+        .feedback.incorrect {
+            background: rgba(231, 76, 60, 0.15);
+            color: #c0392b;
+            display: block;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .pca-components {
+                flex-direction: column;
+            }
+            
+            .challenge-options {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Principal Component Analysis Interactive App</h1>
+        <p class="subtitle">Explore dimensionality reduction through interactive visualization. Understand how PCA identifies the most important directions in your data.</p>
+    </header>
+    
+    <div class="instructions">
+        <h3>How to Use This Tool</h3>
+        <ul>
+            <li><strong>Add data points</strong> by clicking on the scatter plot</li>
+            <li><strong>Move points</strong> by dragging them to new positions</li>
+            <li><strong>Remove points</strong> by double-clicking on them</li>
+            <li>Click <strong>Run PCA</strong> to calculate principal components</li>
+            <li>Toggle component visibility using the component buttons</li>
+        </ul>
+    </div>
+    
+    <div class="container">
+        <div class="panel">
+            <h2 class="panel-title">Original Data Space</h2>
+            <div id="scatter-plot" class="visualization"></div>
+            
+            <div class="controls">
+                <button id="run-pca" class="btn btn-primary">
+                    <i class="fas fa-calculator"></i> Run PCA
+                </button>
+                <button id="reset-btn" class="btn">
+                    <i class="fas fa-redo"></i> Reset Points
+                </button>
+                <button id="toggle-pc1" class="btn btn-success">
+                    <i class="fas fa-eye"></i> PC1
+                </button>
+                <button id="toggle-pc2" class="btn btn-danger">
+                    <i class="fas fa-eye"></i> PC2
+                </button>
+            </div>
+            
+            <div class="explanation">
+                <h3>What is Principal Component Analysis?</h3>
+                <p>PCA is a dimensionality reduction technique that transforms data into a new coordinate system where the greatest variance lies on the first coordinate (first principal component), the second greatest variance on the second coordinate, and so on.</p>
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div>PCA identifies directions (principal components) where the data varies the most</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div>The first principal component (PC1) captures the most variance in the data</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div>Subsequent components are orthogonal to previous ones and capture decreasing variance</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2 class="panel-title">Transformed Data Space</h2>
+            <div id="transformed-plot" class="visualization"></div>
+            
+            <div class="pca-components">
+                <div class="component-card">
+                    <div class="component-title">First Principal Component (PC1)</div>
+                    <div class="component-value">Variance: <span id="pc1-variance">0%</span></div>
+                    <p>This component captures the direction of maximum variance in the dataset.</p>
+                </div>
+                <div class="component-card">
+                    <div class="component-title">Second Principal Component (PC2)</div>
+                    <div class="component-value">Variance: <span id="pc2-variance">0%</span></div>
+                    <p>This component captures the next highest variance, orthogonal to PC1.</p>
+                </div>
+            </div>
+            
+            <div class="challenge">
+                <h3>Test Your Understanding</h3>
+                <p>Which of these statements best describes the purpose of PCA?</p>
+                
+                <div class="challenge-options">
+                    <div class="challenge-option" data-correct="false">
+                        PCA increases the dimensionality of data to capture more information
+                    </div>
+                    <div class="challenge-option" data-correct="true">
+                        PCA reduces dimensionality while preserving as much variance as possible
+                    </div>
+                    <div class="challenge-option" data-correct="false">
+                        PCA classifies data into predefined categories
+                    </div>
+                </div>
+                
+                <div id="challenge-feedback" class="feedback"></div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Created for educational purposes | Principal Component Analysis Interactive App</p>
+    </footer>
+
+    <script>
+        // Initialize data and state
+        const data = [];
+        let pc1Visible = false;
+        let pc2Visible = false;
+        let pcaCalculated = false;
+        let eigenvectors = [];
+        let eigenvalues = [];
+        let transformedData = [];
+        
+        // Set up dimensions and margins
+        const margin = { top: 40, right: 40, bottom: 60, left: 60 };
+        const width = 600 - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+        
+        // Create scales
+        const xScale = d3.scaleLinear()
+            .domain([-10, 10])
+            .range([0, width]);
+            
+        const yScale = d3.scaleLinear()
+            .domain([-10, 10])
+            .range([height, 0]);
+            
+        // Create original scatter plot
+        const svg = d3.select("#scatter-plot")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+            
+        // Create transformed scatter plot
+        const transformedSvg = d3.select("#transformed-plot")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+            
+        // Add axes to original plot
+        svg.append("g")
+            .attr("class", "x-axis")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).ticks(5));
+            
+        svg.append("g")
+            .attr("class", "y-axis")
+            .call(d3.axisLeft(yScale).ticks(5));
+            
+        svg.append("text")
+            .attr("class", "x-label")
+            .attr("text-anchor", "middle")
+            .attr("x", width/2)
+            .attr("y", height + margin.bottom - 10)
+            .text("Feature 1");
+            
+        svg.append("text")
+            .attr("class", "y-label")
+            .attr("text-anchor", "middle")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height/2)
+            .attr("y", -margin.left + 15)
+            .text("Feature 2");
+            
+        // Add axes to transformed plot
+        transformedSvg.append("g")
+            .attr("class", "x-axis")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).ticks(5));
+            
+        transformedSvg.append("g")
+            .attr("class", "y-axis")
+            .call(d3.axisLeft(yScale).ticks(5));
+            
+        transformedSvg.append("text")
+            .attr("class", "x-label")
+            .attr("text-anchor", "middle")
+            .attr("x", width/2)
+            .attr("y", height + margin.bottom - 10)
+            .text("Principal Component 1");
+            
+        transformedSvg.append("text")
+            .attr("class", "y-label")
+            .attr("text-anchor", "middle")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height/2)
+            .attr("y", -margin.left + 15)
+            .text("Principal Component 2");
+            
+        // Add grid to both plots
+        function addGrid(svgElement) {
+            svgElement.append("g")
+                .attr("class", "grid")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(xScale).tickSize(-height).tickFormat(""));
+                
+            svgElement.append("g")
+                .attr("class", "grid")
+                .call(d3.axisLeft(yScale).tickSize(-width).tickFormat(""));
+        }
+        
+        addGrid(svg);
+        addGrid(transformedSvg);
+        
+        // Draw data points
+        function drawPoints() {
+            // Remove existing points
+            svg.selectAll(".data-point").remove();
+            
+            // Draw new points
+            svg.selectAll(".data-point")
+                .data(data)
+                .enter()
+                .append("circle")
+                .attr("class", "data-point")
+                .attr("cx", d => xScale(d.x))
+                .attr("cy", d => yScale(d.y))
+                .attr("r", 6)
+                .attr("fill", "#3498db")
+                .attr("opacity", 0.7)
+                .call(d3.drag()
+                    .on("start", dragStarted)
+                    .on("drag", dragged)
+                    .on("end", dragEnded)
+                )
+                .on("dblclick", function(event, d) {
+                    // Remove point on double click
+                    const index = data.indexOf(d);
+                    if (index > -1) {
+                        data.splice(index, 1);
+                        drawPoints();
+                        if (pcaCalculated) runPCA();
+                    }
+                });
+        }
+        
+        // Draw transformed points
+        function drawTransformedPoints() {
+            transformedSvg.selectAll(".transformed-point").remove();
+            
+            transformedSvg.selectAll(".transformed-point")
+                .data(transformedData)
+                .enter()
+                .append("circle")
+                .attr("class", "transformed-point")
+                .attr("cx", d => xScale(d.pc1))
+                .attr("cy", d => yScale(d.pc2))
+                .attr("r", 6)
+                .attr("fill", "#e74c3c")
+                .attr("opacity", 0.7);
+        }
+        
+        // Drag functions for points
+        function dragStarted(event, d) {
+            d3.select(this).raise().attr("stroke", "#2c3e50").attr("stroke-width", 2);
+        }
+        
+        function dragged(event, d) {
+            d.x = xScale.invert(event.x);
+            d.y = yScale.invert(event.y);
+            d3.select(this).attr("cx", event.x).attr("cy", event.y);
+        }
+        
+        function dragEnded(event, d) {
+            d3.select(this).attr("stroke", null);
+            if (pcaCalculated) runPCA();
+        }
+        
+        // Add point on click
+        svg.on("click", function(event) {
+            if (event.target.tagName === "svg" || event.target.tagName === "g") {
+                const coords = d3.pointer(event);
+                const x = xScale.invert(coords[0]);
+                const y = yScale.invert(coords[1]);
+                
+                data.push({ x, y });
+                drawPoints();
+                
+                if (pcaCalculated) runPCA();
+            }
+        });
+        
+        // PCA Calculation
+        function runPCA() {
+            if (data.length < 2) {
+                alert("Add at least 2 data points to run PCA");
+                return;
+            }
+            
+            // Calculate mean
+            const meanX = d3.mean(data, d => d.x);
+            const meanY = d3.mean(data, d => d.y);
+            
+            // Center data
+            const centeredData = data.map(d => ({
+                x: d.x - meanX,
+                y: d.y - meanY
+            }));
+            
+            // Calculate covariance matrix
+            const covXX = d3.sum(centeredData, d => d.x * d.x) / (centeredData.length - 1);
+            const covXY = d3.sum(centeredData, d => d.x * d.y) / (centeredData.length - 1);
+            const covYY = d3.sum(centeredData, d => d.y * d.y) / (centeredData.length - 1);
+            
+            const covarianceMatrix = [
+                [covXX, covXY],
+                [covXY, covYY]
+            ];
+            
+            // Calculate eigenvalues and eigenvectors
+            const a = covarianceMatrix[0][0];
+            const b = covarianceMatrix[0][1];
+            const c = covarianceMatrix[1][0];
+            const d = covarianceMatrix[1][1];
+            
+            const trace = a + d;
+            const determinant = a * d - b * c;
+            
+            const eigenvalue1 = (trace + Math.sqrt(trace * trace - 4 * determinant)) / 2;
+            const eigenvalue2 = (trace - Math.sqrt(trace * trace - 4 * determinant)) / 2;
+            
+            // Calculate eigenvectors
+            let eigenvector1, eigenvector2;
+            
+            if (b !== 0) {
+                eigenvector1 = [eigenvalue1 - d, c];
+                eigenvector2 = [eigenvalue2 - d, c];
+            } else if (c !== 0) {
+                eigenvector1 = [b, eigenvalue1 - a];
+                eigenvector2 = [b, eigenvalue2 - a];
+            } else {
+                eigenvector1 = [1, 0];
+                eigenvector2 = [0, 1];
+            }
+            
+            // Normalize eigenvectors
+            const norm1 = Math.sqrt(eigenvector1[0] * eigenvector1[0] + eigenvector1[1] * eigenvector1[1]);
+            eigenvector1 = [eigenvector1[0] / norm1, eigenvector1[1] / norm1];
+            
+            const norm2 = Math.sqrt(eigenvector2[0] * eigenvector2[0] + eigenvector2[1] * eigenvector2[1]);
+            eigenvector2 = [eigenvector2[0] / norm2, eigenvector2[1] / norm2];
+            
+            // Store results
+            eigenvalues = [eigenvalue1, eigenvalue2];
+            eigenvectors = [eigenvector1, eigenvector2];
+            
+            // Calculate variance explained
+            const totalVariance = eigenvalue1 + eigenvalue2;
+            const pc1Variance = (eigenvalue1 / totalVariance) * 100;
+            const pc2Variance = (eigenvalue2 / totalVariance) * 100;
+            
+            document.getElementById("pc1-variance").textContent = pc1Variance.toFixed(1) + "%";
+            document.getElementById("pc2-variance").textContent = pc2Variance.toFixed(1) + "%";
+            
+            // Transform data
+            transformedData = centeredData.map(d => ({
+                pc1: d.x * eigenvector1[0] + d.y * eigenvector1[1],
+                pc2: d.x * eigenvector2[0] + d.y * eigenvector2[1]
+            }));
+            
+            drawTransformedPoints();
+            drawPrincipalComponents();
+            pcaCalculated = true;
+        }
+        
+        // Draw principal components
+        function drawPrincipalComponents() {
+            // Remove existing components
+            svg.selectAll(".pc-line").remove();
+            svg.selectAll(".pc-label").remove();
+            
+            if (data.length < 2) return;
+            
+            // Calculate mean
+            const meanX = d3.mean(data, d => d.x);
+            const meanY = d3.mean(data, d => d.y);
+            
+            // Scale factor for eigenvectors (based on eigenvalues)
+            const scale = 5;
+            
+            // Draw PC1 if visible
+            if (pc1Visible) {
+                const pc1 = eigenvectors[0];
+                svg.append("line")
+                    .attr("class", "pc-line")
+                    .attr("x1", xScale(meanX - pc1[0] * scale * Math.sqrt(eigenvalues[0])))
+                    .attr("y1", yScale(meanY - pc1[1] * scale * Math.sqrt(eigenvalues[0])))
+                    .attr("x2", xScale(meanX + pc1[0] * scale * Math.sqrt(eigenvalues[0])))
+                    .attr("y2", yScale(meanY + pc1[1] * scale * Math.sqrt(eigenvalues[0])))
+                    .attr("stroke", "#27ae60")
+                    .attr("stroke-width", 3)
+                    .attr("marker-end", "url(#arrowhead)");
+                    
+                svg.append("text")
+                    .attr("class", "pc-label")
+                    .attr("x", xScale(meanX + pc1[0] * (scale + 1) * Math.sqrt(eigenvalues[0])))
+                    .attr("y", yScale(meanY + pc1[1] * (scale + 1) * Math.sqrt(eigenvalues[0])))
+                    .attr("text-anchor", "middle")
+                    .attr("fill", "#27ae60")
+                    .attr("font-weight", "bold")
+                    .text("PC1");
+            }
+            
+            // Draw PC2 if visible
+            if (pc2Visible) {
+                const pc2 = eigenvectors[1];
+                svg.append("line")
+                    .attr("class", "pc-line")
+                    .attr("x1", xScale(meanX - pc2[0] * scale * Math.sqrt(eigenvalues[1])))
+                    .attr("y1", yScale(meanY - pc2[1] * scale * Math.sqrt(eigenvalues[1])))
+                    .attr("x2", xScale(meanX + pc2[0] * scale * Math.sqrt(eigenvalues[1])))
+                    .attr("y2", yScale(meanY + pc2[1] * scale * Math.sqrt(eigenvalues[1])))
+                    .attr("stroke", "#e74c3c")
+                    .attr("stroke-width", 3)
+                    .attr("marker-end", "url(#arrowhead)");
+                    
+                svg.append("text")
+                    .attr("class", "pc-label")
+                    .attr("x", xScale(meanX + pc2[0] * (scale + 1) * Math.sqrt(eigenvalues[1])))
+                    .attr("y", yScale(meanY + pc2[1] * (scale + 1) * Math.sqrt(eigenvalues[1])))
+                    .attr("text-anchor", "middle")
+                    .attr("fill", "#e74c3c")
+                    .attr("font-weight", "bold")
+                    .text("PC2");
+            }
+        }
+        
+        // Add arrowhead marker
+        svg.append("defs").append("marker")
+            .attr("id", "arrowhead")
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 8)
+            .attr("refY", 0)
+            .attr("markerWidth", 6)
+            .attr("markerHeight", 6)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M0,-5L10,0L0,5")
+            .attr("fill", "#999");
+        
+        // Button event handlers
+        document.getElementById("run-pca").addEventListener("click", function() {
+            runPCA();
+        });
+        
+        document.getElementById("reset-btn").addEventListener("click", function() {
+            data.length = 0;
+            transformedData.length = 0;
+            pcaCalculated = false;
+            drawPoints();
+            transformedSvg.selectAll(".transformed-point").remove();
+            svg.selectAll(".pc-line").remove();
+            svg.selectAll(".pc-label").remove();
+            document.getElementById("pc1-variance").textContent = "0%";
+            document.getElementById("pc2-variance").textContent = "0%";
+        });
+        
+        document.getElementById("toggle-pc1").addEventListener("click", function() {
+            pc1Visible = !pc1Visible;
+            this.classList.toggle("btn-success", pc1Visible);
+            this.classList.toggle("btn", !pc1Visible);
+            if (pcaCalculated) drawPrincipalComponents();
+        });
+        
+        document.getElementById("toggle-pc2").addEventListener("click", function() {
+            pc2Visible = !pc2Visible;
+            this.classList.toggle("btn-danger", pc2Visible);
+            this.classList.toggle("btn", !pc2Visible);
+            if (pcaCalculated) drawPrincipalComponents();
+        });
+        
+        // Challenge functionality
+        document.querySelectorAll(".challenge-option").forEach(option => {
+            option.addEventListener("click", function() {
+                // Remove selected class from all options
+                document.querySelectorAll(".challenge-option").forEach(opt => {
+                    opt.classList.remove("selected");
+                });
+                
+                // Add selected class to clicked option
+                this.classList.add("selected");
+                
+                // Show feedback
+                const feedback = document.getElementById("challenge-feedback");
+                const isCorrect = this.getAttribute("data-correct") === "true";
+                
+                if (isCorrect) {
+                    feedback.textContent = "Correct! PCA reduces dimensionality while preserving variance.";
+                    feedback.className = "feedback correct";
+                } else {
+                    feedback.textContent = "Not quite. PCA is primarily used for dimensionality reduction.";
+                    feedback.className = "feedback incorrect";
+                }
+            });
+        });
+        
+        // Add initial points for demonstration
+        function addInitialPoints() {
+            for (let i = 0; i < 20; i++) {
+                const x = (Math.random() - 0.5) * 8;
+                const y = x * 0.7 + (Math.random() - 0.5) * 3;
+                data.push({ x, y });
+            }
+            drawPoints();
+        }
+        
+        // Initialize
+        addInitialPoints();
+    </script>
+</body>
+</html>
+
+#
+This educational tool provides a complete interactive experience for learning Principal Component Analysis:
+
+1. **Interactive Scatter Plot**:
+   - Add data points by clicking anywhere on the plot
+   - Drag points to reposition them
+   - Double-click to remove points
+
+2. **PCA Visualization**:
+   - Run PCA to calculate principal components
+   - Toggle visibility of PC1 and PC2 vectors
+   - Visualize the direction and magnitude of each component
+
+3. **Transformed Data Space**:
+   - See the data transformed into the new PCA coordinate system
+   - Compare original vs. transformed data side-by-side
+
+4. **Educational Content**:
+   - Step-by-step explanation of PCA concepts
+   - Interactive challenge to test understanding
+   - Variance explained metrics for each component
+
+5. **User-Friendly Design**:
+   - Clean, minimalist interface with grey and white color scheme
+   - Responsive layout that works on different screen sizes
+   - Clear instructions and visual feedback
+
+The app helps users understand how PCA identifies the directions of maximum variance in data and transforms it into a new coordinate system where the principal components become the new axes.

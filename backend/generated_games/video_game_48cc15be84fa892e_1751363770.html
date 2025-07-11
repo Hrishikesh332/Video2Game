@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dance Studio Rhythm App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #start-screen {
+            display: flex;
+        }
+
+        .instructions {
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .dance-floor {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+        }
+
+        .dancer {
+            background-color: #ddd;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .leader {
+            background-color: #aaa;
+            border: 3px solid #333;
+        }
+
+        .active {
+            background-color: #28A745;
+            transform: scale(1.1);
+        }
+
+        .rhythm-tracker {
+            width: 100%;
+            height: 30px;
+            background-color: #e0e0e0;
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .beat {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #17A2B8;
+            border-radius: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.2); }
+            100% { transform: translateX(-50%) scale(1); }
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #555;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .move-btn {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin: 15px 0;
+            font-size: 1.2rem;
+        }
+
+        .feedback {
+            min-height: 40px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .perfect {
+            color: #28A745;
+        }
+
+        .good {
+            color: #17A2B8;
+        }
+
+        .missed {
+            color: #dc3545;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #28A745;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .level-indicator {
+            font-size: 1.2rem;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .move-library {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .move-card {
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .move-card h3 {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .dance-floor {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .move-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+            
+            .move-library {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Dance Studio Rhythm</h1>
+    </header>
+    
+    <div class="container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen">
+            <div class="instructions">
+                <p>Follow the rhythm and match the dance moves! Press the correct arrow key when the beat hits the center.</p>
+            </div>
+            <button id="start-btn" class="btn">Start Dancing</button>
+            
+            <div class="move-library">
+                <div class="move-card">
+                    <h3>Basic Step</h3>
+                    <p>Step forward and back to the beat</p>
+                </div>
+                <div class="move-card">
+                    <h3>Spin Move</h3>
+                    <p>Rotate 360° on the spot</p>
+                </div>
+                <div class="move-card">
+                    <h3>Slide Step</h3>
+                    <p>Glide sideways with grace</p>
+                </div>
+                <div class="move-card">
+                    <h3>Jump Turn</h3>
+                    <p>Jump and rotate mid-air</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="level-indicator">Level: <span id="level">1</span></div>
+            
+            <div class="dance-floor">
+                <div class="dancer"></div>
+                <div class="dancer"></div>
+                <div class="dancer"></div>
+                <div class="dancer"></div>
+                <div class="dancer leader" id="leader"></div>
+                <div class="dancer"></div>
+                <div class="dancer"></div>
+                <div class="dancer"></div>
+                <div class="dancer"></div>
+            </div>
+            
+            <div class="rhythm-tracker">
+                <div class="beat" id="beat"></div>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="controls">
+                <button class="btn move-btn" data-move="up">↑</button>
+                <button class="btn move-btn" data-move="left">←</button>
+                <button class="btn move-btn" data-move="down">↓</button>
+                <button class="btn move-btn" data-move="right">→</button>
+            </div>
+            
+            <div class="stats">
+                <div>Score: <span id="score">0</span></div>
+                <div>Streak: <span id="streak">0</span></div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress"></div>
+            </div>
+        </div>
+        
+        <!-- End Screen -->
+        <div id="end-screen" class="screen">
+            <h2>Game Complete!</h2>
+            <div class="instructions">
+                <p>Final Score: <span id="final-score">0</span></p>
+                <p>Highest Streak: <span id="max-streak">0</span></p>
+            </div>
+            <button id="restart-btn" class="btn">Dance Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentScreen: 'start',
+            score: 0,
+            streak: 0,
+            maxStreak: 0,
+            level: 1,
+            progress: 0,
+            currentMove: null,
+            beatInterval: null,
+            beatPosition: 0,
+            moveTimeout: null,
+            levelRequirements: [10, 20, 30]  // Points needed for each level
+        };
+
+        // DOM elements
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const leader = document.getElementById('leader');
+        const beat = document.getElementById('beat');
+        const feedback = document.getElementById('feedback');
+        const scoreEl = document.getElementById('score');
+        const streakEl = document.getElementById('streak');
+        const levelEl = document.getElementById('level');
+        const progressBar = document.getElementById('progress');
+        const finalScoreEl = document.getElementById('final-score');
+        const maxStreakEl = document.getElementById('max-streak');
+        const moveButtons = document.querySelectorAll('.move-btn');
+
+        // Initialize game
+        function initGame() {
+            startBtn.addEventListener('click', showGameScreen);
+            restartBtn.addEventListener('click', restartGame);
+            
+            moveButtons.forEach(btn => {
+                btn.addEventListener('click', () => handleMove(btn.dataset.move));
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                if (gameState.currentScreen !== 'game') return;
+                
+                const moves = {
+                    'ArrowUp': 'up',
+                    'ArrowLeft': 'left',
+                    'ArrowDown': 'down',
+                    'ArrowRight': 'right'
+                };
+                
+                if (moves[e.key]) {
+                    handleMove(moves[e.key]);
+                }
+            });
+        }
+
+        // Show game screen
+        function showGameScreen() {
+            startScreen.style.display = 'none';
+            gameScreen.style.display = 'flex';
+            endScreen.style.display = 'none';
+            gameState.currentScreen = 'game';
+            
+            resetGameState();
+            startLevel();
+        }
+
+        // Show end screen
+        function showEndScreen() {
+            startScreen.style.display = 'none';
+            gameScreen.style.display = 'none';
+            endScreen.style.display = 'flex';
+            gameState.currentScreen = 'end';
+            
+            finalScoreEl.textContent = gameState.score;
+            maxStreakEl.textContent = gameState.maxStreak;
+        }
+
+        // Reset game state
+        function resetGameState() {
+            gameState.score = 0;
+            gameState.streak = 0;
+            gameState.maxStreak = 0;
+            gameState.level = 1;
+            gameState.progress = 0;
+            gameState.currentMove = null;
+            
+            updateUI();
+        }
+
+        // Start level
+        function startLevel() {
+            clearInterval(gameState.beatInterval);
+            
+            // Set beat speed based on level (faster at higher levels)
+            const speed = 1000 - (gameState.level * 150);
+            gameState.beatInterval = setInterval(moveBeat, Math.max(speed, 300));
+            
+            levelEl.textContent = gameState.level;
+            generateMove();
+        }
+
+        // Move the beat indicator
+        function moveBeat() {
+            gameState.beatPosition = (gameState.beatPosition + 25) % 100;
+            beat.style.left = `${gameState.beatPosition}%`;
+            
+            // When beat reaches center (50%)
+            if (Math.abs(gameState.beatPosition - 50) < 5) {
+                highlightLeader();
+                
+                // Check if player missed the move
+                if (gameState.currentMove) {
+                    handleMissedMove();
+                }
+            }
+        }
+
+        // Highlight the leader dancer
+        function highlightLeader() {
+            leader.classList.add('active');
+            setTimeout(() => leader.classList.remove('active'), 200);
+        }
+
+        // Generate a new dance move
+        function generateMove() {
+            const moves = ['up', 'down', 'left', 'right'];
+            gameState.currentMove = moves[Math.floor(Math.random() * moves.length)];
+            leader.textContent = getMoveSymbol(gameState.currentMove);
+        }
+
+        // Get symbol for move
+        function getMoveSymbol(move) {
+            const symbols = {
+                'up': '↑',
+                'down': '↓',
+                'left': '←',
+                'right': '→'
+            };
+            return symbols[move];
+        }
+
+        // Handle player move
+        function handleMove(move) {
+            if (!gameState.currentMove) return;
+            
+            clearTimeout(gameState.moveTimeout);
+            
+            // Check if move is correct
+            if (move === gameState.currentMove) {
+                // Scoring based on timing precision
+                const timing = Math.abs(gameState.beatPosition - 50);
+                let points = 10;
+                
+                if (timing < 10) {
+                    feedback.textContent = 'PERFECT!';
+                    feedback.className = 'feedback perfect';
+                    points = 20;
+                } else if (timing < 25) {
+                    feedback.textContent = 'Great!';
+                    feedback.className = 'feedback good';
+                    points = 15;
+                } else {
+                    feedback.textContent = 'Good';
+                    feedback.className = 'feedback';
+                }
+                
+                // Update score and streak
+                gameState.score += points * gameState.level;
+                gameState.streak++;
+                
+                if (gameState.streak > gameState.maxStreak) {
+                    gameState.maxStreak = gameState.streak;
+                }
+                
+                // Update progress
+                gameState.progress += points;
+                checkLevelUp();
+            } else {
+                // Wrong move
+                feedback.textContent = 'Wrong move!';
+                feedback.className = 'feedback missed';
+                gameState.streak = 0;
+            }
+            
+            updateUI();
+            generateMove();
+            
+            // Clear feedback after delay
+            gameState.moveTimeout = setTimeout(() => {
+                feedback.textContent = '';
+            }, 1000);
+        }
+
+        // Handle missed move
+        function handleMissedMove() {
+            feedback.textContent = 'Missed!';
+            feedback.className = 'feedback missed';
+            gameState.streak = 0;
+            
+            setTimeout(() => {
+                feedback.textContent = '';
+            }, 1000);
+            
+            generateMove();
+            updateUI();
+        }
+
+        // Check for level up
+        function checkLevelUp() {
+            const required = gameState.levelRequirements[gameState.level - 1];
+            
+            if (gameState.progress >= required) {
+                if (gameState.level < 3) {
+                    gameState.level++;
+                    gameState.progress = 0;
+                    feedback.textContent = `Level ${gameState.level}!`;
+                    feedback.className = 'feedback perfect';
+                    setTimeout(() => {
+                        feedback.textContent = '';
+                        startLevel();
+                    }, 1500);
+                } else {
+                    // Game completed
+                    clearInterval(gameState.beatInterval);
+                    setTimeout(showEndScreen, 1000);
+                }
+            }
+        }
+
+        // Update UI elements
+        function updateUI() {
+            scoreEl.textContent = gameState.score;
+            streakEl.textContent = gameState.streak;
+            
+            // Update progress bar
+            const required = gameState.levelRequirements[gameState.level - 1];
+            const progressPercent = Math.min(100, (gameState.progress / required) * 100);
+            progressBar.style.width = `${progressPercent}%`;
+        }
+
+        // Restart game
+        function restartGame() {
+            showGameScreen();
+        }
+
+        // Initialize the game when page loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>

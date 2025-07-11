@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVM Explorer: Interactive Learning Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .game-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+        @media (min-width: 768px) {
+            .game-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .panel {
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #444;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        #plot-container {
+            position: relative;
+            height: 400px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        #plot {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: #e0e0e0;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 500;
+            color: #333;
+        }
+
+        button:hover {
+            background: #d0d0d0;
+        }
+
+        button.active {
+            background: #a0a0a0;
+            color: white;
+        }
+
+        .point-label {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .positive {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .negative {
+            background-color: #F44336;
+            color: white;
+        }
+
+        .formula {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: monospace;
+            border: 1px solid #e0e0e0;
+            overflow-x: auto;
+        }
+
+        .concept-card {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #a0a0a0;
+        }
+
+        .concept-card h3 {
+            margin-bottom: 8px;
+            color: #444;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 80px;
+        }
+
+        .result {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .positive-result {
+            background-color: #E8F5E9;
+            border: 1px solid #4CAF50;
+        }
+
+        .negative-result {
+            background-color: #FFEBEE;
+            border: 1px solid #F44336;
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 25px 0;
+            padding: 0 10px;
+        }
+
+        .level {
+            text-align: center;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f0f0f0;
+            flex: 1;
+            margin: 0 5px;
+        }
+
+        .level.active {
+            background: #d0d0d0;
+            font-weight: bold;
+        }
+
+        .score-container {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+
+        .instructions {
+            background: #e8e8e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .feedback {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .success {
+            background-color: #E8F5E9;
+            border: 1px solid #4CAF50;
+        }
+
+        .error {
+            background-color: #FFEBEE;
+            border: 1px solid #F44336;
+        }
+
+        .support-vector {
+            stroke: #FFC107;
+            stroke-width: 3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SVM Explorer: Interactive Learning Game</h1>
+        <p>Understand Support Vector Machines through interactive visualization</p>
+    </header>
+
+    <div class="progress-container">
+        <div class="level active">Level 1: Data Points</div>
+        <div class="level">Level 2: Decision Boundary</div>
+        <div class="level">Level 3: Classification</div>
+    </div>
+
+    <div class="score-container">
+        Progress: <span id="score">0</span>/100 points
+    </div>
+
+    <div class="instructions">
+        <p><strong>How to play:</strong> Add data points to the plot, then adjust the decision boundary to maximize the margin between classes. Complete all levels to master SVM concepts!</p>
+    </div>
+
+    <div class="game-container">
+        <div class="panel">
+            <h2>Interactive Plot</h2>
+            <div id="plot-container">
+                <canvas id="plot" width="550" height="400"></canvas>
+            </div>
+            
+            <div class="controls">
+                <button id="add-positive" class="active">Add Positive (+1)</button>
+                <button id="add-negative">Add Negative (-1)</button>
+                <button id="clear-btn">Clear Points</button>
+                <button id="next-level">Next Level</button>
+            </div>
+            
+            <div class="feedback" id="plot-feedback">
+                Add at least 3 points of each class to proceed
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>SVM Concepts</h2>
+            <div class="concept-card">
+                <h3>Decision Boundary</h3>
+                <p>The hyperplane that best separates different classes of data points.</p>
+            </div>
+            
+            <div class="concept-card">
+                <h3>Support Vectors</h3>
+                <p>Data points closest to the decision boundary that define the optimal margin.</p>
+            </div>
+            
+            <div class="concept-card">
+                <h3>Margin</h3>
+                <p>The distance between the decision boundary and the nearest data points from each class.</p>
+            </div>
+            
+            <h2>Classification</h2>
+            <div class="input-group">
+                <label>New Point:</label>
+                <input type="number" id="new-x" placeholder="X" value="0">
+                <input type="number" id="new-y" placeholder="Y" value="0">
+                <button id="classify-btn">Classify</button>
+            </div>
+            <div class="result" id="classification-result">Enter coordinates to classify</div>
+            
+            <h2>SVM Formulation</h2>
+            <div class="formula">
+                Minimize: ½‖w‖²<br>
+                Subject to: y_i(w·x_i + b) ≥ 1
+            </div>
+            <button id="toggle-formula">Show Dual Form</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            points: [],
+            currentLabel: 1, // 1 for positive, -1 for negative
+            level: 1,
+            score: 0,
+            w: {x: 1, y: -1}, // Weight vector
+            b: 0, // Bias
+            supportVectors: []
+        };
+
+        // DOM elements
+        const plot = document.getElementById('plot');
+        const ctx = plot.getContext('2d');
+        const addPositiveBtn = document.getElementById('add-positive');
+        const addNegativeBtn = document.getElementById('add-negative');
+        const clearBtn = document.getElementById('clear-btn');
+        const nextLevelBtn = document.getElementById('next-level');
+        const classifyBtn = document.getElementById('classify-btn');
+        const toggleFormulaBtn = document.getElementById('toggle-formula');
+        const newXInput = document.getElementById('new-x');
+        const newYInput = document.getElementById('new-y');
+        const classificationResult = document.getElementById('classification-result');
+        const plotFeedback = document.getElementById('plot-feedback');
+        const scoreDisplay = document.getElementById('score');
+
+        // Initialize game
+        function initGame() {
+            drawPlot();
+            setupEventListeners();
+            updateUI();
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            plot.addEventListener('click', handlePlotClick);
+            addPositiveBtn.addEventListener('click', () => setCurrentLabel(1));
+            addNegativeBtn.addEventListener('click', () => setCurrentLabel(-1));
+            clearBtn.addEventListener('click', clearPoints);
+            nextLevelBtn.addEventListener('click', advanceLevel);
+            classifyBtn.addEventListener('click', classifyPoint);
+            toggleFormulaBtn.addEventListener('click', toggleFormula);
+        }
+
+        // Handle plot click
+        function handlePlotClick(e) {
+            if (gameState.level !== 1) return;
+            
+            const rect = plot.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            gameState.points.push({
+                x: (x - 275) / 25,
+                y: (200 - y) / 25,
+                label: gameState.currentLabel
+            });
+            
+            updateScore();
+            drawPlot();
+            updateUI();
+        }
+
+        // Set current point label
+        function setCurrentLabel(label) {
+            gameState.currentLabel = label;
+            addPositiveBtn.classList.toggle('active', label === 1);
+            addNegativeBtn.classList.toggle('active', label === -1);
+        }
+
+        // Clear all points
+        function clearPoints() {
+            gameState.points = [];
+            gameState.supportVectors = [];
+            drawPlot();
+            updateUI();
+        }
+
+        // Advance to next level
+        function advanceLevel() {
+            if (gameState.level === 1) {
+                const positiveCount = gameState.points.filter(p => p.label === 1).length;
+                const negativeCount = gameState.points.filter(p => p.label === -1).length;
+                
+                if (positiveCount >= 3 && negativeCount >= 3) {
+                    gameState.level = 2;
+                    identifySupportVectors();
+                    plotFeedback.textContent = "Drag support vectors (yellow circles) to adjust the decision boundary";
+                    plotFeedback.className = "feedback success";
+                } else {
+                    plotFeedback.textContent = "Add at least 3 points of each class to proceed";
+                    plotFeedback.className = "feedback error";
+                    return;
+                }
+            } else if (gameState.level === 2) {
+                gameState.level = 3;
+                plotFeedback.textContent = "Test the classifier by entering new point coordinates";
+                plotFeedback.className = "feedback success";
+            }
+            
+            updateUI();
+            drawPlot();
+        }
+
+        // Identify support vectors
+        function identifySupportVectors() {
+            if (gameState.points.length < 2) return;
+            
+            // Simplified approach: select points closest to the decision boundary
+            gameState.supportVectors = gameState.points
+                .sort((a, b) => Math.abs(decisionFunction(a)) - Math.abs(decisionFunction(b)))
+                .slice(0, 3);
+        }
+
+        // Decision function
+        function decisionFunction(point) {
+            return gameState.w.x * point.x + gameState.w.y * point.y + gameState.b;
+        }
+
+        // Classify a point
+        function classifyPoint() {
+            const x = parseFloat(newXInput.value) || 0;
+            const y = parseFloat(newYInput.value) || 0;
+            
+            const value = gameState.w.x * x + gameState.w.y * y + gameState.b;
+            const label = value >= 0 ? 1 : -1;
+            
+            classificationResult.textContent = `Class: ${label === 1 ? 'Positive (+1)' : 'Negative (-1)'}`;
+            classificationResult.className = `result ${label === 1 ? 'positive-result' : 'negative-result'}`;
+        }
+
+        // Toggle formula display
+        function toggleFormula() {
+            const formula = document.querySelector('.formula');
+            if (toggleFormulaBtn.textContent === 'Show Dual Form') {
+                formula.innerHTML = `
+                    Maximize: ∑α_i - ½∑∑α_iα_j y_i y_j x_i·x_j<br>
+                    Subject to: α_i ≥ 0, ∑α_i y_i = 0
+                `;
+                toggleFormulaBtn.textContent = 'Show Primal Form';
+            } else {
+                formula.innerHTML = `
+                    Minimize: ½‖w‖²<br>
+                    Subject to: y_i(w·x_i + b) ≥ 1
+                `;
+                toggleFormulaBtn.textContent = 'Show Dual Form';
+            }
+        }
+
+        // Update score
+        function updateScore() {
+            const baseScore = Math.min(50, gameState.points.length * 5);
+            const levelBonus = gameState.level * 10;
+            gameState.score = baseScore + levelBonus;
+            scoreDisplay.textContent = gameState.score;
+        }
+
+        // Update UI based on game state
+        function updateUI() {
+            // Update level indicators
+            document.querySelectorAll('.level').forEach((el, i) => {
+                el.classList.toggle('active', i+1 === gameState.level);
+            });
+            
+            // Update button states
+            nextLevelBtn.textContent = gameState.level === 3 ? "Complete Game" : "Next Level";
+            nextLevelBtn.disabled = gameState.level === 3;
+            
+            // Update classification section
+            document.getElementById('classification').style.display = gameState.level >= 2 ? 'block' : 'none';
+        }
+
+        // Draw the plot
+        function drawPlot() {
+            ctx.clearRect(0, 0, plot.width, plot.height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            
+            for (let x = 0; x <= plot.width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, plot.height);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y <= plot.height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(plot.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(plot.width/2, 0);
+            ctx.lineTo(plot.width/2, plot.height);
+            ctx.moveTo(0, plot.height/2);
+            ctx.lineTo(plot.width, plot.height/2);
+            ctx.stroke();
+            
+            // Draw decision boundary and margins if in level 2 or 3
+            if (gameState.level >= 2) {
+                // Draw margin lines
+                ctx.strokeStyle = '#9E9E9E';
+                ctx.setLineDash([5, 5]);
+                ctx.lineWidth = 1;
+                
+                // Margin line 1
+                ctx.beginPath();
+                ctx.moveTo(0, plot.height/2 - gameState.w.x * 100);
+                ctx.lineTo(plot.width, plot.height/2 - gameState.w.x * 100 + gameState.w.y * 500);
+                ctx.stroke();
+                
+                // Margin line 2
+                ctx.beginPath();
+                ctx.moveTo(0, plot.height/2 + gameState.w.x * 100);
+                ctx.lineTo(plot.width, plot.height/2 + gameState.w.x * 100 - gameState.w.y * 500);
+                ctx.stroke();
+                
+                // Draw decision boundary
+                ctx.strokeStyle = '#4CAF50';
+                ctx.setLineDash([]);
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, plot.height/2);
+                ctx.lineTo(plot.width, plot.height/2 - gameState.w.y * 500);
+                ctx.stroke();
+            }
+            
+            // Draw points
+            gameState.points.forEach(point => {
+                const plotX = point.x * 25 + 275;
+                const plotY = 200 - point.y * 25;
+                
+                // Draw point
+                ctx.fillStyle = point.label === 1 ? '#4CAF50' : '#F44336';
+                ctx.beginPath();
+                ctx.arc(plotX, plotY, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Highlight support vectors
+                if (gameState.supportVectors.includes(point)) {
+                    ctx.strokeStyle = '#FFC107';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(plotX, plotY, 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            });
+        }
+
+        // Initialize the game
+        window.onload =
+    </script>
+</body>
+</html>

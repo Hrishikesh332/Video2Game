@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dance Studio Rhythm and Flow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .active {
+            display: flex;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-align: center;
+            color: #222222;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #222222;
+        }
+
+        p {
+            font-size: 1.1rem;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            max-width: 600px;
+        }
+
+        .btn {
+            background-color: #f0f0f0;
+            color: #333333;
+            border: 2px solid #cccccc;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .level-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .level-btn {
+            min-width: 120px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: #f8f8f8;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin: 20px 0;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .dance-floor {
+            position: relative;
+            height: 400px;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .target-line {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            height: 4px;
+            background-color: #ff0000;
+            z-index: 10;
+        }
+
+        .beat {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: #17A2B8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s;
+            z-index: 5;
+        }
+
+        .beat.hit {
+            background-color: #28A745;
+            transform: scale(1.2);
+        }
+
+        .beat.missed {
+            background-color: #dc3545;
+            opacity: 0.7;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .control-btn {
+            width: 70px;
+            height: 70px;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feedback {
+            height: 40px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+            transition: all 0.3s;
+        }
+
+        .perfect {
+            color: #28A745;
+        }
+
+        .good {
+            color: #17A2B8;
+        }
+
+        .miss {
+            color: #dc3545;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #17A2B8;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .results {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .results h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        .results p {
+            font-size: 1.3rem;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .dance-floor {
+                height: 300px;
+            }
+            
+            .beat {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+            
+            .control-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Start Screen -->
+    <div id="start-screen" class="screen active">
+        <h1>Dance Studio Rhythm and Flow</h1>
+        <p>Test your rhythm and timing skills! Hit the beats as they reach the target line.</p>
+        <button id="start-btn" class="btn">Start Dancing</button>
+    </div>
+
+    <!-- Level Select Screen -->
+    <div id="level-select" class="screen">
+        <h2>Select Difficulty</h2>
+        <p>Choose your challenge level. Higher levels have faster beats!</p>
+        <div class="level-container">
+            <button data-level="1" class="btn level-btn">Beginner</button>
+            <button data-level="2" class="btn level-btn">Intermediate</button>
+            <button data-level="3" class="btn level-btn">Advanced</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+        <h2 id="level-title">Dance Floor</h2>
+        <div class="stats">
+            <div>Score: <span id="score">0</span></div>
+            <div>Combo: <span id="combo">0</span>x</div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div class="game-container">
+            <div class="dance-floor" id="dance-floor">
+                <div class="target-line"></div>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="controls">
+                <button class="btn control-btn" data-action="left">←</button>
+                <button class="btn control-btn" data-action="down">↓</button>
+                <button class="btn control-btn" data-action="up">↑</button>
+                <button class="btn control-btn" data-action="right">→</button>
+            </div>
+        </div>
+        
+        <button id="pause-btn" class="btn">Pause</button>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="results-screen" class="screen">
+        <div class="results">
+            <h2>Performance Complete!</h2>
+            <h3 id="result-title">Results</h3>
+            <p>Score: <span id="final-score">0</span></p>
+            <p>Perfect: <span id="perfect-count">0</span></p>
+            <p>Good: <span id="good-count">0</span></p>
+            <p>Missed: <span id="miss-count">0</span></p>
+            <p>Max Combo: <span id="max-combo">0</span>x</p>
+        </div>
+        
+        <div class="controls">
+            <button id="replay-btn" class="btn">Play Again</button>
+            <button id="level-select-results" class="btn">Change Level</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentScreen: 'start',
+            level: 1,
+            score: 0,
+            combo: 0,
+            maxCombo: 0,
+            perfectCount: 0,
+            goodCount: 0,
+            missCount: 0,
+            isPlaying: false,
+            beats: [],
+            beatSpeed: 2,
+            beatInterval: 1500,
+            lastBeatTime: 0,
+            progress: 0,
+            levelDuration: 30000,
+            levelStartTime: 0,
+            animationId: null
+        };
+
+        // DOM Elements
+        const screens = {
+            start: document.getElementById('start-screen'),
+            levelSelect: document.getElementById('level-select'),
+            game: document.getElementById('game-screen'),
+            results: document.getElementById('results-screen')
+        };
+
+        const elements = {
+            score: document.getElementById('score'),
+            combo: document.getElementById('combo'),
+            feedback: document.getElementById('feedback'),
+            danceFloor: document.getElementById('dance-floor'),
+            progressBar: document.getElementById('progress-bar'),
+            levelTitle: document.getElementById('level-title'),
+            finalScore: document.getElementById('final-score'),
+            perfectCount: document.getElementById('perfect-count'),
+            goodCount: document.getElementById('good-count'),
+            missCount: document.getElementById('miss-count'),
+            maxCombo: document.getElementById('max-combo'),
+            resultTitle: document.getElementById('result-title')
+        };
+
+        // Button event listeners
+        document.getElementById('start-btn').addEventListener('click', () => showScreen('levelSelect'));
+        
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                gameState.level = parseInt(btn.dataset.level);
+                startGame();
+            });
+        });
+        
+        document.getElementById('pause-btn').addEventListener('click', togglePause);
+        document.getElementById('replay-btn').addEventListener('click', startGame);
+        document.getElementById('level-select-results').addEventListener('click', () => showScreen('levelSelect'));
+
+        // Control buttons
+        document.querySelectorAll('.control-btn').forEach(btn => {
+            btn.addEventListener('click', () => handleInput(btn.dataset.action));
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (!gameState.isPlaying) return;
+            
+            const keyActions = {
+                'ArrowLeft': 'left',
+                'ArrowDown': 'down',
+                'ArrowUp': 'up',
+                'ArrowRight': 'right'
+            };
+            
+            if (keyActions[e.key]) {
+                handleInput(keyActions[e.key]);
+            }
+        });
+
+        // Show specific screen
+        function showScreen(screenName) {
+            Object.values(screens).forEach(screen => screen.classList.remove('active'));
+            screens[screenName].classList.add('active');
+            gameState.currentScreen = screenName;
+        }
+
+        // Start the game
+        function startGame() {
+            resetGameState();
+            showScreen('game');
+            
+            // Set level parameters
+            switch(gameState.level) {
+                case 1:
+                    gameState.beatSpeed = 2;
+                    gameState.beatInterval = 1500;
+                    gameState.levelDuration = 30000;
+                    elements.levelTitle.textContent = 'Beginner Level';
+                    break;
+                case 2:
+                    gameState.beatSpeed = 3;
+                    gameState.beatInterval = 1200;
+                    gameState.levelDuration = 35000;
+                    elements.levelTitle.textContent = 'Intermediate Level';
+                    break;
+                case 3:
+                    gameState.beatSpeed = 4;
+                    gameState.beatInterval = 900;
+                    gameState.levelDuration = 40000;
+                    elements.levelTitle.textContent = 'Advanced Level';
+                    break;
+            }
+            
+            gameState.isPlaying = true;
+            gameState.levelStartTime = Date.now();
+            gameState.lastBeatTime = Date.now();
+            
+            // Start game loop
+            gameLoop();
+        }
+
+        // Reset game state
+        function resetGameState() {
+            gameState.score = 0;
+            gameState.combo = 0;
+            gameState.maxCombo = 0;
+            gameState.perfectCount = 0;
+            gameState.goodCount = 0;
+            gameState.missCount = 0;
+            game
+    </script>
+</body>
+</html>

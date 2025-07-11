@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Women's 5000m Race</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .instructions {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #888;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .track-container {
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+            min-height: 300px;
+        }
+        
+        .track {
+            position: relative;
+            height: 200px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            border: 2px solid #ccc;
+        }
+        
+        .lane {
+            position: absolute;
+            width: 100%;
+            height: 40px;
+            border-bottom: 1px dashed #999;
+        }
+        
+        .runner {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: left 0.5s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .runner-1 { background-color: #FF69B4; left: 10px; top: 20px; }
+        .runner-2 { background-color: #008000; left: 10px; top: 70px; }
+        .runner-3 { background-color: #FFD700; left: 10px; top: 120px; }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .control-group h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #444;
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        .slider-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #333;
+        }
+        
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        
+        .strategy-info {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #888;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .level-indicator {
+            font-weight: bold;
+            color: #444;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+        
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .profile-info {
+            margin-top: 15px;
+        }
+        
+        .profile-info p {
+            margin-bottom: 10px;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            margin-left: 5px;
+            color: #008000;
+            font-weight: bold;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+            font-weight: normal;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        @media (max-width: 600px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Women's 5000m Race Strategy Simulator</h1>
+    </header>
+    
+    <div class="instructions">
+        <p>Position runners, adjust their pace, and develop winning strategies for a 5000m race.</p>
+    </div>
+    
+    <div class="progress-container">
+        <div class="level-indicator">Level: <span id="level">1</span>/2</div>
+        <div>Progress: <span id="progress">Positioning Phase</span></div>
+    </div>
+    
+    <div class="game-container">
+        <div class="track-container">
+            <h2>Race Track <span class="tooltip">ℹ️<span class="tooltiptext">Drag runners to position them on the track</span></span></h2>
+            <div class="track">
+                <div class="lane" style="top: 20px;"></div>
+                <div class="lane" style="top: 70px;"></div>
+                <div class="lane" style="top: 120px;"></div>
+                
+                <div class="runner runner-1" data-runner="1">1</div>
+                <div class="runner runner-2" data-runner="2">2</div>
+                <div class="runner runner-3" data-runner="3">3</div>
+                
+                <div class="finish-line" style="position: absolute; right: 50px; top: 0; bottom: 0; width: 2px; background-color: red;"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <h3>Runner Controls</h3>
+                <div class="slider-container">
+                    <label for="runner1">Runner 1 (Pink) Pace:</label>
+                    <input type="range" id="runner1" min="1" max="10" value="5">
+                </div>
+                <div class="slider-container">
+                    <label for="runner2">Runner 2 (Green) Pace:</label>
+                    <input type="range" id="runner2" min="1" max="10" value="5">
+                </div>
+                <div class="slider-container">
+                    <label for="runner3">Runner 3 (Gold) Pace:</label>
+                    <input type="range" id="runner3" min="1" max="10" value="5">
+                </div>
+                
+                <div class="buttons">
+                    <button id="simulate">Simulate Race</button>
+                    <button id="reset">Reset Positions</button>
+                    <button id="next-level">Next Level</button>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <h3>Race Information</h3>
+                <div class="strategy-info">
+                    <p><strong>Winning Strategy:</strong> <span id="strategy-text">Position yourself in the lead group and conserve energy for the final sprint.</span></p>
+                    <p id="pace-feedback" style="margin-top: 10px; font-style: italic;"></p>
+                </div>
+                
+                <div class="race-results" style="margin-top: 15px; display: none;" id="
+    </div>
+    </div>
+    </div>
+    </div>
+</body>
+</html>

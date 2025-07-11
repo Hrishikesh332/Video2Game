@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .panel {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #444444;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .data-table th, .data-table td {
+            border: 1px solid #dddddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        
+        .data-table th {
+            background-color: #f0f0f0;
+            font-weight: 600;
+        }
+        
+        .data-table input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background-color: #4a4a4a;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #333333;
+        }
+        
+        .dimension-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .dimension-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .visualization {
+            position: relative;
+            height: 400px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            background-color: white;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .info-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .explanation {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f8f8;
+            border-radius: 4px;
+        }
+        
+        .tutorial {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .level-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .level {
+            text-align: center;
+            padding: 10px;
+            flex: 1;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .level.active {
+            background-color: #4a4a4a;
+            color: white;
+        }
+        
+        .score-panel {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .feedback {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCA Explorer</h1>
+        <p>Understand Principal Component Analysis through interactive exploration</p>
+    </header>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Loan Data</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Loan Amount ($)</th>
+                        <th>Credit Score</th>
+                        <th>Annual Income ($)</th>
+                        <th>Years in Job</th>
+                    </tr>
+                </thead>
+                <tbody id="data-body">
+                    <!-- Data rows will be inserted here -->
+                </tbody>
+            </table>
+            
+            <div class="controls">
+                <button id="add-row">Add Row</button>
+                <button id="reset-data">Reset Data</button>
+            </div>
+            
+            <h2>Dimensions</h2>
+            <div class="dimension-selector" id="dimension-container">
+                <!-- Dimension checkboxes will be inserted here -->
+            </div>
+            
+            <div class="controls">
+                <button id="run-pca">Run PCA Analysis</button>
+                <button id="reset-view">Reset View</button>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Visualization</h2>
+            <div class="visualization">
+                <canvas id="scatter-plot"></canvas>
+            </div>
+            
+            <div class="info-panel">
+                <h3>PCA Results</h3>
+                <div id="pca-results">
+                    <p>Run PCA to see the principal components</p>
+                </div>
+            </div>
+            
+            <div class="explanation">
+                <h3>Principal Components Explained</h3>
+                <p>Principal components are new variables created from linear combinations of original variables. PCA1 captures the most variance, PCA2 the second most (orthogonal to PCA1).</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="panel">
+        <h2>Learning Journey</h2>
+        <div class="level-indicator">
+            <div class="level active" data-level="1">Level 1: Data Exploration</div>
+            <div class="level" data-level="2">Level 2: Dimension Reduction</div>
+            <div class="level" data-level="3">Level 3: Real-world Applications</div>
+        </div>
+        
+        <div class="tutorial" id="tutorial-content">
+            <h3>How to Use This Explorer</h3>
+            <p>1. Modify the loan data or add new entries<br>
+            2. Select which dimensions to include in PCA<br>
+            3. Click "Run PCA Analysis" to see principal components<br>
+            4. Explore how different dimensions affect PCA results</p>
+        </div>
+        
+        <div class="score-panel">
+            <div>
+                <h3>Progress</h3>
+                <p>Level: <span id="current-level">1</span>/3</p>
+            </div>
+            <div>
+                <h3>Score</h3>
+                <p><span id="current-score">0</span> points</p>
+            </div>
+            <div>
+                <button id="next-level">Next Level</button>
+                <button id="restart">Restart</button>
+            </div>
+        </div>
+        
+        <div class="feedback" id="feedback"></div>
+        
+        <div class="explanation">
+            <h3>PCA Applications</h3>
+            <p>• Data Visualization: Simplify complex datasets<br>
+            • Image Compression: Reduce storage requirements<br>
+            • Noise Filtration: Remove unimportant variations<br>
+            • Healthcare: Analyze patient data patterns</p>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentLevel: 1,
+            score: 0,
+            dimensions: [
+                { id: 'loanAmount', name: 'Loan Amount', selected: true },
+                { id: 'creditScore', name: 'Credit Score', selected: true },
+                { id: 'annualIncome', name: 'Annual Income', selected: true },
+                { id: 'yearsInJob', name: 'Years in Job', selected: true }
+            ],
+            data: [
+                { id: 1, loanAmount: 25000, creditScore: 720, annualIncome: 65000, yearsInJob: 3 },
+                { id: 2, loanAmount: 15000, creditScore: 680, annualIncome: 48000, yearsInJob: 5 },
+                { id: 3, loanAmount: 35000, creditScore: 780, annualIncome: 85000, yearsInJob: 7 },
+                { id: 4, loanAmount: 18000, creditScore: 640, annualIncome: 42000, yearsInJob: 2 },
+                { id: 5, loanAmount: 42000, creditScore: 710, annualIncome: 75000, yearsInJob: 4 }
+            ],
+            pcaResults: null
+        };
+
+        // DOM Elements
+        const elements = {
+            dataBody: document.getElementById('data-body'),
+            dimensionContainer: document.getElementById('dimension-container'),
+            scatterPlot: document.getElementById('scatter-plot'),
+            pcaResults: document.getElementById('pca-results'),
+            currentLevel: document.getElementById('current-level'),
+            currentScore: document.getElementById('current-score'),
+            feedback: document.getElementById('feedback'),
+            tutorialContent: document.getElementById('tutorial-content')
+        };
+
+        // Initialize the game
+        function initGame() {
+            renderDataTable();
+            renderDimensionControls();
+            setupEventListeners();
+            drawScatterPlot();
+            updateLevelDisplay();
+            updateScore(0);
+        }
+
+        // Render data table
+        function renderDataTable() {
+            elements.dataBody.innerHTML = '';
+            gameState.data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.id}</td>
+                    <td><input type="number" value="${row.loanAmount}" data-id="${row.id}" data-field="loanAmount"></td>
+                    <td><input type="number" value="${row.creditScore}" data-id="${row.id}" data-field="creditScore"></td>
+                    <td><input type="number" value="${row.annualIncome}" data-id="${row.id}" data-field="annualIncome"></td>
+                    <td><input type="number" value="${row.yearsInJob}" data-id="${row.id}" data-field="yearsInJob"></td>
+                `;
+                elements.dataBody.appendChild(tr);
+            });
+        }
+
+        // Render dimension controls
+        function renderDimensionControls() {
+            elements.dimensionContainer.innerHTML = '';
+            gameState.dimensions.forEach(dim => {
+                const div = document.createElement('div');
+                div.className = 'dimension-item';
+                div.innerHTML = `
+                    <input type="checkbox" id="${dim.id}" ${dim.selected ? 'checked' : ''}>
+                    <label for="${dim.id}">${dim.name}</label>
+                `;
+                elements.dimensionContainer.appendChild(div);
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Data table input changes
+            elements.dataBody.addEventListener('input', (e) => {
+                if (e.target.tagName === 'INPUT') {
+                    const id = parseInt(e.target.dataset.id);
+                    const field = e.target.dataset.field;
+                    const value = parseFloat(e.target.value) || 0;
+                    
+                    const row = gameState.data.find(r => r.id === id);
+                    if (row) {
+                        row[field] = value;
+                        drawScatterPlot();
+                        updateScore(5);
+                    }
+                }
+            });
+
+            // Dimension selection changes
+            elements.dimensionContainer.addEventListener('change', (e) => {
+                if (e.target.tagName === 'INPUT') {
+                    const dimId = e.target.id;
+                    const dim = gameState.dimensions.find(d => d.id === dimId);
+                    if (dim) {
+                        dim.selected = e.target.checked;
+                        drawScatterPlot();
+                        updateScore(2);
+                    }
+                }
+            });
+
+            // Button event listeners
+            document.getElementById('add-row').addEventListener('click', addDataRow);
+            document.getElementById('reset-data').addEventListener('click', resetData);
+            document.getElementById('run-pca').addEventListener('click', runPCA);
+            document.getElementById('reset-view').addEventListener('click', resetView);
+            document.getElementById('next-level').addEventListener('click', nextLevel);
+            document.getElementById('restart').addEventListener('click', restartGame);
+
+            // Level selection
+            document.querySelectorAll('.level').forEach(level => {
+                level.addEventListener('click', () => {
+                    const levelNum = parseInt(level.dataset.level);
+                    setLevel(levelNum);
+                });
+            });
+        }
+
+        // Add new data row
+        function addDataRow() {
+            const newId = Math.max(...gameState.data.map(r => r.id)) + 1;
+            gameState.data.push({
+                id: newId,
+                loanAmount: Math.floor(Math.random() * 40000) + 10000,
+                creditScore: Math.floor(Math.random() * 200) + 600,
+                annualIncome: Math.floor(Math.random() * 80000) + 30000,
+                yearsInJob: Math.floor(Math.random() * 10) + 1
+            });
+            renderDataTable();
+            drawScatterPlot();
+            updateScore(10);
+            showFeedback('New loan data added!', 'success');
+        }
+
+        // Reset data to initial state
+        function resetData() {
+            gameState.data = [
+                { id: 1, loanAmount: 25000, creditScore: 720, annualIncome: 65000, yearsInJob: 3 },
+                { id: 2, loanAmount: 15000, creditScore: 680, annualIncome: 48000, yearsInJob: 5 },
+                { id: 3, loanAmount: 35000, creditScore: 780, annualIncome: 85000, yearsInJob: 7 },
+                { id: 4, loanAmount: 18000, creditScore: 640, annualIncome: 42000, yearsInJob: 2 },
+                { id: 5, loanAmount: 42000, creditScore: 710, annualIncome: 75000, yearsInJob: 4 }
+            ];
+            renderDataTable();
+            drawScatterPlot();
+            showFeedback('Data reset to initial values', 'success');
+        }
+
+        // Draw scatter plot
+        function drawScatterPlot() {
+            const canvas = elements.scatterPlot;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width = canvas.parentElement.clientWidth;
+            const height = canvas.height = canvas.parentElement.clientHeight;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            
+            // Vertical grid lines
+            for (let x = 0; x <= width; x += width / 10) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            
+            // Horizontal grid lines
+            for (let y = 0; y <= height; y += height / 10) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(50, height - 50);
+            ctx.lineTo(width - 50, height - 50);
+            ctx.moveTo(50, 50);
+            ctx.lineTo(50, height - 50);
+            ctx.stroke();
+            
+            // Draw labels
+            ctx.fillStyle = '#333333';
+            ctx.font = '14px sans-serif';
+            ctx.fillText('Feature 1', width / 2, height - 10);
+            ctx.save();
+            ctx.translate(10, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Feature 2',
+    </script>
+</body>
+</html>

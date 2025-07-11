@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+
+        .instructions {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #cccccc;
+        }
+
+        .game-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .game-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .panel {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #444444;
+            border-bottom: 2px solid #dddddd;
+            padding-bottom: 8px;
+        }
+
+        .network-visualization {
+            min-height: 300px;
+            position: relative;
+            background-color: #fafafa;
+            border: 1px solid #eeeeee;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .layer {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            height: 100%;
+        }
+
+        .input-layer { left: 10%; width: 15%; }
+        .hidden-layer { left: 42.5%; width: 15%; }
+        .output-layer { left: 75%; width: 15%; }
+
+        .node {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            position: relative;
+            z-index: 2;
+            border: 2px solid #cccccc;
+        }
+
+        .connection {
+            position: absolute;
+            background-color: #aaaaaa;
+            transform-origin: 0 0;
+            z-index: 1;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .control-group {
+            background-color: #f0f0f0;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .value-display {
+            font-weight: bold;
+            text-align: center;
+            background-color: #e8e8e8;
+            padding: 3px;
+            border-radius: 4px;
+        }
+
+        .data-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .input-data, .output-data {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .data-point {
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: #e8e8e8;
+            border-radius: 4px;
+        }
+
+        .backprop-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 6px;
+        }
+
+        .network-types {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .network-btn {
+            padding: 8px 15px;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .network-btn.active {
+            background-color: #cccccc;
+            font-weight: bold;
+        }
+
+        .game-ui {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #d0d0d0;
+        }
+
+        .level-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .level-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #cccccc;
+        }
+
+        .level-dot.active {
+            background-color: #888888;
+        }
+
+        .score-display {
+            font-weight: bold;
+            background-color: #e8e8e8;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Neural Network Explorer</h1>
+        <p>Adjust weights and biases to train your neural network</p>
+    </header>
+
+    <div class="instructions">
+        <p>Welcome to Neural Network Explorer! Your goal is to adjust weights and biases to correctly classify data points. Complete all 3 levels to master neural networks.</p>
+    </div>
+
+    <div class="game-container">
+        <div class="panel">
+            <h2>Network Visualization</h2>
+            <div class="network-visualization" id="network">
+                <!-- Nodes and connections will be generated by JavaScript -->
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <h3>Weights</h3>
+                    <div id="weight-controls">
+                        <!-- Weight sliders will be generated by JavaScript -->
+                    </div>
+                </div>
+                <div class="control-group">
+                    <h3>Biases</h3>
+                    <div id="bias-controls">
+                        <!-- Bias sliders will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Data & Output</h2>
+            <div class="data-section">
+                <div class="input-data">
+                    <h3>Input Data</h3>
+                    <div id="input-data">
+                        <!-- Input data will be generated by JavaScript -->
+                    </div>
+                </div>
+                <div class="output-data">
+                    <h3>Network Output</h3>
+                    <div id="output-display">
+                        <!-- Output will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="backprop-section">
+                <h3>Backpropagation</h3>
+                <p>Current Error: <span id="error-value">0.00</span></p>
+                <button class="btn" id="backprop-btn">Run Backpropagation Step</button>
+            </div>
+
+            <div class="network-types">
+                <h3>Network Types:</h3>
+                <button class="network-btn active" data-type="ff">Feedforward</button>
+                <button class="network-btn" data-type="cnn">CNN</button>
+                <button class="network-btn" data-type="rnn">RNN</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-ui">
+        <div class="level-indicator">
+            <span>Level:</span>
+            <div class="level-dot active" data-level="1"></div>
+            <div class="level-dot" data-level="2"></div>
+            <div class="level-dot" data-level="3"></div>
+        </div>
+        
+        <div class="score-display">
+            Score: <span id="score">0</span>
+        </div>
+        
+        <button class="btn" id="next-btn">Next Level</button>
+        <button class="btn" id="restart-btn">Restart</button>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            const gameState = {
+                level: 1,
+                score: 0,
+                networkType: 'ff',
+                weights: [0.5, -0.5, 0.3, -0.7],
+                biases: [0.1, -0.2, 0.3],
+                inputData: [
+                    {x1: 0, x2: 0, target: 0},
+                    {x1: 0, x2: 1, target: 0},
+                    {x1: 1, x2: 0, target: 0},
+                    {x1: 1, x2: 1, target: 1}
+                ],
+                currentDataIndex: 0,
+                error: 0
+            };
+
+            // DOM elements
+            const networkEl = document.getElementById('network');
+            const weightControlsEl = document.getElementById('weight-controls');
+            const biasControlsEl = document.getElementById('bias-controls');
+            const inputDataEl = document.getElementById('input-data');
+            const outputDisplayEl = document.getElementById('output-display');
+            const errorValueEl = document.getElementById('error-value');
+            const backpropBtn = document.getElementById('backprop-btn');
+            const networkTypeBtns = document.querySelectorAll('.network-btn');
+            const levelDots = document.querySelectorAll('.level-dot');
+            const scoreEl = document.getElementById('score');
+            const nextBtn = document.getElementById('next-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const feedbackEl = document.getElementById('feedback');
+
+            // Initialize game
+            function initGame() {
+                renderNetwork();
+                createControls();
+                updateDataDisplay();
+                calculateOutput();
+                updateLevelIndicator();
+                updateScore();
+                updateNetworkTypeButtons();
+            }
+
+            // Render neural network visualization
+            function renderNetwork() {
+                networkEl.innerHTML = '';
+                
+                // Create layers
+                const layers = [
+                    { type: 'input', nodes: 2, position: 'input-layer' },
+                    { type: 'hidden', nodes: 2, position: 'hidden-layer' },
+                    { type: 'output', nodes: 1, position: 'output-layer' }
+                ];
+                
+                layers.forEach(layer => {
+                    const layerEl = document.createElement('div');
+                    layerEl.className = `layer ${layer.position}`;
+                    
+                    for (let i = 0; i < layer.nodes; i++) {
+                        const nodeEl = document.createElement('div');
+                        nodeEl.className = 'node';
+                        nodeEl.textContent = layer.type.charAt(0).toUpperCase() + (i+1);
+                        layerEl.appendChild(nodeEl);
+                    }
+                    
+                    networkEl.appendChild(layerEl);
+                });
+                
+                // Create connections
+                createConnections();
+            }
+
+            // Create connections between nodes
+            function createConnections() {
+                // Input to hidden connections
+                for (let i = 1; i <= 2; i++) {
+                    for (let j = 1; j <= 2; j++) {
+                        createConnection(`input-layer`, i, `hidden-layer`, j, gameState.weights[(i-1)*2 + (j-1)]);
+                    }
+                }
+                
+                // Hidden to output connections
+                for (let i = 1; i <= 2; i++) {
+                    createConnection(`hidden-layer`, i, `output-layer`, 1, gameState.weights[3 + (i-1)]);
+                }
+            }
+
+            // Create a single connection
+            function createConnection(fromLayer, fromNode, toLayer, toNode, weight) {
+                const fromEl = document.querySelector(`.${fromLayer} .node:nth-child(${fromNode})`);
+                const toEl = document.querySelector(`.${toLayer} .node:nth-child(${toNode})`);
+                
+                if (!fromEl || !toEl) return;
+                
+                const fromRect = fromEl.getBoundingClientRect();
+                const toRect = toEl.getBoundingClientRect();
+                const networkRect = networkEl.getBoundingClientRect();
+                
+                const x1 = fromRect.left + fromRect.width/2 - networkRect.left;
+                const y1 = fromRect.top + fromRect.height/2 - networkRect.top;
+                const x2 = toRect.left + toRect.width/2 - networkRect.left;
+                const y2 = toRect.top + toRect.height/2 - networkRect.top;
+                
+                // Calculate line length and angle
+                const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+                
+                const connection = document.createElement('div');
+                connection.className = 'connection';
+                connection.style.width = `${length}px`;
+                connection.style.left = `${x1}px`;
+                connection.style.top = `${y1}px`;
+                connection.style.transform = `rotate(${angle}deg)`;
+                connection.style.height = '2px';
+                connection.title = `Weight: ${weight.toFixed(2)}`;
+                
+                networkEl.appendChild(connection);
+            }
+
+            // Create control sliders
+            function createControls() {
+                weightControlsEl.innerHTML = '';
+                biasControlsEl.innerHTML = '';
+                
+                // Weight controls
+                gameState.weights.forEach((weight, i) => {
+                    const controlGroup = document.createElement('div');
+                    controlGroup.className = 'control-item';
+                    
+                    const label = document.createElement('label');
+                    label.textContent = `Weight ${i+1}`;
+                    
+                    const slider = document.createElement('input');
+                    slider.type = 'range';
+                    slider.min = '-1';
+                    slider.max = '1';
+                    slider.step = '0.01';
+                    slider.value = weight;
+                    slider.dataset.index = i;
+                    slider.dataset.type = 'weight';
+                    
+                    const valueDisplay = document.createElement('div');
+                    valueDisplay.className = 'value-display';
+                    valueDisplay.textContent = weight.toFixed(2);
+                    
+                    slider.addEventListener('input', () => {
+                        const value = parseFloat(slider.value);
+                        gameState.weights[i] = value;
+                        valueDisplay.textContent = value.toFixed(2);
+                        calculateOutput();
+                        renderNetwork();
+                    });
+                    
+                    controlGroup.appendChild(label);
+                    controlGroup.appendChild(slider);
+                    controlGroup.appendChild(valueDisplay);
+                    weightControlsEl.appendChild(controlGroup);
+                });
+                
+                // Bias controls
+                gameState.biases.forEach((bias, i) => {
+                    const controlGroup = document.createElement('div');
+                    controlGroup.className = 'control-item';
+                    
+                    const label = document.createElement('label');
+                    label.textContent = `Bias ${i+1}`;
+                    
+                    const slider = document.createElement('input');
+                    slider.type = 'range';
+                    slider.min = '-1';
+                    slider.max = '1';
+                    slider.step = '0.01';
+                    slider.value = bias;
+                    slider.dataset.index = i;
+                    slider.dataset.type = 'bias';
+                    
+                    const valueDisplay = document.createElement('div');
+                    valueDisplay.className = 'value-display';
+                    valueDisplay.textContent = bias.toFixed(2);
+                    
+                    slider.addEventListener('input', () => {
+                        const value = parseFloat(slider.value);
+                        gameState.biases[i] = value;
+                        valueDisplay.textContent = value.toFixed(2);
+                        calculateOutput();
+                    });
+                    
+                    controlGroup.appendChild(label);
+                    controlGroup.appendChild(slider);
+                    controlGroup.appendChild(valueDisplay);
+                    biasControlsEl.appendChild(controlGroup);
+                });
+            }
+
+            // Update data display
+            function updateDataDisplay() {
+                inputDataEl.innerHTML = '';
+                const data = gameState.inputData[gameState.currentDataIndex];
+                
+                const dataPoint = document.createElement('div');
+                dataPoint.className = 'data-point';
+                dataPoint.innerHTML = `
+                    <strong>Input:</strong> (${data.x1}, ${data.x2})<br>
+                    <strong>Target:</strong> ${data.target}
+                `;
+                
+                inputDataEl.appendChild(dataPoint);
+            }
+
+            // Calculate network output
+            function calculateOutput() {
+                const data = gameState.inputData[gameState.currentDataIndex];
+                
+                // Simple neural network calculation
+                const h1 = sigmoid(data.x1 * gameState.weights[0] + data.x2 * gameState.weights[1] + gameState.biases[0]);
+                const h2 = sigmoid(data.x1 * gameState.weights[2] + data.x2 * gameState.weights[3] + gameState.biases[1]);
+                const output = sigmoid(h1 * gameState.weights[4] + h2 * gameState.weights[5] + gameState.biases[2]);
+                
+                // Calculate error
+                gameState.error = Math.pow(output - data.target, 2);
+                errorValueEl.textContent = gameState.error.toFixed(4);
+                
+                // Update output display
+                outputDisplayEl.innerHTML = `
+                    <div class="data-point">
+                        <strong>Output:</strong> ${output.toFixed(4)}<br>
+                        <strong>Target:</strong> ${data.target}<br>
+                        <strong>Error:</strong> ${gameState.error.toFixed(4)}
+                    </div>
+                `;
+                
+                // Check level completion
+                checkLevelCompletion();
+            }
+
+            // Sigmoid activation function
+            function sigmoid(x) {
+                return 1 / (1 + Math.exp(-x));
+            }
+
+            // Backpropagation simulation
+            function runBackpropagation() {
+                const data = gameState.inputData[gameState.currentDataIndex];
+                
+                // Simple backpropagation simulation
+                gameState.weights = gameState.weights.map(w => w - 0.1 * (Math.random() - 0.5));
+                gameState.biases = gameState.biases.map(b => b - 0.1 * (Math.random() - 0.5));
+                
+                // Update controls
+                document.querySelectorAll('input[data-type="weight"]').forEach((slider, i) => {
+                    slider.value = gameState.weights[i];
+                    slider.nextElementSibling.textContent = gameState.weights[i].toFixed(2);
+                });
+                
+                document.querySelectorAll('input[data-type="bias"]').forEach((slider, i) => {
+                    slider.value = gameState.biases[i];
+                    slider.nextElementSibling.textContent = gameState.biases[i].toFixed(2);
+                });
+                
+                calculateOutput();
+                renderNetwork();
+                
+                // Show feedback
+                showFeedback("Backpropagation step completed. Weights and biases adjusted.", "success");
+            }
+
+            // Check level completion
+            function checkLevelCompletion() {
+                if (gameState.error < 0.05) {
+                    if (gameState.currentDataIndex < gameState.inputData.length - 1) {
+                        gameState.currentDataIndex++;
+                        updateDataDisplay();
+                        calculateOutput();
+                        showFeedback("Good job! Moving to next data point.", "success");
+                    } else {
+                        if (gameState.level < 3) {
+                            nextBtn.disabled = false;
+                            showFeedback(`Level ${gameState.level} completed! Click "Next Level" to continue.`, "success");
+                        } else {
+                            showFeedback("Congratulations! You've completed all levels.", "success");
+                            gameState.score += 50;
+                            updateScore();
+                        }
+                    }
+                }
+            }
+
+            // Update level indicator
+            function updateLevelIndicator() {
+                levelDots.forEach(dot => {
+                    if (parseInt(dot.dataset.level) === gameState.level) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                });
+            }
+
+            // Update score display
+            function updateScore() {
+                scoreEl.textContent = gameState.score;
+                // Save to local storage
+                localStorage.setItem('nnScore', gameState.score);
+            }
+
+            // Update network type buttons
+            function updateNetworkTypeButtons() {
+                networkTypeBtns.forEach(btn => {
+                    if (btn.dataset.type === gameState.networkType) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+
+            // Show feedback message
+            function showFeedback(message, type) {
+                feedbackEl.textContent = message;
+                feedbackEl.className = `feedback ${type}`;
+                
+                setTimeout(() => {
+                    feedbackEl.textContent = '';
+                    feedbackEl.className = 'feedback';
+                }, 3000);
+            }
+
+            // Event listeners
+            backpropBtn.addEventListener('click', runBackpropagation);
+            
+            networkTypeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    gameState.networkType = btn.dataset.type;
+                    updateNetworkTypeButtons();
+                    showFeedback(`Switched to ${getNetworkTypeName(btn.dataset.type)} network`, "success");
+                });
+            });
+            
+            nextBtn.addEventListener('click', () => {
+                if (gameState.level < 3) {
+                    gameState.level++;
+                    gameState.currentDataIndex = 0;
+                    gameState.score += 20;
+                    updateLevelIndicator();
+                    updateDataDisplay();
+                    calculateOutput();
+                    nextBtn.disabled = true;
+                    updateScore();
+                    showFeedback(`Starting Level ${gameState.level}`, "success");
+                }
+            });
+            
+            restartBtn.addEventListener('click', () => {
+                gameState.level = 1;
+                gameState.currentDataIndex = 0;
+                gameState.weights = [0.5, -0.5, 0.3, -0.7];
+                gameState.biases = [0.1, -0.2, 0.3];
+                gameState.error = 0;
+                nextBtn.disabled = true;
+                
+                initGame();
+                showFeedback("Game restarted. Starting from Level 1.", "success");
+            });
+
+            // Helper function to get network type name
+            function getNetworkTypeName(type) {
+                const names = {
+                    'ff': 'Feedforward',
+                    'cnn': 'Convolutional (CNN)',
+                    'rnn': 'Recurrent (RNN)'
+                };
+                return names[type] || type;
+            }
+
+            // Load score from local storage
+            const savedScore = localStorage.getItem('nnScore');
+            if (savedScore) {
+                gameState.score = parseInt(savedScore);
+            }
+
+            // Initialize the game
+            initGame();
+        });
+    </script>
+</body>
+</html>

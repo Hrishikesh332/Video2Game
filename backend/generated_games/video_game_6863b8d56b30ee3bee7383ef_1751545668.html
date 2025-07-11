@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #444;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .data-table th, .data-table td {
+            padding: 8px 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        .data-table th {
+            background-color: #eaeaea;
+        }
+
+        .data-table input {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .btn {
+            background-color: #555;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background-color: #333;
+        }
+
+        .btn-delete {
+            background-color: #d9534f;
+        }
+
+        .btn-delete:hover {
+            background-color: #c9302c;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .control-group {
+            background-color: #eee;
+            padding: 15px;
+            border-radius: 6px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .control-group h3 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            color: #444;
+        }
+
+        .control-item {
+            margin: 10px 0;
+        }
+
+        .control-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .control-item input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            background-color: #fcfcfc;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .pca-results {
+            margin-top: 20px;
+        }
+
+        .result-item {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #eee;
+            border-radius: 4px;
+        }
+
+        .tutorial {
+            margin-top: 20px;
+        }
+
+        .tutorial-content {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        .challenge {
+            background-color: #eaeaea;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+
+        .challenge h3 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .challenge-status {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin-right: 10px;
+        }
+
+        .challenge.completed .challenge-status {
+            background-color: #5cb85c;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            flex-grow: 1;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #5cb85c;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .level-indicator {
+            font-weight: bold;
+            background-color: #555;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-restart {
+            background-color: #f0ad4e;
+        }
+
+        .btn-restart:hover {
+            background-color: #ec971f;
+        }
+
+        .btn-next {
+            background-color: #5cb85c;
+        }
+
+        .btn-next:hover {
+            background-color: #4cae4c;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .canvas-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCA Explorer</h1>
+        <p class="subtitle">Interactive Principal Component Analysis Learning Tool</p>
+    </header>
+
+    <div class="container">
+        <div class="panel">
+            <h2 class="panel-title">Data Input</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Math Score</th>
+                        <th>Reading Score</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="data-body">
+                    <!-- Rows will be added dynamically -->
+                </tbody>
+            </table>
+            <button id="add-row" class="btn">Add Data Point</button>
+        </div>
+
+        <div class="panel">
+            <h2 class="panel-title">Visualization</h2>
+            <div class="canvas-container">
+                <canvas id="scatter-plot"></canvas>
+            </div>
+            <div class="pca-results">
+                <h3>PCA Results</h3>
+                <div class="result-item" id="eigenvalues">Eigenvalues: PC1: -, PC2: -</div>
+                <div class="result-item" id="variance">Explained Variance: PC1: -%, PC2: -%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <h3>Scaling Controls</h3>
+            <div class="control-item">
+                <label for="math-scale">Math Scaling Factor:</label>
+                <input type="number" id="math-scale" value="1" step="0.1" min="0.1">
+            </div>
+            <div class="control-item">
+                <label for="reading-scale">Reading Scaling Factor:</label>
+                <input type="number" id="reading-scale" value="1" step="0.1" min="0.1">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>Data Transformation</h3>
+            <div class="control-item">
+                <label>
+                    <input type="checkbox" id="center-data"> Center Data (Subtract Mean)
+                </label>
+            </div>
+            <div class="control-item">
+                <label>
+                    <input type="checkbox" id="standardize"> Standardize Data (Z-score)
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2 class="panel-title">Learning Challenges</h2>
+        <div class="challenge" id="challenge1">
+            <h3><span class="challenge-status"></span> Add at least 5 data points</h3>
+            <p>Observe how the principal components change as you add more data.</p>
+        </div>
+        <div class="challenge" id="challenge2">
+            <h3><span class="challenge-status"></span> Scale Math Scores by 10</h3>
+            <p>Set Math scaling factor to 0.1 and see how scaling affects PCA results.</p>
+        </div>
+        <div class="challenge" id="challenge3">
+            <h3><span class="challenge-status"></span> Center the data</h3>
+            <p>Check the "Center Data" option and observe the impact on principal components.</p>
+        </div>
+
+        <div class="progress-container">
+            <span>Progress:</span>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="level-indicator">Level: <span id="level">1</span>/3</div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2 class="panel-title">Tutorial: PCA Concepts</h2>
+        <div class="tutorial">
+            <div class="tutorial-content">
+                <p><strong>Principal Component Analysis (PCA)</strong> is a technique for reducing the dimensionality of data while preserving important patterns.</p>
+                <p><strong>Scaling</strong> is crucial when variables have different units or scales. Without scaling, variables with larger ranges dominate the PCA.</p>
+                <p><strong>Centering</strong> (subtracting the mean) ensures the data is centered around the origin, which is required for PCA.</p>
+                <p>The <strong>eigenvalues</strong> represent the amount of variance captured by each principal component.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-controls">
+        <button id="restart" class="btn btn-restart">Restart</button>
+        <button id="next-level" class="btn btn-next">Next Level</button>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            dataPoints: [
+                { id: 1, math: 80, reading: 70 },
+                { id: 2, math: 85, reading: 80 },
+                { id: 3, math: 90, reading: 85 },
+                { id: 4, math: 70, reading: 65 }
+            ],
+            nextId: 5,
+            scaling: { math: 1, reading: 1 },
+            centered: false,
+            standardized: false,
+            challenges: [false, false, false],
+            level: 1
+        };
+
+        // DOM elements
+        const dataBody = document.getElementById('data-body');
+        const scatterCanvas = document.getElementById('scatter-plot');
+        const ctx = scatterCanvas.getContext('2d');
+        const mathScaleInput = document.getElementById('math-scale');
+        const readingScaleInput = document.getElementById('reading-scale');
+        const centerDataCheckbox = document.getElementById('center-data');
+        const standardizeCheckbox = document.getElementById('standardize');
+        const eigenvaluesDisplay = document.getElementById('eigenvalues');
+        const varianceDisplay = document.getElementById('variance');
+        const progressFill = document.getElementById('progress-fill');
+        const levelDisplay = document.getElementById('level');
+        const addRowBtn = document.getElementById('add-row');
+        const restartBtn = document.getElementById('restart');
+        const nextLevelBtn = document.getElementById('next-level');
+
+        // Initialize canvas
+        function initCanvas() {
+            scatterCanvas.width = scatterCanvas.parentElement.clientWidth;
+            scatterCanvas.height = scatterCanvas.parentElement.clientHeight;
+            drawScatterPlot();
+        }
+
+        // Draw scatter plot with PCA components
+        function drawScatterPlot() {
+            const width = scatterCanvas.width;
+            const height = scatterCanvas.height;
+            const padding = 50;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Get processed data
+            const processedData = processData();
+            if (processedData.length === 0) return;
+            
+            // Find data ranges
+            let minMath = Infinity, maxMath = -Infinity;
+            let minReading = Infinity, maxReading = -Infinity;
+            
+            processedData.forEach(point => {
+                if (point.math < minMath) minMath = point.math;
+                if (point.math > maxMath) maxMath = point.math;
+                if (point.reading < minReading) minReading = point.reading;
+                if (point.reading > maxReading) maxReading = point.reading;
+            });
+            
+            // Add some padding to ranges
+            const mathRange = maxMath - minMath || 1;
+            const readingRange = maxReading - minReading || 1;
+            minMath -= mathRange * 0.1;
+            maxMath += mathRange * 0.1;
+            minReading -= readingRange * 0.1;
+            maxReading += readingRange * 0.1;
+            
+            // Calculate scales
+            const xScale = (width - 2 * padding) / (maxMath - minMath);
+            const yScale = (height - 2 * padding) / (maxReading - minReading);
+            
+            // Draw grid and axes
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            
+            // Draw origin if data is centered
+            if (gameState.centered) {
+                ctx.fillStyle = '#333';
+                ctx.font = '12px Arial';
+                ctx.fillText('0', padding - 20, height - padding + 20);
+            }
+            
+            // Draw data points
+            processedData.forEach(point => {
+                const x = padding + (point.math - minMath) * xScale;
+                const y = height - padding - (point.reading - minReading) * yScale;
+                
+                ctx.fillStyle = '#4285F4';
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // Calculate and draw PCA components
+            const pcaResults = calculatePCA(processedData);
+            if (pcaResults) {
+                const { eigenvalues, eigenvectors } = pcaResults;
+                
+                // Calculate center point
+                const centerX = padding + (-minMath) * xScale;
+                const centerY = height - padding - (-minReading) * yScale;
+                
+                // Draw PC1
+                const pc1Scale = Math.sqrt(eigenvalues[0]) * 50;
+                ctx.strokeStyle = '#EA4335';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(centerX - eigenvectors[0][0] * pc1Scale, centerY + eigenvectors[0][1] * pc1Scale);
+                ctx.lineTo(centerX + eigenvectors[0][0] * pc1Scale, centerY - eigenvectors[0][1] * pc1Scale);
+                ctx.stroke();
+                
+                // Draw PC2
+                const pc2Scale = Math.sqrt(eigenvalues[1]) * 30;
+                ctx.strokeStyle = '#34A853';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(centerX - eigenvectors[1][0] * pc2Scale, centerY + eigenvectors[1][1] * pc2Scale);
+                ctx.lineTo(centerX + eigenvectors[1][0] * pc2Scale, centerY - eigenvectors[1][1] * pc2Scale);
+                ctx.stroke();
+                
+                // Display eigenvalues and variance
+                const totalVariance = eigenvalues[0] + eigenvalues[1];
+                const pc1Variance = (eigenvalues[0] / totalVariance * 100).toFixed(1);
+                const pc2Variance = (eigenvalues[1] / totalVariance * 100).toFixed(1);
+                
+                eigenvaluesDisplay.textContent = `Eigenvalues: PC1: ${eigenvalues[0].toFixed(2)}, PC2: ${eigenvalues[1].toFixed(2)}`;
+                varianceDisplay.textContent = `Explained Variance: PC1: ${pc1Variance}%, PC2: ${pc2Variance}%`;
+            }
+        }
+
+        // Process data based on scaling and centering options
+        function processData() {
+            return gameState.dataPoints.map(point => {
+                let math = point.math * gameState.scaling.math;
+                let reading = point.reading * gameState.scaling.reading;
+                
+                if (gameState.centered || gameState.standardized) {
+                    // Calculate means
+                    const mathSum = gameState.dataPoints.reduce((sum, p) => sum + p.math, 0);
+                    const readingSum = gameState.dataPoints.reduce((sum, p) => sum + p.reading, 0);
+                    const mathMean = mathSum / gameState.dataPoints.length;
+                    const readingMean = readingSum / gameState.dataPoints.length;
+                    
+                    // Center data
+                    math -= mathMean;
+                    reading -= readingMean;
+                    
+                    if (gameState.standardized) {
+                        // Calculate standard deviations
+                        const mathVariance = gameState.dataPoints.reduce((sum, p) => {
+                            return sum + Math.pow(p.math - mathMean, 2);
+                        }, 0) / (gameState.dataPoints.length - 1);
+                        
+                        const readingVariance = gameState.dataPoints.reduce((sum, p) => {
+                            return sum + Math.pow(p.reading - readingMean, 2);
+                        }, 0) / (gameState.dataPoints.length - 1);
+                        
+                        const mathStd = Math.sqrt(mathVariance) || 1;
+                        const readingStd = Math.sqrt(readingVariance) || 1;
+                        
+                        // Standardize data
+                        math /= mathStd;
+                        reading /= readingStd;
+                    }
+                }
+                
+                return { math, reading };
+            });
+        }
+
+        // Calculate PCA for 2D data
+        function calculatePCA(data) {
+            if (data.length < 2) return null;
+            
+            // Calculate covariance matrix
+            const n = data.length;
+            let sumMath = 0, sumReading = 0;
+            
+            data.forEach(point => {
+                sumMath += point.math;
+                sumReading += point.reading;
+            });
+            
+            const meanMath = sumMath / n;
+            const meanReading = sumReading / n;
+            
+            let covMathMath = 0, covMathReading = 0, covReadingReading = 0;
+            
+            data.forEach(point => {
+                const devMath = point.math - meanMath;
+                const devReading = point.reading - meanReading;
+                
+                covMathMath += devMath * devMath;
+                covMathReading += devMath * devReading;
+                covReadingReading += devReading * devReading;
+            });
+            
+            covMathMath /= (n - 1);
+            covMathReading /= (n - 1);
+            covReadingReading /= (n - 1);
+            
+            // Create covariance matrix
+            const covMatrix = [
+                [covMathMath, covMathReading],
+                [covMathReading, covReadingReading]
+            ];
+            
+            // Calculate eigenvalues and eigenvectors
+            const trace = covMatrix[0][0] + covMatrix[1][1];
+            const determinant = covMatrix[0][0] * covMatrix[1][1] - covMatrix[0][1] * covMatrix[1][0];
+            
+            const discriminant = Math.sqrt(trace * trace - 4 * determinant);
+            const eigenvalue1 = (trace + discriminant) / 2;
+            const eigenvalue2 = (trace - discriminant) / 2;
+            
+            // Calculate eigenvector for eigenvalue1
+            let eigenvector1;
+            if (covMatrix[0][1] !== 0) {
+                eigenvector1 = [1, (eigenvalue1 - covMatrix[0][0]) / covMatrix[0][1]];
+            } else {
+                eigenvector1 = [1, 0];
+            }
+            
+            // Normalize eigenvector1
+            const length1 = Math.sqrt(eigenvector1[0] * eigenvector1[0] + eigenvector1[1] * eigenvector1[1]);
+            eigenvector1 = [eigenvector1[0] / length1, eigenvector1[1] / length1];
+            
+            // Eigenvector for eigenvalue2 is orthogonal to eigenvector1
+            const eigenvector2 = [-eigenvector1[1], eigenvector1[0]];
+            
+            return {
+                eigenvalues: [eigenvalue1, eigenvalue2],
+                eigenvectors: [eigenvector1, eigenvector2]
+            };
+        }
+
+        // Render data table
+        function renderDataTable() {
+            dataBody.innerHTML = '';
+            
+            gameState.dataPoints.forEach(point => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${point.id}</td>
+                    <td><input type="number" class="math-input" value="${point.math}" data-id="${point.id}"></td>
+                    <td><input type="number" class="reading-input" value="${point.reading}" data-id="${point.id}"></td>
+                    <td><button class="btn btn-delete delete-btn" data-id="${point.id}">Delete</button></td>
+                `;
+                
+                dataBody.appendChild(row);
+            });
+            
+            // Add event listeners to inputs and buttons
+            document.querySelectorAll('.math-input').forEach(input => {
+                input.addEventListener('change', handleDataChange);
+            });
+            
+            document.querySelectorAll('.reading-input').forEach(input => {
+                input.addEventListener('change', handleDataChange);
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', handleDeletePoint);
+            });
+        }
+
+        // Handle data point changes
+        function handleDataChange(e) {
+            const id = parseInt(e.target.dataset.id);
+            const value = parseFloat(e.target.value) || 0;
+            const field = e.target.classList.contains('math-input') ? 'math' : 'reading';
+            
+            const pointIndex = gameState.dataPoints.findIndex(p => p.id === id);
+            if (pointIndex !== -1) {
+                gameState.dataPoints[pointIndex][field] = value;
+                updateGame();
+            }
+        }
+
+        // Handle delete point
+        function handleDeletePoint(e) {
+            const id = parseInt(e.target.dataset.id);
+            gameState.dataPoints = gameState.dataPoints.filter(p => p.id !== id);
+            updateGame();
+        }
+
+        // Add new data point
+        function addDataPoint() {
+            const math = Math.floor(Math.random() * 40) + 60;
+            const reading = Math.floor(Math.random() * 40) + 60;
+            
+            gameState.dataPoints.push({
+                id: gameState.nextId++,
+                math,
+                reading
+            });
+            
+            updateGame();
+        }
+
+        // Update scaling values
+        function updateScaling() {
+            gameState.scaling.math = parseFloat(mathScaleInput.value) || 1;
+            gameState.scaling.reading = parseFloat(readingScaleInput.value) || 1;
+            updateGame();
+        }
+
+        // Update centering and standardization
+        function updateTransformation() {
+            gameState.centered = centerDataCheckbox.checked;
+            gameState.standardized = standardizeCheckbox.checked;
+            updateGame();
+        }
+
+        // Update challenge status
+        function updateChallenges() {
+            // Challenge 1: At least 5 data points
+            gameState.challenges[0] = gameState.dataPoints
+    </script>
+</body>
+</html>

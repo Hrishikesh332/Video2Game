@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Dimension Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #e0e0ff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(10, 8, 30, 0.85);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.3);
+            border: 1px solid #00ccff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #ff00cc, #00ccff, #00ffcc);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00ccff, #00ffcc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 15px rgba(0, 200, 255, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #a0a0ff;
+            max-width: 700px;
+            margin: 0 auto 25px;
+            line-height: 1.6;
+        }
+
+        .game-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .plot-container {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(20, 15, 50, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #00ffcc;
+            box-shadow: 0 0 20px rgba(0, 255, 200, 0.2);
+        }
+
+        .plot-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            color: #00ffcc;
+        }
+
+        #scatter-plot {
+            width: 100%;
+            height: 350px;
+            background: rgba(5, 5, 20, 0.9);
+            border-radius: 10px;
+            border: 1px solid #ff00cc;
+        }
+
+        .controls {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(20, 15, 50, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #ff00cc;
+            box-shadow: 0 0 20px rgba(255, 0, 200, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dimension-controls {
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #ff00cc;
+            text-align: center;
+        }
+
+        .pc-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .pc-option {
+            background: rgba(40, 20, 70, 0.8);
+            border: 2px solid #9966ff;
+            border-radius: 10px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .pc-option:hover {
+            background: rgba(70, 40, 120, 0.8);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(153, 102, 255, 0.4);
+        }
+
+        .pc-option.selected {
+            background: rgba(100, 60, 180, 0.9);
+            border-color: #00ffcc;
+            box-shadow: 0 0 20px rgba(0, 255, 200, 0.6);
+            transform: scale(1.05);
+        }
+
+        .pc-option h3 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+            color: #9966ff;
+        }
+
+        .pc-option p {
+            font-size: 0.9rem;
+            color: #c0c0ff;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: auto;
+        }
+
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(90deg, #ff00cc, #9966ff);
+            color: white;
+            box-shadow: 0 5px 15px rgba(153, 102, 255, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(153, 102, 255, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn:disabled {
+            background: linear-gradient(90deg, #555, #888);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #reset-btn {
+            background: linear-gradient(90deg, #00ccff, #00ffcc);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 25px;
+            padding: 15px;
+            background: rgba(30, 20, 60, 0.7);
+            border-radius: 15px;
+            border: 1px solid #9966ff;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00ccff, #00ffcc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #a0a0ff;
+        }
+
+        .feedback {
+            min-height: 100px;
+            padding: 20px;
+            margin-top: 25px;
+            background: rgba(20, 15, 50, 0.7);
+            border-radius: 15px;
+            border: 1px solid #00ffcc;
+            text-align: center;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s ease;
+        }
+
+        .feedback.correct {
+            background: rgba(20, 80, 40, 0.7);
+            border-color: #00ff80;
+            box-shadow: 0 0 20px rgba(0, 255, 128, 0.4);
+        }
+
+        .feedback.incorrect {
+            background: rgba(80, 20, 40, 0.7);
+            border-color: #ff0066;
+            box-shadow: 0 0 20px rgba(255, 0, 102, 0.4);
+        }
+
+        .progress-container {
+            width: 100%;
+            background: rgba(30, 20, 60, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px solid #9966ff;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            color: #a0a0ff;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: rgba(10, 5, 30, 0.9);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff00cc, #9966ff);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .completion-screen {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .completion-screen h2 {
+            font-size: 2.5rem;
+            color: #00ffcc;
+            margin-bottom: 20px;
+        }
+
+        .score-display {
+            font-size: 5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #ff00cc, #00ccff, #00ffcc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin: 20px 0;
+            text-shadow: 0 0 20px rgba(0, 200, 255, 0.7);
+        }
+
+        .completion-message {
+            font-size: 1.3rem;
+            max-width: 600px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+        }
+
+        .explanation {
+            background: rgba(20, 15, 50, 0.7);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            border: 1px solid #00ccff;
+        }
+
+        .explanation h3 {
+            color: #00ccff;
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .explanation p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            color: #00ffcc;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .pc-options {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .pc-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-container {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PCA Dimension Challenge</h1>
+            <p class="subtitle">Reduce dimensions while preserving maximum variance. Select the optimal principal components to simplify complex financial data!</p>
+        </header>
+
+        <div class="progress-container">
+            <div class="progress-header">
+                <span>Game Progress</span>
+                <span>Stage <span id="stage">1</span>/3</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="plot-container">
+                <h2 class="plot-title">Financial Data Scatterplot</h2>
+                <canvas id="scatter-plot"></canvas>
+            </div>
+            
+            <div class="controls">
+                <h2>Select Principal Components</h2>
+                
+                <div class="dimension-controls">
+                    <div class="pc-options">
+                        <div class="pc-option" data-pc="1">
+                            <h3>PC1</h3>
+                            <p>Income vs. Loan Size</p>
+                        </div>
+                        <div class="pc-option" data-pc="2">
+                            <h3>PC2</h3>
+                            <p>Credit Score vs. Debt</p>
+                        </div>
+                        <div class="pc-option" data-pc="3">
+                            <h3>PC3</h3>
+                            <p>Employment Length</p>
+                        </div>
+                    </div>
+                    
+                    <div class="button-container">
+                        <button class="btn" id="reduce-btn">Reduce Dimensions</button>
+                        <button class="btn" id="reset-btn">Reset</button>
+                    </div>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-value" id="variance-value">0%</div>
+                        <div class="stat-label">Variance Retained</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="score-value">0</div>
+                        <div class="stat-label">Score</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="feedback" id="feedback">
+            Select two principal components that capture the most variance in the financial data
+        </div>
+        
+        <div class="explanation">
+            <h3>Principal Component Analysis</h3>
+            <p><span class="highlight">PCA</span> is a dimensionality reduction technique that transforms correlated variables into principal components - linearly uncorrelated variables that capture maximum variance.</p>
+            <p>In this game, you're selecting components that preserve the essential structure of loan applicant data while reducing complexity. The optimal choice retains clusters that represent different risk categories.</p>
+        </div>
+        
+        <div class="completion-screen" id="completion-screen">
+            <h2>Dimensionality Mastery Achieved!</h2>
+            <div class="score-display" id="final-score">0</div>
+            <p class="completion-message">You've successfully simplified complex financial data while preserving critical patterns. Your PCA expertise will help identify loan risk clusters efficiently!</p>
+            <button class="btn" id="play-again">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game state
+            const gameState = {
+                stage: 1,
+                maxStages: 3,
+                score: 0,
+                selectedComponents: [],
+                varianceRetained: 0,
+                correctChoices: [
+                    [1, 2],   // Stage 1 correct combination
+                    [1, 3],   // Stage 2 correct combination
+                    [2, 3]    // Stage 3 correct combination
+                ],
+                stageVariance: [85, 78, 82]  // Variance for correct choices
+            };
+
+            // DOM elements
+            const canvas = document.getElementById('scatter-plot');
+            const ctx = canvas.getContext('2d');
+            const pcOptions = document.querySelectorAll('.pc-option');
+            const reduceBtn = document.getElementById('reduce-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const varianceValue = document.getElementById('variance-value');
+            const scoreValue = document.getElementById('score-value');
+            const feedback = document.getElementById('feedback');
+            const progressFill = document.getElementById('progress-fill');
+            const stageElement = document.getElementById('stage');
+            const completionScreen = document.getElementById('completion-screen');
+            const finalScore = document.getElementById('final-score');
+            const playAgainBtn = document.getElementById('play-again');
+
+            // Set canvas dimensions
+            function setupCanvas() {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            }
+
+            // Initialize canvas
+            setupCanvas();
+            window.addEventListener('resize', setupCanvas);
+
+            // Generate clustered financial data
+            function generateData() {
+                const data = [];
+                const clusterCount = 3;
+                const pointsPerCluster = 30;
+                const clusterColors = ['#ff00cc', '#00ccff', '#00ffcc'];
+                
+                for (let c = 0; c < clusterCount; c++) {
+                    const centerX = 100 + Math.random() * (canvas.width - 200);
+                    const centerY = 100 + Math.random() * (canvas.height - 200);
+                    
+                    for (let i = 0; i < pointsPerCluster; i++) {
+                        const x = centerX + (Math.random() - 0.5) * 150;
+                        const y = centerY + (Math.random() - 0.5) * 150;
+                        data.push({ x, y, cluster: c, color: clusterColors[c] });
+                    }
+                }
+                
+                return data;
+            }
+
+            // Draw scatter plot
+            function drawScatterPlot(data) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw grid
+                ctx.strokeStyle = 'rgba(100, 100, 200, 0.2)';
+                ctx.lineWidth = 1;
+                
+                // Vertical grid lines
+                for (let x = 0; x <= canvas.width; x += 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                
+                // Horizontal grid lines
+                for (let y = 0; y <= canvas.height; y += 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+                
+                // Draw axes
+                ctx.strokeStyle = '#9966ff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(50, canvas.height - 50);
+                ctx.lineTo(canvas.width - 50, canvas.height - 50);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(50, 50);
+                ctx.lineTo(50, canvas.height - 50);
+                ctx.stroke();
+                
+                // Draw data points
+                data.forEach(point => {
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = point.color;
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                });
+                
+                // Draw labels
+                ctx.fillStyle = '#00ccff';
+                ctx.font = '14px Arial';
+                ctx.fillText('Feature 1', canvas.width - 100, canvas.height - 20);
+                
+                ctx.save();
+                ctx.translate(20, canvas.height / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText('Feature 2', 0, 0);
+                ctx.restore();
+            }
+
+            // Initialize game
+            let plotData = generateData();
+            drawScatterPlot(plotData);
+
+            // PC selection handling
+            pcOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const pc = option.dataset.pc;
+                    
+                    if (gameState.selectedComponents.includes(pc)) {
+                        // Deselect
+                        gameState.selectedComponents = gameState.selectedComponents.filter(c => c !== pc);
+                        option.classList.remove('selected');
+                    } else {
+                        // Select if less than 2 are selected
+                        if (gameState.selectedComponents.length < 2) {
+                            gameState.selectedComponents.push(pc);
+                            option.classList.add('selected');
+                        }
+                    }
+                    
+                    // Update button state
+                    reduceBtn.disabled = gameState.selectedComponents.length !== 2;
+                });
+            });
+
+            // Reset selection
+            resetBtn.addEventListener('click', () => {
+                gameState.selectedComponents = [];
+                pcOptions.forEach(option => option.classList.remove('selected'));
+                reduceBtn.disabled = true;
+                feedback.textContent = 'Select two principal components that capture the most variance in the financial data';
+                feedback.className = 'feedback';
+            });
+
+            // Reduce dimensions
+            reduceBtn.addEventListener('click', () => {
+                if (gameState.selectedComponents.length !== 2) return;
+                
+                // Check if correct combination
+                const isCorrect = gameState.selectedComponents.sort().join('') === 
+                                gameState.correctChoices[gameState.stage - 1].sort().join('');
+                
+                // Calculate variance
+                const variance = isCorrect ? 
+                    gameState.stageVariance[gameState.stage - 1] : 
+                    Math.floor(Math.random() * 40) + 30;
+                
+                gameState.varianceRetained = variance;
+                varianceValue.textContent = `${variance}%`;
+                
+                // Update score
+                if (isCorrect) {
+                    gameState.score += variance;
+                    scoreValue.textContent = gameState.score;
+                    feedback.textContent = `Excellent! You retained ${variance}% variance. These components effectively capture the data structure.`;
+                    feedback.className = 'feedback correct';
+                } else {
+                    feedback.textContent = `Only ${variance}% variance retained. These components lose important cluster information.`;
+                    feedback.className = 'feedback incorrect';
+                }
+                
+                // Animate plot transformation
+                animatePlotTransformation(isCorrect);
+                
+                // Prepare for next stage
+                setTimeout(() => {
+                    if (gameState.stage < gameState.maxStages) {
+                        gameState.stage++;
+                        stageElement.textContent = gameState.stage;
+                        progressFill.style.width = `${(gameState.stage / gameState.maxStages) * 100}%`;
+                        
+                        // Reset for next stage
+                        gameState.selectedComponents = [];
+                        pcOptions.forEach(option => option.classList.remove('selected'));
+                        reduceBtn.disabled = true;
+                        
+                        // Generate new data
+                        plotData = generateData();
+                        drawScatterPlot(plotData);
+                        
+                        feedback.textContent = `Stage ${gameState.stage}: Select components for this new dataset`;
+                        feedback.className = 'feedback';
+                    } else {
+                        // Game completed
+                        finalScore.textContent = gameState.score;
+                        document.querySelector('.game-area').style.display = 'none';
+                        document.querySelector('.progress-container').style.display = 'none';
+                        document.querySelector('.feedback').style.display = 'none';
+                        document.querySelector('.explanation').style.display = 'none';
+                        completionScreen.style.display = 'block';
+                    }
+                }, 3000);
+            });
+
+            // Animate plot transformation
+            function animatePlotTransformation(isCorrect) {
+                const originalData = [...plotData];
+                const startTime = Date.now();
+                const duration = 2000;
+                
+                function animate() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Transform data based on progress
+                    const transformedData = originalData.map(point => {
+                        // Simulate PCA transformation effect
+                        const angle = progress * Math.PI / 4;
+                        const scale = 0.8 + progress * 0.2;
+                        
+                        // Rotate and scale points
+                        const x = canvas.width/2 + (point.x - canvas.width/2) * Math.cos(angle) * scale;
+                        const y = canvas.height/2 + (point.y - canvas.height/2) * Math.sin(angle) * scale;
+                        
+                        return { ...point, x, y };
+                    });
+                    
+                    drawScatterPlot(transformedData);
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        // Final transformed state
+                        const finalData = transformedData.map(point => {
+                            // Apply cluster separation for correct choices
+                            if (isCorrect) {
+                                const separation = 50;
+                                return { 
+                                    ...point, 
+                                    x: point.x + (point.cluster - 1) * separation,
+                                    y: point.y + (point.cluster - 1) * separation
+                                };
+                            }
+                            return point;
+                        });
+                        drawScatterPlot(finalData);
+                    }
+                }
+                
+                animate();
+            }
+
+            // Play again
+            playAgainBtn.addEventListener('click', () => {
+                // Reset game state
+                gameState.stage = 1;
+                gameState.score = 0;
+                gameState.selectedComponents = [];
+                gameState.varianceRetained = 0;
+                
+                // Reset UI
+                stageElement.textContent = '1';
+                progressFill.style.width = '33%';
+                scoreValue.textContent = '0';
+                varianceValue.textContent = '0%';
+                pcOptions.forEach(option => option.classList.remove('selected'));
+                reduceBtn.disabled = true;
+                
+                // Show game elements
+                document.querySelector('.game-area').style.display = 'flex';
+                document.querySelector('.progress-container').style.display = 'block';
+                document.querySelector('.feedback').style.display = 'flex';
+                document.querySelector('.explanation').style.display = 'block';
+                completionScreen.style.display = 'none';
+                
+                // Generate new data
+                plotData = generateData();
+                drawScatterPlot(plotData);
+                
+                feedback.textContent = 'Select two principal components that capture the most variance in the financial data';
+                feedback.className = 'feedback';
+            });
+
+            // Initial button state
+            reduceBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>

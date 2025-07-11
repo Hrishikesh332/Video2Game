@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Women's 5000m Race Interactive App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: white;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .description {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .screen {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        .track-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .track {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 200px;
+            border: 3px solid #999;
+            border-radius: 50%;
+        }
+        
+        .lane {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 1px dashed #aaa;
+            border-radius: 50%;
+        }
+        
+        .runner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: move;
+            z-index: 10;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .runner:hover {
+            transform: scale(1.05);
+        }
+        
+        .runner-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .runner-item {
+            background-color: #ddd;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .runner-item:hover {
+            background-color: #ccc;
+        }
+        
+        .strategy-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .strategy-card {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .strategy-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-color: #aaa;
+        }
+        
+        .strategy-card h3 {
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .simulation-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .race-info {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: white;
+            border-radius: 8px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #555;
+        }
+        
+        .progress-container {
+            height: 10px;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #333;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .results-table th, .results-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        .results-table th {
+            background-color: #f2f2f2;
+        }
+        
+        .highlight {
+            background-color: #ffd700;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 0.5; }
+            100% { opacity: 0.8; }
+        }
+        
+        @media (max-width: 600px) {
+            .strategy-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .runner {
+                width: 30px;
+                height: 30px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Women's 5000m Race Strategy Simulator</h1>
+        <p class="description">Drag runners, choose strategies, and simulate the race outcome</p>
+    </header>
+    
+    <div class="game-container">
+        <!-- Setup Screen -->
+        <div id="setup-screen" class="screen active">
+            <h2>Setup Your Race</h2>
+            <p>Drag runners onto the track to set their starting positions</p>
+            
+            <div class="runner-list">
+                <div class="runner-item" draggable="true" data-runner="1">Hassan (NED)</div>
+                <div class="runner-item" draggable="true" data-runner="2">Tsegay (ETH)</div>
+                <div class="runner-item" draggable="true" data-runner="3">Kipyegon (KEN)</div>
+                <div class="runner-item" draggable="true" data-runner="4">Gidey (ETH)</div>
+            </div>
+            
+            <div class="track-container">
+                <div class="track">
+                    <div class="lane" style="width: 90%; height: 90%;"></div>
+                    <div class="lane" style="width: 80%; height: 80%;"></div>
+                    <div class="lane" style="width: 70%; height: 70%;"></div>
+                    <div class="lane" style="width: 60%; height: 60%;"></div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="next-to-strategy">Next: Choose Strategy</button>
+            </div>
+        </div>
+        
+        <!-- Strategy Screen -->
+        <div id="strategy-screen" class="screen">
+            <h2>Race Strategy</h2>
+            <p>Select your tactics for key race moments</p>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="strategy-progress"></div>
+            </div>
+            
+            <div id="strategy-content">
+                <div class="strategy-phase active">
+                    <h3>Starting Strategy</h3>
+                    <div class="strategy-options">
+                        <div class="strategy-card" data-strategy="fast-start">
+                            <h3>Fast Start</h3>
+                            <p>Push hard from the beginning to establish position</p>
+                        </div>
+                        <div class="strategy-card" data-strategy="conservative">
+                            <h3>Conservative Start</h3>
+                            <p>Hold back and conserve energy for later</p>
+                        </div>
+                        <div class="strategy-card" data-strategy="mid-pack">
+                            <h3>Mid-Pack Position</h3>
+                            <p>Stay with the main group to draft</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="strategy-phase">
+                    <h3>Mid-Race Strategy</h3>
+                    <div class="strategy-options">
+                        <div class="strategy-card" data-strategy="steady-pace">
+                            <h3>Steady Pace</h3>
+                            <p>Maintain consistent lap times</p>
+                        </div>
+                        <div class="strategy-card" data-strategy="surge">
+                            <h3>Surge Ahead</h3>
+                            <p>Increase pace to break away</p>
+                        </div>
+                        <div class="strategy-card" data-strategy="cover-moves">
+                            <h3>Cover Moves</h3>
+                            <p>Respond to competitors' surges</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="strategy-phase">
+                    <h3>Final Lap Strategy</h3>
+                    <div class="strategy-options">
+                        <div class="strategy-card" data-strategy="early-kick">
+                            <h3>Early Kick</h3>
+                            <p>Start sprinting with 400m to go</p>
+                        </div>
+                        <div class="strategy-card" data-strategy="late-kick">
+                            <h3>Late Kick</h3>
+                            <p>Wait until final straight to sprint</p>
+                        </div>
+                        <div class="strategy-card" data-strategy="maintain">
+                            <h3>Maintain Pace</h3>
+                            <p>Hold current speed to finish</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="prev-phase">Back</button>
+                <button id="next-phase">Next Phase</button>
+                <button id="start-race">Simulate Race</button>
+            </div>
+        </div>
+        
+        <!-- Race Screen -->
+        <div id="race-screen" class="screen">
+            <h2>Race Simulation</h2>
+            <p>Watch your strategy unfold in real-time</p>
+            
+            <div class="simulation-container">
+                <div class="track">
+                    <div class="lane" style="width: 90%; height: 90%;"></div>
+                    <div class="lane" style="width: 80%; height: 80%;"></div>
+                    <div class="lane" style="width: 70%; height: 70%;"></div>
+                    <div class="lane" style="width: 60%; height: 60%;"></div>
+                    <div class="runner" id="runner-1" style="background-color: #FF69B4; top: 45%; left: 30%;">1</div>
+                    <div class="runner" id="runner-2" style="background-color: #008000; top: 50%; left: 35%;">2</div>
+                    <div class="runner" id="runner-3" style="background-color: #FFD700; top: 55%; left: 40%;">3</div>
+                    <div class="runner" id="runner-4" style="background-color: #1E90FF; top: 60%; left: 45%;">4</div>
+                </div>
+            </div>
+            
+            <div class="race-info">
+                <div>Lap: <span id="current-lap">1</span>/12.5</div>
+                <div>Leader: <span id="current-leader">Hassan</span></div>
+                <div>Your Position: <span id="player-position">3rd</span></div>
+            </div>
+            
+            <div class="controls">
+                <button id="pause-race">Pause</button>
+                <button id="view-results">View Results</button>
+            </div>
+        </div>
+        
+        <!-- Results Screen -->
+        <div id="results-screen" class="screen">
+            <h2>Race Results</h2>
+            <p>Final standings based on your strategy choices</p>
+            
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Position</th>
+                        <th>Runner</th>
+                        <th>Country</th>
+                        <th>Time</th>
+                        <th>Strategy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Hassan</td>
+                        <td>NED</td>
+                        <td>14:22.12</td>
+                        <td>Late Kick</td>
+                    </tr>
+                    <tr class="highlight">
+                        <td>2</td>
+                        <td>You (Kipyegon)</td>
+                        <td>KEN</td>
+                        <td>14:23.45</td>
+                        <td>Mid-Pack, Cover Moves, Late Kick</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Tsegay</td>
+                        <td>ETH</td>
+                        <td>14:24.78</td>
+                        <td>Fast Start, Surge, Early Kick</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Gidey</td>
+                        <td>ETH</td>
+                        <td>14:26.33</td>
+                        <td>Conservative, Steady, Maintain</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="race-analysis">
+                <h3>Race Analysis</h3>
+                <p>Your late kick strategy helped you gain a position in the final lap. Consider a stronger mid-race surge next time to challenge for the win.</p>
+            </div>
+            
+            <div class="controls">
+                <button id="replay-race">Replay Race</button>
+                <button id="new-race">New Race</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state management
+        const gameState = {
+            currentScreen: 'setup',
+            runnersPlaced: 0,
+            currentPhase: 0,
+            selectedStrategies: [],
+            racePositions: [3, 1, 4, 2],
+            raceInterval: null,
+            currentLap: 1
+        };
+
+        // DOM Elements
+        const screens = {
+            setup: document.getElementById('setup-screen'),
+            strategy: document.getElementById('strategy-screen'),
+            race: document.getElementById('race-screen'),
+            results: document.getElementById('results-screen')
+        };
+
+        // Navigation functions
+        function showScreen(screenId) {
+            Object.values(screens).forEach(screen => {
+                screen.classList.remove('active');
+            });
+            screens[screenId].classList.add('active');
+            gameState.currentScreen = screenId;
+        }
+
+        // Setup screen functionality
+        const runnerItems = document.querySelectorAll('.runner-item');
+        const trackContainer = document.querySelector('.track-container');
+        
+        runnerItems.forEach(runner => {
+            runner.addEventListener('dragstart', handleDragStart);
+        });
+
+        trackContainer.addEventListener('dragover', handleDragOver);
+        trackContainer.addEventListener('drop', handleDrop);
+
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.dataset.runner);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const runnerId = e.dataTransfer.getData('text/plain');
+            const rect = trackContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (document.querySelector(`.runner[data-runner="${runnerId}"]`)) return;
+            
+            const runner = document.createElement('div');
+            runner.className = 'runner';
+            runner.dataset.runner = runnerId;
+            runner.textContent = runnerId;
+            runner.style.left = `${x}px`;
+            runner.style.top = `${y}px`;
+            
+            // Assign colors based on runner ID
+            const colors = ['#FF69B4', '#008000', '#FFD700', '#1E90FF'];
+            runner.style.backgroundColor = colors[runnerId - 1];
+            
+            trackContainer.querySelector('.track').appendChild(runner);
+            gameState.runnersPlaced++;
+            
+            // Make runners draggable after placement
+            runner.setAttribute('draggable', 'true');
+            runner.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', e.target.dataset.runner);
+            });
+        }
+
+        // Strategy screen functionality
+        const strategyPhases = document.querySelectorAll('.strategy-phase');
+        const nextPhaseBtn = document.getElementById('next-phase');
+        const prevPhaseBtn = document.getElementById('prev-phase');
+        const strategyProgress = document.getElementById('strategy-progress');
+        
+        function updateStrategyUI() {
+            strategyPhases.forEach((phase, index) => {
+                phase.classList.toggle('active', index === gameState.currentPhase);
+            });
+            
+            const progress = ((gameState.currentPhase + 1) / strategyPhases.length) * 100;
+            strategyProgress.style.width = `${progress}%`;
+            
+            prevPhaseBtn.disabled = gameState.currentPhase === 0;
+            nextPhaseBtn.textContent = gameState.currentPhase === strategyPhases.length - 1 ? 'Finish' : 'Next Phase';
+        }
+
+        document.querySelectorAll('.strategy-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove selection from other cards in this phase
+                this.parentElement.querySelectorAll('.strategy-card').forEach(c => {
+                    c.style.border = '1px solid #ddd';
+                });
+                
+                // Highlight selected card
+                this.style.border = '2px solid #333';
+                gameState.selectedStrategies[gameState.currentPhase] = this.dataset.strategy;
+            });
+        });
+
+        nextPhaseBtn.addEventListener('click', function() {
+            if (gameState.currentPhase < strategyPhases.length - 1) {
+                gameState.currentPhase++;
+                updateStrategyUI();
+            } else {
+                startRace();
+            }
+        });
+
+        prevPhaseBtn.addEventListener('click', function() {
+            if (gameState.currentPhase > 0) {
+                gameState.currentPhase--;
+                updateStrategyUI();
+            }
+        });
+
+        // Race simulation functionality
+        function startRace() {
+            showScreen('race');
+            gameState.currentLap = 1;
+            document.getElementById('current-lap').textContent = gameState.currentLap;
+            
+            // Reset runner positions
+            document.querySelectorAll('.runner').forEach((runner, index) => {
+                runner.style.top = `${45 + index * 5}%`;
+                runner.style.left = `${30 + index * 5}%`;
+            });
+            
+            // Start race simulation
+            clearInterval(gameState.raceInterval);
+            gameState.raceInterval = setInterval(updateRace, 1000);
+        }
+
+        function updateRace() {
+            gameState.currentLap++;
+            document.getElementById('current-lap').textContent = gameState.currentLap;
+            
+            // Update positions based on strategy
+            const runners = document.querySelectorAll('.runner');
+            runners.forEach((runner, index) => {
+                const currentLeft = parseFloat(runner.style.left);
+                const newPosition = currentLeft + (5 + Math.random() * 3);
+                runner.style.left = `${newPosition}%`;
+                
+                // Wrap around the track
+                if (newPosition > 100) {
+                    runner.style.left = `${newPosition - 100}%`;
+                }
+            });
+            
+            // Update leader info
+            const positions = Array.from(runners).map(runner => parseFloat(runner.style.left));
+            const leaderIndex = positions.indexOf(Math.max(...positions));
+            const names = ['Hassan', 'Tsegay', 'Kipyegon', 'Gidey'];
+            document.getElementById('current-leader').textContent = names[leaderIndex];
+            document.getElementById('player-position').textContent = 
+                gameState.racePositions[2] + getOrdinalSuffix(gameState.racePositions[2]);
+            
+            // End race after 12.5 laps
+            if (gameState.currentLap >= 12) {
+                clearInterval(gameState.raceInterval);
+                setTimeout(() => {
+                    showScreen('results');
+                }, 1500);
+            }
+        }
+
+        function getOrdinalSuffix(number) {
+            if (number > 3 && number < 21) return 'th';
+            switch (number % 10) {
+                case 1: return 'st';
+                case 2: return 'nd';
+                case 3: return 'rd';
+                default: return 'th';
+            }
+        }
+
+        // Results screen functionality
+        document.getElementById('replay-race').addEventListener('click', () => {
+            showScreen('race');
+            startRace();
+        });
+
+        document.getElementById('new-race').addEventListener('click', () => {
+            // Reset game state
+            gameState.runnersPlaced = 0;
+            gameState.currentPhase = 0;
+            gameState.selectedStrategies = [];
+            gameState.racePositions = [3, 1, 4, 2];
+            gameState.currentLap = 1;
+            
+            // Clear track
+            document.querySelectorAll('.runner').forEach(runner => {
+                if (!runner.classList.contains('runner-item')) runner.remove();
+            });
+            
+            // Reset strategy selections
+            document.querySelectorAll('.strategy-card').forEach(card => {
+                card.style.border = '1px solid #ddd';
+            });
+            
+            showScreen('setup');
+        });
+
+        // Navigation event listeners
+        document.getElementById('next-to-strategy').addEventListener('click', () => {
+            if (gameState.runnersPlaced >= 4) {
+                showScreen('strategy');
+                updateStrategyUI();
+            } else {
+                alert('Please place all 4 runners on the track');
+            }
+        });
+
+        document.getElementById('start-race').addEventListener('click', startRace);
+        document.getElementById('view-results').addEventListener('click', () => {
+            clearInterval(gameState.raceInterval);
+            showScreen('results');
+        });
+        document.getElementById('pause-race').addEventListener('click', function() {
+            if (this.textContent === 'Pause') {
+                clearInterval(gameState.raceInterval);
+                this.textContent = 'Resume';
+            } else {
+                gameState.raceInterval = setInterval(updateRace, 1000);
+                this.textContent = 'Pause';
+            }
+        });
+
+        // Initialize game
+        updateStrategyUI();
+    </script>
+</body>
+</html>

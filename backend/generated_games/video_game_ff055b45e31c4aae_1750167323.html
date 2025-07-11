@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Psychological Sigh Breathing Exercise</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: #f8f8f8;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 30px;
+            margin-top: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #222222;
+            font-size: 28px;
+        }
+
+        h2 {
+            margin: 20px 0 15px;
+            font-size: 22px;
+            color: #222222;
+        }
+
+        p {
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .breath-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 30px auto;
+        }
+
+        .circle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            transition: transform 0.5s ease;
+        }
+
+        .circle-inner {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #444444;
+        }
+
+        .arrow {
+            position: absolute;
+            font-size: 40px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .inhale-arrow {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .exhale-arrow {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        button {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #333333;
+        }
+
+        button:hover {
+            background-color: #d0d0d0;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background-color: #4a4a4a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #3a3a3a;
+        }
+
+        .timer {
+            font-size: 48px;
+            text-align: center;
+            margin: 20px 0;
+            font-weight: 700;
+            color: #222222;
+        }
+
+        .instruction {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 600;
+            min-height: 60px;
+            margin: 20px 0;
+            color: #222222;
+        }
+
+        .feedback {
+            text-align: center;
+            min-height: 30px;
+            margin: 15px 0;
+            font-weight: 500;
+            color: #d35400;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin: 30px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #4a4a4a;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .session-info {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e8e8e8;
+            border-radius: 8px;
+        }
+
+        .tip-box {
+            background-color: #e8e8e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .level-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #d0d0d0;
+        }
+
+        .level-dot.active {
+            background-color: #4a4a4a;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .breath-container {
+                width: 250px;
+                height: 250px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .timer {
+                font-size: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Psychological Sigh Breathing</h1>
+        
+        <!-- Introduction View -->
+        <div id="intro-view" class="view active">
+            <p>This technique helps calm your nervous system quickly. Follow the breathing pattern to reduce stress and anxiety.</p>
+            <div class="tip-box">
+                <h2>How to Practice:</h2>
+                <ol>
+                    <li>Inhale through nose to 60-70% capacity</li>
+                    <li>Take a second quick inhale to fill lungs</li>
+                    <li>Exhale slowly through mouth (longer than inhale)</li>
+                </ol>
+            </div>
+            <div class="controls">
+                <button id="start-btn" class="btn-primary">Begin Practice</button>
+            </div>
+        </div>
+        
+        <!-- Practice View -->
+        <div id="practice-view" class="view">
+            <div class="level-indicator">
+                <div class="level-dot" data-level="1"></div>
+                <div class="level-dot" data-level="2"></div>
+                <div class="level-dot" data-level="3"></div>
+            </div>
+            
+            <div class="timer" id="session-timer">05:00</div>
+            
+            <div class="breath-container">
+                <div class="circle" id="breath-circle">
+                    <div class="circle-inner" id="breath-text">Ready</div>
+                </div>
+                <div class="arrow inhale-arrow">↑</div>
+                <div class="arrow exhale-arrow">↓</div>
+            </div>
+            
+            <div class="instruction" id="instruction">Press Start to begin breathing exercise</div>
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <div class="tip-box" id="relaxation-tip">
+                <strong>Relaxation Tip:</strong> Release tension in your jaw and face muscles during exhale
+            </div>
+            
+            <div class="controls">
+                <button id="pause-btn">Pause</button>
+                <button id="reset-btn">Reset</button>
+            </div>
+        </div>
+        
+        <!-- Completion View -->
+        <div id="complete-view" class="view">
+            <h2>Session Complete!</h2>
+            <div class="session-info">
+                <div>Duration: <span id="session-duration">5:00</span></div>
+                <div>Breath Cycles: <span id="cycle-count">0</span></div>
+            </div>
+            <div class="feedback" id="performance-feedback"></div>
+            
+            <div class="tip-box">
+                <h2>Benefits of Psychological Sigh</h2>
+                <p>This technique rapidly reduces stress by resetting your autonomic nervous system. Practice regularly for best results.</p>
+            </div>
+            
+            <div class="controls">
+                <button id="restart-btn" class="btn-primary">Practice Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const state = {
+            currentView: 'intro',
+            isPlaying: false,
+            sessionDuration: 300, // 5 minutes in seconds
+            timeRemaining: 300,
+            currentLevel: 1,
+            cycleCount: 0,
+            breathPhase: 0, // 0: ready, 1: first inhale, 2: second inhale, 3: exhale
+            timerInterval: null,
+            breathInterval: null,
+            lastExhaleTime: 0,
+            feedbackMessages: []
+        };
+
+        // DOM elements
+        const views = {
+            intro: document.getElementById('intro-view'),
+            practice: document.getElementById('practice-view'),
+            complete: document.getElementById('complete-view')
+        };
+
+        const elements = {
+            sessionTimer: document.getElementById('session-timer'),
+            breathCircle: document.getElementById('breath-circle'),
+            breathText: document.getElementById('breath-text'),
+            instruction: document.getElementById('instruction'),
+            feedback: document.getElementById('feedback'),
+            progressBar: document.getElementById('progress-bar'),
+            relaxationTip: document.getElementById('relaxation-tip'),
+            cycleCount: document.getElementById('cycle-count'),
+            sessionDuration: document.getElementById('session-duration'),
+            performanceFeedback: document.getElementById('performance-feedback'),
+            levelDots: document.querySelectorAll('.level-dot')
+        };
+
+        // Level configurations
+        const levels = {
+            1: { inhale1: 2, inhale2: 1, exhale: 4 },
+            2: { inhale1: 3, inhale2: 1, exhale: 6 },
+            3: { inhale1: 4, inhale2: 1, exhale: 8 }
+        };
+
+        // Initialize game
+        function init() {
+            // Set up event listeners
+            document.getElementById('start-btn').addEventListener('click', startPractice);
+            document.getElementById('pause-btn').addEventListener('click', togglePause);
+            document.getElementById('reset-btn').addEventListener('click', resetPractice);
+            document.getElementById('restart-btn').addEventListener('click', restartPractice);
+            
+            // Initialize level indicators
+            updateLevelIndicator();
+        }
+
+        // Switch views
+        function showView(viewName) {
+            Object.values(views).forEach(view => view.classList.remove('active'));
+            views[viewName].classList.add('active');
+            state.currentView = viewName;
+        }
+
+        // Start practice session
+        function startPractice() {
+            showView('practice');
+            state.isPlaying = true;
+            state.timeRemaining = state.sessionDuration;
+            state.cycleCount = 0;
+            state.feedbackMessages = [];
+            
+            updateTimerDisplay();
+            startBreathCycle();
+            startSessionTimer();
+            
+            // Update UI
+            document.getElementById('pause-btn').textContent = 'Pause';
+            elements.feedback.textContent = '';
+        }
+
+        // Start breath cycle
+        function startBreathCycle() {
+            clearInterval(state.breathInterval);
+            state.breathPhase = 0;
+            
+            // Start the breathing cycle
+            nextBreathPhase();
+        }
+
+        // Move to next breath phase
+        function nextBreathPhase() {
+            const level = levels[state.currentLevel];
+            let duration = 0;
+            let text = '';
+            let arrow = '';
+            
+            state.breathPhase++;
+            if (state.breathPhase > 3) {
+                state.breathPhase = 1;
+                state.cycleCount++;
+                state.lastExhaleTime = Date.now();
+            }
+            
+            switch(state.breathPhase) {
+                case 1: // First inhale
+                    duration = level.inhale1 * 1000;
+                    text = 'Inhale (1)';
+                    arrow = 'inhale';
+                    elements.instruction.textContent = 'Inhale through nose to 60-70% capacity';
+                    break;
+                case 2: // Second inhale
+                    duration = level.inhale2 * 1000;
+                    text = 'Inhale (2)';
+                    arrow = 'inhale';
+                    elements.instruction.textContent = 'Take second inhale to fill lungs';
+                    break;
+                case 3: // Exhale
+                    duration = level.exhale * 1000;
+                    text = 'Exhale';
+                    arrow = 'exhale';
+                    elements.instruction.textContent = 'Exhale slowly through mouth';
+                    checkExhaleQuality();
+                    break;
+            }
+            
+            // Update UI
+            elements.breathText.textContent = text;
+            animateBreath(arrow);
+            
+            // Schedule next phase
+            if (state.isPlaying) {
+                state.breathInterval = setTimeout(nextBreathPhase, duration);
+            }
+        }
+
+        // Animate breath visualization
+        function animateBreath(type) {
+            // Reset animations
+            elements.breathCircle.style.transform = 'scale(1)';
+            document.querySelector('.inhale-arrow').style.opacity = '0';
+            document.querySelector('.exhale-arrow').style.opacity = '0';
+            
+            if (type === 'inhale') {
+                // Animate inhale
+                elements.breathCircle.style.transform = 'scale(1.6)';
+                document.querySelector('.inhale-arrow').style.opacity = '1';
+            } else if (type === 'exhale') {
+                // Animate exhale
+                elements.breathCircle.style.transform = 'scale(1)';
+                document.querySelector('.exhale-arrow').style.opacity = '1';
+            }
+        }
+
+        // Check exhale quality
+        function checkExhaleQuality() {
+            if (state.lastExhaleTime === 0) return;
+            
+            const level = levels[state.currentLevel];
+            const expectedExhaleTime = level.exhale * 1000;
+            const actualExhaleTime = Date.now() - state.lastExhaleTime;
+            const timeDifference = Math.abs(actualExhaleTime - expectedExhaleTime);
+            
+            if (timeDifference > 1500) {
+                const message = actualExhaleTime < expectedExhaleTime ? 
+                    'Exhale was too quick. Try to slow down.' : 
+                    'Exhale was too slow. Try to maintain rhythm.';
+                
+                if (!state.feedbackMessages.includes(message)) {
+                    state.feedbackMessages.push(message);
+                    elements.feedback.textContent = message;
+                }
+            }
+        }
+
+        // Start session timer
+        function startSessionTimer() {
+            clearInterval(state.timerInterval);
+            
+            state.timerInterval = setInterval(() => {
+                if (!state.isPlaying) return;
+                
+                state.timeRemaining--;
+                updateTimerDisplay();
+                updateProgressBar();
+                
+                // Check if session completed
+                if (state.timeRemaining <= 0) {
+                    clearInterval(state.timerInterval);
+                    clearInterval(state.breathInterval);
+                    sessionComplete();
+                }
+                
+                // Level progression
+                if (state.timeRemaining === 240 && state.currentLevel < 3) {
+                    state.currentLevel = 2;
+                    updateLevelIndicator();
+                } else if (state.timeRemaining === 120 && state.currentLevel < 3) {
+                    state.currentLevel = 3;
+                    updateLevelIndicator();
+                }
+            }, 1000);
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            const minutes = Math.floor(state.timeRemaining / 60);
+            const seconds = state.timeRemaining % 60;
+            elements.sessionTimer.textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Update progress bar
+        function updateProgressBar() {
+            const progress = ((state.sessionDuration - state.timeRemaining) / state.sessionDuration) * 100;
+            elements.progressBar.style.width = `${progress}%`;
+        }
+
+        // Update level indicator
+        function updateLevelIndicator() {
+            elements.levelDots.forEach(dot => {
+                dot.classList.toggle('active', 
+                    parseInt(dot.dataset.level) === state.currentLevel);
+            });
+        }
+
+        // Toggle pause state
+        function togglePause() {
+            state.isPlaying = !state.isPlaying;
+            document.getElementById('pause-btn').textContent = state.isPlaying ? 'Pause' : 'Resume';
+            
+            if (state.isPlaying) {
+                startSessionTimer();
+                nextBreathPhase();
+            } else {
+                clearInterval(state.timerInterval);
+                clearTimeout(state.breathInterval);
+            }
+        }
+
+        // Reset practice session
+        function resetPractice() {
+            clearInterval(state.timerInterval);
+            clearTimeout(state.breathInterval);
+            startPractice();
+        }
+
+        // Session complete
+        function sessionComplete() {
+            showView('complete');
+            elements.cycleCount.textContent = state.cycleCount;
+            elements.sessionDuration.textContent = '5:00';
+            
+            // Performance feedback
+            if (state.feedbackMessages.length > 0) {
+                elements.performanceFeedback.textContent = 
+                    `Areas to improve: ${state.feedbackMessages.join(', ')}`;
+            } else {
+                elements.performanceFeedback.textContent = 'Excellent breathing control!';
+            }
+            
+            // Update relaxation tip
+            const tips = [
+                "Gently roll your shoulders during exhales",
+                "Let your tongue rest softly in your mouth",
+                "Imagine tension leaving your body with each exhale",
+                "Softly close your eyes to enhance focus"
+            ];
+            elements.relaxationTip.innerHTML = 
+                `<strong>Relaxation Tip:</strong> ${tips[Math.floor(Math.random() * tips.length)]}`;
+        }
+
+        // Restart practice
+        function restartPractice() {
+            state.currentLevel = 1;
+            startPractice();
+        }
+
+        // Initialize when page loads
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

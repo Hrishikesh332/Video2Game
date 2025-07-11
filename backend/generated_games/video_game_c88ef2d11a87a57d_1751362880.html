@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vector Database Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .section {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #444444;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .comparison {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .db-model {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .db-model h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #555555;
+        }
+
+        .canvas-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        canvas {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: white;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            background-color: #e0e0e0;
+            color: #333333;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background-color: #d0d0d0;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .vector-display {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+        }
+
+        .embedding-models {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .model-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .model-card h4 {
+            margin-bottom: 10px;
+            color: #555555;
+        }
+
+        .similarity-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .image-pair {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .similarity-score {
+            font-size: 1.4rem;
+            font-weight: bold;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+
+        .progress-bar {
+            flex-grow: 1;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 0 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #555555;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .level-indicator {
+            font-weight: bold;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .game-section {
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .instructions {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-style: italic;
+        }
+
+        .score-display {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .neighbors-demo {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .neighbor-item {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: all 0.3s;
+        }
+
+        .neighbor-item.highlight {
+            border-color: #555555;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .comparison {
+                flex-direction: column;
+            }
+            
+            .similarity-container {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            canvas {
+                width: 100%;
+                max-width: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Vector Database Explorer</h1>
+        <p>Understand how vector databases bridge the semantic gap</p>
+    </header>
+
+    <div class="progress-container">
+        <div class="level-indicator">Level: <span id="level">1</span>/3</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div>Score: <span id="score">0</span></div>
+    </div>
+
+    <div class="container">
+        <!-- Level 1: Drawing and Conversion -->
+        <section id="level1" class="game-section active">
+            <div class="section">
+                <h2>Understanding the Semantic Gap</h2>
+                <p>Humans understand images as concepts (e.g., "cat"), but computers only see pixels. Vector databases bridge this gap by converting data into numerical vectors that capture semantic meaning.</p>
+                
+                <div class="comparison">
+                    <div class="db-model">
+                        <h3>Relational Database</h3>
+                        <p>Stores structured data in tables with fixed schemas. Good for exact matches but poor for unstructured data like images.</p>
+                        <div class="vector-display">
+                            Image Table<br>
+                            | ID | Filename   | Size  |<br>
+                            |----|------------|-------|<br>
+                            | 1  | cat.jpg    | 2.4MB |<br>
+                            | 2  | dog.jpg    | 3.1MB |
+                        </div>
+                    </div>
+                    
+                    <div class="db-model">
+                        <h3>Vector Database</h3>
+                        <p>Stores vector embeddings that capture semantic meaning. Enables similarity searches on unstructured data.</p>
+                        <div class="vector-display">
+                            Embedding Vectors:<br>
+                            cat.jpg: [0.24, -0.12, 0.87, ...]<br>
+                            dog.jpg: [0.31, 0.05, 0.92, ...]
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Create Your Own Vector Embedding</h2>
+                <div class="instructions">
+                    Draw an image below and convert it to a vector embedding that captures its semantic meaning.
+                </div>
+                
+                <div class="canvas-container">
+                    <canvas id="drawingCanvas" width="400" height="300"></canvas>
+                    <div class="controls">
+                        <button id="clearBtn">Clear Canvas</button>
+                        <button id="convertBtn">Convert to Vector</button>
+                    </div>
+                </div>
+                
+                <div id="vectorOutput" class="vector-display">
+                    Your vector will appear here...
+                </div>
+            </div>
+        </section>
+
+        <!-- Level 2: Comparison -->
+        <section id="level2" class="game-section">
+            <div class="section">
+                <h2>Compare Vector Embeddings</h2>
+                <p>Vector databases measure similarity between embeddings. Images with similar semantic content will have vectors that are mathematically close.</p>
+                
+                <div class="similarity-container">
+                    <div class="image-pair">
+                        <canvas id="imageA" width="200" height="200"></canvas>
+                        <div id="vectorA" class="vector-display">Vector A</div>
+                    </div>
+                    
+                    <div class="similarity-score">
+                        Similarity: <span id="similarityValue">0.00</span>
+                    </div>
+                    
+                    <div class="image-pair">
+                        <canvas id="imageB" width="200" height="200"></canvas>
+                        <div id="vectorB" class="vector-display">Vector B</div>
+                    </div>
+                </div>
+                
+                <div class="controls" style="justify-content: center; margin-top: 20px;">
+                    <button id="compareBtn">Compare Vectors</button>
+                    <button id="randomBtn">Generate Random Images</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Level 3: Search and RAG -->
+        <section id="level3" class="game-section">
+            <div class="section">
+                <h2>Vector Search & Retrieval Augmented Generation (RAG)</h2>
+                <p>Vector databases use Approximate Nearest Neighbor (ANN) algorithms for efficient similarity searches. This enables RAG systems to retrieve relevant information for AI models.</p>
+                
+                <div class="canvas-container">
+                    <canvas id="queryCanvas" width="300" height="300"></canvas>
+                    <div class="controls">
+                        <button id="searchBtn">Find Similar Images</button>
+                    </div>
+                </div>
+                
+                <h3 style="text-align: center; margin: 20px 0;">Nearest Neighbors in Vector Space</h3>
+                <div class="neighbors-demo" id="neighborsContainer">
+                    <!-- Neighbor items will be generated here -->
+                </div>
+                
+                <div class="score-display">
+                    RAG System Score: <span id="ragScore">0</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Embedding Models</h2>
+                <div class="embedding-models">
+                    <div class="model-card">
+                        <h4>CLIP (Images)</h4>
+                        <p>Converts images and text into a shared vector space. Enables cross-modal search.</p>
+                    </div>
+                    <div class="model-card">
+                        <h4>GloVe (Text)</h4>
+                        <p>Creates word embeddings based on global word co-occurrence statistics.</p>
+                    </div>
+                    <div class="model-card">
+                        <h4>Wav2Vec (Audio)</h4>
+                        <p>Converts speech audio into vector representations for semantic understanding.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="controls" style="justify-content: center; margin-top: 30px;">
+        <button id="prevBtn">Previous</button>
+        <button id="nextBtn">Next Level</button>
+        <button id="restartBtn">Restart Game</button>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentLevel: 1,
+            score: 0,
+            maxLevel: 3,
+            vectors: {
+                drawing: null,
+                imageA: null,
+                imageB: null,
+                query: null
+            }
+        };
+
+        // DOM Elements
+        const levelElements = [
+            document.getElementById('level1'),
+            document.getElementById('level2'),
+            document.getElementById('level3')
+        ];
+        
+        const levelDisplay = document.getElementById('level');
+        const scoreDisplay = document.getElementById('score');
+        const progressFill = document.getElementById('progress-fill');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const restartBtn = document.getElementById('restartBtn');
+
+        // Canvas elements
+        const drawingCanvas = document.getElementById('drawingCanvas');
+        const imageACanvas = document.getElementById('imageA');
+        const imageBCanvas = document.getElementById('imageB');
+        const queryCanvas = document.getElementById('queryCanvas');
+
+        // Vector displays
+        const vectorOutput = document.getElementById('vectorOutput');
+        const vectorA = document.getElementById('vectorA');
+        const vectorB = document.getElementById('vectorB');
+        const similarityValue = document.getElementById('similarityValue');
+        const ragScore = document.getElementById('ragScore');
+        const neighborsContainer = document.getElementById('neighborsContainer');
+
+        // Initialize canvases
+        function initCanvas(canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+            
+            function startDrawing(e) {
+                isDrawing = true;
+                [lastX, lastY] = getCoordinates(e);
+            }
+            
+            function draw(e) {
+                if (!isDrawing) return;
+                const [x, y] = getCoordinates(e);
+                
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                
+                [lastX, lastY] = [x, y];
+            }
+            
+            function stopDrawing() {
+                isDrawing = false;
+            }
+            
+            function getCoordinates(e) {
+                if (e.type.includes('touch')) {
+                    const rect = canvas.getBoundingClientRect();
+                    return [
+                        e.touches[0].clientX - rect.left,
+                        e.touches[0].clientY - rect.top
+                    ];
+                }
+                return [e.offsetX, e.offsetY];
+            }
+            
+            // Mouse events
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Touch events
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('touchend', stopDrawing);
+            
+            return ctx;
+        }
+
+        // Initialize all canvases
+        const drawingCtx = initCanvas(drawingCanvas);
+        const imageACtx = initCanvas(imageACanvas);
+        const imageBCtx = initCanvas(imageBCanvas);
+        const queryCtx = initCanvas(queryCanvas);
+
+        // Generate a random vector
+        function generateVector() {
+            const vector = [];
+            for (let i = 0; i < 10; i++) {
+                vector.push(parseFloat((Math.random() * 2 - 1).toFixed(3)));
+            }
+            return vector;
+        }
+
+        // Format vector for display
+        function formatVector(vector) {
+            return '[' + vector.map(num => num.toFixed(3)).join(', ') + ']';
+        }
+
+        // Calculate cosine similarity
+        function cosineSimilarity(vecA, vecB) {
+            if (!vecA || !vecB || vecA.length !== vecB.length) return 0;
+            
+            let dotProduct = 0;
+            let magA = 0;
+            let magB = 0;
+            
+            for (let i = 0; i < vecA.length; i++) {
+                dotProduct += vecA[i] * vecB[i];
+                magA += vecA[i] * vecA[i];
+                magB += vecB[i] * vecB[i];
+            }
+            
+            magA = Math.sqrt(magA);
+            magB = Math.sqrt(magB);
+            
+            if (magA === 0 || magB === 0) return 0;
+            
+            return parseFloat((dotProduct / (magA * magB)).toFixed(3));
+        }
+
+        // Update game UI
+        function updateGameUI() {
+            // Update level display
+            levelDisplay.textContent = gameState.currentLevel;
+            
+            // Update progress bar
+            const progress = (gameState.currentLevel - 1) / (gameState.maxLevel - 1) * 100;
+            progressFill.style.width = `${progress}%`;
+            
+            // Update score
+            scoreDisplay.textContent = gameState.score;
+            
+            // Update button states
+            prevBtn.disabled = gameState.currentLevel === 1;
+            nextBtn.textContent = gameState.currentLevel === gameState.maxLevel ? 
+                'Finish Game' : 'Next Level';
+            
+            // Show current level
+            levelElements.forEach((el, index) => {
+                el.classList.toggle('active', index === gameState.currentLevel - 1);
+            });
+        }
+
+        // Initialize neighbor items
+        function initNeighbors() {
+            neighborsContainer.innerHTML = '';
+            const symbols = ['🐱', '🐶', '🚗', '🏠', '🌳', '🍎', '📱', '📚'];
+            
+            for (let i = 0; i < 8; i++) {
+                const neighbor = document.createElement('div');
+                neighbor.className = 'neighbor-item';
+                neighbor.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                neighborsContainer.appendChild(neighbor);
+            }
+        }
+
+        // Highlight nearest neighbors
+        function highlightNeighbors() {
+            const neighbors = document.querySelectorAll('.neighbor-item');
+            neighbors.forEach(neighbor => neighbor.classList.remove('highlight'));
+            
+            // Randomly highlight 1-3 neighbors
+            const count = Math.floor(Math.random() * 3) + 1;
+            for (let i = 0; i < count; i++) {
+                const randomIndex = Math.floor(Math.random() * neighbors.length);
+                neighbors[randomIndex].classList.add('highlight');
+            }
+            
+            // Update RAG score
+            gameState.score += 25;
+            ragScore.textContent = gameState.score;
+        }
+
+        // Event Listeners
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            drawingCtx.fillStyle = 'white';
+            drawingCtx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            vectorOutput.textContent = 'Your vector will appear here...';
+        });
+
+        document.getElementById('convertBtn').addEventListener('click', () => {
+            gameState.vectors.drawing = generateVector();
+            vectorOutput.textContent = formatVector(gameState.vectors.drawing);
+            gameState.score += 10;
+            updateGameUI();
+        });
+
+        document.getElementById('randomBtn').addEventListener('click', () => {
+            // Clear canvases
+            imageACtx.fillStyle = 'white';
+            imageACtx.fillRect(0, 0, imageACanvas.width, imageACanvas.height);
+            imageBCtx.fillStyle = 'white';
+            imageBCtx.fillRect(0, 0, imageBCanvas.width, imageBCanvas.height);
+            
+            // Draw random shapes
+            drawRandomShape(imageACtx, imageACanvas);
+            drawRandomShape(imageBCtx, imageBCanvas);
+            
+            // Generate vectors
+            gameState.vectors.imageA = generateVector();
+            gameState.vectors.imageB = generateVector();
+            
+            vectorA.textContent = formatVector(gameState.vectors.imageA);
+            vectorB.textContent = formatVector(gameState.vectors.imageB);
+    </script>
+</body>
+</html>

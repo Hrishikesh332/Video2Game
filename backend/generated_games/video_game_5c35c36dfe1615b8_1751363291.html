@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Dance Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .btn {
+            background-color: #444;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            background-color: #666;
+        }
+        
+        .btn-primary {
+            background-color: #2196F3;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0b7dda;
+        }
+        
+        .dance-moves {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .move-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .move-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .move-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .move-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .move-desc {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .practice-area {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .dance-animation {
+            width: 150px;
+            height: 150px;
+            margin: 20px auto;
+            background-color: #eee;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+        
+        .feedback {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .good {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        
+        .bad {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+        
+        .timeline {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            min-height: 100px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .timeline-slot {
+            width: 80px;
+            height: 80px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .choreo-moves {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .choreo-move {
+            width: 70px;
+            height: 70px;
+            background-color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: move;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: #2196F3;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+            font-size: 1.1rem;
+        }
+        
+        .instructions {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .level-indicator {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 600px) {
+            .dance-moves {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+            
+            .timeline-slot, .choreo-move {
+                width: 60px;
+                height: 60px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Interactive Dance Studio</h1>
+            <p class="description">Learn dance moves, practice your skills, and create choreography</p>
+        </header>
+        
+        <div id="home-screen" class="screen active">
+            <div class="instructions">
+                <p>Welcome to the Interactive Dance Studio! Complete three levels to become a dance master:</p>
+                <ol>
+                    <li>Learn dance moves from our library</li>
+                    <li>Practice moves with rhythm timing</li>
+                    <li>Create your own choreography sequence</li>
+                </ol>
+            </div>
+            <div style="text-align: center; margin-top: 30px;">
+                <button id="start-btn" class="btn btn-primary">Start Dancing</button>
+            </div>
+        </div>
+        
+        <div id="level1-screen" class="screen">
+            <div class="level-indicator">Level 1: Dance Move Library</div>
+            <p>Select dance moves to learn their steps and techniques:</p>
+            
+            <div class="dance-moves">
+                <div class="move-card" data-move="moonwalk">
+                    <div class="move-icon">👣</div>
+                    <div class="move-name">Moonwalk</div>
+                    <div class="move-desc">Slide backward illusion</div>
+                </div>
+                <div class="move-card" data-move="spin">
+                    <div class="move-icon">🌀</div>
+                    <div class="move-name">Spin</div>
+                    <div class="move-desc">Rotate on the ball of your foot</div>
+                </div>
+                <div class="move-card" data-move="wave">
+                    <div class="move-icon">🌊</div>
+                    <div class="move-name">Wave</div>
+                    <div class="move-desc">Fluid arm movement</div>
+                </div>
+                <div class="move-card" data-move="pop">
+                    <div class="move-icon">💥</div>
+                    <div class="move-name">Pop</div>
+                    <div class="move-desc">Sharp muscle contraction</div>
+                </div>
+            </div>
+            
+            <div class="instructions" id="move-instructions">
+                <p>Select a dance move to view instructions</p>
+            </div>
+            
+            <div class="progress-container">
+                <div class="score-container">
+                    <span>Progress: <span id="progress-count">0</span>/4 moves</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress" id="level-progress"></div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="next-level1" class="btn btn-primary" disabled>Next Level</button>
+            </div>
+        </div>
+        
+        <div id="level2-screen" class="screen">
+            <div class="level-indicator">Level 2: Practice Mode</div>
+            <p>Press the button when the rhythm hits the target zone:</p>
+            
+            <div class="practice-area">
+                <div class="dance-animation" id="dance-anim">💃</div>
+                <div id="rhythm-indicator">
+                    <div style="height: 30px; width: 100%; background: #ddd; border-radius: 15px; position: relative; margin: 20px 0;">
+                        <div id="rhythm-marker" style="position: absolute; width: 20px; height: 40px; background: #2196F3; top: -5px; left: 0; border-radius: 10px;"></div>
+                        <div id="target-zone" style="position: absolute; width: 40px; height: 50px; border: 2px solid #4CAF50; top: -10px; left: 150px; border-radius: 5px;"></div>
+                    </div>
+                </div>
+                <button id="dance-btn" class="btn">Dance Now!</button>
+                <div id="feedback" class="feedback">Press the button when the marker is in the green zone</div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="score-container">
+                    <span>Score: <span id="score">0</span></span>
+                    <span>Attempts: <span id="attempts">0</span>/10</span>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="next-level2" class="btn btn-primary" disabled>Next Level</button>
+            </div>
+        </div>
+        
+        <div id="level3-screen" class="screen">
+            <div class="level-indicator">Level 3: Choreography Builder</div>
+            <p>Drag dance moves to the timeline to match the target sequence:</p>
+            
+            <div class="instructions">
+                <p>Target Sequence: <strong id="target-sequence">Moonwalk → Spin → Wave</strong></p>
+            </div>
+            
+            <div class="timeline">
+                <div class="timeline-slot" data-index="0"></div>
+                <div class="timeline-slot" data-index="1"></div>
+                <div class="timeline-slot" data-index="2"></div>
+            </div>
+            
+            <div class="choreo-moves">
+                <div class="choreo-move" draggable="true" data-move="moonwalk">👣</div>
+                <div class="choreo-move" draggable="true" data-move="spin">🌀</div>
+                <div class="choreo-move" draggable="true" data-move="wave">🌊</div>
+                <div class="choreo-move" draggable="true" data-move="pop">💥</div>
+            </div>
+            
+            <div id="choreo-feedback" class="feedback"></div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="check-choreo" class="btn">Check Sequence</button>
+                <button id="next-level3" class="btn btn-primary" disabled>Finish Game</button>
+            </div>
+        </div>
+        
+        <div id="game-over-screen" class="screen">
+            <div style="text-align: center; padding: 40px 20px;">
+                <h2>Game Completed! 🎉</h2>
+                <div class="dance-animation" style="margin: 30px auto;">💃🕺</div>
+                <p>Final Score: <span id="final-score">0</span></p>
+                <div id="high-score" style="margin: 20px 0; font-size: 1.2rem;"></div>
+                <button id="restart-btn" class="btn btn-primary">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentScreen: 'home',
+            level: 1,
+            score: 0,
+            learnedMoves: [],
+            practiceScore: 0,
+            practiceAttempts: 0,
+            targetSequence: ['moonwalk', 'spin', 'wave'],
+            playerSequence: []
+        };
+        
+        // DOM elements
+        const screens = {
+            home: document.getElementById('home-screen'),
+            level1: document.getElementById('level1-screen'),
+            level2: document.getElementById('level2-screen'),
+            level3: document.getElementById('level3-screen'),
+            gameOver: document.getElementById('game-over-screen')
+        };
+        
+        // Initialize game
+        function initGame() {
+            // Reset game state
+            gameState.level = 1;
+            gameState.score = 0;
+            gameState.learnedMoves = [];
+            gameState.practiceScore = 0;
+            gameState.practiceAttempts = 0;
+            gameState.playerSequence = [];
+            
+            // Reset UI elements
+            document.getElementById('progress-count').textContent = '0';
+            document.getElementById('level-progress').style.width = '0%';
+            document.getElementById('score').textContent = '0';
+            document.getElementById('attempts').textContent = '0';
+            document.getElementById('next-level1').disabled = true;
+            document.getElementById('next-level2').disabled = true;
+            document.getElementById('next-level3').disabled = true;
+            document.getElementById('move-instructions').innerHTML = '<p>Select a dance move to view instructions</p>';
+            
+            // Clear timeline
+            document.querySelectorAll('.timeline-slot').forEach(slot => {
+                slot.innerHTML = '';
+                slot.dataset.move = '';
+            });
+            
+            // Show home screen
+            showScreen('home');
+        }
+        
+        // Show specific screen
+        function showScreen(screenName) {
+            // Hide all screens
+            Object.values(screens).forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show requested screen
+            screens[screenName].classList.add('active');
+            gameState.currentScreen = screenName;
+        }
+        
+        // Level 1: Dance Move Library
+        function setupLevel1() {
+            const moveCards = document.querySelectorAll('.move-card');
+            const moveInstructions = document.getElementById('move-instructions');
+            const progressCount = document.getElementById('progress-count');
+            const progressBar = document.getElementById('level-progress');
+            const nextButton = document.getElementById('next-level1');
+            
+            moveCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const move = card.dataset.move;
+                    
+                    if (!gameState.learnedMoves.includes(move)) {
+                        gameState.learnedMoves.push(move);
+                        
+                        // Update progress
+                        progressCount.textContent = gameState.learnedMoves.length;
+                        const progress = (gameState.learnedMoves.length / 4) * 100;
+                        progressBar.style.width = `${progress}%`;
+                        
+                        // Enable next button when all moves are learned
+                        if (gameState.learnedMoves.length === 4) {
+                            nextButton.disabled = false;
+                            gameState.score += 100;
+                        }
+                    }
+                    
+                    // Show instructions
+                    let instructions = '';
+                    switch(move) {
+                        case 'moonwalk':
+                            instructions = `
+                                <h3>Moonwalk Instructions</h3>
+                                <ol>
+                                    <li>Start with feet together</li>
+                                    <li>Slide right foot back while lifting left heel</li>
+                                    <li>Shift weight to right foot and slide left foot back</li>
+                                    <li>Repeat with smooth gliding motion</li>
+                                </ol>
+                            `;
+                            break;
+                        case 'spin':
+                            instructions = `
+                                <h3>Spin Instructions</h3>
+                                <ol>
+                                    <li>Stand with feet shoulder-width apart</li>
+                                    <li>Raise onto the balls of your feet</li>
+                                    <li>Use arms for momentum</li>
+                                    <li>Spot a fixed point to maintain balance</li>
+                                </ol>
+                            `;
+                            break;
+                        case 'wave':
+                            instructions = `
+                                <h3>Wave Instructions</h3>
+                                <ol>
+                                    <li>Start with arm extended</li>
+                                    <li>Create sequential motion through joints</li>
+                                    <li>Flow from shoulder to fingertips</li>
+                                    <li>Reverse direction for continuous wave</li>
+                                </ol>
+                            `;
+                            break;
+                        case 'pop':
+                            instructions = `
+                                <h3>Pop Instructions</h3>
+                                <ol>
+                                    <li>Isolate muscle group</li>
+                                    <li>Contract muscle sharply</li>
+                                    <li>Release immediately</li>
+                                    <li>Combine with other movements</li>
+                                </ol>
+                            `;
+                            break;
+                    }
+                    
+                    moveInstructions.innerHTML = instructions;
+                });
+            });
+            
+            nextButton.addEventListener('click', () => {
+                showScreen('level2');
+                setupLevel2();
+            });
+        }
+        
+        // Level 2: Practice Mode
+        function setupLevel2() {
+            const danceBtn = document.getElementById('dance-btn');
+            const feedback = document.getElementById('feedback');
+            const scoreDisplay = document.getElementById('score');
+            const attemptsDisplay = document.getElementById('attempts');
+            const nextButton = document.getElementById('next-level2');
+            const rhythmMarker = document.getElementById('rhythm-marker');
+            const targetZone = document.getElementById('target-zone');
+            
+            let rhythmInterval;
+            let markerPosition = 0;
+            let direction = 1;
+            let speed = 3;
+            let isPlaying = false;
+            let targetLeft = 150;
+            let targetWidth = 40;
+            
+            function startRhythm() {
+                if (isPlaying) return;
+                
+                isPlaying = true;
+                feedback.textContent = 'Press when the marker is in the green zone!';
+                feedback.className = 'feedback';
+                
+                rhythmInterval = setInterval(() => {
+                    markerPosition += speed * direction;
+                    
+                    // Reverse direction at boundaries
+                    if (markerPosition >= 280 || markerPosition <= 0) {
+                        direction *= -1;
+                    }
+                    
+                    rhythmMarker.style.left =
+    </script>
+</body>
+</html>

@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<think>
+We are building an interactive educational app for Principal Component Analysis (PCA). The app must include:
+ - Interactive data table for input (with add/remove variable and sample features)
+ - Real-time scatter plot
+ - Scaling and centering controls
+ - Display of principal components (lines) and eigenvalues
+ - Explanation of concepts
+
+ We'll structure the app with:
+ 1. A header with title and brief intro.
+ 2. A main section with:
+    - Left panel: Controls (scaling, centering, add/remove variables, add/remove samples) and explanations.
+    - Center: Scatter plot (using canvas) and table for data input.
+    - Right panel: Display of principal components and eigenvalues, and a tutorial guide.
+
+ We'll use a grid layout for responsiveness.
+
+ Steps for PCA:
+ 1. Preprocess the data: center and scale if selected.
+ 2. Compute covariance matrix.
+ 3. Compute eigenvalues and eigenvectors (principal components).
+ 4. Project the data onto the principal components (for visualization we'll show the original data and the PC lines).
+
+ Note: We are limited to 2D for the scatter plot, but we can allow more variables and then show the first two PCs.
+
+ Implementation:
+
+ Data structure:
+   data = [
+     [var1, var2, ...], // sample 1
+     [var1, var2, ...], // sample 2
+     ...
+   ]
+
+ Variables: We start with two variables (Math and Reading) and 5 samples.
+
+ We'll create:
+   - A table that the user can edit. Each row is a sample, each column a variable.
+   - Buttons to add/remove variables and samples.
+
+ For the scatter plot, if there are more than two variables, we will show the projection on the first two principal components.
+
+ However, note: the specification says to show the scatter plot of the original variables (if two) or the first two PCs if more? 
+ But the spec says: "display a scatter plot that updates in real-time as users modify the data". And then show the principal components as dashed lines.
+
+ We'll assume that we are always showing the scatter plot in the space of the first two variables? But if we have more than two, we cannot show all in 2D. So:
+
+ Approach:
+   - If there are exactly two variables, we show the original data and the principal components (which are lines in that 2D space).
+   - If there are more than two, we project the data onto the first two principal components and show that 2D plot, and the principal components in that plot would be the axes? Actually, the principal components are directions in the original high-dimensional space. We cannot draw them as lines in 2D if the original space is higher. Instead, we can show the projection and then the PC1 and PC2 axes in the projected space? But note: the projected space is 2D and the axes are the first two PCs. So we can draw the PC1 and PC2 as the x and y axes? But that is the projected space. Alternatively, we can show the original two variables and then ignore the others? That would be confusing.
+
+ Clarification from spec: "the principal components (PC1 and PC2) on the scatter plot". So we are always showing a 2D scatter plot. How?
+
+ We have two options:
+   Option 1: Only allow two variables. Then we can draw the PC lines in that 2D space.
+   Option 2: Allow more variables, then we project the data onto the first two PCs and show that 2D plot. Then the PC1 and PC2 are the axes of that plot? But then they are not lines but axes. The spec says "dashed lines". So we can draw the PC1 and PC2 as the x and y axes? But that is the coordinate system.
+
+ However, note: the principal components are orthogonal directions. In the projected space, the data is represented by the scores on PC1 and PC2. Then the plot is in the PC1-PC2 plane. We can draw the PC1 axis (horizontal) and PC2 axis (vertical) as dashed lines? But that is the entire plane.
+
+ Alternatively, we can draw the direction of the first PC in the original 2D space if we only have two variables. So to keep it simple, we will:
+
+   - Start with two variables and allow the user to add more variables. But when there are more than two, we will show the projection on the first two PCs and then we cannot draw the PC lines as in the original space? 
+
+ Given the complexity, and the fact that the spec says "display the principal components (PC1 and PC2) on the scatter plot as dashed lines", we will restrict the visualization to two variables. But the spec also says to allow adding/removing variables. So we must handle more than two.
+
+ How about: if there are more than two variables, we show the scatter plot of the first two variables? Then the principal components are computed from the entire dataset (all variables) and then we project the first two variables? That is not correct. The principal components are linear combinations of all variables.
+
+ Alternatively, we can always show the projection on the first two PCs? Then the scatter plot is the data in the PC1-PC2 plane. Then the principal components are the axes of that plot? Then we don't need to draw lines because the axes are the PCs.
+
+ But the spec says "dashed lines". So we can draw the PC1 and PC2 as the x-axis and y-axis? That is already the coordinate system.
+
+ After rethinking: the dashed lines are meant to show the directions of the principal components in the original variable space. So if we have two variables, we can draw two lines (each being the eigenvector) in the 2D plot. If we have more than two, we cannot visualize in the original space. Therefore, we will:
+
+   - Only allow two variables for the scatter plot? But the spec says "add or remove variables". So we must allow more, but then how to visualize?
+
+ We can do:
+
+   - The scatter plot will always show two dimensions: either the first two original variables (if we have two or more) OR the first two principal components (if we have more than two variables). We can let the user choose? But the spec doesn't say.
+
+ Given the complexity and time, we will:
+
+   - Start with two variables and allow adding more. When there are more than two, we will show the projection on the first two PCs and then the PC1 and PC2 are the axes of that plot. We can draw the axes (which are the PC directions in the high-dimensional space) but we cannot draw them as lines in the original space. So we will not draw the dashed lines when there are more than two variables? Or we can draw the projection of the eigenvectors for the first two variables? That is not the entire eigenvector.
+
+ Alternatively, we can always show the scatter plot of the first two variables and then compute the PCA on the entire dataset. Then the principal components are in the full space. We can draw the projection of the first principal component in the plane of the first two variables? That is, we take the first two elements of the eigenvector and draw a line in the scatter plot. Similarly for the second. This is a common practice.
+
+ So:
+
+   - We will always show the scatter plot of the first two variables (ignoring the others for the plot? but the data points are the original two variables). Then we compute the PCA on the entire dataset (all variables). Then we take the first two eigenvectors and for each, we take the first two components (which correspond to the two variables we are plotting) and draw a line in the scatter plot.
+
+   - The line for PC1: we can draw a line that goes through the mean and in the direction of (eigenvector1[0], eigenvector1[1]). Similarly for PC2.
+
+   - This way, even if there are more than two variables, we can still show the principal components in the plane of the first two variables.
+
+ Steps for drawing the PC lines:
+
+   Let the mean of the first variable be mean0, and the second variable mean1.
+   For PC1, the direction vector is (v1, v2) (the first two components of the first eigenvector). Then we can draw a line from (mean0 - k*v1, mean1 - k*v2) to (mean0 + k*v1, mean1 + k*v2) for some scaling factor k.
+
+   Similarly for PC2.
+
+   This is a 2D projection of the principal component direction.
+
+ Implementation:
+
+   We'll use a canvas for the scatter plot.
+
+   Steps in the JavaScript:
+
+     1. Read the data from the table.
+     2. Preprocess: center and scale if the options are checked.
+     3. Compute the covariance matrix (for the entire dataset, all variables).
+     4. Compute the eigenvalues and eigenvectors of the covariance matrix.
+     5. For the scatter plot (which is always the first two variables of the original data? or the centered/scaled?):
+          - We center and scale the data for the plot only if the options are checked? But note: the PCA is computed on the centered (and optionally scaled) data.
+
+     6. Draw the scatter plot: for each sample, plot (x = value of first variable, y = value of second variable) in the canvas.
+
+     7. Draw the PC lines: 
+          - Compute the mean of the first variable and the second variable (if centered, then the mean is zero? but we still need the original mean for the uncentered data? Actually, if centered, then the mean is zero. So the line goes through (0,0) in the centered space? But our plot might be in the original space or centered? We have to be consistent.
+
+        We have two possibilities:
+
+          Option A: Always plot the centered data? Then the origin is the mean.
+
+          Option B: Plot the original data? Then we need to draw the mean point and then the direction.
+
+        We'll do:
+
+          - If centering is applied, then the data we plot is centered. Then the mean is at (0,0). Then the PC lines go through (0,0) and in the direction of the eigenvector components for the first two variables.
+
+          - If not centered, then we compute the mean of the first two variables and draw the line through that mean.
+
+        But note: the PCA is computed on the centered (and scaled) data. So the eigenvectors are in the centered space. So if we are not centering, then we are not doing PCA? Actually, PCA requires centering. So we must center the data for PCA. But the spec says "centering feature" that shifts the data so the mean is zero. So we will always center for PCA? Then the plot should show the centered data? Or we can show the original data and then the PC lines in the original space? 
+
+        How to handle:
+
+          - When the user toggles centering, we subtract the mean from the data for PCA and for the plot? Then the plot shows the centered data? Then the origin is the mean of the original data.
+
+          - Similarly, scaling: we divide by the standard deviation.
+
+        So the scatter plot will show the centered and/or scaled data? That is acceptable.
+
+        Therefore, the steps:
+
+          - Let dataMatrix be the original data (as entered).
+          - If centering is checked, subtract the mean of each variable.
+          - If scaling is checked, divide by the standard deviation of each variable.
+
+          - Then compute the covariance matrix of this transformed data.
+
+          - The scatter plot will show the transformed data (for the first two variables).
+
+          - The PC lines: we draw in the same coordinate system (the transformed data). The mean of the transformed data is (0,0) if centered. So the lines go through (0,0) and extend in the direction of the first two components of the eigenvectors.
+
+        For the line, we can set:
+
+          length = some multiple of the eigenvalue? or just a fixed length? We can set the length to be proportional to the square root of the eigenvalue (which is the standard deviation along that PC). But for simplicity, we can set a fixed length that fits the plot.
+
+        We'll set the length to 3 (since the data is standardized to have std=1 if scaled, so 3 covers 3 standard deviations). If not scaled, then we can set the length to a value that fits the data range.
+
+        How to determine the length? We can set:
+
+          k = 2 * Math.max( Math.abs(minX), Math.abs(maxX), Math.abs(minY), Math.abs(maxY) ) 
+
+        But we can also set a fixed factor, say 3.
+
+        We'll use:
+
+          let scaleFactor = 3; // for the line length
+
+          For PC1: 
+            startX = 0 - eigenvector[0][0] * scaleFactor;
+            startY = 0 - eigenvector[0][1] * scaleFactor;
+            endX = 0 + eigenvector[0][0] * scaleFactor;
+            endY = 0 + eigenvector[0][1] * scaleFactor;
+
+          Similarly for PC2.
+
+        But note: the eigenvector components are unit vectors. So the length of the line will be 2 * scaleFactor.
+
+        We'll adjust scaleFactor to fit the data.
+
+        Actually, we can set the scaleFactor to be the maximum absolute value in the data (for the two variables) multiplied by 1.5.
+
+        However, we are drawing in the canvas, so we have to map the data coordinates to pixels.
+
+        We'll set up a coordinate system in the canvas that matches the data range.
+
+        Steps for drawing:
+
+          - Find the min and max of the first variable (after transformation) and the second variable.
+          - Set the canvas coordinate system to have (0,0) at the center? and then scale to fit.
+
+        Alternatively, we can do:
+
+          We'll set the canvas to have a fixed size (say 400x400) and then compute a transformation from data coordinates to pixels.
+
+        We'll do:
+
+          padding = 40
+
+          xMin = min of variable1 (after transformation) - 1
+          xMax = max of variable1 + 1
+          yMin = min of variable2 - 1
+          yMax = max of variable2 + 1
+
+          Then map:
+            pixelX = padding + (x - xMin) * (canvas.width - 2*padding) / (xMax - xMin)
+            pixelY = canvas.height - padding - (y - yMin) * (canvas.height - 2*padding) / (yMax - yMin)
+
+        Then we draw the points and lines in pixel coordinates.
+
+        For the PC lines, we have two points in data coordinates: (0,0) and (v0, v1) for PC1? But note: the eigenvector components are for the entire dataset. We are only using the first two. And we are drawing in the space of the first two variables.
+
+        However, the eigenvector for PC1 is a vector in the space of all variables. The components we use are the ones corresponding to the first two variables. This is a projection of the eigenvector onto the first two variables? Actually, it is the first two elements of the eigenvector.
+
+        This is valid because the eigenvector is a direction in the full space, and we are taking the components for the two variables we are plotting.
+
+        But note: if we have more than two variables, the eigenvector has more components. We are ignoring the rest. This means that the line we draw is the projection of the principal component direction onto the plane of the first two variables. It is not the full direction, but it is the best we can do in 2D.
+
+        This is acceptable.
+
+ Implementation plan:
+
+   HTML structure:
+
+     <div class="container">
+        <header>
+          <h1>Principal Component Analysis (PCA) Explorer</h1>
+          <p>Interactive tool to understand PCA</p>
+        </header>
+
+        <div class="main">
+          <div class="left-panel">
+            <h2>Controls</h2>
+            <div>
+              <label><input type="checkbox" id="center"> Center data (mean=0)</label>
+            </div>
+            <div>
+              <label><input type="checkbox" id="scale"> Scale data (std=1)</label>
+            </div>
+            <div>
+              <button id="addVar">Add Variable</button>
+              <button id="removeVar">Remove Variable</button>
+            </div>
+            <div>
+              <button id="addSample">Add Sample</button>
+              <button id="removeSample">Remove Sample</button>
+            </div>
+            <div id="eigenvalues">
+              <h3>Eigenvalues</h3>
+              <p>PC1: <span id="pc1Value">0</span> (explained variance: <span id="pc1Var">0%</span>)</p>
+              <p>PC2: <span id="pc2Value">0</span> (explained variance: <span id="pc2Var">0%</span>)</p>
+            </div>
+          </div>
+
+          <div class="center-panel">
+            <canvas id="scatterPlot" width="500" height="500"></canvas>
+            <div class="table-container">
+              <table id="dataTable">
+                <thead>
+                  <tr>
+                    <th>Sample</th>
+                    <!-- Dynamically added: one th per variable -->
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Dynamically added: one row per sample, one input per cell -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="right-panel">
+            <h2>Explanation</h2>
+            <div id="explanation">
+              <p>Principal Component Analysis (PCA) is a technique for dimensionality reduction. It finds new uncorrelated variables (principal components) that capture the maximum variance in the data.</p>
+              <p>The first principal component (PC1) is the direction of maximum variance. The second principal component (PC2) is orthogonal to PC1 and captures the next highest variance.</p>
+              <p>Adjust the data and observe how the principal components change.</p>
+            </div>
+            <div id="tutorial">
+              <h3>Tutorial</h3>
+              <ol>
+                <li>Enter data in the table or modify existing values.</li>
+                <li>Toggle centering and scaling to see their effects.</li>
+                <li>Add or remove variables and samples to see how PCA adapts.</li>
+                <li>Observe the eigenvalues and explained variance.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+     </div>
+
+   JavaScript:
+
+     We'll have:
+
+        let variables = 2; // starting with two variables: 'Var1', 'Var2'
+        let samples = 5;   // starting with 5 samples
+
+        We'll initialize the table with random data? or zeros? We can do random.
+
+        Steps:
+
+          1. Build the table: 
+               - Thead: one th for 'Sample', then one th for each variable (with the variable name: 'Var1', 'Var2', ...). Also, we'll add a delete button for variables? Not in the header, but we have buttons to add/remove variables.
+
+          2. Tbody: for each sample, a row with:
+               - First cell: sample index (or delete button for the sample? we have buttons to add/remove samples, so we don't need per-row delete)
+               - Then one input for each variable.
+
+          3. We'll create a function to rebuild the table when variables or samples change.
+
+          4. We'll create a function to read the table and return the data as a 2D array.
+
+          5. We'll create a function to preprocess the data (center and scale) and then compute PCA.
+
+          6. We'll create a function to draw the scatter plot and the PC lines.
+
+          7. We'll add event listeners:
+               - For the checkboxes (center and scale): when changed, recompute and redraw.
+               - For the buttons (addVar, removeVar, addSample, removeSample): update the table and then recompute and redraw.
+               - For the table: on input, recompute and redraw.
+
+          8. PCA computation:
+
+                function computePCA(data) {
+                  // data is a 2D array: rows are samples, columns are variables.
+
+                  // Step 1: Center and scale if needed (we'll do that in a separate function)
+                  // But note: we are going to compute the covariance matrix on the centered (and scaled) data.
+
+                  // Center: subtract mean of each column
+                  // Scale: divide by std of each column
+
+                  let centeredData = centerData(data, centerChecked, scaleChecked);
+
+                  // Compute covariance matrix
+                  let cov = computeCovariance(centeredData);
+
+                  // Compute eigenvalues and eigenvectors
+                  let {eigenvalues, eigenvectors} = jacobiMethod(cov); // we'll write a simple Jacobi method for 2x2? but we have to handle more.
+
+                  // But note: we might have more than two variables. We need a general method for small matrices.
+
+                  We can use a simple iterative method for symmetric matrices. Since the covariance matrix is symmetric, we can use the Jacobi method.
+
+                  However, for simplicity and because the number of variables is small (as added by the user), we can use a numerical method.
+
+                  Alternatively, we can use the analytical method for 2x2? but we have to handle n x n.
+
+                  We'll write a function for the Jacobi method for symmetric matrices.
+
+                  But note: we are not required to be super efficient.
+
+                  Steps for Jacobi:
+
+                    We'll find the largest off-diagonal element and rotate until it's near zero.
+
+                  However, due to time, we can use a simpler approach: use the power iteration for the first two eigenvectors? But we need all.
+
+                  Alternatively, we can use a small library? But we are not allowed external libraries.
+
+                  We'll write a simple Jacobi method for n x n.
+
+                  But note: the matrix is small (n variables, typically 2 to 5). So we can do:
+
+                    function jacobi(A, maxIter=100, tolerance=1e-10) {
+                      let n = A.length;
+                      let V = identityMatrix(n);
+                      let D = A; // we'll work on a copy
+
+                      for (let iter=0; iter<maxIter; iter++) {
+                         // Find the largest off-diagonal element
+                         let p=0, q=0;
+                         let maxVal = 0;
+                         for (let i=0; i<n; i++) {
+                            for (let j=i+1; j<n; j++) {
+                               if (Math.abs(D[i][j]) > maxVal) {
+                                  maxVal = Math.abs(D[i][j]);
+                                  p = i; q = j;
+                               }
+                            }
+                         }
+                         if (maxVal < tolerance) break;
+
+                         // Compute rotation
+                         let theta = 0.5 * Math.atan2(2*D[p][q], D[q][q]-D[p][p]);
+                         let c = Math.cos(theta);
+                         let s = Math.sin(theta);
+
+                         // Update D
+                         let Dp = D[p].slice(); // copy row p
+                         let Dq = D[q].slice(); // copy row q
+
+                         for (let j=0; j<n; j++) {
+                            if (j != p && j != q) {
+                               D[p][j] = c * Dp[j] + s * Dq[j];
+                               D[j][p] = D[p][j];
+                               D[q][j] = -s * Dp[j] + c * Dq[j];
+                               D[j][q] = D[q][j];
+                            }
+                         }
+                         D[p][p] = c*c * Dp[p] + 2*c*s*Dp[q] + s*s*Dq[q];
+                         D[q][q] = s*s * Dp[p] - 2*c*s*Dp[q] + c*c*Dq[q];
+                         D[p][q] = 0;
+                         D[q][p] = 0;
+
+                         // Update V
+                         for (let i=0; i<n; i++) {
+                            let vip = V[i][p];
+                            let viq = V[i][q];
+                            V[i][p] = c * vip + s * viq;
+                            V[i][q] = -s * vip + c * viq;
+                         }
+                      }
+
+                      // Now D is diagonal, and V has the eigenvectors in columns? Actually, rows of V are the eigenvectors? 
+                      // We have: V is the matrix of eigenvectors (each column is an eigenvector)
+
+                      // But we built V as: V[i][j] is the i-th element of the j-th eigenvector? 
+                      // Actually, we started with identity and then applied rotations. So each column of V is an eigenvector.
+
+                      // We want to return the eigenvalues (diagonal of D) and the eigenvectors (columns of V).
+
+                      let eigenvalues = [];
+                      for (let i=0; i<n; i++) {
+                         eigenvalues.push(D[i][i]);
+                      }
+
+                      // Also, sort by eigenvalue descending
+                      // We'll sort eigenvalues and rearrange eigenvectors accordingly.
+
+                      let indices = Array.from({length: n}, (_, i) => i);
+                      indices.sort((a, b) => eigenvalues[b] - eigenvalues[a]);
+
+                      let sortedEigenvalues = indices.map(i => eigenvalues[i]);
+                      let sortedEigenvectors = indices.map(i => V.map(row => row[i])); // now each row is an eigenvector? 
+
+                      // But note: V is stored as V[i][j] = element at row i, column j -> the j-th eigenvector is the j-th column.
+                      // After mapping, we want: for each index i in indices, take the column i of V -> which is V.map(row => row[i])
+
+                      // So sortedEigenvectors is an array of arrays: each inner array is an eigenvector (with n components).
+
+                      return { eigenvalues: sortedEigenvalues, eigenvectors: sortedEigenvectors };
+                    }
+
+                  This is a simplified Jacobi. We'll try it.
+
+          9. We'll then take the first two eigenvectors and draw them in the scatter plot (which is for the first two variables).
+
+          10. Explained variance: for each eigenvalue, the explained variance is eigenvalue_i / sum(eigenvalues)
+
+   Note: We are not projecting the data when there are more than two variables? We are only using the first two variables for the scatter plot? But we are drawing the PC lines from the full PCA (all variables). The scatter plot is always the first two variables (after centering and scaling). This might be confusing because the PCA is done on all variables, but the plot only shows two. However, the PC lines are drawn using the first two components of the eigenvectors.
+
+   This is a compromise.
+
+   We'll also display the eigenvalues and the explained variance.
+
+   We'll write the function to compute the covariance matrix:
+
+        function computeCovariance(data) {
+          // data: 2D array, rows are samples, columns are variables
+          let n = data.length; // number of samples
+          let m = data[0].length; // number of variables
+
+          // Initialize covariance matrix (m x m)
+          let cov = Array(m).fill(0).map(() => Array(m).fill(0));
+
+          // For each variable i and j
+          for (let i=0; i<m; i++) {
+            for (let j=i; j<m; j++) {
+              let sum = 0;
+              for (let k=0; k<n; k++) {
+                sum += data[k][i] * data[k][j];
+              }
+              cov[i][j] = sum / (n-1);
+              cov[j][i] = cov[i][j];
+            }
+          }
+
+          return cov;
+        }
+
+   Preprocessing:
+
+        function preprocessData(data, center, scale) {
+          // data: 2D array, rows are samples, columns are variables
+          let n = data.length;
+          let m = data[0].length;
+          let processed = data.map(row => row.slice()); // copy
+
+          // Compute means and stds
+          let means = [];
+          let stds = [];
+
+          for (let j=0; j<m; j++) {
+            let sum = 0;
+            for (let i=0; i<n; i++) {
+              sum += processed[i][j];
+            }
+            let mean = sum / n;
+            means.push(mean);
+
+            if (center) {
+              for (let i=0; i<n; i++) {
+                processed[i][j] -= mean;
+              }
+            }
+
+            if (scale) {
+              let sqSum = 0;
+              for (let i=0; i<n; i++) {
+                let val = processed[i][j];
+                sqSum += val * val;
+              }
+              let std = Math.sqrt(sqSum / (n-1));
+              stds.push(std);
+              if (std !== 0) {
+                for (let i=0; i<n; i++) {
+                  processed[i][j] /= std;
+                }
+              }
+            } else {
+              stds.push(1); // for later use in drawing?
+            }
+          }
+
+          return { processed, means, stds };
+        }
+
+   But note: when we draw the scatter plot, we are using the processed data for the first two variables.
+
+   We'll create a function `update` that:
+        - Reads the table
+        - Preprocesses the data
+        - Computes PCA (if at least two variables and at least two samples? otherwise skip)
+        - Updates the eigenvalues display
+        - Draws the scatter plot and PC lines
+
+   We'll call `update` on every change.
+
+   For the table, we'll assign an id to each input so we can read them.
+
+   We'll generate the table:
+
+        function buildTable() {
+          let table = document.getElementById('dataTable');
+          // Clear thead and tbody
+          let thead = table.querySelector('thead');
+          let tbody = table.querySelector('tbody');
+
+          // Build header
+          thead.innerHTML = '';
+          let headerRow = document.createElement('tr');
+          let thSample = document.createElement('th');
+          thSample.textContent = 'Sample';
+          headerRow.appendChild(thSample);
+          for (let j=0; j<variables; j++) {
+            let th = document.createElement('th');
+            th.textContent = 'Var' + (j+1);
+            headerRow.appendChild(th);
+          }
+          thead.appendChild(headerRow);
+
+          // Build body
+          tbody.innerHTML = '';
+          for (let i=0; i<samples; i++) {
+            let tr = document.createElement('tr');
+            let tdSample = document.createElement('td');
+            tdSample.textContent = i+1;
+            tr.appendChild(tdSample);
+            for (let j=0; j<variables; j++) {
+              let td = document.createElement('td');
+              let input = document.createElement('input');
+              input.type = 'number';
+              input.value = initialData[i][j]; // we need to store initial data? or we can set to random
+              input.dataset.sample = i;
+              input.dataset.variable = j;
+              input.addEventListener('input', update);
+              td.appendChild(input);
+              tr.appendChild(td);
+            }
+            tbody.appendChild(tr);
+          }
+        }
+
+   We'll initialize the initialData with random values between 0 and 10.
+
+   We'll also update the table when adding/removing variables or samples.
+
+   Adding a variable: 
+        variables++;
+        then rebuild the table. For existing samples, we set the new variable to 0.
+
+   Removing a variable: 
+        if variables>2, then variables--; rebuild table.
+
+   Adding a sample: 
+        samples++;
+        rebuild table. The new sample has 0 for all variables.
+
+   Removing a sample: 
+        if samples>2, then samples--; rebuild table.
+
+   We'll also store the current data in a global variable? or we can read from the table every time.
+
+   We'll read from the table every time in the update function.
+
+   How to read the table:
+
+        function readData() {
+          let data = [];
+          let rows = document.querySelectorAll('#dataTable tbody tr');
+          for (let i=0; i<rows.length; i++) {
+            let inputs = rows[i].querySelectorAll('input');
+            let rowData = [];
+            for (let j=0; j<inputs.length; j++) {
+              let value = parseFloat(inputs[j].value);
+              if (isNaN(value)) {
+                // if invalid, use 0
+                value = 0;
+              }
+              rowData.push(value);
+            }
+            data.push(rowData);
+          }
+          return data;
+        }
+
+   Then in update:
+
+        let data = readData();
+        // Preprocess
+        let centerChecked = document.getElementById('center').checked;
+        let scaleChecked = document.getElementById('scale').checked;
+        let { processed, means, stds } = preprocessData(data, centerChecked, scaleChecked);
+
+        // If we have at least two variables and at least two samples, compute PCA
+        if (variables >= 2 && samples >= 2) {
+          let cov = computeCovariance(processed);
+          let { eigenvalues, eigenvectors } = jacobi(cov);
+
+          // Now, we want to draw the scatter plot for the first two variables of the processed data.
+          let xData = processed.map(row => row[0]);
+          let yData = processed.map(row => row[1]);
+
+          // The eigenvectors: we take the first two (largest eigenvalues) and then take the first two components? 
+          // Actually, each eigenvector has m components (m=variables). We are going to draw the PC lines in the plane of the first two variables.
+
+          // For PC1: the first eigenvector -> components [0] and [1] (for the first two variables)
+          // For PC2: the second eigenvector -> components [0] and [1]
+
+          // But note: the eigenvectors are for the entire dataset. We are going to draw a line in the scatter plot (which is in the space of the first two variables) using the first two components of the eigenvector.
+
+          // The line for PC1: 
+          //   direction: (eigenvectors[0][0], eigenvectors[0][1])
+          //   we draw a line through (0,0) [because centered] and in that direction.
+
+          // Similarly for PC2.
+
+          // Then draw the scatter plot and the lines.
+
+          drawScatterPlot(xData, yData, eigenvectors, eigenvalues);
+        }
+
+   The drawScatterPlot function:
+
+        function drawScatterPlot(xData, yData, eigenvectors, eigenvalues) {
+          let canvas = document.getElementById('scatterPlot');
+          let ctx = canvas.getContext('2d');
+          ctx.clearRect(0,0,canvas.width,canvas.height);
+
+          // Find min and max for x and y
+          let xMin = Math.min(...xData);
+          let xMax = Math.max(...xData);
+          let yMin = Math.min(...yData);
+          let yMax = Math.max(...yData);
+
+          // If no data, return
+          if (xData.length === 0) return;
+
+          // Add some padding
+          let padding = 40;
+          let xRange = xMax - xMin;
+          let yRange = yMax - yMin;
+          if (xRange === 0) xRange = 2;
+          if (yRange === 0) yRange = 2;
+
+          // We'll set the plot range to [xMin-0.1*xRange, xMax+0.1*xRange] and similarly for y.
+          let plotXMin = xMin - 0.1 * xRange;
+          let plotXMax = xMax + 0.1 * xRange;
+          let plotYMin = yMin - 0.1 * yRange;
+          let plotYMax = yMax + 0.1 * yRange;
+
+          // Function to convert data coordinates to canvas
+          function toCanvasX(x) {
+            return padding + (x - plotXMin) * (canvas.width - 2*padding) / (plotXMax - plotXMin);
+          }
+          function toCanvasY(y) {
+            return canvas.height - padding - (y - plotYMin) * (canvas.height - 2*padding) / (plotYMax - plotYMin);
+          }
+
+          // Draw axes
+          ctx.strokeStyle = '#ccc';
+          ctx.beginPath();
+          // x-axis
+          ctx.moveTo(toCanvasX(plotXMin), toCanvasY(0));
+          ctx.lineTo(toCanvasX(plotXMax), toCanvasY(0));
+          // y-axis
+          ctx.moveTo(toCanvasX(0), toCanvasY(plotYMin));
+          ctx.lineTo(toCanvasX(0), toCanvasY(plotYMax));
+          ctx.stroke();
+
+          // Draw grid? Optional
+
+          // Draw points
+          ctx.fillStyle = 'black';
+          for

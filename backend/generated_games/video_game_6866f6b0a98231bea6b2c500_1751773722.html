@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parisian Landmarks Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .game-section {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title::before {
+            content: "•";
+            color: #3498db;
+        }
+        
+        .map-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .landmark-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .landmark-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .landmark-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .landmark-info {
+            padding: 15px;
+        }
+        
+        .landmark-name {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .timeline-container {
+            position: relative;
+            height: 120px;
+            margin: 40px 0;
+            background: #ecf0f1;
+            border-radius: 8px;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+        
+        .timeline-track {
+            position: absolute;
+            top: 50%;
+            height: 4px;
+            background: #bdc3c7;
+            width: 100%;
+            transform: translateY(-50%);
+        }
+        
+        .timeline-periods {
+            display: flex;
+            position: relative;
+            height: 100%;
+            min-width: 800px;
+        }
+        
+        .period {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            cursor: pointer;
+        }
+        
+        .period-marker {
+            width: 24px;
+            height: 24px;
+            background: #3498db;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+        }
+        
+        .period-name {
+            position: absolute;
+            top: 60px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .gallery-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .gallery-item {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+        
+        .gallery-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        
+        .gallery-caption {
+            padding: 15px;
+            font-size: 0.95rem;
+            color: #7f8c8d;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding: 15px;
+            background: #f1f2f6;
+            border-radius: 8px;
+        }
+        
+        .score-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 0 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #2ecc71;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .btn-restart {
+            background: #e74c3c;
+        }
+        
+        .btn-restart:hover {
+            background: #c0392b;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            padding: 30px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        
+        .modal-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .quiz-container {
+            margin: 20px 0;
+        }
+        
+        .quiz-question {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+        
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        
+        .quiz-option {
+            padding: 15px;
+            background: #f1f2f6;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .quiz-option:hover {
+            background: #dfe4ea;
+        }
+        
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background: #d5f5e3;
+            color: #27ae60;
+        }
+        
+        .feedback.incorrect {
+            background: #fadbd8;
+            color: #c0392b;
+        }
+        
+        @media (max-width: 768px) {
+            .map-container, .gallery-container {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Parisian Landmarks Explorer</h1>
+        <p class="description">Test your knowledge of Paris landmarks through interactive challenges!</p>
+    </header>
+    
+    <main class="game-container">
+        <section class="game-section">
+            <h2 class="section-title">Interactive Map Challenge</h2>
+            <p>Click on landmarks to answer questions and earn points</p>
+            <div class="map-container">
+                <div class="landmark-card" data-landmark="eiffel">
+                    <img src="https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Eiffel Tower" class="landmark-image">
+                    <div class="landmark-info">
+                        <h3 class="landmark-name">Eiffel Tower</h3>
+                    </div>
+                </div>
+                
+                <div class="landmark-card" data-landmark="louvre">
+                    <img src="https://images.unsplash.com/photo-1543429776-2782fc586c3a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Louvre Museum" class="landmark-image">
+                    <div class="landmark-info">
+                        <h3 class="landmark-name">Louvre Museum</h3>
+                    </div>
+                </div>
+                
+                <div class="landmark-card" data-landmark="arc">
+                    <img src="https://images.unsplash.com/photo-1587330979470-3595ac045ab0?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Arc de Triomphe" class="landmark-image">
+                    <div class="landmark-info">
+                        <h3 class="landmark-name">Arc de Triomphe</h3>
+                    </div>
+                </div>
+                
+                <div class="landmark-card" data-landmark="notre-dame">
+                    <img src="https://images.unsplash.com/photo-1599045118108-bb99584c5df3?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Notre-Dame Cathedral" class="landmark-image">
+                    <div class="landmark-info">
+                        <h3 class="landmark-name">Notre-Dame Cathedral</h3>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="game-section">
+            <h2 class="section-title">Historical Timeline Challenge</h2>
+            <p>Explore Parisian history through different time periods</p>
+            <div class="timeline-container">
+                <div class="timeline-track"></div>
+                <div class="timeline-periods">
+                    <div class="period" data-period="medieval">
+                        <div class="period-marker"></div>
+                        <div class="period-name">Medieval</div>
+                    </div>
+                    <div class="period" data-period="renaissance">
+                        <div class="period-marker"></div>
+                        <div class="period-name">Renaissance</div>
+                    </div>
+                    <div class="period" data-period="revolution">
+                        <div class="period-marker"></div>
+                        <div class="period-name">Revolution</div>
+                    </div>
+                    <div class="period" data-period="modern">
+                        <div class="period-marker"></div>
+                        <div class="period-name">Modern</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="game-section">
+            <h2 class="section-title">Photo Gallery Challenge</h2>
+            <p>Identify landmarks from historical photographs</p>
+            <div class="gallery-container">
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Sainte-Chapelle" class="gallery-image">
+                    <div class="gallery-caption">Gothic chapel with stunning stained glass</div>
+                </div>
+                
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1595514535190-78d2d8e0d7e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Palais Garnier" class="gallery-image">
+                    <div class="gallery-caption">Opulent 19th-century opera house</div>
+                </div>
+                
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1587590227264-0ac64ce63ce8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Sacré-Cœur" class="gallery-image">
+                    <div class="gallery-caption">White-domed basilica on Montmartre hill</div>
+                </div>
+                
+                <div class="gallery-item">
+                    <img src="https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Luxembourg Gardens" class="gallery-image">
+                    <div class="gallery-caption">Famous gardens surrounding a royal palace</div>
+                </div>
+            </div>
+        </section>
+        
+        <div class="progress-container">
+            <div class="score-display">Score: <span id="score-value">0</span></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <button class="btn btn-restart" id="restart-btn">Restart Game</button>
+        </div>
+    </main>
+    
+    <div class="modal" id="quiz-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modal-title">Landmark Quiz</h2>
+            <img id="modal-image" class="modal-image" src="" alt="">
+            <div class="quiz-container">
+                <div class="quiz-question" id="question-text"></div>
+                <div class="quiz-options" id="options-container"></div>
+                <div class="feedback" id="feedback"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Game data
+        const landmarks = {
+            "eiffel": {
+                name: "Eiffel Tower",
+                image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                questions: [
+                    {
+                        question: "When was the Eiffel Tower completed?",
+                        options: ["1887", "1889", "1892", "1900"],
+                        answer: 1
+                    },
+                    {
+                        question: "Who designed the Eiffel Tower?",
+                        options: ["Gustave Eiffel", "Le Corbusier", "Victor Baltard", "Georges-Eugène Haussmann"],
+                        answer: 0
+                    }
+                ]
+            },
+            "louvre": {
+                name: "Louvre Museum",
+                image: "https://images.unsplash.com/photo-1543429776-2782fc586c3a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                questions: [
+                    {
+                        question: "What famous painting is housed in the Louvre?",
+                        options: ["The Starry Night", "The Mona Lisa", "The Scream", "Guernica"],
+                        answer: 1
+                    },
+                    {
+                        question: "In which century did the Louvre become a public museum?",
+                        options: ["16th century", "17th century", "18th century", "19th century"],
+                        answer: 2
+                    }
+                ]
+            },
+            "arc": {
+                name: "Arc de Triomphe",
+                image: "https://images.unsplash.com/photo-1587330979470-3595ac045ab0?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                questions: [
+                    {
+                        question: "What event inspired the construction of the Arc de Triomphe?",
+                        options: ["French Revolution", "Napoleon's victories", "World War I", "The Renaissance"],
+                        answer: 1
+                    },
+                    {
+                        question: "How tall is the Arc de Triomphe?",
+                        options: ["40 meters", "50 meters", "60 meters", "70 meters"],
+                        answer: 1
+                    }
+                ]
+            },
+            "notre-dame": {
+                name: "Notre-Dame Cathedral",
+                image: "https://images.unsplash.com/photo-1599045118108-bb99584c5df3?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+                questions: [
+                    {
+                        question: "In which architectural style is Notre-Dame primarily built?",
+                        options: ["Romanesque", "Gothic", "Baroque", "Renaissance"],
+                        answer: 1
+                    },
+                    {
+                        question: "When did the devastating fire at Notre-Dame occur?",
+                        options: ["2017", "2018", "2019", "2020"],
+                        answer: 2
+                    }
+                ]
+            }
+        };
+
+        const timelineData = {
+            "medieval": {
+                name: "Medieval Period",
+                events: ["Construction of Notre-Dame begins", "University of Paris founded"],
+                correct: 0
+            },
+            "renaissance": {
+                name: "Renaissance",
+                events: ["Louvre becomes royal residence", "Pont Neuf construction"],
+                correct: 1
+            },
+            "revolution": {
+                name: "Revolution Era",
+                events: ["Storming of the Bastille", "Reign of Terror"],
+                correct: 0
+            },
+            "modern": {
+                name: "Modern Paris",
+                events: ["Eiffel Tower construction", "Paris Liberation in WWII"],
+                correct: 0
+            }
+        };
+
+        // Game state
+        let score = 0;
+        let currentLandmark = null;
+        let currentQuestionIndex = 0;
+        let answeredQuestions = new Set();
+        const maxScore = 12; // 8 from landmarks + 4 from timeline
+
+        // DOM elements
+        const scoreValue = document.getElementById('score-value');
+        const progressFill = document.getElementById('progress-fill');
+        const restartBtn = document.getElementById('restart-btn');
+        const quizModal = document.getElementById('quiz-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalImage = document.getElementById('modal-image');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+        const closeModal = document.querySelector('.close-modal');
+
+        // Initialize game
+        function initGame() {
+            score = 0;
+            answeredQuestions.clear();
+            updateScore();
+            
+            // Add event listeners
+            document.querySelectorAll('.landmark-card').forEach(card => {
+                card.addEventListener('click', handleLandmarkClick);
+            });
+            
+            document.querySelectorAll('.period').forEach(period => {
+                period.addEventListener('click', handleTimelineClick);
+            });
+            
+            restartBtn.addEventListener('click', restartGame);
+            closeModal.addEventListener('click', closeQuizModal);
+        }
+
+        // Handle landmark click
+        function handleLandmarkClick(event) {
+            const landmarkId = event.currentTarget.dataset.landmark;
+            currentLandmark = landmarkId;
+            currentQuestionIndex = 0;
+            
+            if (answeredQuestions.has(landmarkId)) {
+                showFeedback(`You've already answered questions for ${landmarks[landmarkId].name}`, false);
+                return;
+            }
+            
+            openQuizModal();
+            loadQuestion();
+        }
+
+        // Handle timeline click
+        function handleTimelineClick(event) {
+            const periodId = event.currentTarget.dataset.period;
+            const periodData = timelineData[periodId];
+            
+            if (answeredQuestions.has(periodId)) {
+                showFeedback(`You've already explored the ${periodData.name} period`, false);
+                return;
+            }
+            
+            // Award points for timeline exploration
+            score += 1;
+            answeredQuestions.add(periodId);
+            updateScore();
+            showFeedback(`You explored the ${periodData.name} period! +1 point`, true);
+        }
+
+        // Open quiz modal
+        function openQuizModal() {
+            const landmark = landmarks[currentLandmark];
+            modalTitle.textContent = landmark.name;
+            modalImage.src = landmark.image;
+            modalImage.alt = landmark.name;
+            quizModal.style.display = 'flex';
+        }
+
+        // Close quiz modal
+        function closeQuizModal() {
+            quizModal.style.display = 'none';
+            feedback.style.display = 'none';
+        }
+
+        // Load question into modal
+        function loadQuestion() {
+            const landmark = landmarks[currentLandmark];
+            const question = landmark.questions[currentQuestionIndex];
+            
+            questionText.textContent = question.question;
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('quiz-option');
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+                optionElement.addEventListener('click', handleAnswerSelection);
+                optionsContainer.appendChild(optionElement);
+            });
+        }
+
+        // Handle answer selection
+        function handleAnswerSelection(event) {
+            const selectedIndex = parseInt(event.currentTarget.dataset.index);
+            const landmark = landmarks[currentLandmark];
+            const question = landmark.questions[currentQuestionIndex];
+            const isCorrect = selectedIndex === question.answer;
+            
+            if (isCorrect) {
+                score += 1;
+                showFeedback("Correct! +1 point", true);
+            } else {
+                showFeedback(`Incorrect. The correct answer is: ${question.options[question.answer]}`, false);
+            }
+            
+            updateScore();
+            
+            // Move to next question or finish
+            currentQuestionIndex++;
+            if (currentQuestionIndex < landmark.questions.length) {
+                setTimeout(loadQuestion, 1500);
+            } else {
+                answeredQuestions.add(currentLandmark);
+                setTimeout(closeQuizModal, 1500);
+            }
+        }
+
+        // Show feedback message
+        function showFeedback(message, isCorrect) {
+            feedback.textContent = message;
+            feedback.className = 'feedback ' + (isCorrect ? 'correct' : 'incorrect');
+            feedback.style.display = 'block';
+        }
+
+        // Update score display
+        function updateScore() {
+            scoreValue.textContent = score;
+            const progress = (score / maxScore) * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+
+        // Restart game
+        function restartGame() {
+            initGame();
+        }
+
+        // Initialize game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

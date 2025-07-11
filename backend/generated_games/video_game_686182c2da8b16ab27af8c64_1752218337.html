@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .explanation {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .explanation h2 {
+            margin-bottom: 12px;
+            color: #222222;
+        }
+        
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .graph-container {
+            position: relative;
+            background-color: #f8f8f8;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            height: 400px;
+            overflow: hidden;
+        }
+        
+        canvas {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: crosshair;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        button {
+            background-color: #f0f0f0;
+            border: 1px solid #d0d0d0;
+            border-radius: 4px;
+            padding: 10px 18px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            color: #333;
+        }
+        
+        button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .challenge-container {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .challenge-container h2 {
+            margin-bottom: 15px;
+            color: #222222;
+        }
+        
+        .challenge {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background-color: white;
+            border-left: 4px solid #d0d0d0;
+        }
+        
+        .challenge.completed {
+            border-left-color: #4CAF50;
+        }
+        
+        .challenge h3 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+        }
+        
+        .challenge.completed .status-indicator {
+            background-color: #4CAF50;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            flex-grow: 1;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .instructions {
+            background-color: #f0f0f0;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 0.95rem;
+        }
+        
+        .highlight {
+            background-color: #fff9c4;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .heart {
+            color: #e91e63;
+            font-size: 1.2rem;
+            position: absolute;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .graph-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Linear Regression Explorer</h1>
+        <p>Understand the relationship between height and shoe size</p>
+    </header>
+    
+    <div class="container">
+        <section class="explanation">
+            <h2>What is Linear Regression?</h2>
+            <p>Linear regression is a method used to model the relationship between a dependent variable (shoe size) and one or more independent variables (height). It helps us predict continuous outcomes based on labeled data sets.</p>
+        </section>
+        
+        <section class="game-area">
+            <div class="graph-container">
+                <canvas id="regressionCanvas"></canvas>
+                <div class="heart" id="heartSymbol">❤️</div>
+            </div>
+            
+            <div class="instructions">
+                <p><span class="highlight">Click</span> on the graph to add data points. <span class="highlight">Drag</span> points to adjust them. <span class="highlight">Click</span> on a point to circle it as an outlier.</p>
+            </div>
+            
+            <div class="controls">
+                <button id="resetBtn">Reset Points</button>
+                <button id="drawLineBtn">Show Best Fit Line</button>
+                <button id="removeBtn">Remove Last Point</button>
+                <button id="addHeartBtn">Add Heart to Selected</button>
+            </div>
+        </section>
+        
+        <section class="challenge-container">
+            <h2>Learning Challenges</h2>
+            
+            <div class="challenge" id="challenge1">
+                <h3><span class="status-indicator"></span>Add Data Points</h3>
+                <p>Add at least 5 data points to the graph by clicking on different locations.</p>
+            </div>
+            
+            <div class="challenge" id="challenge2">
+                <h3><span class="status-indicator"></span>Identify Relationship</h3>
+                <p>Observe the positive correlation between height and shoe size shown by the best fit line.</p>
+            </div>
+            
+            <div class="challenge" id="challenge3">
+                <h3><span class="status-indicator"></span>Analyze Outliers</h3>
+                <p>Circle an outlier point and add a heart to mark significant data.</p>
+            </div>
+            
+            <div class="progress-container">
+                <span>Progress:</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <span id="progressText">0/3</span>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Canvas setup
+            const canvas = document.getElementById('regressionCanvas');
+            const ctx = canvas.getContext('2d');
+            const resetBtn = document.getElementById('resetBtn');
+            const drawLineBtn = document.getElementById('drawLineBtn');
+            const removeBtn = document.getElementById('removeBtn');
+            const addHeartBtn = document.getElementById('addHeartBtn');
+            const heartSymbol = document.getElementById('heartSymbol');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            // Canvas dimensions
+            function resizeCanvas() {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                drawGraph();
+            }
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            // Graph parameters
+            const padding = 50;
+            const pointRadius = 8;
+            const selectedRadius = 12;
+            let dataPoints = [];
+            let selectedPoint = null;
+            let isDragging = false;
+            let showRegressionLine = false;
+            let challengesCompleted = [false, false, false];
+            
+            // Initialize data with some points
+            function initializePoints() {
+                dataPoints = [
+                    {x: 62, y: 7, circled: false, hasHeart: false},
+                    {x: 66, y: 9, circled: false, hasHeart: false},
+                    {x: 70, y: 11, circled: false, hasHeart: false}
+                ];
+            }
+            
+            initializePoints();
+            
+            // Draw the graph
+            function drawGraph() {
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+                
+                // Draw grid
+                ctx.strokeStyle = '#f0f0f0';
+                ctx.lineWidth = 1;
+                
+                // Vertical grid lines
+                for (let x = padding; x <= width - padding; x += (width - 2 * padding) / 10) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, padding);
+                    ctx.lineTo(x, height - padding);
+                    ctx.stroke();
+                }
+                
+                // Horizontal grid lines
+                for (let y = padding; y <= height - padding; y += (height - 2 * padding) / 8) {
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(width - padding, y);
+                    ctx.stroke();
+                }
+                
+                // Draw axes
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                
+                // X-axis
+                ctx.beginPath();
+                ctx.moveTo(padding, height - padding);
+                ctx.lineTo(width - padding, height - padding);
+                ctx.stroke();
+                
+                // Y-axis
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, height - padding);
+                ctx.stroke();
+                
+                // Draw axis labels
+                ctx.fillStyle = '#333';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                
+                // X-axis label
+                ctx.fillText('Height in Inches', width / 2, height - 10);
+                
+                // Y-axis label
+                ctx.save();
+                ctx.translate(15, height / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText('Shoe Size [US]', 0, 0);
+                ctx.restore();
+                
+                // Draw tick marks and values
+                ctx.textAlign = 'center';
+                ctx.font = '12px Arial';
+                
+                // X-axis ticks
+                for (let i = 50; i <= 80; i += 5) {
+                    const x = padding + ((i - 50) / 30) * (width - 2 * padding);
+                    ctx.beginPath();
+                    ctx.moveTo(x, height - padding - 5);
+                    ctx.lineTo(x, height - padding + 5);
+                    ctx.stroke();
+                    ctx.fillText(i, x, height - padding + 20);
+                }
+                
+                // Y-axis ticks
+                for (let i = 5; i <= 15; i += 2) {
+                    const y = height - padding - ((i - 5) / 10) * (height - 2 * padding);
+                    ctx.beginPath();
+                    ctx.moveTo(padding - 5, y);
+                    ctx.lineTo(padding + 5, y);
+                    ctx.stroke();
+                    ctx.fillText(i, padding - 20, y + 4);
+                }
+                
+                // Draw data points
+                dataPoints.forEach((point, index) => {
+                    const x = padding + ((point.x - 50) / 30) * (width - 2 * padding);
+                    const y = height - padding - ((point.y - 5) / 10) * (height - 2 * padding);
+                    
+                    // Draw point
+                    ctx.beginPath();
+                    ctx.arc(x, y, point.circled ? selectedRadius : pointRadius, 0, Math.PI * 2);
+                    ctx.fillStyle = point === selectedPoint ? '#e91e63' : (point.circled ? '#FF9800' : '#2196F3');
+                    ctx.fill();
+                    
+                    // Draw circle around point if selected
+                    if (point.circled) {
+                        ctx.beginPath();
+                        ctx.arc(x, y, selectedRadius + 5, 0, Math.PI * 2);
+                        ctx.strokeStyle = '#FF9800';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+                    
+                    // Draw heart if present
+                    if (point.hasHeart) {
+                        heartSymbol.style.display = 'block';
+                        heartSymbol.style.left = (x + 20) + 'px';
+                        heartSymbol.style.top = (y - 10) + 'px';
+                    }
+                });
+                
+                // Draw regression line if enabled
+                if (showRegressionLine && dataPoints.length >= 2) {
+                    const regression = calculateRegression();
+                    
+                    if (regression) {
+                        const x1 = 50;
+                        const y1 = regression.slope * x1 + regression.intercept;
+                        const x2 = 80;
+                        const y2 = regression.slope * x2 + regression.intercept;
+                        
+                        const canvasX1 = padding + ((x1 - 50) / 30) * (width - 2 * padding);
+                        const canvasY1 = height - padding - ((y1 - 5) / 10) * (height - 2 * padding);
+                        const canvasX2 = padding + ((x2 - 50) / 30) * (width - 2 * padding);
+                        const canvasY2 = height - padding - ((y2 - 5) / 10) * (height - 2 * padding);
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(canvasX1, canvasY1);
+                        ctx.lineTo(canvasX2, canvasY2);
+                        ctx.strokeStyle = '#4CAF50';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                        
+                        // Draw equation
+                        ctx.fillStyle = '#4CAF50';
+                        ctx.font = '16px Arial';
+                        ctx.textAlign = 'right';
+                        ctx.fillText(`y = ${regression.slope.toFixed(2)}x + ${regression.intercept.toFixed(2)}`, width - 20, 30);
+                    }
+                }
+                
+                updateChallenges();
+            }
+            
+            // Calculate linear regression
+            function calculateRegression() {
+                if (dataPoints.length < 2) return null;
+                
+                let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+                const n = dataPoints.length;
+                
+                dataPoints.forEach(point => {
+                    sumX += point.x;
+                    sumY += point.y;
+                    sumXY += point.x * point.y;
+                    sumX2 += point.x * point.x;
+                });
+                
+                const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / n;
+                
+                return { slope, intercept };
+            }
+            
+            // Handle canvas interactions
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('click', handleCanvasClick);
+            
+            function handleMouseDown(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Check if clicked on a point
+                for (let i = dataPoints.length - 1; i >= 0;
+    </script>
+</body>
+</html>

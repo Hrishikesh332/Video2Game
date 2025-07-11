@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Playground</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .network-container {
+            flex: 1;
+            min-width: 300px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .controls {
+            flex: 1;
+            min-width: 300px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #444;
+        }
+
+        .network {
+            position: relative;
+            height: 400px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .layer {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .input-layer { left: 10%; }
+        .hidden-layer { left: 45%; }
+        .output-layer { left: 80%; }
+
+        .node {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 2px solid #aaa;
+        }
+
+        .node:hover {
+            background: #ccc;
+            transform: scale(1.1);
+        }
+
+        .connection {
+            position: absolute;
+            background: #999;
+            height: 2px;
+            transform-origin: 0 0;
+            z-index: -1;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 10px 15px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: bold;
+            color: #333;
+        }
+
+        button:hover {
+            background: #d0d0d0;
+        }
+
+        button.active {
+            background: #aaa;
+            color: white;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        .value-display {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .info-panel {
+            background: #f8f8f8;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: #e0e0e0;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            background: #aaa;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background: #fff;
+            border-radius: 0 8px 8px 8px;
+            min-height: 200px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 50px;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            position: relative;
+        }
+
+        .progress-step.active {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .progress-step::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 0;
+            width: 1px;
+            height: 60%;
+            background: #ccc;
+            transform: translateY(-50%);
+        }
+
+        .progress-step:last-child::after {
+            display: none;
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 8px;
+        }
+
+        .output-display {
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            margin-top: 15px;
+            min-height: 80px;
+            font-family: monospace;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+            }
+            
+            .layer {
+                position: static;
+                transform: none;
+                flex-direction: row;
+                margin: 20px 0;
+            }
+            
+            .input-layer, .hidden-layer, .output-layer {
+                position: static;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Neural Network Playground</h1>
+        <p>Explore how neural networks process information through layers of nodes</p>
+    </header>
+
+    <div class="progress-container">
+        <div class="progress-step active">1. Build Network</div>
+        <div class="progress-step">2. Adjust Parameters</div>
+        <div class="progress-step">3. Train Network</div>
+    </div>
+
+    <div class="game-stats">
+        <div>Current Layer: <span id="current-layer">Input</span></div>
+        <div>Nodes: <span id="node-count">3</span></div>
+        <div>Score: <span id="score">0</span></div>
+    </div>
+
+    <div class="game-container">
+        <div class="network-container">
+            <h2>Neural Network</h2>
+            <div class="network" id="network">
+                <!-- Nodes and connections will be generated here -->
+            </div>
+        </div>
+
+        <div class="controls">
+            <h2>Controls</h2>
+            <div class="control-group">
+                <h3>Network Builder</h3>
+                <div class="btn-group">
+                    <button id="add-node">Add Node</button>
+                    <button id="remove-node">Remove Node</button>
+                </div>
+                <div class="btn-group">
+                    <button data-layer="input" class="layer-btn active">Input Layer</button>
+                    <button data-layer="hidden" class="layer-btn">Hidden Layer</button>
+                    <button data-layer="output" class="layer-btn">Output Layer</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>Node Parameters</h3>
+                <div class="slider-container">
+                    <label for="weight">Weight: <span id="weight-value">0.5</span></label>
+                    <input type="range" id="weight" min="-1" max="1" step="0.1" value="0.5">
+                </div>
+                <div class="slider-container">
+                    <label for="bias">Bias: <span id="bias-value">0.1</span></label>
+                    <input type="range" id="bias" min="-1" max="1" step="0.1" value="0.1">
+                </div>
+                <button id="apply-params">Apply to Selected Node</button>
+            </div>
+
+            <div class="control-group">
+                <h3>Training</h3>
+                <button id="run-forward">Run Forward Pass</button>
+                <button id="run-backward">Run Backpropagation</button>
+                <div class="output-display" id="output-display">
+                    Output will appear here...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div class="tabs">
+            <div class="tab active" data-tab="intro">Introduction</div>
+            <div class="tab" data-tab="cnn">CNNs</div>
+            <div class="tab" data-tab="rnn">RNNs</div>
+        </div>
+        
+        <div class="tab-content active" id="intro-content">
+            <h3>How Neural Networks Work</h3>
+            <p>Neural networks consist of layers of interconnected nodes that process information similarly to the human brain. Each node performs a simple calculation: multiplying inputs by weights, summing them with a bias, and applying an activation function.</p>
+            <p>Data flows forward through the network (feedforward), and learning happens through backpropagation where weights are adjusted to minimize errors.</p>
+        </div>
+        
+        <div class="tab-content" id="cnn-content">
+            <h3>Convolutional Neural Networks (CNNs)</h3>
+            <p>CNNs are specialized for processing grid-like data such as images. They use convolutional layers to detect features like edges and textures, pooling layers to reduce dimensionality, and fully connected layers for classification.</p>
+            <p>Applications: Image recognition, object detection, medical image analysis.</p>
+        </div>
+        
+        <div class="tab-content" id="rnn-content">
+            <h3>Recurrent Neural Networks (RNNs)</h3>
+            <p>RNNs are designed for sequential data where context matters. They maintain an internal state that captures information about previous inputs in the sequence.</p>
+            <p>Applications: Language translation, speech recognition, time series forecasting, text generation.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            const state = {
+                currentLayer: 'input',
+                nodes: {
+                    input: 3,
+                    hidden: 4,
+                    output: 1
+                },
+                selectedNode: null,
+                weights: {},
+                biases: {},
+                score: 0,
+                currentStep: 1
+            };
+
+            // DOM elements
+            const networkEl = document.getElementById('network');
+            const currentLayerEl = document.getElementById('current-layer');
+            const nodeCountEl = document.getElementById('node-count');
+            const scoreEl = document.getElementById('score');
+            const weightSlider = document.getElementById('weight');
+            const biasSlider = document.getElementById('bias');
+            const weightValue = document.getElementById('weight-value');
+            const biasValue = document.getElementById('bias-value');
+            const outputDisplay = document.getElementById('output-display');
+
+            // Initialize network
+            initNetwork();
+
+            // Event listeners
+            document.getElementById('add-node').addEventListener('click', addNode);
+            document.getElementById('remove-node').addEventListener('click', removeNode);
+            document.querySelectorAll('.layer-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.currentLayer = btn.dataset.layer;
+                    currentLayerEl.textContent = btn.dataset.layer.charAt(0).toUpperCase() + btn.dataset.layer.slice(1);
+                    updateNodeCount();
+                });
+            });
+
+            weightSlider.addEventListener('input', () => {
+                weightValue.textContent = weightSlider.value;
+            });
+
+            biasSlider.addEventListener('input', () => {
+                biasValue.textContent = biasSlider.value;
+            });
+
+            document.getElementById('apply-params').addEventListener('click', applyParameters);
+            document.getElementById('run-forward').addEventListener('click', runForwardPass);
+            document.getElementById('run-backward').addEventListener('click', runBackpropagation);
+
+            // Tab functionality
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(`${tab.dataset.tab}-content`).classList.add('active');
+                });
+            });
+
+            // Initialize network visualization
+            function initNetwork() {
+                renderNetwork();
+                updateNodeCount();
+                
+                // Initialize weights and biases
+                for (let layer in state.nodes) {
+                    state.weights[layer] = Array(state.nodes[layer]).fill(0.5);
+                    state.biases[layer] = Array(state.nodes[layer]).fill(0.1);
+                }
+            }
+
+            // Render the neural network visualization
+            function renderNetwork() {
+                networkEl.innerHTML = '';
+                
+                // Create layers
+                const layers = ['input', 'hidden', 'output'];
+                layers.forEach((layer, layerIndex) => {
+                    const layerEl = document.createElement('div');
+                    layerEl.className = `layer ${layer}-layer`;
+                    
+                    for (let i = 0; i < state.nodes[layer]; i++) {
+                        const node = document.createElement('div');
+                        node.className = 'node';
+                        node.dataset.layer = layer;
+                        node.dataset.index = i;
+                        node.textContent = i + 1;
+                        
+                        node.addEventListener('click', () => {
+                            document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
+                            node.classList.add('selected');
+                            state.selectedNode = { layer, index: i };
+                            
+                            // Update sliders to current values
+                            weightSlider.value = state.weights[layer][i];
+                            biasSlider.value = state.biases[layer][i];
+                            weightValue.textContent = weightSlider.value;
+                            biasValue.textContent = biasSlider.value;
+                        });
+                        
+                        layerEl.appendChild(node);
+                    }
+                    
+                    networkEl.appendChild(layerEl);
+                });
+                
+                // Create connections
+                createConnections('input', 'hidden');
+                createConnections('hidden', 'output');
+            }
+
+            // Create connections between layers
+            function createConnections(fromLayer, toLayer) {
+                const fromNodes = document.querySelectorAll(`.${fromLayer}-layer .node`);
+                const toNodes = document.querySelectorAll(`.${toLayer}-layer .node`);
+                
+                fromNodes.forEach((fromNode, i) => {
+                    toNodes.forEach((toNode, j) => {
+                        const fromRect = fromNode.getBoundingClientRect();
+                        const toRect = toNode.getBoundingClientRect();
+                        const networkRect = networkEl.getBoundingClientRect();
+                        
+                        const x1 = fromRect.left + fromRect.width/2 - networkRect.left;
+                        const y1 = fromRect.top + fromRect.height/2 - networkRect.top;
+                        const x2 = toRect.left + toRect.width/2 - networkRect.left;
+                        const y2 = toRect.top + toRect.height/2 - networkRect.top;
+                        
+                        const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                        const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+                        
+                        const connection = document.createElement('div');
+                        connection.className = 'connection';
+                        connection.style.width = `${length}px`;
+                        connection.style.left = `${x1}px`;
+                        connection.style.top = `${y1}px`;
+                        connection.style.transform = `rotate(${angle}deg)`;
+                        
+                        networkEl.appendChild(connection);
+                    });
+                });
+            }
+
+            // Add a node to current layer
+            function addNode() {
+                state.nodes[state.currentLayer]++;
+                renderNetwork();
+                updateNodeCount();
+                state.score += 10;
+                updateScore();
+            }
+
+            // Remove a node from current layer
+            function removeNode() {
+                if (state.nodes[state.currentLayer] > 1) {
+                    state.nodes[state.currentLayer]--;
+                    renderNetwork();
+                    updateNodeCount();
+                    state.score -= 5;
+                    updateScore();
+                }
+            }
+
+            // Update node count display
+            function updateNodeCount() {
+                nodeCountEl.textContent = state.nodes[state.currentLayer];
+            }
+
+            // Update score display
+            function updateScore() {
+                scoreEl.textContent = state.score;
+            }
+
+            // Apply parameters to selected node
+            function applyParameters() {
+                if (state.selectedNode) {
+                    const { layer, index } = state.selectedNode;
+                    state.weights[layer][index] = parseFloat(weightSlider.value);
+                    state.biases[layer][index] = parseFloat(biasSlider.value);
+                    state.score += 2;
+                    updateScore();
+                }
+            }
+
+            // Simulate forward pass
+            function runForwardPass() {
+                outputDisplay.textContent = "Running forward pass...";
+                
+                // Simulate processing delay
+                setTimeout(() => {
+                    const input = [0.5, 0.8, 0.2];
+                    let hidden = [];
+                    
+                    // Process hidden layer
+                    for (let i = 0; i < state.nodes.hidden; i++) {
+                        let sum = state.biases.hidden[i];
+                        for (let j = 0; j < state.nodes.input; j++) {
+                            sum += input[j] * state.weights.hidden[i];
+                        }
+                        hidden.push(1 / (1 + Math.exp(-sum))); // Sigmoid
+                    }
+                    
+                    // Process output layer
+                    let output = 0;
+                    for (let i = 0; i < state.nodes.hidden; i++) {
+                        output += hidden[i] * state.weights.output[0];
+                    }
+                    output += state.biases.output[0];
+                    output = 1 / (1 + Math.exp(-output)); // Sigmoid
+                    
+                    outputDisplay.textContent = `Output: ${output.toFixed(4)}`;
+                    state.score += 15;
+                    updateScore();
+                }, 1000);
+            }
+
+            // Simulate backpropagation
+            function runBackpropagation() {
+                outputDisplay.textContent = "Running backpropagation...";
+                
+                // Simulate training delay
+                setTimeout(() => {
+                    // In a real implementation, this would adjust weights based on error
+                    // For simulation, we'll just show a success message
+                    outputDisplay.textContent = "Weights adjusted! Error reduced by 23.5%";
+                    state.score += 20;
+                    updateScore();
+                }, 1500);
+            }
+        });
+    </script>
+</body
+</body>
+</html>

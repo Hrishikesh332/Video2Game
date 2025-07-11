@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression Playground</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        h1 span {
+            color: #ff6b6b;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin: 25px 0 15px;
+            color: #444;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            margin: 20px 0 10px;
+            color: #555;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .graph-section {
+            flex: 1;
+            min-width: 300px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .content-section {
+            flex: 1;
+            min-width: 300px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        #graph-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        button:hover {
+            background: #dee2e6;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #drawLine {
+            background: #4dabf7;
+            color: white;
+            border-color: #339af0;
+        }
+
+        #drawLine:hover {
+            background: #339af0;
+        }
+
+        #clearPoints {
+            background: #ff8787;
+            color: white;
+            border-color: #ff6b6b;
+        }
+
+        #clearPoints:hover {
+            background: #ff6b6b;
+        }
+
+        #reset {
+            background: #adb5bd;
+            color: white;
+            border-color: #868e96;
+        }
+
+        #reset:hover {
+            background: #868e96;
+        }
+
+        .instructions {
+            background: #e7f5ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4dabf7;
+        }
+
+        .instructions h3 {
+            margin-top: 0;
+            color: #1864ab;
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .challenge {
+            background: #fff4e6;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ff922b;
+        }
+
+        .challenge h3 {
+            margin-top: 0;
+            color: #e67700;
+        }
+
+        .challenge ul {
+            padding-left: 20px;
+        }
+
+        .challenge li {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .status {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #868e96;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+
+        .status.completed {
+            background: #40c057;
+            border-color: #2f9e44;
+        }
+
+        .prediction {
+            background: #d3f9d8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border-left: 4px solid #40c057;
+        }
+
+        .prediction h3 {
+            margin-top: 0;
+            color: #2b8a3e;
+        }
+
+        .data-types {
+            margin: 20px 0;
+        }
+
+        .data-type {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .continuous {
+            background: #d0ebff;
+            border-left: 4px solid #339af0;
+        }
+
+        .categorical {
+            background: #ffe8cc;
+            border-left: 4px solid #ff922b;
+        }
+
+        .point-info {
+            position: absolute;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            pointer-events: none;
+            z-index: 10;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Linear Regression Playground <span>❤️</span></h1>
+        <p>Explore the relationship between height and shoe size through interactive machine learning</p>
+    </header>
+
+    <div class="container">
+        <section class="graph-section">
+            <div class="instructions">
+                <h3>How to Use</h3>
+                <ol>
+                    <li>Click on the graph to add data points</li>
+                    <li>Click "Draw Best Fit Line" to see the regression line</li>
+                    <li>Right-click on points to remove them</li>
+                    <li>Hover over the line to see predictions</li>
+                    <li>Complete the challenges to learn key concepts</li>
+                </ol>
+            </div>
+
+            <div id="graph-container">
+                <canvas id="graph"></canvas>
+                <div id="pointInfo" class="point-info"></div>
+            </div>
+
+            <div class="controls">
+                <button id="drawLine">Draw Best Fit Line</button>
+                <button id="clearPoints">Clear All Points</button>
+                <button id="reset">Reset Everything</button>
+            </div>
+
+            <div class="challenge">
+                <h3>Learning Challenges</h3>
+                <ul>
+                    <li>Add at least 5 data points and draw the regression line <span id="challenge1" class="status"></span></li>
+                    <li>Remove a point to see how outliers affect the model <span id="challenge2" class="status"></span></li>
+                    <li>Predict shoe size for 70 inches height <span id="challenge3" class="status"></span></li>
+                </ul>
+            </div>
+
+            <div class="prediction">
+                <h3>Make a Prediction</h3>
+                <p>Height: <input type="number" id="heightInput" min="50" max="80" value="65"> inches</p>
+                <p>Predicted Shoe Size: <span id="predictionResult">-</span></p>
+                <button id="predictBtn">Calculate Prediction</button>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2>Understanding Linear Regression</h2>
+            <p>Linear regression is a fundamental supervised machine learning algorithm used to model the relationship between a dependent variable and one or more independent variables.</p>
+            
+            <div class="data-types">
+                <h3>Data Types in Machine Learning</h3>
+                <div class="data-type continuous">
+                    <h4>Continuous Data</h4>
+                    <p>Numerical values that can take any value within a range. Examples: Height, Weight, Temperature.</p>
+                </div>
+                <div class="data-type categorical">
+                    <h4>Categorical Data</h4>
+                    <p>Represents characteristics divided into groups. Examples: Shirt Size (S/M/L), Gender, Color.</p>
+                </div>
+            </div>
+            
+            <h3>Supervised Machine Learning</h3>
+            <p>In supervised learning, algorithms learn from labeled datasets where each example is paired with the correct output. The model makes predictions based on this training data.</p>
+            
+            <h3>How Linear Regression Works</h3>
+            <p>The algorithm finds the best-fitting straight line (regression line) through the data points by minimizing the sum of squared differences between observed and predicted values.</p>
+            
+            <h3>Real-world Applications</h3>
+            <ul>
+                <li>Predicting house prices based on square footage</li>
+                <li>Estimating sales based on advertising spend</li>
+                <li>Forecasting temperature based on historical data</li>
+            </ul>
+        </section>
+    </div>
+
+    <script>
+        // DOM Elements
+        const canvas = document.getElementById('graph');
+        const ctx = canvas.getContext('2d');
+        const pointInfo = document.getElementById('pointInfo');
+        const drawLineBtn = document.getElementById('drawLine');
+        const clearPointsBtn = document.getElementById('clearPoints');
+        const resetBtn = document.getElementById('reset');
+        const predictBtn = document.getElementById('predictBtn');
+        const heightInput = document.getElementById('heightInput');
+        const predictionResult = document.getElementById('predictionResult');
+        const challenge1 = document.getElementById('challenge1');
+        const challenge2 = document.getElementById('challenge2');
+        const challenge3 = document.getElementById('challenge3');
+
+        // Graph dimensions and padding
+        const padding = { top: 40, right: 40, bottom: 60, left: 60 };
+        let width, height;
+        
+        // Data ranges
+        const xMin = 50, xMax = 80;   // Height (inches)
+        const yMin = 5, yMax = 15;    // Shoe Size (US)
+        
+        // Data storage
+        let points = [];
+        let regressionLine = null;
+        let challenges = {
+            addedPoints: false,
+            removedPoint: false,
+            madePrediction: false
+        };
+
+        // Initialize canvas
+        function initCanvas() {
+            const container = document.getElementById('graph-container');
+            width = container.clientWidth;
+            height = container.clientHeight;
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            drawGraph();
+        }
+
+        // Draw graph with axes and labels
+        function drawGraph() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#e9ecef';
+            ctx.lineWidth = 1;
+            
+            // Vertical grid lines
+            for (let x = xMin; x <= xMax; x += 5) {
+                const canvasX = padding.left + (x - xMin) * (width - padding.left - padding.right) / (xMax - xMin);
+                ctx.beginPath();
+                ctx.moveTo(canvasX, padding.top);
+                ctx.lineTo(canvasX, height - padding.bottom);
+                ctx.stroke();
+            }
+            
+            // Horizontal grid lines
+            for (let y = yMin; y <= yMax; y += 1) {
+                const canvasY = height - padding.bottom - (y - yMin) * (height - padding.top - padding.bottom) / (yMax - yMin);
+                ctx.beginPath();
+                ctx.moveTo(padding.left, canvasY);
+                ctx.lineTo(width - padding.right, canvasY);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#495057';
+            ctx.lineWidth = 2;
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(padding.left, height - padding.bottom);
+            ctx.lineTo(width - padding.right, height - padding.bottom);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, height - padding.bottom);
+            ctx.stroke();
+            
+            // Draw axis labels
+            ctx.fillStyle = '#495057';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            
+            // X-axis labels (Height)
+            for (let x = xMin; x <= xMax; x += 5) {
+                const canvasX = padding.left + (x - xMin) * (width - padding.left - padding.right) / (xMax - xMin);
+                ctx.fillText(x, canvasX, height - padding.bottom + 20);
+            }
+            
+            // Y-axis labels (Shoe Size)
+            ctx.textAlign = 'right';
+            for (let y = yMin; y <= yMax; y += 1) {
+                const canvasY = height - padding.bottom - (y - yMin) * (height - padding.top - padding.bottom) / (yMax - yMin);
+                ctx.fillText(y, padding.left - 10, canvasY + 5);
+            }
+            
+            // Axis titles
+            ctx.textAlign = 'center';
+            ctx.fillText('Height in Inches', width / 2, height - 15);
+            
+            ctx.save();
+            ctx.translate(20, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Shoe Size (US)', 0, 0);
+    </script>
+</body>
+</html>

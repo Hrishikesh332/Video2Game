@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai Islands: History & Reclamation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            background-color: #f5f5f5;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .map-container {
+            position: relative;
+            height: 400px;
+            background-color: #a3d1ff;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            background-color: #d1d1d1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+            transition: all 0.3s ease;
+            border: 2px solid #888;
+        }
+        
+        .island:hover {
+            background-color: #b8b8b8;
+            transform: scale(1.05);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 15px 0;
+        }
+        
+        button {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            color: #333;
+        }
+        
+        button:hover {
+            background-color: #d0d0d0;
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .info-panel {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 200px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .info-panel h2 {
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            color: #222;
+        }
+        
+        .timeline {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding: 15px 0;
+            margin-bottom: 20px;
+        }
+        
+        .timeline-item {
+            min-width: 150px;
+            background-color: #e0e0e0;
+            padding: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .timeline-item:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .timeline-item.active {
+            background-color: #b0b0b0;
+            font-weight: bold;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 12px;
+            background-color: #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #888888;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .score-display {
+            font-weight: bold;
+            font-size: 1.2rem;
+            background-color: #e0e0e0;
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+        
+        .level-indicator {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .level-btn {
+            padding: 8px 15px;
+            background-color: #e0e0e0;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        
+        .level-btn.active {
+            background-color: #b0b0b0;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .map-container {
+                height: 300px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mumbai Islands: History & Reclamation</h1>
+        <p>Explore how seven islands became modern Mumbai</p>
+    </header>
+    
+    <main class="game-container">
+        <div class="level-indicator">
+            <div class="level-btn active" data-level="1">Level 1: Islands</div>
+            <div class="level-btn" data-level="2">Level 2: Reclamation</div>
+            <div class="level-btn" data-level="3">Level 3: Timeline</div>
+        </div>
+        
+        <div class="map-container" id="map">
+            <!-- Islands will be dynamically added here -->
+        </div>
+        
+        <div class="controls">
+            <button id="toggleView">Toggle Historical View</button>
+            <button id="resetBtn">Reset Level</button>
+            <button id="hintBtn">Get Hint</button>
+        </div>
+        
+        <div class="info-panel">
+            <h2>Historical Information</h2>
+            <div id="infoContent">Click on islands or timeline items to learn more</div>
+        </div>
+        
+        <div class="timeline" id="timeline">
+            <!-- Timeline items will be dynamically added here -->
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="score-display">Score: <span id="scoreValue">0</span></div>
+        </div>
+        
+        <div class="controls">
+            <button id="prevBtn" disabled>Previous</button>
+            <button id="nextBtn">Next Level</button>
+            <button id="restartBtn">Restart Game</button>
+        </div>
+    </main>
+
+    <script>
+        // Game data
+        const gameData = {
+            currentLevel: 1,
+            score: 0,
+            maxScore: 100,
+            historicalView: false,
+            completedLevels: [false, false, false],
+            
+            islands: [
+                { id: 1, name: "Colaba", x: 20, y: 80, radius: 40, info: "Southernmost island, home to the Gateway of India." },
+                { id: 2, name: "Little Colaba", x: 30, y: 180, radius: 30, info: "Also known as Old Woman's Island, now part of Colaba." },
+                { id: 3, name: "Mazagaon", x: 150, y: 120, radius: 45, info: "Known for its hills and Portuguese heritage." },
+                { id: 4, name: "Worli", x: 250, y: 80, radius: 40, info: "Famous for Worli Fort and fishing community." },
+                { id: 5, name: "Parel", x: 350, y: 150, radius: 50, info: "Industrial center with textile mills." },
+                { id: 6, name: "Mahim", x: 450, y: 100, radius: 45, info: "Home to the Mahim Fort and Mithi River." },
+                { id: 7, name: "Bombay Island", x: 300, y: 250, radius: 60, info: "The largest island, now the heart of Mumbai." }
+            ],
+            
+            causeways: [
+                { name: "Hornby Vellard", year: 1784, info: "Connected Worli with Malabar Hill." },
+                { name: "Duncan Causeway", year: 1801, info: "Linked Sion with Kurla." },
+                { name: "Colaba Causeway", year: 1838, info: "Joined Colaba with Bombay Island." },
+                { name: "Mahim Causeway", year: 1845, info: "Connected Mahim with Bandra." }
+            ],
+            
+            timelineEvents: [
+                { period: "Satavahanas", years: "230 BCE - 220 CE", info: "Early rulers who controlled the region." },
+                { period: "Western Satraps", years: "35 - 405 CE", info: "Indo-Scythian rulers of western India." },
+                { period: "Abhiras", years: "203 - 370 CE", info: "Ancient dynasty ruling the Konkan coast." },
+                { period: "Vakatakas", years: "250 - 500 CE", info: "Empire that controlled parts of western India." },
+                { period: "Kalachuris", years: "550 - 620 CE", info: "Dynasty ruling central and western India." },
+                { period: "Chalukyas", years: "6th-12th century", info: "Powerful South Indian dynasty." },
+                { period: "Rashtrakutas", years: "753 - 982 CE", info: "Empire controlling much of the Indian subcontinent." }
+            ]
+        };
+
+        // DOM Elements
+        const mapContainer = document.getElementById('map');
+        const infoContent = document.getElementById('infoContent');
+        const timelineContainer = document.getElementById('timeline');
+        const toggleViewBtn = document.getElementById('toggleView');
+        const resetBtn = document.getElementById('resetBtn');
+        const hintBtn = document.getElementById('hintBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const scoreValue = document.getElementById('scoreValue');
+        const progressFill = document.getElementById('progressFill');
+        const levelBtns = document.querySelectorAll('.level-btn');
+
+        // Initialize game
+        function initGame() {
+            renderIslands();
+            renderTimeline();
+            updateUI();
+            loadGameState();
+        }
+
+        // Render islands on the map
+        function renderIslands() {
+            mapContainer.innerHTML = '';
+            gameData.islands.forEach(island => {
+                const islandEl = document.createElement('div');
+                islandEl.className = 'island';
+                islandEl.style.width = `${island.radius * 2}px`;
+                islandEl.style.height = `${island.radius * 2}px`;
+                islandEl.style.left = `${island.x}px`;
+                islandEl.style.top = `${island.y}px`;
+                islandEl.textContent = island.name;
+                islandEl.dataset.id = island.id;
+                
+                islandEl.addEventListener('click', () => {
+                    infoContent.innerHTML = `<h3>${island.name}</h3><p>${island.info}</p>`;
+                    if (gameData.currentLevel === 1 && !island.visited) {
+                        island.visited = true;
+                        gameData.score += 5;
+                        updateUI();
+                        checkLevelCompletion();
+                    }
+                });
+                
+                mapContainer.appendChild(islandEl);
+            });
+        }
+
+        // Render timeline events
+        function renderTimeline() {
+            timelineContainer.innerHTML = '';
+            gameData.timelineEvents.forEach(event => {
+                const eventEl = document.createElement('div');
+                eventEl.className = 'timeline-item';
+                eventEl.innerHTML = `<strong>${event.period}</strong><br>${event.years}`;
+                eventEl.dataset.period = event.period;
+                
+                eventEl.addEventListener('click', () => {
+                    infoContent.innerHTML = `<h3>${event.period} Dynasty</h3><p>${event.info}</p>`;
+                    if (gameData.currentLevel === 3 && !event.learned) {
+                        event.learned = true;
+                        gameData.score += 7;
+                        updateUI();
+                        checkLevelCompletion();
+                    }
+                });
+                
+                timelineContainer.appendChild(eventEl);
+            });
+        }
+
+        // Check level completion
+        function checkLevelCompletion() {
+            let completed = false;
+            
+            if (gameData.currentLevel === 1) {
+                completed = gameData.islands.every(island => island.visited);
+            } else if (gameData.currentLevel === 2) {
+                // Simulated completion for level 2
+                completed = gameData.score >= 30;
+            } else if (gameData.currentLevel === 3) {
+                completed = gameData.timelineEvents.every(event => event.learned);
+            }
+            
+            if (completed && !gameData.completedLevels[gameData.currentLevel - 1]) {
+                gameData.completedLevels[gameData.currentLevel - 1] = true;
+                gameData.score += 20;
+                updateUI();
+                alert(`Level ${gameData.currentLevel} completed!`);
+            }
+        }
+
+        // Update UI elements
+        function updateUI() {
+            scoreValue.textContent = gameData.score;
+            progressFill.style.width = `${(gameData.score / gameData.maxScore) * 100}%`;
+            
+            // Update level buttons
+            levelBtns.forEach((btn, index) => {
+                if (index + 1 === gameData.currentLevel) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // Update navigation buttons
+            prevBtn.disabled = gameData.currentLevel === 1;
+            nextBtn.disabled = gameData.currentLevel === 3;
+        }
+
+        // Save game state to localStorage
+        function saveGameState() {
+            localStorage.setItem('mumbaiGame', JSON.stringify({
+                score: gameData.score,
+                currentLevel: gameData.currentLevel,
+                completedLevels: gameData.completedLevels
+            }));
+        }
+
+        // Load game state from localStorage
+        function loadGameState() {
+            const savedGame = localStorage.getItem('mumbaiGame');
+            if (savedGame) {
+                const gameState = JSON.parse(savedGame);
+                gameData.score = gameState.score || 0;
+                gameData.currentLevel = gameState.currentLevel || 1;
+                gameData.completedLevels = gameState.completedLevels || [false, false, false];
+                updateUI();
+            }
+        }
+
+        // Event Listeners
+        toggleViewBtn.addEventListener('click', () => {
+            gameData.historicalView = !gameData.historicalView;
+            mapContainer.style.backgroundColor = gameData.historicalView ? '#c0e0ff' : '#a3d1ff';
+            toggleViewBtn.textContent = gameData.historicalView ? 
+                'Show Modern View' : 'Show Historical View';
+        });
+
+        resetBtn.addEventListener('click', () => {
+            if (gameData.currentLevel === 1) {
+                gameData.islands.forEach(island => delete island.visited);
+                renderIslands();
+            } else if (gameData.currentLevel === 3) {
+                gameData.timelineEvents.forEach(event => delete event.learned);
+                renderTimeline();
+            }
+            infoContent.textContent = 'Click on islands or timeline items to learn more';
+        });
+
+        hintBtn.addEventListener('click', () => {
+            if (gameData.score >= 10) {
+                gameData.score -= 10;
+                updateUI();
+                alert('Hint: Explore all islands to complete Level 1');
+            } else {
+                alert('Not enough points for a hint!');
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (gameData.currentLevel > 1) {
+                gameData.currentLevel--;
+                updateUI();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (gameData.currentLevel < 3) {
+                gameData.currentLevel++;
+                updateUI();
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to restart the game?')) {
+                gameData.score = 0;
+                gameData.currentLevel = 1;
+                gameData.completedLevels = [false, false, false];
+                gameData.islands.forEach(island => delete island.visited);
+                gameData.timelineEvents.forEach(event => delete event.learned);
+                localStorage.removeItem('mumbaiGame');
+                renderIslands();
+                renderTimeline();
+                updateUI();
+                infoContent.textContent = 'Click on islands or timeline items to learn more';
+            }
+        });
+
+        levelBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                gameData.currentLevel = parseInt(btn.dataset.level);
+                updateUI();
+            });
+        });
+
+        // Initialize game when page loads
+        window.addEventListener('load', initGame);
+        
+        // Save game state when leaving page
+        window.addEventListener('beforeunload', saveGameState);
+    </script>
+</body>
+</html>

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Weather API Exploration</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        
+        body {
+            background-color: #FFFFFF;
+            color: #000000;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        h1, h2, h3 {
+            color: #007BFF;
+            margin-bottom: 15px;
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background-color: #e0e0e0;
+            position: relative;
+        }
+        
+        .progress-step.active {
+            background-color: #007BFF;
+            color: white;
+        }
+        
+        .progress-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -10px;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 10px solid #e0e0e0;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+        
+        .progress-step.active:not(:last-child)::after {
+            border-left-color: #007BFF;
+        }
+        
+        .code-editor {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            font-family: monospace;
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            border: none;
+            border-radius: 4px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        
+        .tool-demo {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        input, button {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        button {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        .terminal {
+            background-color: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            height: 200px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        
+        .terminal-input {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .terminal-input input {
+            flex: 1;
+            background-color: #000;
+            color: #0f0;
+            border: 1px solid #333;
+        }
+        
+        .feedback {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .score-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .command-history {
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .progress-step {
+                font-size: 12px;
+                padding: 8px 5px;
+            }
+            
+            .code-editor, .terminal {
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="score-container">Score: <span id="score">0</span>/300</div>
+    
+    <div class="container">
+        <div id="start-screen" class="screen active">
+            <h1>Interactive Weather API Exploration</h1>
+            <p>Learn how to use the Model Context Protocol (MCP) by completing these challenges.</p>
+            <p>Complete all 3 levels to master MCP server creation and weather API integration.</p>
+            <button id="start-btn">Start Challenge</button>
+        </div>
+        
+        <div id="level1-screen" class="screen">
+            <div class="progress-container">
+                <div class="progress-step active">1: Code Editor</div>
+                <div class="progress-step">2: Weather Tool</div>
+                <div class="progress-step">3: CLI Interface</div>
+            </div>
+            
+            <h2>Level 1: Create MCP Server</h2>
+            <p>Write code to create an MCP server with the following requirements:</p>
+            <ul>
+                <li>Import necessary modules</li>
+                <li>Define server configuration</li>
+                <li>Set port to 8000</li>
+            </ul>
+            
+            <textarea class="code-editor" id="code-input">// Type your code here</textarea>
+            <button id="run-code">Run Code</button>
+            <div id="code-feedback" class="feedback"></div>
+        </div>
+        
+        <div id="level2-screen" class="screen">
+            <div class="progress-container">
+                <div class="progress-step">1: Code Editor</div>
+                <div class="progress-step active">2: Weather Tool</div>
+                <div class="progress-step">3: CLI Interface</div>
+            </div>
+            
+            <h2>Level 2: Weather Tool</h2>
+            <p>Retrieve weather information for a specified city using the weather tool.</p>
+            
+            <div class="tool-demo">
+                <input type="text" id="city-input" placeholder="Enter city name">
+                <button id="get-weather">Get Weather</button>
+            </div>
+            
+            <div id="weather-result" class="feedback"></div>
+        </div>
+        
+        <div id="level3-screen" class="screen">
+            <div class="progress-container">
+                <div class="progress-step">1: Code Editor</div>
+                <div class="progress-step">2: Weather Tool</div>
+                <div class="progress-step active">3: CLI Interface</div>
+            </div>
+            
+            <h2>Level 3: Command Line Interface</h2>
+            <p>Connect to the MCP server and retrieve weather information using these commands:</p>
+            <ul>
+                <li>mcp add-server [address]</li>
+                <li>mcp connect [server]</li>
+                <li>mcp get-weather [city]</li>
+            </ul>
+            
+            <div class="terminal">
+                <div class="command-history" id="command-history"></div>
+                <div class="terminal-input">
+                    <span>></span>
+                    <input type="text" id="command-input" placeholder="Type command here">
+                    <button id="execute-command">Execute</button>
+                </div>
+            </div>
+            <div id="cli-feedback" class="feedback"></div>
+        </div>
+        
+        <div id="success-screen" class="screen">
+            <h2>Congratulations!</h2>
+            <p>You've successfully completed all challenges.</p>
+            <p>Your final score: <span id="final-score">0</span>/300</p>
+            <button id="restart-btn">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentLevel: 0,
+            score: 0,
+            level1Completed: false,
+            level2Completed: false,
+            level3Completed: false,
+            commandHistory: []
+        };
+        
+        // DOM elements
+        const screens = {
+            start: document.getElementById('start-screen'),
+            level1: document.getElementById('level1-screen'),
+            level2: document.getElementById('level2-screen'),
+            level3: document.getElementById('level3-screen'),
+            success: document.getElementById('success-screen')
+        };
+        
+        const scoreDisplay = document.getElementById('score');
+        const finalScoreDisplay = document.getElementById('final-score');
+        
+        // Initialize game
+        function initGame() {
+            // Reset game state
+            gameState.currentLevel = 0;
+            gameState.score = 0;
+            gameState.level1Completed = false;
+            gameState.level2Completed = false;
+            gameState.level3Completed = false;
+            gameState.commandHistory = [];
+            
+            updateScore();
+            showScreen('start');
+        }
+        
+        // Show specific screen
+        function showScreen(screenName) {
+            // Hide all screens
+            Object.values(screens).forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show requested screen
+            screens[screenName].classList.add('active');
+        }
+        
+        // Update score display
+        function updateScore() {
+            scoreDisplay.textContent = gameState.score;
+        }
+        
+        // Level 1: Code Editor
+        document.getElementById('run-code').addEventListener('click', () => {
+            const code = document.getElementById('code-input').value.toLowerCase();
+            const feedback = document.getElementById('code-feedback');
+            
+            // Check for required elements in code
+            const hasImport = code.includes('import');
+            const hasServe = code.includes('serve');
+            const hasPort = code.includes('8000') || code.includes('port');
+            
+            if (hasImport && hasServe && hasPort) {
+                feedback.textContent = '✅ Server created successfully!';
+                feedback.className = 'feedback success';
+                gameState.score += 100;
+                gameState.level1Completed = true;
+                updateScore();
+                
+                // Move to next level after delay
+                setTimeout(() => {
+                    showScreen('level2');
+                }, 1500);
+            } else {
+                feedback.textContent = '❌ Please include all required elements: import statement, serve function, and port configuration.';
+                feedback.className = 'feedback error';
+            }
+        });
+        
+        // Level 2: Weather Tool
+        document.getElementById('get-weather').addEventListener('click', () => {
+            const city = document.getElementById('city-input').value.trim();
+            const result = document.getElementById('weather-result');
+            
+            if (city) {
+                // Simulate weather data
+                const temp = Math.floor(Math.random() * 30) + 50;
+                const conditions = ['Sunny', 'Cloudy', 'Rainy', 'Snowy'];
+                const condition = conditions[Math.floor(Math.random() * conditions.length)];
+                
+                result.innerHTML = `
+                    <h3>Weather for ${city}</h3>
+                    <p>Temperature: ${temp}°F</p>
+                    <p>Conditions: ${condition}</p>
+                    <p>Humidity: ${Math.floor(Math.random() * 100)}%</p>
+                `;
+                result.className = 'feedback success';
+                
+                gameState.score += 100;
+                gameState.level2Completed = true;
+                updateScore();
+                
+                // Move to next level after delay
+                setTimeout(() => {
+                    showScreen('level3');
+                }, 2000);
+            } else {
+                result.textContent = '❌ Please enter a city name.';
+                result.className = 'feedback error';
+            }
+        });
+        
+        // Level 3: Command Line
+        document.getElementById('execute-command').addEventListener('click', executeCommand);
+        document.getElementById('command-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                executeCommand();
+            }
+        });
+        
+        function executeCommand() {
+            const commandInput = document.getElementById('command-input');
+            const command = commandInput.value.trim();
+            const history = document.getElementById('command-history');
+            const feedback = document.getElementById('cli-feedback');
+            
+            if (!command) return;
+            
+            // Add command to history
+            gameState.commandHistory.push(`> ${command}`);
+            history.innerHTML = gameState.commandHistory.join('<br>');
+            
+            // Process command
+            if (command.startsWith('mcp add-server')) {
+                feedback.textContent = '✅ Server added successfully!';
+                feedback.className = 'feedback success';
+            } 
+            else if (command.startsWith('mcp connect')) {
+                feedback.textContent = '✅ Connected to server!';
+                feedback.className = 'feedback success';
+            } 
+            else if (command.startsWith('mcp get-weather')) {
+                const city = command.split(' ')[2] || 'Unknown';
+                feedback.innerHTML = `✅ Weather data retrieved for ${city}!<br>Temperature: ${Math.floor(Math.random()*30)+50}°F`;
+                feedback.className = 'feedback success';
+                
+                // Complete level
+                gameState.score += 100;
+                gameState.level3Completed = true;
+                updateScore();
+                
+                // Show success screen after delay
+                setTimeout(() => {
+                    finalScoreDisplay.textContent = gameState.score;
+                    showScreen('success');
+                }, 1500);
+            } 
+            else {
+                feedback.textContent = '❌ Unknown command. Valid commands: mcp add-server, mcp connect, mcp get-weather';
+                feedback.className = 'feedback error';
+            }
+            
+            // Clear input
+            commandInput.value = '';
+        }
+        
+        // Button event listeners
+        document.getElementById('start-btn').addEventListener('click', () => {
+            showScreen('level1');
+        });
+        
+        document.getElementById('restart-btn').addEventListener('click', initGame);
+        
+        // Initialize game on load
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

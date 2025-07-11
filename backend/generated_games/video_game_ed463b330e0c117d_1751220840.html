@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Linear Regression Game</title>
+          <style>
+            /* CSS here */
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <canvas id="graph"></canvas>
+            <div class="sidebar">
+              <h1>Understanding Linear Regression</h1>
+              <p>Linear regression is a supervised learning algorithm used to predict continuous numerical data based on labeled datasets.</p>
+              <div class="explanation">
+                <p>In this example, we are using height (in inches) to predict shoe size (US). Each point represents a person's height and shoe size.</p>
+              </div>
+              <div class="challenges">
+                <h2>Challenges</h2>
+                <ul id="challenges-list"></ul>
+              </div>
+              <div class="controls">
+                <button id="label-mode">Label Mode: Off</button>
+                <button id="reset">Reset</button>
+              </div>
+              <div class="label-control" id="label-control" style="display: none;">
+                <p>Selected point: <span id="selected-point"></span></p>
+                <input type="text" id="label-input" placeholder="Enter label">
+                <button id="set-label">Set Label</button>
+                <button id="set-heart">❤</button>
+              </div>
+              <div class="score-container">
+                <p>Score: <span id="current-score">0</span></p>
+                <p>High Score: <span id="high-score">0</span></p>
+              </div>
+            </div>
+          </div>
+          <script>
+            // JavaScript here
+          </script>
+        </body>
+        </html>
+
+   We'll write the CSS to make it responsive.
+
+   We'll write the JavaScript in the script tag.
+
+   Due to the complexity, we'll break the JavaScript into parts:
+
+        // Constants and variables
+        const canvas = document.getElementById('graph');
+        const ctx = canvas.getContext('2d');
+        const challengesList = document.getElementById('challenges-list');
+        const labelModeButton = document.getElementById('label-mode');
+        const resetButton = document.getElementById('reset');
+        const labelControl = document.getElementById('label-control');
+        const labelInput = document.getElementById('label-input');
+        const setLabelButton = document.getElementById('set-label');
+        const setHeartButton = document.getElementById('set-heart');
+        const selectedPointSpan = document.getElementById('selected-point');
+        const currentScoreEl = document.getElementById('current-score');
+        const highScoreEl = document.getElementById('high-score');
+
+        // Data
+        let points = []; // { x: number, y: number, label: string | null }
+        let labelMode = false;
+        let selectedPoint = null;
+        let challenges = [ ... ]; // as described above
+        let score = 0;
+        let highScore = localStorage.getItem('linearRegressionHighScore') || 0;
+        highScoreEl.textContent = highScore;
+
+        // Graph dimensions and padding
+        const padding = { top: 20, right: 20, bottom: 50, left: 50 };
+        let canvasWidth, canvasHeight;
+        // Data domain
+        const minX = 50, maxX = 80;
+        const minY = 5, maxY = 15;
+
+        // Functions for converting coordinates
+        function toCanvasX(x) {
+          return padding.left + (x - minX) * (canvasWidth - padding.left - padding.right) / (maxX - minX);
+        }
+
+        function toCanvasY(y) {
+          return canvasHeight - padding.bottom - (y - minY) * (canvasHeight - padding.top - padding.bottom) / (maxY - minY);
+        }
+
+        function toDataX(canvasX) {
+          return minX + (canvasX - padding.left) * (maxX - minX) / (canvasWidth - padding.left - padding.right);
+        }
+
+        function toDataY(canvasY) {
+          return minY + (canvasHeight - padding.bottom - canvasY) * (maxY - minY) / (canvasHeight - padding.top - padding.bottom);
+        }
+
+        // Linear regression calculation
+        function calculateRegression() {
+          if (points.length < 2) {
+            return null; // not enough points
+          }
+          let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+          for (let point of points) {
+            sumX += point.x;
+            sumY += point.y;
+            sumXY += point.x * point.y;
+            sumXX += point.x * point.x;
+          }
+          const n = points.length;
+          const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+          const intercept = (sumY - slope * sumX) / n;
+          return { slope, intercept };
+        }
+
+        // Drawing functions
+        function drawGrid() {
+          // Draw the grid and axes
+          ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+          ctx.strokeStyle = '#ccc';
+          ctx.lineWidth = 1;
+
+          // Draw horizontal grid lines (for y-axis)
+          for (let y = minY; y <= maxY; y += 1) {
+            const canvasY = toCanvasY(y);
+            ctx.beginPath();
+            ctx.moveTo(padding.left, canvasY);
+            ctx.lineTo(canvasWidth - padding.right, canvasY);
+            ctx.stroke();
+            // Label
+            ctx.fillStyle = '#000';
+            ctx.fillText(y.toFixed(0), padding.left - 30, canvasY);
+          }
+
+          // Draw vertical grid lines (for x-axis)
+          for (let x = minX; x <= maxX; x += 5) {
+            const canvasX = toCanvasX(x);
+            ctx.beginPath();
+            ctx.moveTo(canvasX, padding.top);
+            ctx.lineTo(canvasX, canvasHeight - padding.bottom);
+            ctx.stroke();
+            // Label
+            ctx.fillText(x.toFixed(0), canvasX, canvasHeight - padding.bottom + 20);
+          }
+
+          // Draw axes
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 2;
+          // x-axis
+          ctx.beginPath();
+          ctx.moveTo(padding.left, canvasHeight - padding.bottom);
+          ctx.lineTo(canvasWidth - padding.right, canvasHeight - padding.bottom);
+          ctx.stroke();
+          // y-axis
+          ctx.beginPath();
+          ctx.moveTo(padding.left, padding.top);
+          ctx.lineTo(padding.left, canvasHeight - padding.bottom);
+          ctx.stroke();
+
+          // Axis labels
+          ctx.fillStyle = '#000';
+          ctx.font = '16px Arial';
+          ctx.fillText('Height in Inches', canvasWidth / 2, canvasHeight - 10);
+          ctx.save();
+          ctx.translate(10, canvasHeight / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillText('Shoe Size [US]', 0, 0);
+          ctx.restore();
+        }
+
+        function drawPoints() {
+          for (let point of points) {
+            const x = toCanvasX(point.x);
+            const y = toCanvasY(point.y);
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fillStyle = point.label ? 'red' : 'blue';
+            ctx.fill();
+
+            // If the point has a label, draw it
+            if (point.label) {
+              ctx.fillStyle = 'black';
+              ctx.font = '12px Arial';
+              ctx.fillText(point.label, x + 8, y - 8);
+            }
+          }
+        }
+
+        function drawRegressionLine() {
+          const regression = calculateRegression();
+          if (!regression) return;
+
+          const { slope, intercept } = regression;
+
+          // Calculate the start and end points for the line in data coordinates
+          const startX = minX;
+          const startY = slope * startX + intercept;
+          const endX = maxX;
+          const endY = slope * endX + intercept;
+
+          // Convert to canvas coordinates
+          const canvasStartX = toCanvasX(startX);
+          const canvasStartY = toCanvasY(startY);
+          const canvasEndX = toCanvasX(endX);
+          const canvasEndY = toCanvasY(endY);
+
+          // Draw the line
+          ctx.beginPath();
+          ctx.moveTo(canvasStartX, canvasStartY);
+          ctx.lineTo(canvasEndX, canvasEndY);
+          ctx.strokeStyle = 'green';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        function draw() {
+          drawGrid();
+          drawPoints();
+          drawRegressionLine();
+        }
+
+        // Event Handlers
+        function handleClick(e) {
+          const rect = canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          if (labelMode) {
+            // Check if we clicked on a point
+            for (let i = 0; i < points.length; i++) {
+              const point = points[i];
+              const canvasX = toCanvasX(point.x);
+              const canvasY = toCanvasY(point.y);
+              const distance = Math.sqrt(Math.pow(x - canvasX, 2) + Math.pow(y - canvasY, 2));
+              if (distance < 10) {
+                selectedPoint = point;
+                selectedPointSpan.textContent = `(${point.x.toFixed(1)}, ${point.y.toFixed(1)})`;
+                labelControl.style.display = 'block';
+                return;
+              }
+            }
+            // If not, then we don't select any point, but we can hide the label control?
+            // Or if we clicked outside, we deselect?
+            selectedPoint = null;
+            labelControl.style.display = 'none';
+          } else {
+            // Add a point
+            const dataX = toDataX(x);
+            const dataY = toDataY(y);
+            points.push({ x: dataX, y: dataY, label: null });
+            update();
+          }
+        }
+
+        function handleRightClick(e) {
+          e.preventDefault(); // prevent context menu
+          const rect = canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          // Find the closest point within 10 pixels
+          let closestIndex = -1;
+          let minDist = 10;
+          for (let i = 0; i < points.length; i++) {
+            const point = points[i];
+            const canvasX = toCanvasX(point.x);
+            const canvasY = toCanvasY(point.y);
+            const distance = Math.sqrt(Math.pow(x - canvasX, 2) + Math.pow(y - canvasY, 2));
+            if (distance < minDist) {
+              minDist = distance;
+              closestIndex = i;
+            }
+          }
+          if (closestIndex !== -1) {
+            points.splice(closestIndex, 1);
+            update();
+          }
+        }
+
+        // For touch: we'll simulate left click for tap and long press for right click
+        let touchTimer;
+        function handleTouchStart(e) {
+          e.preventDefault();
+          const touch = e.touches[0];
+          const rect = canvas.getBoundingClientRect();
+          const x = touch.clientX - rect.left;
+          const y = touch.clientY - rect.top;
+
+          touchTimer = setTimeout(() => {
+            // Long press: remove point
+            handleRightClickForTouch(x, y);
+          }, 500);
+        }
+
+        function handleTouchEnd(e) {
+          e.preventDefault();
+          clearTimeout(touchTimer);
+          const touch = e.changedTouches[0];
+          const rect = canvas.getBoundingClientRect();
+          const x = touch.clientX - rect.left;
+          const y = touch.clientY - rect.top;
+
+          // If it's a short tap, add a point or select for label
+          if (labelMode) {
+            // Check if we tapped on a point
+            for (let i = 0; i < points.length; i++) {
+              const point = points[i];
+              const canvasX = toCanvasX(point.x);
+              const canvasY = toCanvasY(point.y);
+              const distance = Math.sqrt(Math.pow(x - canvasX, 2) + Math.pow(y - canvasY, 2));
+              if (distance < 10) {
+                selectedPoint = point;
+                selectedPointSpan.textContent = `(${point.x.toFixed(1)}, ${point.y.toFixed(1)})`;
+                labelControl.style.display = 'block';
+                return;
+              }
+            }
+            selectedPoint = null;
+            labelControl.style.display = 'none';
+          } else {
+            // Add a point
+            const dataX = toDataX(x);
+            const dataY = toDataY(y);
+            points.push({ x: dataX, y: dataY, label: null });
+            update();
+          }
+        }
+
+        function handleRightClickForTouch(x, y) {
+          // Find the closest point within 10 pixels
+          let closestIndex = -1;
+          let minDist = 10;
+          for (let i = 0; i < points.length; i++) {
+            const point = points[i];
+            const canvasX = toCanvasX(point.x);
+            const canvasY = toCanvasY(point.y);
+            const distance = Math.sqrt(Math.pow(x - canvasX, 2) + Math.pow(y - canvasY, 2));
+            if (distance < minDist) {
+              minDist = distance;
+              closestIndex = i;
+            }
+          }
+          if (closestIndex !== -1) {
+            points.splice(closestIndex, 1);
+            update();
+          }
+        }
+
+        // Update function: redraw and check challenges
+        function update() {
+          draw();
+          checkChallenges();
+        }
+
+        function checkChallenges() {
+          let anyCompleted = false;
+          for (let i = 0; i < challenges.length; i++) {
+            const challenge = challenges[i];
+            if (!challenge.completed && challenge.condition()) {
+              challenge.completed = true;
+              anyCompleted = true;
+            }
+          }
+          if (anyCompleted) {
+            updateChallengeList();
+            // Update score: 10 per challenge
+            const completedCount = challenges.filter(c => c.completed).length;
+            score = completedCount * 10;
+            currentScoreEl.textContent = score;
+            if (score > highScore) {
+              highScore = score;
+              highScoreEl.textContent = highScore;
+              localStorage.setItem('linearRegressionHighScore', highScore);
+            }
+          }
+        }
+
+        function updateChallengeList() {
+          challengesList.innerHTML = '';
+          for (let i = 0; i < challenges.length; i++) {
+            const challenge = challenges[i];
+            const li = document.createElement('li');
+            li.textContent = challenge.description;
+            if (challenge.completed) {
+              li.style.textDecoration = 'line-through';
+              li.style.color = 'green';
+            }
+            challengesList.appendChild(li);
+          }
+        }
+
+        // Initialize
+        function init() {
+          // Set canvas size
+          function resizeCanvas() {
+            canvasWidth = canvas.width = canvas.offsetWidth;
+            canvasHeight = canvas.height = canvas.offsetHeight;
+            update();
+          }
+
+          window.addEventListener('resize', resizeCanvas);
+          resizeCanvas();
+
+          // Event listeners
+          canvas.addEventListener('click', handleClick);
+          canvas.addEventListener('contextmenu', handleRightClick);
+          canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+          canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+          labelModeButton.addEventListener('click', () => {
+            labelMode = !labelMode;
+            labelModeButton.textContent = `Label Mode: ${labelMode ? 'On' : 'Off'}`;
+            // Hide the label control when turning off label mode
+            if (!labelMode) {
+              labelControl.style.display = 'none';
+            }
+          });
+
+          setLabelButton.addEventListener('click', () => {
+            if (selectedPoint) {
+              selectedPoint.label = labelInput.value;
+              labelInput.value = '';
+              update();
+            }
+          });
+
+          setHeartButton.addEventListener('click', () => {
+            if (selectedPoint) {
+              selectedPoint.label = '❤';
+              update();
+            }
+          });
+
+          resetButton.addEventListener('click', () => {
+            points = [];
+            selectedPoint = null;
+            labelControl.style.display = 'none';
+            // Reset challenges
+            challenges.forEach(c => c.completed = false);
+            updateChallengeList();
+            score = 0;
+            currentScoreEl.textContent = score;
+            update();
+          });
+
+          // Initialize challenge list
+          challenges = [
+            {
+              description: "Add at least 3 data points by clicking on the graph.",
+              condition: () => points.length >= 3,
+              completed: false
+            },
+            {
+              description: "Remove one data point by right-clicking (or long press) on it.",
+              condition: () => points.some((p, i, arr) => arr.length < points.length), // This won't work because we are resetting the array? We need to track removals differently.
+              // Instead, we can count the removals? But we don't have that. Alternatively, we can check if there was at least one removal since start? 
+              // But note: we reset the points array on reset. We can have a variable for removals.
+              // Let's change: we'll track total removals (even if we reset, we reset the removals too). But the challenge is per session.
+              // We'll change the condition to: the user has removed at least one point during the session.
+              // We'll add a variable: let removals = 0; and increment when removing.
+              // But we don't have that. We'll change the challenge condition to: 
+              //   condition: () => removals > 0
+              // We'll add a variable `removals` and reset it on reset.
+            },
+            {
+              description: "Label two points: one as 'Author' and one with a heart symbol.",
+              condition: () => {
+                let hasAuthor = false;
+                let hasHeart = false;
+                for (let p of points) {
+                  if (p.label === 'Author') hasAuthor = true;
+                  if (p.label === '❤') hasHeart = true;
+                }
+                return hasAuthor && hasHeart;
+              },
+              completed: false
+            }
+          ];
+
+          // We'll change the second challenge to track removals.
+          let removals = 0;
+          // We need to update the right click handler to increment removals.
+          // We'll modify handleRightClick and handleRightClickForTouch to do removals++.
+
+          // But we cannot easily do that because the event handlers are already defined. We can refactor.
+
+          // Alternatively, we can define the condition for the second challenge as:
+          //   condition: () => points.length < initialPointsCount? 
+          // But we don't have initialPointsCount.
+
+          // We'll change the second challenge to: "Remove one data point", and we'll track a flag that is set when a point is removed.
+          // We'll have a variable: pointRemoved = false; and set it to true when removing a point. Then reset on reset.
+
+          let pointRemoved = false;
+
+          // Then in the right click handlers, set pointRemoved = true.
+
+          // And reset on reset.
+
+          // So we change the second challenge to:
+          challenges[1] = {
+            description: "Remove one data point by right-clicking (or long press) on it.",
+            condition: () => pointRemoved,
+            completed: false
+          };
+
+          // Then in handleRightClick and handleRightClickForTouch, after removing, set pointRemoved = true.
+
+          // We'll update the event handlers:
+
+          function handleRightClick(e) {
+            // ... same as before until the removal
+            if (closestIndex !== -1) {
+              points.splice(closestIndex, 1);
+              pointRemoved = true;
+              update();
+            }
+          }
+
+          function handleRightClickForTouch(x, y) {
+            // ... same
+            if (closestIndex !== -1) {
+              points.splice(closestIndex, 1);
+              pointRemoved = true;
+              update();
+            }
+          }
+
+          // And in reset:
+          resetButton.addEventListener('click', () => {
+            points = [];
+            selectedPoint = null;
+            labelControl.style.display = 'none';
+            // Reset challenges
+            challenges.forEach(c => c.completed = false);
+            pointRemoved = false; // reset the flag
+            updateChallengeList();
+            score = 0;
+            currentScoreEl.textContent = score;
+            update();
+          });
+
+          // Now initialize the challenge list
+          updateChallengeList();
+        }
+
+        // Run init when the page loads
+        window.onload = init;
+
+   This is a very long script. We'll write it in the HTML.
+
+   Note: We must be cautious of the scope and variable declarations.
+
+   We'll wrap the script in an IIFE to avoid global variables? Or just use 'let' and 'const' in the global scope of the script.
+
+   Since it's a single file, we'll write it without an IIFE.
+
+   We'll also set the canvas size in the CSS to be 100% of its container.
+
+   CSS:
+
+        * {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+        }
+
+        body {
+          font-family: Arial, sans-serif;
+          background-color: white;
+          color: #333;
+          line-height: 1.6;
+        }
+
+        .container {
+          display: flex;
+          flex-wrap: wrap;
+          padding: 20px;
+        }
+
+        #graph {
+          flex: 1 1 70%;
+          background-color: white;
+          border: 1px solid #ccc;
+          min-height: 500px;
+        }
+
+        .sidebar {
+          flex: 1 1 30%;
+          padding: 0 20px;
+          min-width: 300px;
+        }
+
+        .controls {
+          margin: 20px 0;
+        }
+
+        button {
+          padding: 10px 15px;
+          margin-right: 10px;
+          background-color: #eee;
+          border: 1px solid #ccc;
+          cursor: pointer;
+        }
+
+        button:hover {
+          background-color: #ddd;
+        }
+
+        .label-control {
+          margin: 20px 0;
+          border: 1px solid #ccc;

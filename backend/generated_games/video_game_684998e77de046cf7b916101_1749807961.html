@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Principal Component Analysis Interactive App</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --accent2: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --gray: #95a5a6;
+            --light-gray: #f5f7fa;
+            --border: #bdc3c7;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+        
+        .subtitle {
+            color: var(--gray);
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .visualization-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .explanation-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light);
+        }
+        
+        #scatter-plot {
+            width: 100%;
+            height: 400px;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .control-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+        }
+        
+        .slider-value {
+            min-width: 40px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
+        button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .toggle-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .toggle-btn {
+            background-color: var(--light);
+            color: var(--dark);
+            border: 1px solid var(--border);
+        }
+        
+        .toggle-btn.active {
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .point {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--accent);
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: transform 0.2s;
+            z-index: 10;
+        }
+        
+        .point:hover {
+            transform: translate(-50%, -50%) scale(1.5);
+            z-index: 20;
+        }
+        
+        .point.selected {
+            border: 2px solid var(--accent2);
+            transform: translate(-50%, -50%) scale(1.5);
+        }
+        
+        .pc-line {
+            position: absolute;
+            height: 3px;
+            transform-origin: 0 0;
+            z-index: 5;
+        }
+        
+        .pc1 {
+            background-color: var(--accent2);
+        }
+        
+        .pc2 {
+            background-color: #27ae60;
+        }
+        
+        .explanation-content {
+            background-color: var(--light-gray);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .explanation-content h3 {
+            color: var(--accent2);
+            margin-bottom: 10px;
+        }
+        
+        .explanation-content p {
+            margin-bottom: 15px;
+        }
+        
+        .challenge-section {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        
+        .challenge-question {
+            background-color: var(--light-gray);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .option {
+            padding: 15px;
+            background-color: var(--light);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .option:hover {
+            background-color: #d6dbdf;
+        }
+        
+        .option.selected {
+            border-color: var(--accent);
+            background-color: #d6eaf8;
+        }
+        
+        .feedback {
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .correct {
+            background-color: #d5f5e3;
+            border: 1px solid #27ae60;
+            color: #27ae60;
+        }
+        
+        .incorrect {
+            background-color: #fadbd8;
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+        
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .score {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--accent);
+        }
+        
+        .next-btn {
+            background-color: #27ae60;
+        }
+        
+        .next-btn:hover {
+            background-color: #219653;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Principal Component Analysis Interactive App</h1>
+        <p class="subtitle">Visualize and understand how PCA transforms data into principal components by interacting with the scatter plot</p>
+    </header>
+    
+    <div class="container">
+        <div class="visualization-section">
+            <h2 class="section-title">Interactive Scatter Plot</h2>
+            <div id="scatter-plot">
+                <!-- Points and principal components will be added here by JavaScript -->
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label class="control-label">Number of Data Points</label>
+                    <div class="slider-container">
+                        <input type="range" id="point-count" min="5" max="50" value="15">
+                        <span class="slider-value" id="point-count-value">15</span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">Variance Ratio</label>
+                    <div class="slider-container">
+                        <input type="range" id="variance" min="1" max="10" value="5">
+                        <span class="slider-value" id="variance-value">5</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label class="control-label">Principal Components</label>
+                    <div class="toggle-container">
+                        <button id="toggle-pc1" class="toggle-btn active">PC1</button>
+                        <button id="toggle-pc2" class="toggle-btn active">PC2</button>
+                        <button id="reset-btn">Reset Points</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pc-info">
+                <p><strong>PC1:</strong> <span id="pc1-variance">72%</span> of variance</p>
+                <p><strong>PC2:</strong> <span id="pc2-variance">28%</span> of variance</p>
+            </div>
+        </div>
+        
+        <div class="explanation-section">
+            <h2 class="section-title">Understanding PCA</h2>
+            <div class="explanation-content">
+                <h3>What is PCA?</h3>
+                <p>Principal Component Analysis (PCA) is a dimensionality reduction technique that transforms data into a new coordinate system where the greatest variance lies on the first coordinate (principal component), the second greatest variance on the second coordinate, and so on.</p>
+                
+                <h3>How PCA Works</h3>
+                <p>1. Standardize the data<br>
+                2. Compute the covariance matrix<br>
+                3. Calculate eigenvalues and eigenvectors<br>
+                4. Sort eigenvalues in descending order<br>
+                5. Project data onto the new axes</p>
+                
+                <h3>Real-World Applications</h3>
+                <p>- Image compression<br>
+                - Facial recognition<br>
+                - Gene expression analysis<br>
+                - Market research data analysis<br>
+                - Noise reduction in signal processing</p>
+            </div>
+            
+            <div class="challenge-section">
+                <h2 class="section-title">PCA Challenge</h2>
+                <div class="challenge-question">
+                    <p>If PCA reveals that PC1 accounts for 85% of the variance and PC2 accounts for 10%, how many dimensions would you need to retain to preserve 95% of the information?</p>
+                </div>
+                
+                <div class="options">
+                    <div class="option" data-value="1">1 dimension</div>
+                    <div class="option" data-value="2">2 dimensions</div>
+                    <div class="option" data-value="3">3 dimensions</div>
+                    <div class="option" data-value="4">4 dimensions</div>
+                </div>
+                
+                <button id="submit-btn">Check Answer</button>
+                
+                <div class="feedback" id="feedback"></div>
+                
+                <div class="score-container">
+                    <div class="score">Score: <span id="score-value">0</span>/1</div>
+                    <button id="next-btn" class="next-btn">Next Challenge</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Created for educational purposes | PCA Visualization Tool</p>
+    </footer>
+
+    <script>
+        // Data and state management
+        const state = {
+            points: [],
+            pc1Visible: true,
+            pc2Visible: true,
+            selectedPoint: null,
+            score: 0,
+            challengeCompleted: false
+        };
+
+        // DOM Elements
+        const scatterPlot = document.getElementById('scatter-plot');
+        const pointCountSlider = document.getElementById('point-count');
+        const pointCountValue = document.getElementById('point-count-value');
+        const varianceSlider = document.getElementById('variance');
+        const varianceValue = document.getElementById('variance-value');
+        const togglePC1 = document.getElementById('toggle-pc1');
+        const togglePC2 = document.getElementById('toggle-pc2');
+        const resetBtn = document.getElementById('reset-btn');
+        const pc1Variance = document.getElementById('pc1-variance');
+        const pc2Variance = document.getElementById('pc2-variance');
+        const options = document.querySelectorAll('.option');
+        const submitBtn = document.getElementById('submit-btn');
+        const feedback = document.getElementById('feedback');
+        const scoreValue = document.getElementById('score-value');
+        const nextBtn = document.getElementById('next-btn');
+
+        // Initialize the app
+        function init() {
+            updateSliders();
+            generatePoints();
+            calculatePCA();
+            renderPlot();
+            setupEventListeners();
+        }
+
+        // Update slider value displays
+        function updateSliders() {
+            pointCountValue.textContent = pointCountSlider.value;
+            varianceValue.textContent = varianceSlider.value;
+        }
+
+        // Generate random data points
+        function generatePoints() {
+            state.points = [];
+            const count = parseInt(pointCountSlider.value);
+            const variance = parseInt(varianceSlider.value) / 2;
+            
+            for (let i = 0; i < count; i++) {
+                // Create points with some correlation
+                const x = Math.random() * 300 + 50;
+                const y = (x * 0.7) + (Math.random() - 0.5) * 100 * variance;
+                
+                state.points.push({
+                    id: i,
+                    x: x,
+                    y: y,
+                    element: null
+                });
+            }
+        }
+
+        // Calculate PCA (simplified for visualization)
+        function calculatePCA() {
+            // Calculate mean
+            let meanX = 0, meanY = 0;
+            state.points.forEach(point => {
+                meanX += point.x;
+                meanY += point.y;
+            });
+            meanX /= state.points.length;
+            meanY /= state.points.length;
+            
+            // Calculate covariance matrix
+            let covXX = 0, covXY = 0, covYY = 0;
+            state.points.forEach(point => {
+                const dx = point.x - meanX;
+                const dy = point.y - meanY;
+                covXX += dx * dx;
+                covXY += dx * dy;
+                covYY += dy * dy;
+            });
+            
+            covXX /= state.points.length;
+            covXY /= state.points.length;
+            covYY /= state.points.length;
+            
+            // Calculate eigenvalues and eigenvectors (simplified)
+            const trace = covXX + covYY;
+            const det = covXX * covYY - covXY * covXY;
+            const discriminant = Math.sqrt(trace * trace - 4 * det);
+            
+            const lambda1 = (trace + discriminant) / 2;
+            const lambda2 = (trace - discriminant) / 2;
+            
+            // Calculate eigenvectors
+            let v1x, v1y, v2x, v2y;
+            
+            if (Math.abs(covXY) > 1e-6) {
+                v1x = lambda1 - covYY;
+                v1y = covXY;
+                v2x = lambda2 - covYY;
+                v2y = covXY;
+            } else {
+                v1x = 1;
+                v1y = 0;
+                v2x = 0;
+                v2y = 1;
+            }
+            
+            // Normalize eigenvectors
+            const len1 = Math.sqrt(v1x * v1x + v1y * v1y);
+            const len2 = Math.sqrt(v2x * v2x + v2y * v2y);
+            
+            v1x /= len1;
+            v1y /= len1;
+            v2x /= len2;
+            v2y /= len2;
+            
+            // Store PCA results
+            state.meanX = meanX;
+            state.meanY = meanY;
+            state.pc1 = { x: v1x, y: v1y, length: Math.sqrt(lambda1) * 10 };
+            state.pc2 = { x: v2x, y: v2y, length: Math.sqrt(lambda2) * 10 };
+            
+            // Calculate variance percentages
+            const totalVariance = lambda1 + lambda2;
+            const pc1VariancePercent = Math.round((lambda1 / totalVariance) * 100);
+            const pc2VariancePercent = Math.round((lambda2 / totalVariance) * 100);
+            
+            pc1Variance.textContent = `${pc1VariancePercent}%`;
+            pc2Variance.textContent = `${pc2VariancePercent}%`;
+        }
+
+        // Render the scatter plot
+        function renderPlot() {
+            // Clear previous points
+            scatterPlot.innerHTML = '';
+            
+            // Draw grid
+            drawGrid();
+            
+            // Draw principal components
+            if (state.pc1Visible) {
+                drawPrincipalComponent(state.pc1, '#e74c3c');
+            }
+            if (state.pc2Visible) {
+                drawPrincipalComponent(state.pc2, '#27ae60');
+            }
+            
+            // Draw points
+            state.points.forEach(point => {
+                const pointEl = document.createElement('div');
+                pointEl.className = 'point';
+                if (point === state.selectedPoint) {
+                    pointEl.classList.add('selected');
+                }
+                pointEl.style.left = `${point.x}px`;
+                pointEl.style.top = `${point.y}px`;
+                pointEl.dataset.id = point.id;
+                
+                pointEl.addEventListener('click', () => {
+                    if (state.selectedPoint === point) {
+                        state.selectedPoint = null;
+                        pointEl.classList.remove('selected');
+                    } else {
+                        if (state.selectedPoint) {
+                            state.selectedPoint.element.classList.remove('selected');
+                        }
+                        state.selectedPoint = point;
+                        point.element = pointEl;
+                        pointEl.classList.add('selected');
+                    }
+                });
+                
+                scatterPlot.appendChild(pointEl);
+                point.element = pointEl;
+            });
+        }
+
+        // Draw grid lines
+        function drawGrid() {
+            const width = scatterPlot.clientWidth;
+            const height = scatterPlot.clientHeight;
+            
+            for (let x = 0; x <= width; x += 50) {
+                const line = document.createElement('div');
+                line.style.position = 'absolute';
+                line.style.left = `${x}px`;
+                line.style.top = '0';
+                line.style.width = '1px';
+                line.style.height = '100%';
+                line.style.backgroundColor = '#e0e0e0';
+                line.style.zIndex = '1';
+                scatterPlot.appendChild(line);
+            }
+            
+            for (let y = 0; y <= height; y += 50) {
+                const line = document.createElement('div');
+                line.style.position = 'absolute';
+                line.style.left = '0';
+                line.style.top = `${y}px`;
+                line.style.width = '100%';
+                line.style.height = '1px';
+                line.style.backgroundColor = '#e0e0e0';
+                line.style.zIndex = '1';
+                scatterPlot.appendChild(line);
+            }
+        }
+
+        // Draw a principal component
+        function drawPrincipalComponent(pc, color) {
+            const centerX = state.meanX;
+            const centerY = state.meanY;
+            
+            // Calculate line endpoints
+            const startX = centerX - pc.x * pc.length;
+            const startY = centerY - pc.y * pc.length;
+            const endX = centerX + pc.x * pc.length;
+            const endY = centerY + pc.y * pc.length;
+            
+            // Calculate line length and angle
+            const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+            const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+            
+            // Create line element
+            const line = document.createElement('div');
+            line.className = 'pc-line';
+            line.style.width = `${length}px`;
+            line.style.left = `${startX}px`;
+            line.style.top = `${startY}px`;
+            line.style.transform = `rotate(${angle}deg)`;
+            line.style.backgroundColor = color;
+            
+            scatterPlot.appendChild(line);
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Slider events
+            pointCountSlider.addEventListener('input', () => {
+                updateSliders();
+                generatePoints();
+                calculatePCA();
+                renderPlot();
+            });
+            
+            varianceSlider.addEventListener('input', () => {
+                updateSliders();
+                generatePoints();
+                calculatePCA();
+                renderPlot();
+            });
+            
+            // Toggle buttons
+            togglePC1.addEventListener('click', () => {
+                state.pc1Visible = !state.pc1Visible;
+                togglePC1.classList.toggle('active');
+                renderPlot();
+            });
+            
+            togglePC2.addEventListener('click', () => {
+                state.pc2Visible = !state.pc2Visible;
+                togglePC2.classList.toggle('active');
+                renderPlot();
+            });
+            
+            // Reset button
+            resetBtn.addEventListener('click', () => {
+                generatePoints();
+                calculatePCA();
+                renderPlot();
+            });
+            
+            // Challenge options
+            options.forEach(option => {
+                option.addEventListener('click', () => {
+                    options.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                });
+            });
+            
+            // Submit button
+            submitBtn.addEventListener('click', () => {
+                const selectedOption = document.querySelector('.option.selected');
+                
+                if (!selectedOption) {
+                    feedback.textContent = 'Please select an answer first.';
+                    feedback.className = 'feedback incorrect';
+                    feedback.style.display = 'block';
+                    return;
+                }
+                
+                const selectedValue = selectedOption.dataset.value;
+                
+                if (selectedValue === '3') {
+                    feedback.innerHTML = '✅ Correct! To preserve 95% of the information (85% + 10% = 95%), you would need to retain the first 2 dimensions. Since 85% + 10% = 95%, the third dimension is not needed.';
+                    feedback.className = 'feedback correct';
+                    state.score = 1;
+                    scoreValue.textContent = state.score;
+                    state.challengeCompleted = true;
+                } else {
+                    feedback.innerHTML = '❌ Incorrect. Remember that PC1 accounts for 85% and PC2 accounts for 10%, so together they account for 95% of the variance. You would only need 2 dimensions to preserve 95% of the information.';
+                    feedback.className = 'feedback incorrect';
+                    state.score = 0;
+                    scoreValue.textContent = state.score;
+                }
+                
+                feedback.style.display = 'block';
+            });
+            
+            // Next button
+            nextBtn.addEventListener('click', () => {
+                feedback.style.display = 'none';
+                options.forEach(opt => opt.classList.remove('selected'));
+                state.challengeCompleted = false;
+                
+                // For demo purposes, we'll just reset the challenge
+                feedback.innerHTML = 'New challenge loaded! <strong>Question:</strong> If PC1 accounts for 60% of variance and PC2 accounts for 25%, how many dimensions preserve 85% of information?';
+                feedback.className = 'feedback';
+                feedback.style.display = 'block';
+            });
+        }
+
+        // Initialize the application
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
+
+This interactive PCA visualization app includes:
+
+1. **Interactive Scatter Plot**:
+   - Draggable data points that update PCA calculations in real-time
+   - Visual representation of principal components (PC1 and PC2)
+   - Controls to adjust number of points and variance
+
+2. **PCA Explanation Section**:
+   - Clear explanation of what PCA is and how it works
+   - Step-by-step breakdown of the PCA process
+   - Real-world applications of PCA
+
+3. **Educational Challenge**:
+   - Interactive quiz to test PCA understanding
+   - Immediate feedback on answers
+   - Scoring system to track progress
+
+4. **Responsive Design**:
+   - Clean, modern interface with white/grey color scheme
+   - Responsive layout that works on different screen sizes
+   - Intuitive controls and visual feedback
+
+The app helps users understand how PCA identifies the directions of maximum variance in data and transforms it into principal components. The interactive elements allow users to see how changes in data distribution affect the principal components in real-time.

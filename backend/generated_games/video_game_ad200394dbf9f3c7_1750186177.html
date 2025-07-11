@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cappuccino Making Interactive App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: white;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .game-container {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background-color: #ddd;
+            position: absolute;
+            top: 12px;
+            left: 0;
+            right: 0;
+            z-index: 1;
+        }
+        
+        .progress-step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+            font-weight: bold;
+        }
+        
+        .progress-step.active {
+            background-color: #808080;
+            color: white;
+        }
+        
+        .progress-step.completed {
+            background-color: #333;
+            color: white;
+        }
+        
+        .step {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .step.active {
+            display: flex;
+        }
+        
+        .step-title {
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .step-description {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+        }
+        
+        .workspace {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            min-height: 300px;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .ingredients, .tools {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 45%;
+        }
+        
+        .ingredient, .tool {
+            background-color: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .ingredient:hover, .tool:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .target-area {
+            width: 100%;
+            min-height: 200px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            position: relative;
+        }
+        
+        .mug {
+            width: 100px;
+            height: 120px;
+            background-color: #e0e0e0;
+            border: 3px solid #ccc;
+            border-radius: 0 0 20px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .coffee {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: #4E3524;
+            height: 0%;
+            transition: height 1s;
+        }
+        
+        .milk {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: #f8f8f8;
+            height: 0%;
+            transition: height 1s;
+        }
+        
+        .froth {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            background-color: white;
+            height: 0%;
+            transition: height 1s;
+        }
+        
+        .whisk-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .whisk-container {
+            width: 200px;
+            height: 200px;
+            background-color: #e0e0e0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .milk-liquid {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: #f8f8f8;
+            height: 100%;
+        }
+        
+        .milk-froth {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: white;
+            height: 0%;
+            transition: height 1s;
+        }
+        
+        .whisk {
+            position: absolute;
+            cursor: pointer;
+            z-index: 2;
+        }
+        
+        .action-feedback {
+            margin-top: 20px;
+            min-height: 30px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #808080;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #666;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .score-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #f5f5f5;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .completion-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .completion-screen h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        
+        .final-score {
+            font-size: 1.5rem;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 600px) {
+            .workspace {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .ingredients, .tools {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="score-container">Score: <span id="score">0</span></div>
+    
+    <div class="game-container">
+        <header>
+            <h1>Cappuccino Maker</h1>
+        </header>
+        
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+            <div class="progress-step completed">1</div>
+            <div class="progress-step active">2</div>
+            <div class="progress-step">3</div>
+        </div>
+        
+        <div id="step1" class="step active">
+            <h2 class="step-title">Prepare Coffee Base</h2>
+            <p class="step-description">Add coffee powder, hot water, and sugar to the mug</p>
+            
+            <div class="workspace">
+                <div class="ingredients">
+                    <div class="ingredient" data-ingredient="coffee">Coffee Powder (1 tbsp)</div>
+                    <div class="ingredient" data-ingredient="water">Hot Water</div>
+                    <div class="ingredient" data-ingredient="sugar">Sugar (2 tbsp)</div>
+                </div>
+                
+                <div class="target-area">
+                    <div class="mug">
+                        <div class="coffee" id="coffee-level"></div>
+                    </div>
+                    <p>Mug</p>
+                </div>
+            </div>
+            
+            <div class="action-feedback" id="step1-feedback"></div>
+        </div>
+        
+        <div id="step2" class="step">
+            <h2 class="step-title">Froth the Milk</h2>
+            <p class="step-description">Pour milk into the pot and whisk until frothy</p>
+            
+            <div class="workspace">
+                <div class="ingredients">
+                    <div class="ingredient" data-ingredient="milk">Milk (1 cup)</div>
+                </div>
+                
+                <div class="whisk-area">
+                    <div class="whisk-container">
+                        <div class="milk-liquid" id="milk-level"></div>
+                        <div class="milk-froth" id="froth-level"></div>
+                        <div class="whisk" id="whisk-tool">Whisk</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-feedback" id="step2-feedback"></div>
+        </div>
+        
+        <div id="step3" class="step">
+            <h2 class="step-title">Combine and Serve</h2>
+            <p class="step-description">Pour the frothed milk into your coffee</p>
+            
+            <div class="workspace">
+                <div class="target-area">
+                    <div class="mug">
+                        <div class="coffee" id="final-coffee"></div>
+                        <div class="milk" id="final-milk"></div>
+                        <div class="froth" id="final-froth"></div>
+                    </div>
+                    <p>Your Cappuccino</p>
+                </div>
+                
+                <div class="ingredients">
+                    <div class="ingredient" data-ingredient="frothed-milk">Frothed Milk</div>
+                </div>
+            </div>
+            
+            <div class="action-feedback" id="step3-feedback"></div>
+        </div>
+        
+        <div id="completion" class="step completion-screen">
+            <h2>Congratulations!</h2>
+            <p>You've successfully made a cappuccino!</p>
+            <div class="final-score">Final Score: <span id="final-score">0</span></div>
+            <button id="play-again">Make Another</button>
+        </div>
+        
+        <div class="controls">
+            <button id="prev-btn" disabled>Previous</button>
+            <button id="next-btn" disabled>Next</button>
+            <button id="restart-btn">Restart</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            const gameState = {
+                currentStep: 1,
+                score: 0,
+                step1: {
+                    coffeeAdded: false,
+                    waterAdded: false,
+                    sugarAdded: false
+                },
+                step2: {
+                    milkAdded: false,
+                    whiskCount: 0
+                },
+                step3: {
+                    milkPoured: false
+                }
+            };
+            
+            // DOM elements
+            const scoreDisplay = document.getElementById('score');
+            const finalScoreDisplay = document.getElementById('final-score');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const playAgainBtn = document.getElementById('play-again');
+            const progressSteps = document.querySelectorAll('.progress-step');
+            const steps = document.querySelectorAll('.step');
+            
+            // Initialize game
+            updateScore();
+            updateProgress();
+            
+            // Step 1 functionality
+            document.querySelectorAll('#step1 .ingredient').forEach(ingredient => {
+                ingredient.addEventListener('click', () => {
+                    const type = ingredient.dataset.ingredient;
+                    const feedback = document.getElementById('step1-feedback');
+                    
+                    if (type === 'coffee' && !gameState.step1.coffeeAdded) {
+                        gameState.step1.coffeeAdded = true;
+                        document.getElementById('coffee-level').style.height = '30%';
+                        ingredient.style.opacity = '0.5';
+                        ingredient.style.cursor = 'default';
+                        feedback.textContent = 'Coffee powder added!';
+                        updateScore(5);
+                    } 
+                    else if (type === 'water' && !gameState.step1.waterAdded && gameState.step1.coffeeAdded) {
+                        gameState.step1.waterAdded = true;
+                        document.getElementById('coffee-level').style.height = '80%';
+                        ingredient.style.opacity = '0.5';
+                        ingredient.style.cursor = 'default';
+                        feedback.textContent = 'Hot water added!';
+                        updateScore(5);
+                    } 
+                    else if (type === 'sugar' && !gameState.step1.sugarAdded && gameState.step1.waterAdded) {
+                        gameState.step1.sugarAdded = true;
+                        ingredient.style.opacity = '0.5';
+                        ingredient.style.cursor = 'default';
+                        feedback.textContent = 'Sugar added! Stirring automatically...';
+                        updateScore(5);
+                        setTimeout(() => {
+                            feedback.textContent = 'Coffee base ready!';
+                            nextBtn.disabled = false;
+                        }, 1500);
+                    } 
+                    else if (!gameState.step1.coffeeAdded && type !== 'coffee') {
+                        feedback.textContent = 'Add coffee powder first!';
+                    } 
+                    else if (!gameState.step1.waterAdded && type === 'sugar') {
+                        feedback.textContent = 'Add hot water before sugar!';
+                    }
+                });
+            });
+            
+            // Step 2 functionality
+            document.querySelectorAll('#step2 .ingredient').forEach(ingredient => {
+                ingredient.addEventListener('click', () => {
+                    if (ingredient.dataset.ingredient === 'milk' && !gameState.step2.milkAdded) {
+                        gameState.step2.milkAdded = true;
+                        document.getElementById('milk-level').style.height = '100%';
+                        ingredient.style.opacity = '0.5';
+                        ingredient.style.cursor = 'default';
+                        document.getElementById('step2-feedback').textContent = 'Milk added! Now whisk it!';
+                        updateScore(5);
+                    }
+                });
+            });
+            
+            document.getElementById('whisk-tool').addEventListener('click', () => {
+                if (gameState.step2.milkAdded) {
+                    const feedback = document.getElementById('step2-feedback');
+                    gameState.step2.whiskCount++;
+                    
+                    if (gameState.step2.whiskCount === 1) {
+                        feedback.textContent = 'Whisking... keep going!';
+                    } 
+                    else if (gameState.step2.whiskCount === 3) {
+                        feedback.textContent = 'Good! Almost there...';
+                    } 
+                    else if (gameState.step2.whiskCount >= 5) {
+                        document.getElementById('froth-level').style.height = '40%';
+                        feedback.textContent = 'Perfect froth! Ready for the next step.';
+                        nextBtn.disabled = false;
+                        updateScore(10);
+                    }
+                }
+            });
+            
+            // Step 3 functionality
+            document.querySelectorAll('#step3 .ingredient').forEach(ingredient => {
+                ingredient.addEventListener('click', () => {
+                    if (ingredient.dataset.ingredient === 'frothed-milk' && !gameState.step3.milkPoured) {
+                        gameState.step3.milkPoured = true;
+                        document.getElementById('final-coffee').style.height = '40%';
+                        document.getElementById('final-milk').style.height = '30%';
+                        document.getElementById('final-froth').style.height = '30%';
+                        ingredient.style.opacity = '0.5';
+                        ingredient.style.cursor = 'default';
+                        document.getElementById('step3-feedback').textContent = 'Milk poured! Your cappuccino is ready!';
+                        updateScore(15);
+                        nextBtn.disabled = false;
+                    }
+                });
+            });
+            
+            // Navigation controls
+            nextBtn.addEventListener('click', () => {
+                if (gameState.currentStep < 4) {
+                    gameState.currentStep++;
+                    
+                    if (gameState.currentStep === 4) {
+                        showCompletionScreen();
+                    } else {
+                        updateProgress();
+                        updateStepVisibility();
+                        nextBtn.disabled = true;
+                        prevBtn.disabled = false;
+                    }
+                }
+            });
+            
+            prevBtn.addEventListener('click', () => {
+                if (gameState.currentStep > 1) {
+                    gameState.currentStep--;
+                    updateProgress();
+                    updateStepVisibility();
+                    nextBtn.disabled = false;
+                    prevBtn.disabled = (gameState.currentStep === 1);
+                }
+            });
+            
+            restartBtn.addEventListener('click', resetGame);
+            playAgainBtn.addEventListener('click', resetGame);
+            
+            // Game functions
+            function updateScore(points = 0) {
+                gameState.score += points;
+                scoreDisplay.textContent = gameState.score;
+            }
+            
+            function updateProgress() {
+                progressSteps.forEach((step, index) => {
+                    step.classList.remove('active', 'completed');
+                    
+                    if (index + 1 < gameState.currentStep) {
+                        step.classList.add('completed');
+                    } else if (index + 1 === gameState.currentStep) {
+                        step.classList.add('active');
+                    }
+                });
+            }
+            
+            function updateStepVisibility() {
+                steps.forEach(step => step.classList.remove('active'));
+                document.getElementById(`step${gameState.currentStep}`).classList.add('active');
+            }
+            
+            function showCompletionScreen() {
+                steps.forEach(step => step.classList.remove('active'));
+                document.getElementById('completion').classList.add('active');
+                finalScoreDisplay.textContent = gameState.score;
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+            }
+            
+            function resetGame() {
+                // Reset game state
+                gameState.currentStep = 1;
+                gameState.score = 0;
+                gameState.step1 = { coffeeAdded: false, waterAdded: false, sugarAdded: false };
+                gameState.step2 = { milkAdded: false, whiskCount: 0 };
+                gameState.step3 = { milkPoured: false };
+                
+                // Reset UI
+                updateScore();
+                updateProgress();
+                updateStepVisibility();
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+                
+                // Reset visual elements
+                document.getElementById('coffee-level').style.height = '0%';
+                document.getElementById('milk-level').style.height = '0%';
+                document.getElementById('froth-level').style.height = '0%';
+                document.getElementById('final-coffee').style.height = '0%';
+                document.getElementById('final-milk').style.height = '0%';
+                document.getElementById('final-froth').style.height = '0%';
+                
+                // Reset feedback messages
+                document.querySelectorAll('.action-feedback').forEach(el => {
+                    el.textContent = '';
+                });
+                
+                // Reset ingredient interactions
+                document.querySelectorAll('.ingredient').forEach(ingredient => {
+                    ingredient.style.opacity = '1';
+                    ingredient.style.cursor = 'pointer';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .panel {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+
+        .graph-container {
+            position: relative;
+            height: 400px;
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        button:hover {
+            background-color: #3a5a80;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #clear-btn {
+            background-color: #e74c3c;
+        }
+
+        #clear-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .explanation {
+            background-color: white;
+            padding: 15px;
+            border-left: 4px solid #4a6fa5;
+            border-radius: 0 4px 4px 0;
+            margin: 15px 0;
+        }
+
+        .quiz-section {
+            display: none;
+        }
+
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .option:hover {
+            background-color: #e9ecef;
+        }
+
+        .option input {
+            margin-right: 10px;
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            flex-grow: 1;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #4a6fa5;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .feedback {
+            text-align: center;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .quiz-result {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Linear Regression Explorer</h1>
+        <p>Understand the relationship between height and shoe size through interactive exploration</p>
+    </header>
+
+    <div class="container">
+        <div class="panel">
+            <h2>Interactive Graph</h2>
+            <div class="graph-container">
+                <canvas id="regressionCanvas"></canvas>
+            </div>
+            
+            <div class="controls">
+                <div class="input-group">
+                    <label for="height-input">Height (inches):</label>
+                    <input type="number" id="height-input" min="50" max="90" placeholder="60-80">
+                </div>
+                
+                <div class="input-group">
+                    <label for="shoe-input">Shoe Size (US):</label>
+                    <input type="number" id="shoe-input" min="4" max="16" placeholder="6-14">
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <button id="add-btn">Add Data Point</button>
+                <button id="clear-btn">Clear Graph</button>
+                <button id="quiz-btn">Start Quiz</button>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Understanding Linear Regression</h2>
+            <div class="explanation">
+                <p>Linear regression models the relationship between a <span class="highlight">dependent variable</span> (shoe size) and one or more <span class="highlight">independent variables</span> (height).</p>
+                <p>The <span class="highlight">line of best fit</span> minimizes the distance between all data points and the line itself.</p>
+                <p>When you add a point that doesn't follow the pattern (an <span class="highlight">outlier</span>), notice how it affects the regression line.</p>
+            </div>
+        </div>
+        
+        <div class="panel quiz-section" id="quiz-section">
+            <h2>Test Your Understanding</h2>
+            
+            <div class="progress-container">
+                <span>Question <span id="current-q">1</span> of 3</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <span id="score-display">Score: 0/3</span>
+            </div>
+            
+            <div class="question" id="q1">
+                <p>1. What does linear regression model?</p>
+                <div class="options">
+                    <label class="option">
+                        <input type="radio" name="q1" value="a"> The relationship between two continuous variables
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q1" value="b"> The classification of categorical data
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q1" value="c"> The clustering of similar data points
+                    </label>
+                </div>
+            </div>
+            
+            <div class="question" id="q2" style="display:none;">
+                <p>2. What does the line of best fit represent?</p>
+                <div class="options">
+                    <label class="option">
+                        <input type="radio" name="q2" value="a"> The average of all data points
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q2" value="b"> The line that minimizes distance to all points
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q2" value="c"> The connection between the first and last points
+                    </label>
+                </div>
+            </div>
+            
+            <div class="question" id="q3" style="display:none;">
+                <p>3. How do outliers affect the regression line?</p>
+                <div class="options">
+                    <label class="option">
+                        <input type="radio" name="q3" value="a"> They have no effect on the line
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q3" value="b"> They make the line more accurate
+                    </label>
+                    <label class="option">
+                        <input type="radio" name="q3" value="c"> They can pull the line toward them
+                    </label>
+                </div>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="buttons">
+                <button id="next-btn" style="display:none;">Next Question</button>
+                <button id="submit-btn">Check Answer</button>
+            </div>
+            
+            <div class="quiz-result" id="quiz-result">
+                <h2>Quiz Completed!</h2>
+                <p>Your final score: <span id="final-score">0</span>/3</p>
+                <button id="restart-btn">Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('regressionCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas dimensions
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            drawGraph();
+        }
+        
+        // Initialize canvas
+        window.addEventListener('load', resizeCanvas);
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Data storage
+        let dataPoints = [];
+        let regressionLine = { slope: 0, intercept: 0 };
+        
+        // DOM Elements
+        const heightInput = document.getElementById('height-input');
+        const shoeInput = document.getElementById('shoe-input');
+        const addBtn = document.getElementById('add-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const quizBtn = document.getElementById('quiz-btn');
+        const quizSection = document.getElementById('quiz-section');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const feedbackDiv = document.getElementById('feedback');
+        const quizResult = document.getElementById('quiz-result');
+        const finalScore = document.getElementById('final-score');
+        const currentQ = document.getElementById('current-q');
+        const scoreDisplay = document.getElementById('score-display');
+        const progressFill = document.getElementById('progress-fill');
+        
+        // Quiz state
+        let currentQuestion = 1;
+        let score = 0;
+        const correctAnswers = { q1: 'a', q2: 'b', q3: 'c' };
+        
+        // Draw graph elements
+        function drawGraph() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            
+            // Vertical grid lines
+            for (let x = 0; x <= canvas.width; x += canvas.width / 10) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Horizontal grid lines
+            for (let y = 0; y <= canvas.height; y += canvas.height / 10) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(50, canvas.height - 50);
+            ctx.lineTo(canvas.width - 20, canvas.height - 50);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(50, 20);
+            ctx.lineTo(50, canvas.height - 50);
+            ctx.stroke();
+            
+            // Draw labels
+            ctx.fillStyle = '#333';
+            ctx.font = '14px Arial';
+            
+            // X-axis label
+            ctx.fillText('Height (inches)', canvas.width / 2 - 40, canvas.height - 10);
+            
+            // Y-axis label
+            ctx.save();
+            ctx.translate(15, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Shoe Size (US)', 0, 0);
+            ctx.restore();
+            
+            // Draw scale markers
+            // X-axis
+            for (let i = 0; i <= 80; i += 10) {
+                const x = 50 + (i / 80) * (canvas.width - 70);
+                ctx.beginPath();
+                ctx.moveTo(x, canvas.height - 45);
+                ctx.lineTo(x, canvas.height - 55);
+                ctx.stroke();
+                ctx.fillText(i, x - 5, canvas.height - 30);
+            }
+            
+            // Y-axis
+            for (let i = 4; i <= 16; i += 2) {
+                const y = canvas.height - 50 - ((i - 4) / 12) * (canvas.height - 90);
+                ctx.beginPath();
+                ctx.moveTo(45, y);
+                ctx.lineTo(55, y);
+                ctx.stroke();
+                ctx.fillText(i, 25, y + 5);
+            }
+            
+            // Draw data points
+            dataPoints.forEach(point => {
+                const x = 50 + (point.height / 80) * (canvas.width - 70);
+                const y = canvas.height - 50 - ((point.shoeSize - 4) / 12) * (canvas.height - 90);
+                
+                // Determine if point is an outlier
+                const predictedY = regressionLine.slope * point.height + regressionLine.intercept;
+                const isOutlier = Math.abs(predictedY - point.shoeSize) > 2.5;
+                
+                // Draw point
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = isOutlier ? '#e74c3c' : '#3498db';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+            
+            // Draw regression line if we have enough points
+            if (dataPoints.length >= 2) {
+                calculateRegression();
+                
+                const startX = 50;
+                const startY = canvas.height - 50 - ((regressionLine.intercept - 4) / 12) * (canvas.height - 90);
+                const endX = canvas.width - 20;
+                const endY = canvas.height - 50 - (((regressionLine.slope * 80 + regressionLine.intercept) - 4) / 12) * (canvas.height - 90);
+                
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.strokeStyle = '#2c3e50';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+        }
+        
+        // Calculate linear regression
+        function calculateRegression() {
+            if (dataPoints.length < 2) return;
+            
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            const n = dataPoints.length;
+            
+            dataPoints.forEach(point => {
+                sumX += point.height;
+                sumY += point.shoeSize;
+                sumXY += point.height * point.shoeSize;
+                sumX2 += point.height * point.height;
+            });
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            regressionLine = { slope, intercept };
+        }
+        
+        // Add data point
+        function addDataPoint() {
+            const height = parseFloat(heightInput.value);
+            const shoeSize = parseFloat(shoeInput.value);
+            
+            if (isNaN(height) || isNaN(shoeSize) || 
+                height < 50 || height > 90 || 
+                shoeSize < 4 || shoeSize > 16) {
+                alert('Please enter valid values: Height (50-90), Shoe Size (4-16)');
+                return;
+            }
+            
+            dataPoints.push({ height, shoeSize });
+            heightInput.value = '';
+            shoeInput.value = '';
+            drawGraph();
+            
+            // Enable quiz button after 3 points
+            if (dataPoints.length >= 3) {
+                quizBtn.disabled = false;
+            }
+        }
+        
+        // Clear all data points
+        function clearGraph() {
+            dataPoints = [];
+            regressionLine = { slope: 0, intercept: 0 };
+            drawGraph();
+            quizBtn.disabled = true;
+        }
+        
+        // Quiz functionality
+        function startQuiz() {
+            quizSection.style.display = 'block';
+            document.getElementById('q1').style.display = 'block';
+            quizBtn.disabled = true;
+            updateProgress();
+        }
+        
+        function checkAnswer() {
+            const selectedOption = document.querySelector(`input[name="q${currentQuestion}"]:checked`);
+            
+            if (!selectedOption) {
+                alert('Please select an answer');
+                return;
+            }
+            
+            const userAnswer = selectedOption.value;
+            const isCorrect = userAnswer === correctAnswers[`q${currentQuestion}`];
+            
+            // Show feedback
+            feedbackDiv.style.display = 'block';
+            feedbackDiv.textContent = isCorrect ? 
+                'Correct! Well done.' : 
+                'Incorrect. Try again.';
+            feedbackDiv.className = isCorrect ? 'feedback correct' : 'feedback incorrect';
+            
+            if (isCorrect) {
+                score++;
+                scoreDisplay.textContent = `Score: ${score}/3`;
+                
+                // Move to next question after delay
+                setTimeout(() => {
+                    feedbackDiv.style.display = 'none';
+                    nextQuestion();
+                }, 1500);
+            }
+            
+            submitBtn.style.display = 'none';
+            nextBtn.style.display = 'block';
+        }
+        
+        function nextQuestion() {
+            document.getElementById(`q${currentQuestion}`).style.display = 'none';
+            currentQuestion++;
+            
+            if (currentQuestion <= 3) {
+                document.getElementById(`q${currentQuestion}`).style.display = 'block';
+                currentQ.textContent = currentQuestion;
+                updateProgress();
+                submitBtn.style.display = 'block';
+                nextBtn.style.display = 'none';
+                
+                // Clear selection
+                const options = document.querySelectorAll(`input[name="q${currentQuestion}"]`);
+                options.forEach(option => option.checked = false);
+            } else {
+                // Quiz completed
+                showResults();
+            }
+        }
+        
+        function updateProgress() {
+            const progress = (currentQuestion / 3) * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+        
+        function showResults() {
+            document.querySelector('.questions-container').style.display = 'none';
+            quizResult.style.display = 'block';
+            finalScore.textContent = score;
+        }
+        
+        function restartQuiz() {
+            currentQuestion = 1;
+            score = 0;
+            quizResult.style.display = 'none';
+            document.getElementById('q1').style.display = 'block';
+            currentQ.textContent = '1';
+            scoreDisplay.textContent = 'Score: 0/3';
+            updateProgress();
+            submitBtn.style.display = 'block';
+            nextBtn.style.display = 'none';
+            
+            // Clear all selections
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.checked = false;
+            });
+        }
+        
+        // Event listeners
+        addBtn.addEventListener('click', addDataPoint);
+        clearBtn.addEventListener('click', clearGraph);
+        quizBtn.addEventListener('click', startQuiz);
+        submitBtn.addEventListener('click', checkAnswer);
+        nextBtn.addEventListener('click', nextQuestion);
+        restartBtn.addEventListener('click', restartQuiz);
+        
+        // Allow adding points by clicking on the graph
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Convert pixel coordinates to data values
+            const height = ((x - 50) / (canvas.width - 70)) * 80;
+            const shoeSize = 16 - ((y - 20) / (canvas.height - 70)) * 12;
+            
+            // Only add if within valid range
+            if (height >= 50 && height <= 90 && shoeSize >= 4 && shoeSize <= 16) {
+                dataPoints.push({ height, shoeSize });
+                drawGraph();
+                
+                // Enable quiz button after 3 points
+                if (dataPoints.length >= 3) {
+                    quizBtn.disabled = false;
+                }
+            }
+        });
+        
+        // Initialize
+        drawGraph();
+    </script>
+</body>
+</html>

@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression Learning App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .graph-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .info-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #222222;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .graph-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 20px;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #4a4a4a;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #333333;
+        }
+        
+        .challenge-section {
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        
+        .challenge {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4a4a4a;
+        }
+        
+        .challenge h3 {
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        progress {
+            flex: 1;
+            height: 20px;
+        }
+        
+        .summary-section {
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .key-points {
+            margin-top: 15px;
+            padding-left: 20px;
+        }
+        
+        .key-points li {
+            margin-bottom: 8px;
+        }
+        
+        .feedback {
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .success {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .error {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+        
+        .highlight {
+            background-color: #fff9c4;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .graph-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Linear Regression Learning App</h1>
+        <p>Explore the relationship between height and shoe size using machine learning</p>
+    </header>
+    
+    <div class="container">
+        <section class="graph-section">
+            <h2>Interactive Graph</h2>
+            <div class="graph-container">
+                <canvas id="regressionCanvas"></canvas>
+            </div>
+            <div class="controls">
+                <div class="input-group">
+                    <label for="heightInput">Height (inches)</label>
+                    <input type="number" id="heightInput" min="50" max="90" placeholder="60-80">
+                </div>
+                <div class="input-group">
+                    <label for="shoeSizeInput">Shoe Size (US)</label>
+                    <input type="number" id="shoeSizeInput" min="4" max="16" placeholder="5-15">
+                </div>
+                <button id="addPointBtn">Add Data Point</button>
+            </div>
+            <div class="controls">
+                <button id="drawLineBtn">Draw Best Fit Line</button>
+                <button id="resetBtn">Reset Graph</button>
+                <button id="addUserBtn">Add My Data</button>
+            </div>
+            <div id="graphFeedback" class="feedback"></div>
+        </section>
+        
+        <section class="info-section">
+            <h2>Learning Center</h2>
+            <div class="concept">
+                <h3>What is Linear Regression?</h3>
+                <p>Linear regression is a <span class="highlight">supervised machine learning algorithm</span> used to predict continuous numerical values based on input data. It finds the best straight line (linear relationship) through your data points.</p>
+            </div>
+            <div class="concept">
+                <h3>Labeled Datasets</h3>
+                <p>Our graph uses a <span class="highlight">labeled dataset</span> where each height (input) has a corresponding shoe size (output label). The algorithm learns from these examples to make predictions.</p>
+            </div>
+            <div class="concept">
+                <h3>Continuous vs Categorical Data</h3>
+                <p><span class="highlight">Continuous data</span> (like height and shoe size) can take any value in a range. <span class="highlight">Categorical data</span> (like color or brand) represents distinct groups or categories.</p>
+            </div>
+            <div class="concept">
+                <h3>Understanding Outliers</h3>
+                <p>Outliers are data points that fall far from the general pattern. They can significantly affect your regression line. Click on any point to see if it's an outlier!</p>
+            </div>
+        </section>
+    </div>
+    
+    <section class="challenge-section">
+        <h2>Learning Challenges</h2>
+        <div class="challenge">
+            <h3>Challenge 1: Create Your Dataset</h3>
+            <p>Add at least 5 data points to the graph to establish a pattern</p>
+            <div class="progress-container">
+                <progress id="datasetProgress" value="0" max="5"></progress>
+                <span id="progressText">0/5 points</span>
+            </div>
+        </div>
+        <div class="challenge">
+            <h3>Challenge 2: Find the Relationship</h3>
+            <p>Draw the best fit line and observe how height relates to shoe size</p>
+            <div class="progress-container">
+                <progress id="lineProgress" value="0" max="1"></progress>
+                <span id="lineText">Not completed</span>
+            </div>
+        </div>
+        <div class="challenge">
+            <h3>Challenge 3: Identify an Outlier</h3>
+            <p>Add a point that doesn't fit the pattern and see how it affects the line</p>
+            <div class="progress-container">
+                <progress id="outlierProgress" value="0" max="1"></progress>
+                <span id="outlierText">Not completed</span>
+            </div>
+        </div>
+        <button id="restartBtn">Restart Challenges</button>
+        <div id="challengeFeedback" class="feedback"></div>
+    </section>
+    
+    <section class="summary-section">
+        <h2>Key Takeaways</h2>
+        <ul class="key-points">
+            <li>Linear regression predicts continuous values based on input features</li>
+            <li>The "best fit line" minimizes the distance to all data points</li>
+            <li>Supervised learning requires labeled datasets for training</li>
+            <li>Continuous data works with regression, categorical data requires different approaches</li>
+            <li>Outliers can significantly impact your model's accuracy</li>
+            <li>Real-world applications: Predicting house prices, stock values, medical outcomes</li>
+        </ul>
+    </section>
+    
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('regressionCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Initialize canvas dimensions
+        function initCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            drawGrid();
+            drawAxes();
+        }
+        
+        // Data storage
+        let dataPoints = [];
+        let bestFitLine = null;
+        let userPoint = null;
+        let challengeProgress = {
+            points: 0,
+            lineDrawn: false,
+            outlierAdded: false
+        };
+        
+        // DOM Elements
+        const heightInput = document.getElementById('heightInput');
+        const shoeSizeInput = document.getElementById('shoeSizeInput');
+        const addPointBtn = document.getElementById('addPointBtn');
+        const drawLineBtn = document.getElementById('drawLineBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const addUserBtn = document.getElementById('addUserBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const datasetProgress = document.getElementById('datasetProgress');
+        const lineProgress = document.getElementById('lineProgress');
+        const outlierProgress = document.getElementById('outlierProgress');
+        const progressText = document.getElementById('progressText');
+        const lineText = document.getElementById('lineText');
+        const outlierText = document.getElementById('outlierText');
+        const graphFeedback = document.getElementById('graphFeedback');
+        const challengeFeedback = document.getElementById('challengeFeedback');
+        
+        // Initialize
+        window.addEventListener('load', initCanvas);
+        window.addEventListener('resize', initCanvas);
+        
+        // Draw grid and axes
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            
+            // Draw grid
+            const gridSize = 40;
+            for (let x = 0; x <= canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y <= canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+        
+        function drawAxes() {
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 2;
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#333333';
+            
+            // Y-axis (Shoe Size)
+            ctx.beginPath();
+            ctx.moveTo(50, 20);
+            ctx.lineTo(50, canvas.height - 30);
+            ctx.stroke();
+            
+            // X-axis (Height)
+            ctx.beginPath();
+            ctx.moveTo(30, canvas.height - 50);
+            ctx.lineTo(canvas.width - 30, canvas.height - 50);
+            ctx.stroke();
+            
+            // Labels
+            ctx.fillText('Shoe Size [US]', 10, 15);
+            ctx.fillText('Height in Inches', canvas.width - 100, canvas.height - 10);
+            
+            // Y-axis labels
+            for (let size = 4; size <= 16; size += 2) {
+                const y = canvas.height - 50 - (size - 4) * 25;
+                ctx.fillText(size.toString(), 25, y + 5);
+            }
+            
+            // X-axis labels
+            for (let height = 50; height <= 90; height += 10) {
+                const x = 50 + (height - 50) * 6;
+                ctx.fillText(height.toString(), x - 5, canvas.height - 30);
+            }
+        }
+        
+        // Plot data points
+        function plotPoints() {
+            dataPoints.forEach(point => {
+                const x = 50 + (point.height - 50) * 6;
+                const y = canvas.height - 50 - (point.shoeSize - 4) * 25;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = point.isOutlier ? '#f44336' : '#2196F3';
+                ctx.fill();
+                
+                // Add hover effect
+                canvas.addEventListener('mousemove', (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    
+                    if (Math.sqrt((mouseX - x) ** 2 + (mouseY - y) ** 2) < 10) {
+                        canvas.style.cursor = 'pointer';
+                        showPointInfo(point, x, y);
+                    } else {
+                        canvas.style.cursor = 'default';
+                    }
+                });
+            });
+            
+            // Plot user point if exists
+            if (userPoint) {
+                const x = 50 + (userPoint.height - 50) * 6;
+                const y = canvas.height - 50 - (userPoint.shoeSize - 4) * 25;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, Math.PI * 2);
+                ctx.fillStyle = '#FF9800';
+                ctx.fill();
+                ctx.strokeStyle = '#333333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+        
+        // Show point information
+        function showPointInfo(point, x, y) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 1;
+            
+            const text = `Height: ${point.height}", Size: ${point.shoeSize}`;
+            const textWidth = ctx.measureText(text).width + 20;
+            
+            ctx.beginPath();
+            ctx.roundRect(x - textWidth/2, y - 40, textWidth, 30, 5);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = '#333333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(text, x, y - 20);
+            
+            if (point.isOutlier) {
+                ctx.fillStyle = '#f44336';
+                ctx.fillText('Outlier! Affects the regression line', x, y - 5);
+            }
+        }
+        
+        // Calculate best fit line
+        function calculateBestFitLine() {
+            if (dataPoints.length < 2) return null;
+            
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            const n = dataPoints.length;
+            
+            dataPoints.forEach(point => {
+                sumX += point.height;
+                sumY += point.shoeSize;
+                sumXY += point.height * point.shoeSize;
+                sumX2 += point.height * point.height;
+            });
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            return { slope, intercept };
+        }
+        
+        // Draw best fit line
+        function drawBestFitLine() {
+            if (dataPoints.length < 2) return;
+            
+            bestFitLine = calculateBestFitLine();
+            if (!bestFitLine) return;
+            
+            const minHeight = 50;
+            const maxHeight = 90;
+            
+            const x1 = 50;
+            const y1 = canvas.height - 50 - (bestFitLine.slope * minHeight + bestFitLine.intercept - 4) * 25;
+            
+            const x2 = 50 + (maxHeight - minHeight) * 6;
+            const y2 = canvas.height - 50 - (bestFitLine.slope * maxHeight + bestFitLine.intercept - 4) * 25;
+            
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = '#4CAF50';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Update challenge progress
+            challengeProgress.lineDrawn = true;
+            updateProgress();
+        }
+        
+        // Add data point
+        function addDataPoint(height, shoeSize, isOutlier = false) {
+            if (height < 50 || height > 90 || shoeSize < 4 || shoeSize > 16) {
+                showFeedback(graphFeedback, 'Please enter valid values: Height (50-90), Shoe Size (4-16)', 'error');
+                return;
+            }
+            
+            dataPoints.push({
+                height: parseFloat(height),
+                shoeSize: parseFloat(shoeSize),
+                isOutlier
+            });
+            
+            // Update challenge progress
+            challengeProgress.points = dataPoints.length;
+            updateProgress();
+            
+            redrawCanvas();
+            showFeedback(graphFeedback, `Point added: ${height}" height, size ${shoeSize}`, 'success');
+        }
+        
+        // Add user data point
+        function addUserDataPoint() {
+            const height = heightInput.value;
+            const shoeSize = shoeSizeInput.value;
+            
+            if (!height || !shoeSize) {
+                showFeedback(graphFeedback, 'Please enter both height and shoe size', 'error');
+                return;
+            }
+            
+            userPoint = {
+                height: parseFloat(height),
+                shoeSize: parseFloat(shoeSize)
+            };
+            
+            // Check if this is an outlier
+            const isOutlier = checkIfOutlier(userPoint.height, userPoint.shoeSize);
+            
+            // Add to main dataset if outlier
+            if (isOutlier) {
+                dataPoints.push({
+                    height: userPoint.height,
+                    shoeSize: userPoint.shoeSize,
+                    isOutlier: true
+                });
+                
+                // Update challenge progress
+                challengeProgress.outlierAdded = true;
+                updateProgress();
+            }
+            
+            redrawCanvas();
+            
+            if (isOutlier) {
+                showFeedback(graphFeedback, 'Your data is an outlier! Notice how it affects the regression line', 'success');
+            } else {
+                showFeedback(graphFeedback, 'Your data point added. See how it fits the pattern!', 'success');
+            }
+        }
+        
+        // Check if a point is an outlier
+        function checkIfOutlier(height, shoeSize) {
+            if (dataPoints.length < 5) return false;
+            
+            // Simple outlier detection - more than 2 sizes away from average
+            const avgSize = dataPoints.reduce((sum, point) => sum + point.shoeSize, 0) / dataPoints.length;
+            return Math.abs(shoeSize - avgSize) > 2;
+        }
+        
+        // Reset canvas
+        function resetCanvas() {
+            dataPoints = [];
+            bestFitLine = null;
+            userPoint = null;
+            redrawCanvas();
+            showFeedback(graphFeedback, 'Graph has been reset', 'success');
+        }
+        
+        // Redraw entire canvas
+        function redrawCanvas() {
+            drawGrid();
+            drawAxes();
+            plotPoints();
+            if (bestFitLine) {
+                drawBestFitLine();
+            }
+        }
+        
+        // Update challenge progress
+        function updateProgress() {
+            // Update dataset challenge
+            datasetProgress.value = challengeProgress.points;
+            progressText.textContent = `${challengeProgress.points}/5 points`;
+            
+            // Update line challenge
+            lineProgress.value = challengeProgress.lineDrawn ? 1 : 0;
+            lineText.textContent = challengeProgress.lineDrawn ? 'Completed!' : 'Not completed';
+            
+            // Update outlier challenge
+            outlierProgress.value = challengeProgress.outlierAdded ? 1 : 0;
+            outlierText.textContent = challengeProgress.outlierAdded ? 'Completed!' : 'Not completed';
+            
+            // Check if all challenges are completed
+            if (challengeProgress.points >= 5 && challengeProgress.lineDrawn && challengeProgress.outlierAdded) {
+                showFeedback(challengeFeedback, 'Congratulations! You completed all challenges!', 'success');
+            }
+        }
+        
+        // Show feedback message
+        function showFeedback(element, message, type) {
+            element.textContent = message;
+            element.className = 'feedback ' + type;
+            element.style.display = 'block';
+            
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Restart challenges
+        function restartChallenges() {
+            challengeProgress = {
+                points: 0,
+                lineDrawn: false,
+                outlierAdded: false
+            };
+            updateProgress();
+            challengeFeedback.style.display = 'none';
+            showFeedback(graphFeedback, 'Challenges have been reset', 'success');
+        }
+        
+        // Event listeners
+        addPointBtn.addEventListener('click', () => {
+            addDataPoint(heightInput.value, shoeSizeInput.value);
+            heightInput.value = '';
+            shoeSizeInput.value = '';
+        });
+        
+        drawLineBtn.addEventListener('click', () => {
+            if (dataPoints.length < 2) {
+                showFeedback(graphFeedback, 'Add at least 2 points to draw a line', 'error');
+                return;
+            }
+            drawBestFitLine();
+            showFeedback(graphFeedback, 'Best fit line drawn!', 'success');
+        });
+        
+        resetBtn.addEventListener('click', resetCanvas);
+        addUserBtn.addEventListener('click', addUserDataPoint);
+        restartBtn.addEventListener('click', restartChallenges);
+        
+        // Add sample data on load
+        window.addEventListener('load', () => {
+            // Add some initial data points
+            addDataPoint(62, 6);
+            addDataPoint(66, 8);
+            addDataPoint(68, 9);
+            addDataPoint(70, 10);
+            addDataPoint(72, 11);
+            
+            // Draw initial line
+            drawBestFitLine();
+            
+            // Set challenge progress
+            challengeProgress.points = 5;
+            challengeProgress.lineDrawn = true;
+            updateProgress();
+        });
+    </script>
+</body>
+</html>

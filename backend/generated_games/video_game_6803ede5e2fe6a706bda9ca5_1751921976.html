@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Women's 5000m Race Interactive App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .panel h2 {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+            color: #444;
+        }
+        
+        .runners-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .runner {
+            background-color: #e9e9e9;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+        
+        .runner:hover {
+            transform: translateY(-2px);
+            background-color: #e0e0e0;
+        }
+        
+        .runner-flag {
+            width: 30px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+        }
+        
+        .track-container {
+            position: relative;
+            height: 300px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .track {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 200px;
+            border: 3px dashed #aaa;
+            border-radius: 100px;
+        }
+        
+        .lane {
+            position: absolute;
+            width: 100%;
+            height: 30px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .runner-on-track {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: left 0.1s;
+            z-index: 10;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 12px 25px;
+            background-color: #555;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #333;
+        }
+        
+        .simulation-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .progress-container {
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: #555;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .challenge-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .challenge {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            flex: 1;
+            min-width: 200px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .challenge:hover {
+            transform: translateY(-5px);
+        }
+        
+        .challenge.active {
+            background-color: #e0e0e0;
+            border: 2px solid #555;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            float: right;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .profile-content {
+            margin-top: 20px;
+        }
+        
+        .profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin: 0 auto 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+            }
+            
+            .challenge-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Women's 5000m Race Strategy Simulator</h1>
+        <p class="description">Drag runners to the track, set their positions and speeds, then simulate the race to see how strategy affects the outcome.</p>
+    </header>
+    
+    <div class="progress-container">
+        <h3>Progress: Challenge <span id="current-challenge">1</span> of 3</h3>
+        <div class="progress-bar">
+            <div class="progress" id="progress-level"></div>
+        </div>
+    </div>
+    
+    <div class="challenge-container">
+        <div class="challenge active" data-level="1">
+            <h3>Challenge 1</h3>
+            <p>Set starting positions</p>
+        </div>
+        <div class="challenge" data-level="2">
+            <h3>Challenge 2</h3>
+            <p>Adjust running speeds</p>
+        </div>
+        <div class="challenge" data-level="3">
+            <h3>Challenge 3</h3>
+            <p>Simulate full race</p>
+        </div>
+    </div>
+    
+    <div class="game-container">
+        <div class="panel">
+            <h2>Runners</h2>
+            <div class="runners-list" id="runners-list">
+                <div class="runner" data-id="1" draggable="true">
+                    <div class="runner-flag" style="background-color: #FF0000;"></div>
+                    <div class="runner-info">
+                        <strong>USA</strong> - Allison
+                    </div>
+                </div>
+                <div class="runner" data-id="2" draggable="true">
+                    <div class="runner-flag" style="background-color: #0000FF;"></div>
+                    <div class="runner-info">
+                        <strong>KEN</strong> - Faith
+                    </div>
+                </div>
+                <div class="runner" data-id="3" draggable="true">
+                    <div class="runner-flag" style="background-color: #00FF00;"></div>
+                    <div class="runner-info">
+                        <strong>ETH</strong> - Letesenbet
+                    </div>
+                </div>
+                <div class="runner" data-id="4" draggable="true">
+                    <div class="runner-flag" style="background-color: #FFFF00;"></div>
+                    <div class="runner-info">
+                        <strong>NED</strong> - Sifan
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="reset-btn">Reset Positions</button>
+                <button id="restart-btn">Restart Game</button>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Race Track</h2>
+            <div class="track-container" id="track-container">
+                <div class="track">
+                    <div class="lane" style="top: 20px;"></div>
+                    <div class="lane" style="top: 70px;"></div>
+                    <div class="lane" style="top: 120px;"></div>
+                    <div class="lane" style="top: 170px;"></div>
+                </div>
+            </div>
+            
+            <div class="simulation-controls">
+                <button id="simulate-btn">Simulate Race</button>
+                <button id="pause-btn" disabled>Pause</button>
+                <button id="reset-race-btn">Reset Simulation</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="panel">
+        <h2>Race Statistics</h2>
+        <div class="stats" id="stats-container">
+            <!-- Stats will be populated by JavaScript -->
+        </div>
+    </div>
+    
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="profile-content" id="profile-content">
+                <!-- Profile content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Game data and state
+        const gameState = {
+            currentChallenge: 1,
+            runners: [
+                { id: 1, name: "Allison", country: "USA", color: "#FF0000", speed: 6, position: 0, lane: 1, finished: false },
+                { id: 2, name: "Faith", country: "KEN", color: "#0000FF", speed: 6.2, position: 0, lane: 2, finished: false },
+                { id: 3, name: "Letesenbet", country: "ETH", color: "#00FF00", speed: 6.3, position: 0, lane: 3, finished: false },
+                { id: 4, name: "Sifan", country: "NED", color: "#FFFF00", speed: 6.1, position: 0, lane: 4, finished: false }
+            ],
+            raceInProgress: false,
+            simulationInterval: null,
+            raceTime: 0
+        };
+        
+        // DOM elements
+        const trackContainer = document.getElementById('track-container');
+        const runnersList = document.getElementById('runners-list');
+        const statsContainer = document.getElementById('stats-container');
+        const progressLevel = document.getElementById('progress-level');
+        const currentChallengeEl = document.getElementById('current-challenge');
+        const profileModal = document.getElementById('profile-modal');
+        const profileContent = document.getElementById('profile-content');
+        const closeModal = document.querySelector('.close');
+        
+        // Initialize the game
+        function initGame() {
+            renderRunnersOnTrack();
+            updateStats();
+            setupEventListeners();
+            updateProgressBar();
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Runner drag and drop
+            document.querySelectorAll('.runner').forEach(runner => {
+                runner.addEventListener('dragstart', handleDragStart);
+            });
+            
+            trackContainer.addEventListener('dragover', handleDragOver);
+            trackContainer.addEventListener('drop', handleDrop);
+            
+            // Buttons
+            document.getElementById('reset-btn').addEventListener('click', resetRunnerPositions);
+            document.getElementById('restart-btn').addEventListener('click', restartGame);
+            document.getElementById('simulate-btn').addEventListener('click', startSimulation);
+            document.getElementById('pause-btn').addEventListener('click', pauseSimulation);
+            document.getElementById('reset-race-btn').addEventListener('click', resetSimulation);
+            
+            // Challenges
+            document.querySelectorAll('.challenge').forEach(challenge => {
+                challenge.addEventListener('click', () => {
+                    const level = parseInt(challenge.dataset.level);
+                    setChallenge(level);
+                });
+            });
+            
+            // Modal
+            closeModal.addEventListener('click', () => {
+                profileModal.style.display = 'none';
+            });
+            
+            window.addEventListener('click', (e) => {
+                if (e.target === profileModal) {
+                    profileModal.style.display = 'none';
+                }
+            });
+        }
+        
+        // Drag and drop functions
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.dataset.id);
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            if (gameState.raceInProgress) return;
+            
+            const runnerId = e.dataTransfer.getData('text/plain');
+            const rect = trackContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            placeRunnerOnTrack(runnerId, x, y);
+        }
+        
+        // Place runner on track
+        function placeRunnerOnTrack(runnerId, x, y) {
+            const runner = gameState.runners.find(r => r.id === parseInt(runnerId));
+            if (!runner) return;
+            
+            // Calculate lane based on vertical position
+            const trackHeight = trackContainer.offsetHeight;
+            const laneHeight = trackHeight / 4;
+            const lane = Math.min(4, Math.max(1, Math.floor(y / laneHeight) + 1));
+            
+            runner.lane = lane;
+            runner.position = 0;
+            
+            renderRunnersOnTrack();
+        }
+        
+        // Render runners on track
+        function renderRunnersOnTrack() {
+            // Clear existing runners on track
+            document.querySelectorAll('.runner-on-track').forEach(r => r.remove());
+            
+            // Add runners to track
+            gameState.runners.forEach(runner => {
+                if (runner.lane > 0) {
+                    const runnerEl = document.createElement('div');
+                    runnerEl.className = 'runner-on-track';
+                    runnerEl.style.backgroundColor = runner.color;
+                    runnerEl.style.top = `${(runner.lane - 1) * 50 + 15}px`;
+                    runnerEl.style.left = `${10 + runner.position}%`;
+                    runnerEl.dataset.id = runner.id;
+                    runnerEl.innerHTML = runner.country.substring(0, 3);
+                    
+                    runnerEl.addEventListener('click', () => showRunnerProfile(runner.id));
+                    trackContainer.appendChild(runnerEl);
+                }
+            });
+        }
+        
+        // Show runner profile
+        function showRunnerProfile(runnerId) {
+            const runner = gameState.runners.find(r => r.id === runnerId);
+            if (!runner) return;
+            
+            profileContent.innerHTML = `
+                <div class="profile-img" style="background-color: ${runner.color};"></div>
+                <h2>${runner.name} (${runner.country})</h2>
+                <p><strong>Specialty:</strong> 5000m / 10000m</p>
+                <p><strong>Personal Best:</strong> 14:06.62</p>
+                <p><strong>World Championships:</strong> 2 Gold Medals</p>
+                <p><strong>Olympic Medals:</strong> 1 Gold, 1 Bronze</p>
+                <p><strong>Current Speed:</strong> ${runner.speed.toFixed(1)} m/s</p>
+            `;
+            
+            profileModal.style.display = 'flex';
+        }
+        
+        // Update statistics display
+        function updateStats() {
+            statsContainer.innerHTML = '';
+            
+            gameState.runners.forEach(runner => {
+                const statCard = document.createElement('div');
+                statCard.className = 'stat-card';
+                statCard.innerHTML = `
+                    <h3>${runner.name}</h3>
+                    <p>Country: ${runner.country}</p>
+                    <p>Position: ${runner.position.toFixed(1)}%</p>
+                    <p>Speed: ${runner.speed.toFixed(1)} m/s</p>
+                    <p>Lane: ${runner.lane}</p>
+                `;
+                statsContainer.appendChild(statCard);
+            });
+        }
+        
+        // Start race simulation
+        function startSimulation() {
+            if (gameState.raceInProgress) return;
+            
+            gameState.raceInProgress = true;
+            gameState.raceTime = 0;
+            document.getElementById('simulate-btn').disabled = true;
+            document.getElementById('pause-btn').disabled = false;
+            
+            gameState.simulationInterval = setInterval(() => {
+                gameState.raceTime += 0.1;
+                let allFinished = true
+    </script>
+</body>
+</html>

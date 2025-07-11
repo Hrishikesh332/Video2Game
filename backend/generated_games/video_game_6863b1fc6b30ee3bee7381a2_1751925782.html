@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai Islands History Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #555555;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .map-section {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .map-toggle {
+            display: flex;
+            background-color: #e9e9e9;
+            border-radius: 50px;
+            padding: 5px;
+        }
+        
+        .toggle-btn {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-btn.active {
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .map-area {
+            position: relative;
+            height: 400px;
+            background-color: #e0e7ff;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            background-color: #d1d1d1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #a0a0a0;
+            font-weight: 600;
+            color: #333;
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .island:hover {
+            background-color: #b8b8b8;
+            transform: scale(1.05);
+        }
+        
+        .info-panel {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            min-height: 200px;
+        }
+        
+        .info-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #222;
+        }
+        
+        .info-content {
+            font-size: 1rem;
+            color: #444;
+        }
+        
+        .timeline-section {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .timeline-header {
+            margin-bottom: 20px;
+        }
+        
+        .timeline-container {
+            display: flex;
+            overflow-x: auto;
+            padding: 20px 0;
+            gap: 15px;
+            scrollbar-width: thin;
+        }
+        
+        .timeline-item {
+            min-width: 200px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .timeline-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .timeline-title {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .timeline-desc {
+            font-size: 0.9rem;
+            color: #555;
+        }
+        
+        .causeway-section {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .causeway-header {
+            margin-bottom: 20px;
+        }
+        
+        .causeway-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .causeway-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .causeway-name {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .causeway-desc {
+            font-size: 0.95rem;
+            color: #555;
+        }
+        
+        .progress-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .score-display {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .btn-restart {
+            background-color: #d1d1d1;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .map-area {
+                height: 300px;
+            }
+            
+            .island {
+                font-size: 0.8rem;
+                padding: 5px;
+            }
+            
+            .timeline-container {
+                flex-direction: column;
+                overflow-x: visible;
+            }
+            
+            .timeline-item {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mumbai Islands History Explorer</h1>
+        <p class="subtitle">Discover how seven islands transformed into India's financial capital through land reclamation</p>
+    </header>
+    
+    <main class="game-container">
+        <section class="map-section">
+            <div class="map-header">
+                <h2>Interactive Map</h2>
+                <div class="map-toggle">
+                    <button class="toggle-btn active" id="historicalBtn">Historical Islands</button>
+                    <button class="toggle-btn" id="modernBtn">Modern Mumbai</button>
+                </div>
+            </div>
+            
+            <div class="map-area" id="mapArea">
+                <!-- Islands will be positioned by JavaScript -->
+                <div class="island" id="colaba" style="top: 70%; left: 85%; width: 80px; height: 80px;">Colaba</div>
+                <div class="island" id="oldWoman" style="top: 65%; left: 75%; width: 60px; height: 60px;">Old Woman's Island</div>
+                <div class="island" id="bombay" style="top: 45%; left: 60%; width: 100px; height: 100px;">Bombay</div>
+                <div class="island" id="mazagaon" style="top: 40%; left: 40%; width: 90px; height: 90px;">Mazagaon</div>
+                <div class="island" id="parel" style="top: 55%; left: 30%; width: 85px; height: 85px;">Parel</div>
+                <div class="island" id="worli" style="top: 30%; left: 50%; width: 70px; height: 70px;">Worli</div>
+                <div class="island" id="mahim" style="top: 20%; left: 20%; width: 75px; height: 75px;">Mahim</div>
+            </div>
+            
+            <div class="info-panel">
+                <h3 class="info-title" id="infoTitle">Mumbai's Island History</h3>
+                <p class="info-content" id="infoContent">Click on any island to learn about its historical significance and transformation.</p>
+            </div>
+        </section>
+        
+        <section class="timeline-section">
+            <div class="timeline-header">
+                <h2>Historical Timeline</h2>
+                <p>Explore key rulers and events that shaped Mumbai's history</p>
+            </div>
+            
+            <div class="timeline-container">
+                <div class="timeline-item" data-era="satavahanas">
+                    <h3 class="timeline-title">Satavahanas (2nd BCE)</h3>
+                    <p class="timeline-desc">Early rulers of the region</p>
+                </div>
+                <div class="timeline-item" data-era="satraps">
+                    <h3 class="timeline-title">Western Satraps (2nd CE)</h3>
+                    <p class="timeline-desc">Indo-Scythian rulers</p>
+                </div>
+                <div class="timeline-item" data-era="abhiras">
+                    <h3 class="timeline-title">Abhiras (3rd CE)</h3>
+                    <p class="timeline-desc">Pastoral dynasty</p>
+                </div>
+                <div class="timeline-item" data-era="vakatakas">
+                    <h3 class="timeline-title">Vakatakas (4th CE)</h3>
+                    <p class="timeline-desc">Central Indian empire</p>
+                </div>
+                <div class="timeline-item" data-era="kalachuris">
+                    <h3 class="timeline-title">Kalachuris (5th CE)</h3>
+                    <p class="timeline-desc">Warrior dynasty</p>
+                </div>
+                <div class="timeline-item" data-era="chalukyas">
+                    <h3 class="timeline-title">Chalukyas (6th CE)</h3>
+                    <p class="timeline-desc">Deccan power</p>
+                </div>
+                <div class="timeline-item" data-era="rashtrakutas">
+                    <h3 class="timeline-title">Rashtrakutas (8th CE)</h3>
+                    <p class="timeline-desc">Expansionist empire</p>
+                </div>
+                <div class="timeline-item" data-era="sultanate">
+                    <h3 class="timeline-title">Delhi Sultanate (14th CE)</h3>
+                    <p class="timeline-desc">Islamic conquest</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="causeway-section">
+            <div class="causeway-header">
+                <h2>Land Reclamation Projects</h2>
+                <p>Key engineering projects that connected the islands</p>
+            </div>
+            
+            <div class="causeway-container">
+                <div class="causeway-card">
+                    <h3 class="causeway-name">Duncan Causeway</h3>
+                    <p class="causeway-desc">Built in 1838, connected Mahim and Bandra</p>
+                </div>
+                <div class="causeway-card">
+                    <h3 class="causeway-name">Colaba Causeway</h3>
+                    <p class="causeway-desc">Completed in 1838, linked Colaba to mainland</p>
+                </div>
+                <div class="causeway-card">
+                    <h3 class="causeway-name">Mahim Causeway</h3>
+                    <p class="causeway-desc">Finished in 1845, connected Mahim to Bandra</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="progress-section">
+            <div class="score-display">Exploration Progress: <span id="progress">0</span>/7 Islands</div>
+            <button class="btn btn-restart" id="restartBtn">Restart Exploration</button>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game state
+            const gameState = {
+                discoveredIslands: new Set(),
+                currentView: 'historical',
+                score: 0
+            };
+            
+            // DOM elements
+            const historicalBtn = document.getElementById('historicalBtn');
+            const modernBtn = document.getElementById('modernBtn');
+            const mapArea = document.getElementById('mapArea');
+            const infoTitle = document.getElementById('infoTitle');
+            const infoContent = document.getElementById('infoContent');
+            const progressDisplay = document.getElementById('progress');
+            const restartBtn = document.getElementById('restartBtn');
+            const islands = document.querySelectorAll('.island');
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            
+            // Island information
+            const islandInfo = {
+                colaba: {
+                    title: "Colaba Island",
+                    content: "Southernmost island, originally known as Kolbhat. Portuguese established a church here in the 16th century. Now home to the iconic Gateway of India."
+                },
+                oldWoman: {
+                    title: "Old Woman's Island",
+                    content: "Small rocky island between Colaba and Bombay. Named for the temple dedicated to the goddess Mumbadevi. Now part of the modern Colaba area."
+                },
+                bombay: {
+                    title: "Bombay Island",
+                    content: "The largest of the seven islands. Portuguese built a castle here in the 16th century. British established their first settlement here in the 17th century."
+                },
+                mazagaon: {
+                    title: "Mazagaon Island",
+                    content: "Originally a fishing village with Portuguese settlements. Known for its dockyards and later became an industrial area during British rule."
+                },
+                parel: {
+                    title: "Parel Island",
+                    content: "Site of ancient temples and later textile mills. The plague epidemic of 1896 originated here. Now a major residential and commercial area."
+                },
+                worli: {
+                    title: "Worli Island",
+                    content: "Famous for the Worli Fort built by the British. Originally a separate island, now connected by the Worli Causeway. Home to modern skyscrapers."
+                },
+                mahim: {
+                    title: "Mahim Island",
+                    content: "Northernmost island with strategic importance. Site of the Mahim Fort built by the Portuguese. Now connected to the mainland by the Bandra-Worli Sea Link."
+                }
+            };
+            
+            // Timeline information
+            const timelineInfo = {
+                satavahanas: "The Satavahanas were the earliest known rulers of the Mumbai region. They controlled the area from the 2nd century BCE to the 2nd century CE, establishing trade routes.",
+                satraps: "The Western Satraps, Indo-Scythian rulers, controlled the islands from the 2nd to 4th century CE. They issued coins found in the region.",
+                abhiras: "The Abhiras, a pastoral dynasty, ruled the region during the 3rd century CE. They maintained the region's agricultural economy.",
+                vakatakas: "The Vakataka Empire controlled the area in the 4th century CE. They were known for their support of arts and literature.",
+                kalachuris: "The Kalachuris ruled during the 5th century CE. They were warriors who expanded their territory across western India.",
+                chalukyas: "The Chalukyas of Badami controlled the region in the 6th century CE. They built significant temples and promoted trade.",
+                rashtrakutas: "The Rashtrakuta Empire ruled from the 8th to 10th century CE. They expanded maritime trade routes from Mumbai's natural harbor.",
+                sultanate: "The Delhi Sultanate conquered the region in the 14th century. They built the first fortifications on the islands."
+            };
+            
+            // Initialize game
+            function initGame() {
+                updateMapView();
+                updateProgress();
+                
+                // Add event listeners
+                historicalBtn.addEventListener('click', () => switchView('historical'));
+                modernBtn.addEventListener('click', () => switchView('modern'));
+                restartBtn.addEventListener('click', restartGame);
+                
+                islands.forEach(island => {
+                    island.addEventListener('click', () => showIslandInfo(island.id));
+                });
+                
+                timelineItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        const era = item.dataset.era;
+                        showTimelineInfo(era);
+                    });
+                });
+            }
+            
+            // Switch between historical and modern views
+            function switchView(view) {
+                gameState.currentView = view;
+                updateMapView();
+                
+                historicalBtn.classList.toggle('active', view === 'historical');
+                modernBtn.classList.toggle('active', view === 'modern');
+                
+                if (view === 'modern') {
+                    infoTitle.textContent = "Modern Mumbai";
+                    infoContent.textContent = "Through land reclamation projects between the 18th-20th centuries, the seven islands were connected to form modern Mumbai. The city has grown into India's financial capital with over 20 million residents.";
+                } else {
+                    infoTitle.textContent = "Mumbai's Island History";
+                    infoContent.textContent = "Click on any island to learn about its historical significance and transformation.";
+                }
+            }
+            
+            // Update map visualization based on current view
+            function updateMapView() {
+                if (gameState.currentView === 'modern') {
+                    mapArea.style.backgroundColor = '#d4e8d4';
+                    islands.forEach(island => {
+                        island.style.border = '2px solid #7a9f7a';
+                    });
+                } else {
+                    mapArea.style.backgroundColor = '#e0e7ff';
+                    islands.forEach(island => {
+                        island.style.border = '2px solid #a0a0a0';
+                    });
+                }
+            }
+            
+            // Show island information
+            function showIslandInfo(islandId) {
+                const info = islandInfo[islandId];
+                if (info) {
+                    infoTitle.textContent = info.title;
+                    infoContent.textContent = info.content;
+                    
+                    // Add to discovered islands if not already
+                    if (!gameState.discoveredIslands.has(islandId)) {
+                        gameState.discoveredIslands.add(islandId);
+                        gameState.score += 10;
+                        updateProgress();
+                    }
+                }
+            }
+            
+            // Show timeline information
+            function showTimelineInfo(era) {
+                const info = timelineInfo[era];
+                if (info) {
+                    infoTitle.textContent = era.charAt(0).toUpperCase() + era.slice(1);
+                    infoContent.textContent = info;
+                }
+            }
+            
+            // Update progress display
+            function updateProgress() {
+                progressDisplay.textContent = gameState.discoveredIslands.size;
+            }
+            
+            // Restart game
+            function restartGame() {
+                gameState.discoveredIslands.clear();
+                gameState.score = 0;
+                updateProgress();
+                infoTitle.textContent = "Mumbai's Island History";
+                infoContent.textContent = "Click on any island to learn about its historical significance and transformation.";
+                switchView('historical');
+            }
+            
+            // Initialize the game
+            initGame();
+        });
+    </script>
+</body>
+</html>

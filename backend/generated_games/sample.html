@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Explorer: Principal Component Analysis Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #2c3e50, #1a1a2e);
+            color: #f0f0f0;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(30, 30, 46, 0.85);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .header {
+            background: #1e1e2e;
+            padding: 25px;
+            text-align: center;
+            border-bottom: 2px solid #4a4a6a;
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #6a89cc, #4a69bd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: #a0a0c0;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .game-area {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .instructions {
+            background: rgba(40, 40, 60, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid #6a89cc;
+        }
+        
+        .instructions h2 {
+            color: #6a89cc;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .instructions p {
+            line-height: 1.7;
+            color: #d0d0e0;
+        }
+        
+        .challenges-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .challenge {
+            background: rgba(50, 50, 70, 0.6);
+            border-radius: 15px;
+            padding: 25px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #4a4a6a;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .challenge:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            background: rgba(55, 55, 85, 0.7);
+        }
+        
+        .challenge h3 {
+            color: #9b59b6;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .challenge p {
+            color: #c0c0e0;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .visualization {
+            height: 200px;
+            background: rgba(30, 30, 50, 0.8);
+            border-radius: 10px;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #5a5a8a;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .slider-container label {
+            color: #a0a0c0;
+            font-size: 0.9rem;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: #4a4a6a;
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #6a89cc;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        button {
+            background: linear-gradient(90deg, #6a89cc, #4a69bd);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background: linear-gradient(90deg, #5a79bc, #3a59ad);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .feedback {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            display: none;
+        }
+        
+        .correct {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+        }
+        
+        .incorrect {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(40, 40, 60, 0.7);
+            border-radius: 15px;
+        }
+        
+        .progress-bar {
+            flex: 1;
+            height: 12px;
+            background: #4a4a6a;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6a89cc, #9b59b6);
+            border-radius: 6px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .score-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            color: #6a89cc;
+            font-weight: 600;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 25px;
+            color: #a0a0c0;
+            font-size: 0.9rem;
+            border-top: 1px solid #4a4a6a;
+        }
+        
+        .points {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(106, 137, 204, 0.2);
+            color: #6a89cc;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 1px solid #6a89cc;
+        }
+        
+        .concept {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(155, 89, 182, 0.2);
+            color: #9b59b6;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid #9b59b6;
+        }
+        
+        /* Visualization elements */
+        .data-point {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .pc-line {
+            position: absolute;
+            height: 3px;
+            transform-origin: 0 0;
+        }
+        
+        .pc1 {
+            background: #6a89cc;
+        }
+        
+        .pc2 {
+            background: #9b59b6;
+        }
+        
+        .dimension-label {
+            position: absolute;
+            font-size: 0.8rem;
+            color: #a0a0c0;
+        }
+        
+        .axis {
+            position: absolute;
+            background: #5a5a8a;
+        }
+        
+        .x-axis {
+            width: 100%;
+            height: 2px;
+            bottom: 30px;
+            left: 0;
+        }
+        
+        .y-axis {
+            width: 2px;
+            height: 100%;
+            left: 30px;
+            top: 0;
+        }
+        
+        .pc-option {
+            background: rgba(155, 89, 182, 0.2) !important;
+            border: 1px solid #9b59b6 !important;
+            color: #9b59b6 !important;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+        
+        .pc-option.selected {
+            background: rgba(155, 89, 182, 0.5) !important;
+            color: white !important;
+        }
+        
+        .variance-bar {
+            position: absolute;
+            bottom: 0;
+            border-radius: 4px 4px 0 0;
+            display: flex;
+            align-items: end;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        /* Animation for data points */
+        @keyframes float {
+            0% { transform: translate(-50%, -50%) translateY(0px); }
+            50% { transform: translate(-50%, -50%) translateY(-5px); }
+            100% { transform: translate(-50%, -50%) translateY(0px); }
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .challenges-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PCA EXPLORER</h1>
+            <p>Learn Principal Component Analysis through interactive challenges. Reduce dimensions, maximize variance, and uncover hidden patterns in data!</p>
+        </div>
+        
+        <div class="game-area">
+            <div class="instructions">
+                <h2>📚 Game Instructions</h2>
+                <p>Complete three challenges to master PCA concepts. Each challenge focuses on a different aspect of dimensionality reduction. Manipulate the visualizations, make predictions, and earn points based on your accuracy. Your progress and score will be tracked as you advance through the challenges.</p>
+            </div>
+            
+            <div class="challenges-container">
+                <!-- Challenge 1: Variance Maximization -->
+                <div class="challenge">
+                    <div class="points">+30 points</div>
+                    <h3>🔍 Challenge 1: Maximize Variance</h3>
+                    <p>Principal components are directions where data varies the most. Adjust the red line to maximize the variance of projected data points.</p>
+                    
+                    <div class="visualization" id="viz1">
+                        <div class="axis x-axis"></div>
+                        <div class="axis y-axis"></div>
+                        <!-- Data points will be generated by JS -->
+                    </div>
+                    
+                    <div class="controls">
+                        <div class="slider-container">
+                            <label for="variance-slider">Adjust Principal Component Direction:</label>
+                            <input type="range" id="variance-slider" min="0" max="180" value="45">
+                        </div>
+                        <button id="check-variance">Check Solution</button>
+                        <div class="feedback" id="variance-feedback"></div>
+                    </div>
+                    <div class="concept">Variance Maximization</div>
+                </div>
+                
+                <!-- Challenge 2: Dimensionality Reduction -->
+                <div class="challenge">
+                    <div class="points">+40 points</div>
+                    <h3>📉 Challenge 2: Reduce Dimensions</h3>
+                    <p>PCA reduces dimensions while preserving information. Select how many dimensions to keep and see the reconstruction error.</p>
+                    
+                    <div class="visualization" id="viz2">
+                        <!-- 3D visualization will be generated by JS -->
+                    </div>
+                    
+                    <div class="controls">
+                        <div class="slider-container">
+                            <label for="dimension-slider">Dimensions to Keep (1-3):</label>
+                            <input type="range" id="dimension-slider" min="1" max="3" value="2">
+                        </div>
+                        <button id="check-dimensions">Visualize Reduction</button>
+                        <div class="feedback" id="dimension-feedback"></div>
+                    </div>
+                    <div class="concept">Dimensionality Reduction</div>
+                </div>
+                
+                <!-- Challenge 3: PCA Application -->
+                <div class="challenge">
+                    <div class="points">+50 points</div>
+                    <h3>🏦 Challenge 3: Loan Data Analysis</h3>
+                    <p>Apply PCA to real loan data. Identify which principal component captures the most variance in financial data.</p>
+                    
+                    <div class="visualization" id="viz3">
+                        <!-- Bar chart will be generated by JS -->
+                    </div>
+                    
+                    <div class="controls">
+                        <div class="slider-container">
+                            <label>Select Principal Component with Highest Variance:</label>
+                            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                <button class="pc-option" data-pc="1">PC1</button>
+                                <button class="pc-option" data-pc="2">PC2</button>
+                                <button class="pc-option" data-pc="3">PC3</button>
+                            </div>
+                        </div>
+                        <button id="check-pc">Verify Selection</button>
+                        <div class="feedback" id="pc-feedback"></div>
+                    </div>
+                    <div class="concept">Real-world Application</div>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="score-container">
+                    <span>🏆 Score:</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <button id="reset-btn">🔄 Restart Game</button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Educational Game Based on Principal Component Analysis (PCA) Concepts | Learn how PCA simplifies complex data</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game state
+            const gameState = {
+                score: 0,
+                progress: 0,
+                challengesCompleted: 0,
+                maxScore: 120
+            };
+            
+            // DOM elements
+            const scoreElement = document.getElementById('score');
+            const progressFill = document.getElementById('progress-fill');
+            const resetBtn = document.getElementById('reset-btn');
+            
+            // Initialize visualizations
+            initChallenge1();
+            initChallenge2();
+            initChallenge3();
+            
+            // Challenge 1: Variance Maximization
+            function initChallenge1() {
+                const viz = document.getElementById('viz1');
+                const slider = document.getElementById('variance-slider');
+                const checkBtn = document.getElementById('check-variance');
+                const feedback = document.getElementById('variance-feedback');
+                
+                // Create data points
+                const points = [];
+                for (let i = 0; i < 30; i++) {
+                    const point = document.createElement('div');
+                    point.className = 'data-point';
+                    
+                    // Position points along a line with some noise
+                    const x = 50 + Math.random() * 80;
+                    const y = 100 + (x - 50) * 0.8 + (Math.random() - 0.5) * 30;
+                    
+                    point.style.left = `${x}%`;
+                    point.style.top = `${y}px`;
+                    point.style.background = `hsl(${200 + Math.random() * 40}, 70%, 60%)`;
+                    point.style.animation = `float ${2 + Math.random() * 2}s infinite ease-in-out`;
+                    point.style.animationDelay = `${Math.random() * 2}s`;
+                    
+                    viz.appendChild(point);
+                    points.push({element: point, x, y});
+                }
+                
+                // Create PC line
+                const pcLine = document.createElement('div');
+                pcLine.className = 'pc-line pc1';
+                pcLine.id = 'pc-line';
+                viz.appendChild(pcLine);
+                updatePCLine(45);
+                
+                // Update line when slider changes
+                slider.addEventListener('input', function() {
+                    updatePCLine(parseInt(this.value));
+                });
+                
+                // Check solution
+                checkBtn.addEventListener('click', function() {
+                    const angle = parseInt(slider.value);
+                    const optimalAngle = 50; // Optimal solution is around 50 degrees
+                    const diff = Math.abs(angle - optimalAngle);
+                    
+                    if (diff < 10) {
+                        feedback.textContent = "Excellent! You've found the direction of maximum variance.";
+                        feedback.className = "feedback correct";
+                        feedback.style.display = "block";
+                        if (!checkBtn.dataset.completed) {
+                            updateScore(30);
+                            checkBtn.dataset.completed = true;
+                        }
+                    } else {
+                        feedback.textContent = "Not quite. Try adjusting to maximize the spread of projected points.";
+                        feedback.className = "feedback incorrect";
+                        feedback.style.display = "block";
+                    }
+                });
+                
+                function updatePCLine(angle) {
+                    const line = document.getElementById('pc-line');
+                    const length = 150;
+                    const centerX = 50; // % from left
+                    const centerY = 100; // px from top
+                    
+                    line.style.width = `${length}px`;
+                    line.style.left = `${centerX}%`;
+                    line.style.top = `${centerY}px`;
+                    line.style.transform = `rotate(${angle}deg)`;
+                }
+            }
+            
+            // Challenge 2: Dimensionality Reduction
+            function initChallenge2() {
+                const viz = document.getElementById('viz2');
+                const slider = document.getElementById('dimension-slider');
+                const checkBtn = document.getElementById('check-dimensions');
+                const feedback = document.getElementById('dimension-feedback');
+                
+                // Create 3D data points representation
+                for (let i = 0; i < 20; i++) {
+                    const point = document.createElement('div');
+                    point.className = 'data-point';
+                    
+                    // Simulate 3D projection to 2D
+                    const x = 30 + Math.random() * 140;
+                    const y = 30 + Math.random() * 140;
+                    const z = Math.random() * 50; // Simulated depth
+                    
+                    point.style.left = `${x}px`;
+                    point.style.top = `${y}px`;
+                    point.style.background = `hsla(${280 + z}, 70%, 60%, ${0.6 + z/100})`;
+                    point.style.width = `${8 + z/10}px`;
+                    point.style.height = `${8 + z/10}px`;
+                    
+                    viz.appendChild(point);
+                }
+                
+                // Add dimension labels
+                const labels = ['X', 'Y', 'Z'];
+                labels.forEach((label, index) => {
+                    const labelDiv = document.createElement('div');
+                    labelDiv.className = 'dimension-label';
+                    labelDiv.textContent = label;
+                    labelDiv.style.left = `${20 + index * 60}px`;
+                    labelDiv.style.bottom = '10px';
+                    viz.appendChild(labelDiv);
+                });
+                
+                checkBtn.addEventListener('click', function() {
+                    const dimensions = parseInt(slider.value);
+                    let message = '';
+                    let isCorrect = false;
+                    
+                    if (dimensions === 2) {
+                        message = "Perfect! 2 dimensions preserve most information while reducing complexity.";
+                        isCorrect = true;
+                        if (!checkBtn.dataset.completed) {
+                            updateScore(40);
+                            checkBtn.dataset.completed = true;
+                        }
+                    } else if (dimensions === 1) {
+                        message = "Too much information lost with just 1 dimension.";
+                    } else {
+                        message = "3 dimensions don't reduce complexity. Try fewer dimensions.";
+                    }
+                    
+                    feedback.textContent = message;
+                    feedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+                    feedback.style.display = "block";
+                });
+            }
+            
+            // Challenge 3: PCA Application
+            function initChallenge3() {
+                const viz = document.getElementById('viz3');
+                const pcOptions = document.querySelectorAll('.pc-option');
+                const checkBtn = document.getElementById('check-pc');
+                const feedback = document.getElementById('pc-feedback');
+                
+                // Create variance bars for PC1, PC2, PC3
+                const variances = [85, 12, 3]; // PC1 has highest variance
+                const colors = ['#6a89cc', '#9b59b6', '#e74c3c'];
+                
+                variances.forEach((variance, index) => {
+                    const bar = document.createElement('div');
+                    bar.className = 'variance-bar';
+                    bar.style.left = `${20 + index * 80}px`;
+                    bar.style.width = '60px';
+                    bar.style.height = `${variance * 1.5}px`;
+                    bar.style.background = colors[index];
+                    bar.textContent = `${variance}%`;
+                    
+                    const label = document.createElement('div');
+                    label.className = 'dimension-label';
+                    label.textContent = `PC${index + 1}`;
+                    label.style.left = `${35 + index * 80}px`;
+                    label.style.bottom = '5px';
+                    
+                    viz.appendChild(bar);
+                    viz.appendChild(label);
+                });
+                
+                // PC option selection
+                pcOptions.forEach(option => {
+                    option.addEventListener('click', function() {
+                        pcOptions.forEach(opt => opt.classList.remove('selected'));
+                        this.classList.add('selected');
+                    });
+                });
+                
+                checkBtn.addEventListener('click', function() {
+                    const selected = document.querySelector('.pc-option.selected');
+                    if (!selected) {
+                        feedback.textContent = "Please select a principal component first.";
+                        feedback.className = "feedback incorrect";
+                        feedback.style.display = "block";
+                        return;
+                    }
+                    
+                    const selectedPC = selected.dataset.pc;
+                    if (selectedPC === '1') {
+                        feedback.textContent = "Correct! PC1 captures 85% of the variance in loan data.";
+                        feedback.className = "feedback correct";
+                        feedback.style.display = "block";
+                        if (!checkBtn.dataset.completed) {
+                            updateScore(50);
+                            checkBtn.dataset.completed = true;
+                        }
+                    } else {
+                        feedback.textContent = `PC${selectedPC} captures much less variance. PC1 is the answer!`;
+                        feedback.className = "feedback incorrect";
+                        feedback.style.display = "block";
+                    }
+                });
+            }
+            
+            // Update score and progress
+            function updateScore(points) {
+                gameState.score += points;
+                gameState.challengesCompleted++;
+                gameState.progress = (gameState.score / gameState.maxScore) * 100;
+                
+                scoreElement.textContent = gameState.score;
+                progressFill.style.width = `${gameState.progress}%`;
+                
+                if (gameState.challengesCompleted === 3) {
+                    setTimeout(() => {
+                        alert(`Congratulations! You've completed all challenges with a score of ${gameState.score}/120!`);
+                    }, 1000);
+                }
+            }
+            
+            // Reset game
+            resetBtn.addEventListener('click', function() {
+                gameState.score = 0;
+                gameState.progress = 0;
+                gameState.challengesCompleted = 0;
+                
+                scoreElement.textContent = '0';
+                progressFill.style.width = '0%';
+                
+                // Reset all feedback and buttons
+                document.querySelectorAll('.feedback').forEach(f => f.style.display = 'none');
+                document.querySelectorAll('button[data-completed]').forEach(btn => {
+                    delete btn.dataset.completed;
+                });
+                document.querySelectorAll('.pc-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Reset sliders
+                document.getElementById('variance-slider').value = 45;
+                document.getElementById('dimension-slider').value = 2;
+                
+                // Update PC line
+                const line = document.getElementById('pc-line');
+                if (line) {
+                    line.style.transform = 'rotate(45deg)';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNN Explorer: Understanding Convolutional Neural Networks</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #666666;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .game-container {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+        
+        .step {
+            display: none;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #222222;
+            text-align: center;
+        }
+        
+        .instructions {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 1rem;
+        }
+        
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .canvas-wrapper {
+            text-align: center;
+            margin: 10px;
+        }
+        
+        canvas {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        
+        .canvas-title {
+            margin-top: 10px;
+            font-weight: 600;
+            color: #444444;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        
+        button {
+            background-color: #e0e0e0;
+            color: #333333;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            min-width: 150px;
+        }
+        
+        button:hover {
+            background-color: #d0d0d0;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.primary {
+            background-color: #4a4a4a;
+            color: white;
+        }
+        
+        .filter-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .filter {
+            width: 80px;
+            height: 80px;
+            background-color: white;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .filter:hover {
+            border-color: #999;
+        }
+        
+        .filter.active {
+            border-color: #333;
+            background-color: #f0f0f0;
+        }
+        
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3px;
+            margin: 5px;
+        }
+        
+        .filter-cell {
+            width: 15px;
+            height: 15px;
+            background-color: #ddd;
+            border-radius: 2px;
+        }
+        
+        .filter-cell.active {
+            background-color: #333;
+        }
+        
+        .layer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .quiz-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .quiz-question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .quiz-option {
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .quiz-option:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .quiz-option.selected {
+            background-color: #d0d0d0;
+            border-left: 4px solid #333;
+        }
+        
+        .feedback {
+            text-align: center;
+            min-height: 30px;
+            font-weight: 600;
+            margin: 15px 0;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0 20px;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            flex-grow: 1;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #4a4a4a;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-text {
+            font-weight: 600;
+            color: #444;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .summary {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+        
+        .summary h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #222;
+        }
+        
+        .summary ul {
+            padding-left: 25px;
+            margin-bottom: 15px;
+        }
+        
+        .summary li {
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .canvas-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CNN Explorer</h1>
+        <p class="subtitle">Understanding Convolutional Neural Networks through Interactive Learning</p>
+    </header>
+    
+    <div class="progress-container">
+        <div class="progress-text">Step 1 of 4</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-text" id="progress-text">25%</div>
+    </div>
+    
+    <div class="game-container">
+        <!-- Step 1: Drawing Board -->
+        <section id="step1" class="step active">
+            <h2>Create Your Image</h2>
+            <div class="instructions">
+                <p>Draw a simple shape on the canvas below. This will be the input for our Convolutional Neural Network.</p>
+            </div>
+            
+            <div class="canvas-container">
+                <div class="canvas-wrapper">
+                    <canvas id="drawing-canvas" width="300" height="300"></canvas>
+                    <div class="canvas-title">Drawing Canvas</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="clear-btn">Clear Canvas</button>
+                <button id="next1" class="primary">Apply Filters</button>
+            </div>
+        </section>
+        
+        <!-- Step 2: Filter Application -->
+        <section id="step2" class="step">
+            <h2>Apply Filters</h2>
+            <div class="instructions">
+                <p>Select a filter to apply to your image. Convolutional layers use filters to detect features like edges, corners, and textures.</p>
+            </div>
+            
+            <div class="filter-container">
+                <div class="filter" data-filter="edge">
+                    <div class="filter-grid">
+                        <div class="filter-cell"></div>
+                        <div class="filter-cell active"></div>
+                        <div class="filter-cell"></div>
+                        <div class="filter-cell active"></div>
+                        <div class="filter-cell active"></div>
+                        <div class="filter-cell active"></div>
+                        <div class="filter-cell"></div>
+                        <div class="filter-cell active"></div>
+                        <div class="filter-cell"></div>
+                    </div>
+                    <div>Edge Detector</div>
+                </div>
+                <div class="filter" data-filter="corner">
+                    <div class="filter-grid">
+                        <div class="filter-cell active"></div>
+                        <div class="filter-cell"></div>
+                        <div class="filter-cell active"></div>
+                        <div class="filter-cell"></div>
+                        <div class="filter-cell active"></div>
+                        <div class="filter-cell"></div>
+                        <div class="filter-cell active"></div>
+                        <div class="filter-cell"></div>
+                        <div class="filter-cell active"></div>
+                    </div>
+                    <div>Corner Detector</div>
+                </div>
+                <div class="filter" data-filter="blur">
+                    <div class="filter-grid">
+                        <div class="filter-cell"></div>
+                        <div class="filter-cell active"></div>
+                        <div class="filter-cell"></div>
+                        <div class="filter-cell active"></div>
+                        <div class="filter-cell active"></div>
+                        <div class="filter-cell active"></div>
+                        <div class="filter-cell"></div>
+                        <div class="filter-cell active"></div>
+                        <div class="filter-cell"></div>
+                    </div>
+                    <div>Blur Filter</div>
+                </div>
+            </div>
+            
+            <div class="canvas-container">
+                <div class="canvas-wrapper">
+                    <canvas id="original-canvas" width="300" height="300"></canvas>
+                    <div class="canvas-title">Original Image</div>
+                </div>
+                <div class="canvas-wrapper">
+                    <canvas id="filtered-canvas" width="300" height="300"></canvas>
+                    <div class="canvas-title">Filtered Result</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="back2">Back</button>
+                <button id="next2" class="primary">See Layers</button>
+            </div>
+        </section>
+        
+        <!-- Step 3: Layer Visualization -->
+        <section id="step3" class="step">
+            <h2>Network Layers</h2>
+            <div class="instructions">
+                <p>Toggle between different layers to see how CNNs build understanding from simple features to complex objects.</p>
+            </div>
+            
+            <div class="layer-controls">
+                <button data-layer="conv1">Convolution 1</button>
+                <button data-layer="pool1">Pooling 1</button>
+                <button data-layer="conv2">Convolution 2</button>
+                <button data-layer="output">Output</button>
+            </div>
+            
+            <div class="canvas-container">
+                <div class="canvas-wrapper">
+                    <canvas id="layer-canvas" width="300" height="300"></canvas>
+                    <div class="canvas-title" id="layer-title">Convolution Layer 1</div>
+                </div>
+            </div>
+            
+            <div class="summary">
+                <h3>How CNNs Work</h3>
+                <ul>
+                    <li>Convolutional layers detect basic
+    </div>
+    </div>
+</body>
+</html>

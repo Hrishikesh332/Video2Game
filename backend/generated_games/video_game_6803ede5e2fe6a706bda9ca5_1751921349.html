@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Women's 5000m Race App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+
+        .description {
+            color: #555555;
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .section {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #222222;
+            text-align: center;
+        }
+
+        .track-container {
+            position: relative;
+            height: 400px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+
+        .track {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 350px;
+            height: 350px;
+            border: 3px solid #cccccc;
+            border-radius: 50%;
+        }
+
+        .lane {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            border: 2px dashed #cccccc;
+            border-radius: 50%;
+        }
+
+        .runner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #4a4a4a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .runner:hover {
+            transform: scale(1.1);
+        }
+
+        .runner-info {
+            display: none;
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 10;
+            max-width: 300px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .profiles-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .profile-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .profile-card h3 {
+            margin: 10px 0;
+            color: #333;
+        }
+
+        .profile-details {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .timeline-container {
+            position: relative;
+            height: 150px;
+            margin: 30px 0;
+        }
+
+        .timeline-line {
+            position: absolute;
+            top: 50%;
+            left: 50px;
+            right: 50px;
+            height: 4px;
+            background-color: #cccccc;
+            transform: translateY(-50%);
+        }
+
+        .timeline-event {
+            position: absolute;
+            top: 50%;
+            width: 30px;
+            height: 30px;
+            background-color: #4a4a4a;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .timeline-info {
+            display: none;
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 10;
+            max-width: 300px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .quiz-container {
+            margin-top: 20px;
+        }
+
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .option {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option:hover {
+            border-color: #888;
+        }
+
+        .option.selected {
+            border-color: #4a4a4a;
+            background-color: #f0f0f0;
+        }
+
+        .feedback {
+            min-height: 30px;
+            margin: 15px 0;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .correct {
+            color: #2e7d32;
+        }
+
+        .incorrect {
+            color: #c62828;
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+            padding: 0 20px;
+        }
+
+        .progress-bar {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 0 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #4a4a4a;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .score-container {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 30px;
+            background-color: #4a4a4a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #333;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .restart-btn {
+            background-color: #333;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .section-icon {
+            font-size: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .track-container {
+                height: 300px;
+            }
+            
+            .track {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .lane {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .runner {
+                width: 30px;
+                height: 30px;
+                font-size: 0.8rem;
+            }
+            
+            .timeline-container {
+                height: 200px;
+            }
+            
+            .timeline-line {
+                left: 30px;
+                right: 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .section {
+                padding: 15px;
+            }
+            
+            .profiles-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .options {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Interactive Women's 5000m Race</h1>
+        <p class="description">Explore race dynamics through interactive elements and test your knowledge</p>
+    </header>
+
+    <div class="game-container">
+        <!-- Track Map Section -->
+        <section class="section">
+            <div class="section-title">
+                <span class="section-icon">🏃‍♀️</span>
+                <h2>Interactive Track Map</h2>
+            </div>
+            <p>Click on runners to learn about their positions and strategies</p>
+            
+            <div class="track-container">
+                <div class="track"></div>
+                <div class="lane"></div>
+                
+                <div class="runner" style="top: 20%; left: 50%;" data-id="1">1</div>
+                <div class="runner" style="top: 30%; left: 65%;" data-id="2">2</div>
+                <div class="runner" style="top: 50%; left: 70%;" data-id="3">3</div>
+                <div class="runner" style="top: 70%; left: 65%;" data-id="4">4</div>
+                <div class="runner" style="top: 80%; left: 50%;" data-id="5">5</div>
+                <div class="runner" style="top: 70%; left: 35%;" data-id="6">6</div>
+                <div class="runner" style="top: 50%; left: 30%;" data-id="7">7</div>
+                <div class="runner" style="top: 30%; left: 35%;" data-id="8">8</div>
+                
+                <div class="runner-info" id="runner-info"></div>
+            </div>
+        </section>
+
+        <!-- Runner Profiles Section -->
+        <section class="section">
+            <div class="section-title">
+                <span class="section-icon">👤</span>
+                <h2>Runner Profiles</h2>
+            </div>
+            <p>Click on profiles to view detailed information</p>
+            
+            <div class="profiles-container">
+                <div class="profile-card" data-id="1">
+                    <h3>Hellen Obiri</h3>
+                    <p>Bib: 101 | Kenya</p>
+                    <div class="profile-details" id="details-1">
+                        <p>🥇 Gold Medalist</p>
+                        <p>Strategy: Strong finish in last 400m</p>
+                        <p>Personal Best: 14:18.37</p>
+                    </div>
+                </div>
+                
+                <div class="profile-card" data-id="2">
+                    <h3>Gudaf Tsegay</h3>
+                    <p>Bib: 102 | Ethiopia</p>
+                    <div class="profile-details" id="details-2">
+                        <p>🥈 Silver Medalist</p>
+                        <p>Strategy: Consistent pace throughout</p>
+                        <p>Personal Best: 14:12.29</p>
+                    </div>
+                </div>
+                
+                <div class="profile-card" data-id="3">
+                    <h3>Beatrice Chebet</h3>
+                    <p>Bib: 103 | Kenya</p>
+                    <div class="profile-details" id="details-3">
+                        <p>🥉 Bronze Medalist</p>
+                        <p>Strategy: Aggressive mid-race surge</p>
+                        <p>Personal Best: 14:13.84</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Race Timeline Section -->
+        <section class="section">
+            <div class="section-title">
+                <span class="section-icon">⏱️</span>
+                <h2>Race Timeline</h2>
+            </div>
+            <p>Click on events to learn about key moments</p>
+            
+            <div class="timeline-container">
+                <div class="timeline-line"></div>
+                <div class="timeline-event" style="left: 10%;" data-id="1">1</div>
+                <div class="timeline-event" style="left: 40%;" data-id="2">2</div>
+                <div class="timeline-event" style="left: 70%;" data-id="3">3</div>
+                <div class="timeline-event" style="left: 100%;" data-id="4">4</div>
+                
+                <div class="timeline-info" id="timeline-info"></div>
+            </div>
+        </section>
+
+        <!-- Quiz Section -->
+        <section class="section">
+            <div class="section-title">
+                <span class="section-icon">❓</span>
+                <h2>Race Knowledge Quiz</h2>
+            </div>
+            
+            <div class="quiz-container">
+                <div class="question" id="question">Who won the women's 5000m race?</div>
+                
+                <div class="options">
+                    <div class="option" data-id="1">Gudaf Tsegay</div>
+                    <div class="option" data-id="2">Hellen Obiri</div>
+                    <div class="option" data-id="3">Beatrice Chebet</div>
+                    <div class="option" data-id="4">Sifan Hassan</div>
+                </div>
+                
+                <div class="feedback" id="feedback"></div>
+                
+                <div class="progress-container">
+                    <span>Question <span id="current-q">1</span> of 3</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <button id="next-btn">Next Question</button>
+                </div>
+                
+                <div class="score-container">
+                    Score: <span id="score">0</span>/3
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="controls">
+        <button id="restart-btn" class="restart-btn">Restart Experience</button>
+    </div>
+
+    <script>
+        // Game Data
+        const runners = [
+            { id: 1, name: "Hellen Obiri", country: "Kenya", bib: 101, position: "1st", strategy: "Conserved energy for final sprint" },
+            { id: 2, name: "Gudaf Tsegay", country: "Ethiopia", bib: 102, position: "2nd", strategy: "Led for first 4000m" },
+            { id: 3, name: "Beatrice Chebet", country: "Kenya", bib: 103, position: "3rd", strategy: "Stayed with lead pack throughout" },
+            { id: 4, name: "Ejgayehu Taye", country: "Ethiopia", bib: 104, position: "4th", strategy: "Pushed pace in middle laps" },
+            { id: 5, name: "Lilian Rengeruk", country: "Kenya", bib: 105, position: "5th", strategy: "Consistent splits" },
+            { id: 6, name: "Margaret Kipkemboi", country: "Kenya", bib: 106, position: "6th", strategy: "Focused on maintaining position" },
+            { id: 7, name: "Nozomi Tanaka", country: "Japan", bib: 107, position: "7th", strategy: "Strong start, faded slightly" },
+            { id: 8, name: "Karissa Schweizer", country: "USA", bib: 108, position: "8th", strategy: "Negative split strategy" }
+        ];
+
+        const timelineEvents = [
+            { id: 1, time: "Start", description: "Race begins with a conservative pace" },
+            { id: 2, time: "3000m", description: "Tsegay increases the pace significantly" },
+            { id: 3, time: "4600m", description: "Obiri makes her winning move" },
+            { id: 4, time: "Finish", description: "Obiri wins with strong final lap" }
+        ];
+
+        const quizQuestions = [
+            {
+                question: "Who won the women's 5000m race?",
+                options: ["Gudaf Tsegay", "Hellen Obiri", "Beatrice Chebet", "Sifan Hassan"],
+                answer: 1
+            },
+            {
+                question: "What was Hellen Obiri's winning strategy?",
+                options: ["Lead from start", "Fast middle laps", "Strong final sprint", "Steady pace throughout"],
+                answer: 2
+            },
+            {
+                question: "At what point did the decisive move happen?",
+                options: ["First 1000m", "3000m mark", "4600m mark", "Final straight"],
+                answer: 2
+            }
+        ];
+
+        // Game State
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedOption = null;
+
+        // DOM Elements
+        const runnerElements = document.querySelectorAll('.runner');
+        const runnerInfo = document.getElementById('runner-info');
+        const profileCards = document.querySelectorAll('.profile-card');
+        const timelineMarkers = document.querySelectorAll('.timeline-event');
+        const timelineInfo = document.getElementById('timeline-info');
+        const questionElement = document.getElementById('question');
+        const optionsContainer = document.querySelector('.options');
+        const feedbackElement = document.getElementById('feedback');
+        const nextButton = document.getElementById('next-btn');
+        const restartButton = document.getElementById('restart-btn');
+        const scoreElement = document.getElementById('score');
+        const currentQElement = document.getElementById('current-q');
+        const progressFill = document.getElementById('progress-fill');
+
+        // Initialize Game
+        function initGame() {
+            // Set up track map interactions
+            runnerElements.forEach(runner => {
+                runner.addEventListener('click', function() {
+                    const runnerId = parseInt(this.getAttribute('data-id'));
+                    const runnerData = runners.find(r => r.id === runnerId);
+                    
+                    runnerInfo.innerHTML = `
+                        <h3>${runnerData.name}</h3>
+                        <p>Country: ${runnerData.country}</p>
+                        <p>Bib: ${runnerData.bib}</p>
+                        <p>Position: ${runnerData.position}</p>
+                        <p>Strategy: ${runnerData.strategy}</p>
+                    `;
+                    
+                    runnerInfo.style.display = 'block';
+                    runnerInfo.style.top = `${this.offsetTop - 100}px`;
+                    runnerInfo.style.left = `${this.offsetLeft + 50}px`;
+                });
+            });
+
+            // Set up profile interactions
+            profileCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const profileId = this.getAttribute('data-id');
+                    const details = this.querySelector('.profile-details');
+                    details.style.display = details.style.display === 'block' ? 'none' : 'block';
+                });
+            });
+
+            // Set up timeline interactions
+            timelineMarkers.forEach(marker => {
+                marker.addEventListener('click', function() {
+                    const eventId = parseInt(this.getAttribute('data-id'));
+                    const eventData = timelineEvents.find(e => e.id === eventId);
+                    
+                    timelineInfo.innerHTML = `
+                        <h3>${eventData.time}</h3>
+                        <p>${eventData.description}</p>
+                    `;
+                    
+                    timelineInfo.style.display = 'block';
+                    timelineInfo.style.top = `${this.offsetTop - 100}px`;
+                    timelineInfo.style.left = `${this.offsetLeft}px`;
+                });
+            });
+
+            // Set up quiz interactions
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    if (this.classList.contains('selected')) {
+                        this.classList.remove('selected');
+                        selectedOption = null;
+                    } else {
+                        document.querySelectorAll('.option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        this.classList.add('selected');
+                        selectedOption = parseInt(this.getAttribute('data-id'));
+                    }
+                });
+            });
+
+            // Next question button
+            nextButton.addEventListener('click', nextQuestion);
+            
+            // Restart button
+            restartButton.addEventListener('click', restartGame);
+            
+            // Initialize quiz
+            loadQuestion();
+        }
+
+        // Quiz Functions
+        function loadQuestion() {
+            if (currentQuestion >= quizQuestions.length) return;
+            
+            const q = quizQuestions[currentQuestion];
+            questionElement.textContent = q.question;
+            
+            optionsContainer.innerHTML = '';
+            q.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.setAttribute('data-id', index);
+                optionElement.textContent = option;
+                optionElement.addEventListener('click', function() {
+                    document.querySelectorAll('.option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    selectedOption = index;
+                });
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            feedbackElement.textContent = '';
+            feedbackElement.className = 'feedback';
+            currentQElement.textContent = currentQuestion + 1;
+            progressFill.style.width = `${(currentQuestion / quizQuestions.length) * 100}%`;
+            nextButton.disabled = true;
+        }
+
+        function nextQuestion() {
+            if (selectedOption === null) return;
+            
+            const correct = selectedOption === quizQuestions[currentQuestion].answer;
+            
+            if (correct) {
+                score++;
+                scoreElement.textContent = score;
+                feedbackElement.textContent = 'Correct!';
+                feedbackElement.className = 'feedback correct';
+            } else {
+                feedbackElement.textContent = 'Incorrect!';
+                feedbackElement.className = 'feedback incorrect';
+            }
+            
+            currentQuestion++;
+            selectedOption = null;
+            
+            if (currentQuestion < quizQuestions.length) {
+                setTimeout(loadQuestion, 1500);
+            } else {
+                // Quiz completed
+                questionElement.textContent = 'Quiz Completed!';
+                optionsContainer.innerHTML = '';
+                feedbackElement.textContent = `Final Score: ${score}/${quizQuestions.length}`;
+                feedbackElement.className = 'feedback';
+                nextButton.style.display = 'none';
+                progressFill.style.width = '100%';
+                
+                // Save high score
+                const highScore = localStorage.getItem('raceHighScore') || 0;
+                if (score > highScore) {
+                    localStorage.setItem('raceHighScore', score);
+                    feedbackElement.textContent += ' - New High Score!';
+                }
+            }
+        }
+
+        function restartGame() {
+            currentQuestion = 0;
+            score = 0;
+            selectedOption = null;
+            scoreElement.textContent = '0';
+            nextButton.style.display = 'block';
+            loadQuestion();
+            
+            // Reset info displays
+            runnerInfo.style.display = 'none';
+            timelineInfo.style.display = 'none';
+            document.querySelectorAll('.profile-details').forEach(details => {
+                details.style.display = 'none';
+            });
+        }
+
+        // Close info boxes when clicking elsewhere
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.runner') && !e.target.closest('.runner-info')) {
+                runnerInfo.style.display = 'none';
+            }
+            
+            if (!e.target.closest('.timeline-event') && !e.target.closest('.timeline-info')) {
+                timelineInfo.style.display = 'none';
+            }
+        });
+
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

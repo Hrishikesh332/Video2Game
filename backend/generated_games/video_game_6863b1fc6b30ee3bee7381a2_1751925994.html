@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai Islands Unification Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .map-container {
+            position: relative;
+            height: 400px;
+            background-color: #e9e9e9;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid rgba(255,255,255,0.5);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .island:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            z-index: 10;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background-color: #555;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+            min-width: 180px;
+        }
+        
+        button:hover {
+            background-color: #333;
+        }
+        
+        .info-panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            min-height: 200px;
+            margin-bottom: 20px;
+        }
+        
+        .info-panel h2 {
+            margin-bottom: 15px;
+            color: #222;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .timeline {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding: 15px 0;
+            margin-bottom: 20px;
+        }
+        
+        .era-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            min-width: 200px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .era-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .era-card h3 {
+            margin-bottom: 10px;
+            color: #444;
+        }
+        
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        
+        .progress-container {
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            height: 20px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #666;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .level-indicator {
+            text-align: center;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #444;
+        }
+        
+        .challenge-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .option {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-align: center;
+        }
+        
+        .option:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .feedback {
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+            min-height: 30px;
+        }
+        
+        .correct {
+            color: #2e7d32;
+        }
+        
+        .incorrect {
+            color: #c62828;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .map-container {
+                height: 300px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mumbai Islands Unification</h1>
+        <p class="subtitle">Explore the history of how seven islands became modern Mumbai</p>
+    </header>
+    
+    <div class="game-container">
+        <div class="level-indicator">Level 1: Island Identification</div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+        
+        <div class="map-container" id="map">
+            <!-- Islands will be dynamically positioned here -->
+        </div>
+        
+        <div class="controls">
+            <button id="toggleView">Show Historical View</button>
+            <button id="nextLevel">Next Level</button>
+            <button id="restart">Restart Game</button>
+        </div>
+        
+        <div class="info-panel">
+            <h2>Island Information</h2>
+            <p id="islandInfo">Click on an island to learn about its history</p>
+        </div>
+        
+        <div class="challenge-container" id="challenge1">
+            <h2>Identify the Islands</h2>
+            <p>Match the island names to their locations on the map</p>
+            <div class="options" id="islandOptions">
+                <!-- Options will be populated by JavaScript -->
+            </div>
+            <div class="feedback" id="feedback1"></div>
+        </div>
+        
+        <div class="challenge-container hidden" id="challenge2">
+            <h2>Causeway Connections</h2>
+            <p>Match the causeways to the islands they connected</p>
+            <div class="options" id="causewayOptions">
+                <!-- Options will be populated by JavaScript -->
+            </div>
+            <div class="feedback" id="feedback2"></div>
+        </div>
+        
+        <div class="challenge-container hidden" id="challenge3">
+            <h2>Historical Timeline</h2>
+            <p>Arrange these historical events in chronological order</p>
+            <div class="options" id="timelineOptions">
+                <!-- Options will be populated by JavaScript -->
+            </div>
+            <div class="feedback" id="feedback3"></div>
+        </div>
+        
+        <div class="timeline">
+            <!-- Timeline cards will be populated by JavaScript -->
+        </div>
+        
+        <div class="game-stats">
+            <div>Score: <span id="score">0</span></div>
+            <div>Progress: <span id="progressText">0</span>%</div>
+        </div>
+    </div>
+
+    <script>
+        // Game data
+        const islands = [
+            { id: 1, name: "Isle of Bombay", color: "#4a6572", info: "The largest island, center of British administration and trade activities." },
+            { id: 2, name: "Mazagon", color: "#5d4037", info: "Originally a fishing village, became important for dock construction." },
+            { id: 3, name: "Colaba", color: "#00695c", info: "Southernmost island, site of the iconic Gateway of India." },
+            { id: 4, name: "Old Woman’s Island", color: "#37474f", info: "Smallest island, now part of the Colaba causeway area." },
+            { id: 5, name: "Worli", color: "#3e2723", info: "Known for its fishing community and the Worli Fort." },
+            { id: 6, name: "Mahim", color: "#1b5e20", info: "Site of the Mahim Causeway connecting to Bandra." },
+            { id: 7, name: "Parel", color: "#bf360c", info: "Industrial center with textile mills during British era." }
+        ];
+        
+        const causeways = [
+            { name: "Hornby Vellard", connects: "Worli - Mahim", info: "Completed in 1784, first major reclamation project connecting Worli and Mahim." },
+            { name: "Duncan Causeway", connects: "Colaba - Old Woman's Island", info: "Built in 1800s, connected Colaba to Old Woman's Island." },
+            { name: "Colaba Causeway", connects: "Old Woman's Island - Bombay", info: "Completed in 1838, connected the southern islands to Bombay." },
+            { name: "Mahim Causeway", connects: "Mahim - Bandra", info: "Built in 1845, connected Mahim to Salsette island." }
+        ];
+        
+        const historicalEras = [
+            { period: "Satavahanas (1st-3rd century)", info: "Early rulers who controlled the islands as part of their empire." },
+            { period: "Western Satraps (2nd-4th century)", info: "Indo-Scythian rulers who succeeded the Satavahanas." },
+            { period: "Abhira Dynasty (3rd-5th century)", info: "Gained control after the decline of Satavahanas." },
+            { period: "Vakataka Dynasty (3rd-5th century)", info: "Contemporaries of the Guptas who ruled the region." },
+            { period: "Kalachuris (6th century)", info: "Briefly controlled the islands before Chalukyan conquest." },
+            { period: "Chalukyas (6th-8th century)", info: "Expanded their empire to include the islands." },
+            { period: "Rashtrakutas (8th-10th century)", info: "Succeeded the Chalukyas as rulers of the region." },
+            { period: "British East India Company (1668-1858)", info: "Acquired islands in 1668, initiated unification projects." }
+        ];
+        
+        const timelineEvents = [
+            { event: "Hornby Vellard construction", year: 1784 },
+            { event: "Duncan Causeway completion", year: 1800 },
+            { event: "Colaba Causeway opening", year: 1838 },
+            { event: "Mahim Causeway completion", year: 1845 },
+            { event: "Population reaches 60,000", year: 1850 }
+        ];
+        
+        // Game state
+        let gameState = {
+            currentLevel: 1,
+            score: 0,
+            progress: 0,
+            historicalView: false,
+            selectedIsland: null,
+            answered: [false, false, false]
+        };
+        
+        // DOM elements
+        const mapElement = document.getElementById('map');
+        const toggleViewBtn = document.getElementById('toggleView');
+        const nextLevelBtn = document.getElementById('nextLevel');
+        const restartBtn = document.getElementById('restart');
+        const islandInfoElement = document.getElementById('islandInfo');
+        const progressBar = document.getElementById('progress');
+        const progressText = document.getElementById('progressText');
+        const scoreElement = document.getElementById('score');
+        const feedbacks = [
+            document.getElementById('feedback1'),
+            document.getElementById('feedback2'),
+            document.getElementById('feedback3')
+        ];
+        
+        const challenges = [
+            document.getElementById('challenge1'),
+            document.getElementById('challenge2'),
+            document.getElementById('challenge3')
+        ];
+        
+        // Initialize game
+        function initGame() {
+            renderIslands();
+            renderTimeline();
+            setupLevel1();
+            updateGameStats();
+            updateLevelVisibility();
+            
+            // Event listeners
+            toggleViewBtn.addEventListener('click', toggleView);
+            nextLevelBtn.addEventListener('click', nextLevel);
+            restartBtn.addEventListener('click', restartGame);
+        }
+        
+        // Render islands on the map
+        function renderIslands() {
+            mapElement.innerHTML = '';
+            
+            // Position parameters
+            const width = mapElement.clientWidth;
+            const height = mapElement.clientHeight;
+            const baseSize = Math.min(width, height) * 0.08;
+            
+            // Historical positions (more scattered)
+            const historicalPositions = [
+                { x: width * 0.2, y: height * 0.4 },   // Bombay
+                { x: width * 0.7, y: height * 0.3 },   // Mazagon
+                { x: width * 0.8, y: height * 0.7 },   // Colaba
+                { x: width * 0.75, y: height * 0.8 },  // Old Woman's
+                { x: width * 0.3, y: height * 0.7 },   // Worli
+                { x: width * 0.4, y: height * 0.2 },   // Mahim
+                { x: width * 0.6, y: height * 0.5 }    // Parel
+            ];
+            
+            // Current positions (more clustered)
+            const currentPositions = [
+                { x: width * 0.5, y: height * 0.5 },   // Bombay
+                { x: width * 0.6, y: height * 0.4 },   // Mazagon
+                { x: width * 0.7, y: height * 0.7 },   // Colaba
+                { x: width * 0.65, y: height * 0.75 }, // Old Woman's
+                { x: width * 0.4, y: height * 0.6 },   // Worli
+                { x: width * 0.45, y: height * 0.35 }, // Mahim
+                { x: width * 0.55, y: height * 0.55 }  // Parel
+            ];
+            
+            islands.forEach((island, index) => {
+                const position = gameState.historicalView ? 
+                    historicalPositions[index] : currentPositions[index];
+                
+                const size = baseSize * (index === 0 ? 1.5 : 1); // Make Bombay larger
+                
+                const islandElement = document.createElement('div');
+                islandElement.className = 'island';
+                islandElement.style.width = `${size}px`;
+                islandElement.style.height = `${size}px`;
+                islandElement.style.left = `${position.x - size/2}px`;
+                islandElement.style.top = `${position.y - size/2}px`;
+                islandElement.style.backgroundColor = island.color;
+                islandElement.innerHTML = `<span>${island.name.split(' ')[0]}</span>`;
+                
+                islandElement.addEventListener('click', () => {
+                    islandInfoElement.textContent = `${island.name}: ${island.info}`;
+                    gameState.selectedIsland = island.id;
+                });
+                
+                mapElement.appendChild(islandElement);
+            });
+            
+            // Add causeways in current view
+            if (!gameState.historicalView) {
+                const causewayData = [
+                    { from: currentPositions[4], to: currentPositions[5], name: "Hornby Vellard" },
+                    { from: currentPositions[2], to: currentPositions[3], name: "Duncan Causeway" },
+                    { from: currentPositions[3], to: currentPositions[0], name: "Colaba Causeway" },
+                    { from: currentPositions[5], to: { x: width * 0.3, y: height * 0.1 }, name: "Mahim Causeway" }
+                ];
+                
+                causewayData.forEach(causeway => {
+                    const line = document.createElement('div');
+                    line.style.position = 'absolute';
+                    line.style.height = '4px';
+                    line.style.backgroundColor = '#333';
+                    line.style.borderRadius = '2px';
+                    
+                    // Calculate position and rotation
+                    const dx = causeway.to.x - causeway.from.x;
+                    const dy = causeway.to.y - causeway.from.y;
+                    const length = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                    
+                    line.style.width = `${length}px`;
+                    line.style.left = `${causeway.from.x}px`;
+                    line.style.top = `${causeway.from.y}px`;
+                    line.style.transform = `rotate(${angle}deg)`;
+                    line.style.transformOrigin = '0 0';
+                    
+                    line.addEventListener('click', () => {
+                        const causewayInfo = causeways.find(c => c.name === causeway.name);
+                        islandInfoElement.textContent = `${causeway.name}: Connected ${causewayInfo.connects}. ${causewayInfo.info}`;
+                    });
+                    
+                    mapElement.appendChild(line);
+                });
+            }
+        }
+        
+        // Render historical timeline
+        function renderTimeline() {
+            const timelineElement = document.querySelector('.timeline');
+            timelineElement.innerHTML = '';
+            
+            historicalEras.forEach(era => {
+                const eraCard = document.createElement('div');
+                eraCard.className = 'era-card';
+                eraCard.innerHTML = `
+                    <h3>${era.period}</h3>
+                    <p>${era.info}</p>
+                `;
+                timelineElement.appendChild(eraCard);
+            });
+        }
+        
+        // Toggle between historical and current views
+        function toggleView() {
+            gameState.historicalView = !gameState.historicalView;
+            toggleViewBtn.textContent = gameState.historicalView ? 
+                "Show Current View" : "Show Historical View";
+            renderIslands();
+        }
+        
+        // Setup Level 1: Island Identification
+        function setupLevel1() {
+            const optionsContainer = document.getElementById('islandOptions');
+            optionsContainer.innerHTML = '';
+            
+            // Shuffle island names
+            const shuffledIslands = [...islands].sort(() => Math.random() - 0.5);
+            
+            shuffledIslands.forEach(island => {
+                const option = document.createElement('div');
+                option.className = 'option';
+                option.textContent = island.name;
+                option.dataset.id = island.id;
+                
+                option.addEventListener('click', () => {
+                    if (gameState.selectedIsland === parseInt(option.dataset.id)) {
+                        feedbacks[0].textContent = "Correct! Well done.";
+                        feedbacks[0].className = "feedback correct";
+                        gameState.answered[0] = true;
+                        gameState.score += 20;
+                        updateGameStats();
+                        option.style.backgroundColor = '#e8f5e9';
+                    } else {
+                        feedbacks[0].textContent = "Try again. Select an island first.";
+                        feedbacks[0].className = "feedback incorrect";
+                    }
+                });
+                
+                optionsContainer.appendChild(option);
+            });
+        }
+        
+        // Setup Level 2: Causeway Connections
+        function setupLevel2() {
+            const optionsContainer = document.getElementById('causewayOptions');
+            optionsContainer.innerHTML = '';
+            
+            // Shuffle causeways
+            const shuffledCauseways = [...causeways].sort(() => Math.random() - 0.5);
+            
+            shuffledCauseways.forEach(causeway => {
+                const option = document.createElement('div');
+                option.className = 'option';
+                option.textContent = `${causeway.name} connects:`;
+                
+                const select = document.createElement('select');
+                select.className = 'causeway-select';
+                
+                // Add connection options
+                const connections = [
+                    "Worli - Mahim",
+                    "Colaba - Old Woman's Island",
+                    "Old Woman's Island - Bombay",
+                    "Mahim - Bandra",
+                    "Colaba - Bombay",
+                    "Worli - Parel"
+                ];
+                
+                connections.forEach(conn => {
+                    const optionElem = document.createElement('option');
+                    optionElem.value = conn;
+                    optionElem.textContent = conn;
+                    select.appendChild(optionElem);
+                });
+                
+                // Set correct answer
+                select.dataset.correct = causeway.connects;
+                select.dataset.name = causeway.name;
+                
+                option.appendChild(select);
+                optionsContainer.appendChild(option);
+            });
+            
+            // Add submit button
+            const submitButton = document.createElement('button');
+            submitButton.textContent = "Check Answers";
+            submitButton.style.marginTop = "15px";
+            submitButton.addEventListener('click', checkCausewayAnswers);
+            optionsContainer.appendChild(submitButton);
+        }
+        
+        // Check Level 2 answers
+        function checkCausewayAnswers() {
+            const selects = document.querySelectorAll('.causeway-select');
+            let allCorrect = true;
+            
+            selects.forEach(select => {
+                if (select.value === select.dataset.correct) {
+                    select.parentElement.style.backgroundColor = '#e8f5e9';
+                } else {
+                    select.parentElement.style.backgroundColor = '#ffebee';
+                    allCorrect = false;
+                }
+            });
+            
+            if (allCorrect) {
+                feedbacks[1].textContent = "All correct! Great job.";
+                feedbacks[1].className = "feedback correct";
+                gameState.answered[1] = true;
+                gameState.score += 30;
+                updateGameStats();
+            } else {
+                feedbacks[1].textContent = "Some answers are incorrect. Try again.";
+                feedbacks[1].className = "feedback incorrect";
+            }
+        }
+        
+        // Setup Level 3: Timeline Order
+        function setupLevel3() {
+            const optionsContainer = document.getElementById('timelineOptions');
+            optionsContainer.innerHTML = '';
+            
+            // Shuffle events
+            const shuffledEvents = [...timelineEvents].sort(() => Math.random() - 0.5);
+            
+            shuffledEvents.forEach(event => {
+                const option = document.createElement('div');
+                option.className = 'option';
+                option.textContent = event.event;
+                option.dataset.year = event.year;
+                
+                option.addEventListener('click', () => {
+                    // Toggle selection
+                    if (option.classList.contains('selected')) {
+                        option.classList.remove('selected');
+                        option.style.backgroundColor = '';
+                    } else {
+                        option.classList.add('selected');
+                        option.style.backgroundColor = '#e3f2fd';
+                    }
+                    
+                    checkTimelineOrder();
+                });
+                
+                optionsContainer.appendChild(option);
+            });
+        }
+        
+        // Check Level 3 timeline order
+        function checkTimelineOrder() {
+            const selected = document.querySelectorAll('#timelineOptions .option.selected');
+            if (selected.length !== timelineEvents.length) return;
+            
+            let correctOrder = true;
+            let prevYear = 0;
+            
+            selected.forEach(option => {
+                const year = parseInt(option.dataset.year);
+                if (year < prevYear) {
+                    correctOrder = false;
+                }
+                prevYear = year;
+            });
+            
+            if (correctOrder) {
+                feedbacks[2].textContent = "Perfect! Correct chronological order.";
+                feedbacks[2].className = "feedback correct";
+                gameState.answered[2] = true;
+                gameState.score += 50;
+                updateGameStats();
+            } else {
+                feedbacks[2].textContent = "Incorrect order. Try again.";
+                feedbacks[2].className = "feedback incorrect";
+                
+                // Reset selections
+                selected.forEach(option => {
+                    option.classList.remove('selected');
+                    option.style.backgroundColor = '';
+                });
+            }
+        }
+        
+        // Move to next level
+        function nextLevel() {
+            if (gameState.currentLevel < 3) {
+                gameState.currentLevel++;
+                updateLevelVisibility();
+            } else if (gameState.answered[2]) {
+                // Game completed
+                feedbacks[2].textContent = "Congratulations! You've completed all levels.";
+                feedbacks[2].className = "feedback correct";
+                nextLevelBtn.textContent = "Play Again";
+                nextLevelBtn.removeEventListener('click', nextLevel);
+                nextLevelBtn.addEventListener('click', restartGame);
+            }
+        }
+        
+        // Update level visibility
+        function updateLevelVisibility() {
+            document.querySelector('.level-indicator').textContent = 
+                `Level ${gameState.currentLevel}: ${getLevelTitle()}`;
+            
+            challenges.forEach((challenge, index) => {
+                if (index === gameState.currentLevel - 1) {
+                    challenge.classList.remove('hidden');
+                } else {
+                    challenge.classList.add('hidden');
+                }
+            });
+            
+            // Setup level if not already answered
+            if (!gameState.answered[gameState.currentLevel - 1]) {
+                switch(gameState.currentLevel) {
+                    case 1: setupLevel1(); break;
+                    case 2: setupLevel2(); break;
+                    case 3: setupLevel3(); break;
+                }
+            }
+        }
+        
+        // Get level title
+        function getLevelTitle() {
+            switch(gameState.currentLevel) {
+                case 1: return "Island Identification";
+                case 2: return "Causeway Connections";
+                case 3: return "Historical Timeline";
+                default: return "";
+            }
+        }
+        
+        // Update game stats
+        function updateGameStats() {
+            // Calculate progress
+            const answeredCount = gameState.answered.filter(a => a).length;
+            gameState.progress = Math.floor((answeredCount / 3) * 100);
+            
+            // Update UI
+            progressBar.style.width = `${gameState.progress}%`;
+            progressText.textContent = gameState.progress;
+            scoreElement.textContent = gameState.score;
+        }
+        
+        // Restart game
+        function restartGame() {
+            gameState = {
+                currentLevel: 1,
+                score: 0,
+                progress: 0,
+                historicalView: false,
+                selectedIsland: null,
+                answered: [false, false, false]
+            };
+            
+            toggleViewBtn.textContent = "Show Historical View";
+            islandInfoElement.textContent = "Click on an island to learn about its history";
+            feedbacks.forEach(fb => {
+                fb.textContent = '';
+                fb.className = 'feedback';
+            });
+            
+            nextLevelBtn.textContent = "Next Level";
+            nextLevelBtn.removeEventListener('click', restartGame);
+            nextLevelBtn.addEventListener('click', nextLevel);
+            
+            initGame();
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', initGame);
+        window.addEventListener('resize', renderIslands);
+    </script>
+</body>
+</html>

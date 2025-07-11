@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parisian Landmarks Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .screen {
+            display: none;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        h1, h2, h3 {
+            color: #222222;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .btn {
+            background-color: #e0e0e0;
+            color: #333333;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            display: block;
+            margin: 15px auto;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .btn-primary {
+            background-color: #FFD700;
+            font-weight: bold;
+        }
+        
+        .btn-primary:hover {
+            background-color: #e6c200;
+        }
+        
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .option {
+            background-color: #ffffff;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option:hover {
+            border-color: #FFD700;
+            background-color: #fff9e6;
+        }
+        
+        .option.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .option.incorrect {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            height: 10px;
+        }
+        
+        .progress-bar {
+            background-color: #FFD700;
+            border-radius: 5px;
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        .score-container {
+            text-align: center;
+            font-size: 18px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .feedback {
+            text-align: center;
+            margin: 15px 0;
+            font-weight: bold;
+            min-height: 24px;
+        }
+        
+        .landmark-card {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .landmark-image {
+            width: 100%;
+            height: 200px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777777;
+        }
+        
+        .result-screen {
+            text-align: center;
+        }
+        
+        .high-score {
+            font-weight: bold;
+            color: #FFD700;
+            font-size: 20px;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="screen active">
+        <h1>Parisian Landmarks Explorer</h1>
+        <p>Test your knowledge of Paris's iconic landmarks through this interactive quiz!</p>
+        <div class="landmark-card">
+            <div class="landmark-image">Eiffel Tower Image</div>
+            <p>Discover fascinating facts about Paris's most famous monuments</p>
+        </div>
+        <button id="start-btn" class="btn btn-primary">Start Quiz</button>
+    </div>
+    
+    <!-- Quiz Screen -->
+    <div id="quiz-screen" class="screen">
+        <h2>Cultural Knowledge Challenge</h2>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="score-container">Score: <span id="score">0</span></div>
+        <div id="question-container">
+            <h3 id="question-text"></h3>
+            <div id="options-container" class="options-container"></div>
+        </div>
+        <div id="feedback" class="feedback"></div>
+        <button id="next-btn" class="btn btn-primary">Next Question</button>
+    </div>
+    
+    <!-- Results Screen -->
+    <div id="results-screen" class="screen result-screen">
+        <h2>Quiz Completed!</h2>
+        <div class="landmark-card">
+            <div class="landmark-image">Arc de Triomphe Image</div>
+            <p>Congratulations on completing the Paris landmarks challenge!</p>
+        </div>
+        <div class="score-container">Your Score: <span id="final-score">0</span></div>
+        <div class="score-container">High Score: <span id="high-score" class="high-score">0</span></div>
+        <button id="restart-btn" class="btn btn-primary">Play Again</button>
+    </div>
+
+    <script>
+        // Game data
+        const landmarks = [
+            {
+                name: "Eiffel Tower",
+                year: 1889,
+                fact: "Built for the 1889 World's Fair, it was initially criticized by artists."
+            },
+            {
+                name: "Louvre Museum",
+                year: 1793,
+                fact: "World's largest art museum and home to the Mona Lisa."
+            },
+            {
+                name: "Notre-Dame Cathedral",
+                year: 1345,
+                fact: "Gothic masterpiece that took nearly 200 years to complete."
+            },
+            {
+                name: "Arc de Triomphe",
+                year: 1836,
+                fact: "Honors those who fought and died for France in revolutionary wars."
+            }
+        ];
+
+        const questions = [
+            {
+                question: "Which landmark was built for the 1889 World's Fair?",
+                options: ["Louvre Museum", "Eiffel Tower", "Notre-Dame Cathedral", "Arc de Triomphe"],
+                answer: 1
+            },
+            {
+                question: "Where would you find the Mona Lisa?",
+                options: ["Eiffel Tower", "Arc de Triomphe", "Louvre Museum", "Notre-Dame Cathedral"],
+                answer: 2
+            },
+            {
+                question: "Which Parisian landmark took nearly 200 years to complete?",
+                options: ["Louvre Museum", "Arc de Triomphe", "Eiffel Tower", "Notre-Dame Cathedral"],
+                answer: 3
+            },
+            {
+                question: "Which monument honors French revolutionary war soldiers?",
+                options: ["Eiffel Tower", "Notre-Dame Cathedral", "Louvre Museum", "Arc de Triomphe"],
+                answer: 3
+            },
+            {
+                question: "Which landmark is the oldest?",
+                options: ["Eiffel Tower", "Louvre Museum", "Arc de Triomphe", "Notre-Dame Cathedral"],
+                answer: 3
+            }
+        ];
+
+        // Game state
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedOption = null;
+        let highScore = localStorage.getItem('parisHighScore') || 0;
+
+        // DOM elements
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const startBtn = document.getElementById('start-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const scoreDisplay = document.getElementById('score');
+        const finalScore = document.getElementById('final-score');
+        const highScoreDisplay = document.getElementById('high-score');
+        const progressBar = document.getElementById('progress-bar');
+        const feedback = document.getElementById('feedback');
+
+        // Initialize game
+        function initGame() {
+            highScoreDisplay.textContent = highScore;
+            startBtn.addEventListener('click', startGame);
+            nextBtn.addEventListener('click', nextQuestion);
+            restartBtn.addEventListener('click', restartGame);
+        }
+
+        // Start the game
+        function startGame() {
+            welcomeScreen.classList.remove('active');
+            quizScreen.classList.add('active');
+            currentQuestion = 0;
+            score = 0;
+            scoreDisplay.textContent = score;
+            loadQuestion();
+        }
+
+        // Load question
+        function loadQuestion() {
+            resetOptions();
+            const question = questions[currentQuestion];
+            questionText.textContent = question.question;
+            
+            // Update progress bar
+            progressBar.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+            
+            // Create options
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('option');
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+                optionElement.addEventListener('click', selectOption);
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            feedback.textContent = '';
+            nextBtn.disabled = true;
+        }
+
+        // Select an option
+        function selectOption(e) {
+            if (selectedOption !== null) return;
+            
+            const selected = e.currentTarget;
+            const selectedIndex = parseInt(selected.dataset.index);
+            selectedOption = selectedIndex;
+            
+            // Highlight selected option
+            document.querySelectorAll('.option').forEach(option => {
+                option.classList.remove('correct', 'incorrect');
+            });
+            
+            // Check answer
+            const question = questions[currentQuestion];
+            if (selectedIndex === question.answer) {
+                selected.classList.add('correct');
+                score += 20;
+                scoreDisplay.textContent = score;
+                feedback.textContent = "Correct!";
+                feedback.style.color = "green";
+            } else {
+                selected.classList.add('incorrect');
+                // Highlight correct answer
+                document.querySelectorAll('.option')[question.answer].classList.add('correct');
+                feedback.textContent = "Incorrect!";
+                feedback.style.color = "red";
+            }
+            
+            nextBtn.disabled = false;
+        }
+
+        // Reset options
+        function resetOptions() {
+            optionsContainer.innerHTML = '';
+            selectedOption = null;
+        }
+
+        // Next question
+        function nextQuestion() {
+            currentQuestion++;
+            
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        // End game
+        function endGame() {
+            quizScreen.classList.remove('active');
+            resultsScreen.classList.add('active');
+            finalScore.textContent = score;
+            
+            // Update high score
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('parisHighScore', highScore);
+                highScoreDisplay.textContent = highScore;
+            }
+        }
+
+        // Restart game
+        function restartGame() {
+            resultsScreen.classList.remove('active');
+            welcomeScreen.classList.add('active');
+        }
+
+        // Initialize the game when page loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>

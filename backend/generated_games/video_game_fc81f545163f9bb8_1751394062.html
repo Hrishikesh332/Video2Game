@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNN Explorer: Learn Convolutional Neural Networks</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .screen {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #222222;
+        }
+
+        p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .canvas-container {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin: 20px auto;
+            overflow: hidden;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            background-color: white;
+            cursor: crosshair;
+        }
+
+        .tools {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            color: #333333;
+        }
+
+        button:hover {
+            background-color: #d0d0d0;
+        }
+
+        button.primary {
+            background-color: #4a4a4a;
+            color: white;
+        }
+
+        button.primary:hover {
+            background-color: #333333;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .filter-item {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .filter-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .filter-item.active {
+            border-color: #4a4a4a;
+            background-color: #f0f0f0;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .quiz-option {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .quiz-option:hover {
+            background-color: #f0f0f0;
+        }
+
+        .quiz-option.correct {
+            background-color: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .quiz-option.incorrect {
+            background-color: #ffebee;
+            border-color: #f44336;
+        }
+
+        .progress-container {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin: 30px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #4a4a4a;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .feedback {
+            text-align: center;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .feedback.correct {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background-color: #ffebee;
+            color: #c62828;
+            display: block;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .feature-cell {
+            height: 80px;
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .slider-container {
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        @media (max-width: 768px) {
+            .filter-grid, .feature-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .filter-grid, .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tools {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CNN Explorer: Learn Convolutional Neural Networks</h1>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Introduction Screen -->
+        <div class="screen active" id="introScreen">
+            <h2>Understanding Convolutional Neural Networks</h2>
+            <p>Convolutional Neural Networks (CNNs) are powerful tools for image recognition. They work by detecting patterns through layers of processing.</p>
+            <p>In this interactive experience, you'll learn how CNNs recognize objects by drawing, applying filters, and seeing how layers build understanding.</p>
+            <div class="nav-buttons">
+                <button id="startBtn" class="primary">Start Learning</button>
+            </div>
+        </div>
+
+        <!-- Drawing Screen -->
+        <div class="screen" id="drawingScreen">
+            <h2>Draw a Simple House</h2>
+            <p>Draw a simple house with basic shapes. CNNs start by recognizing these fundamental patterns.</p>
+            <div class="canvas-container">
+                <canvas id="drawingCanvas" width="500" height="300"></canvas>
+            </div>
+            <div class="tools">
+                <button id="clearBtn">Clear Drawing</button>
+                <button id="analyzeBtn" class="primary">Analyze Drawing</button>
+            </div>
+        </div>
+
+        <!-- Filters Screen -->
+        <div class="screen" id="filtersScreen">
+            <h2>Understanding Filters</h2>
+            <p>Filters detect specific features like edges, colors, and textures. Select a filter to see how it processes your drawing.</p>
+            <div class="filter-grid">
+                <div class="filter-item" data-filter="edge">Edge Detection</div>
+                <div class="filter-item" data-filter="color">Color Recognition</div>
+                <div class="filter-item" data-filter="texture">Texture Analysis</div>
+            </div>
+            <div class="canvas-container">
+                <canvas id="filterCanvas" width="500" height="300"></canvas>
+            </div>
+            <div class="nav-buttons">
+                <button id="backToDrawingBtn">Back</button>
+                <button id="nextToLayersBtn" class="primary">Next</button>
+            </div>
+        </div>
+
+        <!-- Layers Screen -->
+        <div class="screen" id="layersScreen">
+            <h2>CNN Layers in Action</h2>
+            <p>CNNs use multiple layers to build understanding. Each layer detects more complex features.</p>
+            <div class="feature-grid">
+                <div class="feature-cell">⬜</div>
+                <div class="feature-cell">⬛</div>
+                <div class="feature-cell">◼</div>
+                <div class="feature-cell">▲</div>
+                <div class="feature-cell">◻</div>
+                <div class="feature-cell">◼</div>
+            </div>
+            <p>Move the slider to see how different layers interpret your drawing:</p>
+            <div class="slider-container">
+                <input type="range" id="layerSlider" min="1" max="3" value="1">
+                <div>Layer <span id="layerNum">1</span>: Basic Shapes</div>
+            </div>
+            <div class="nav-buttons">
+                <button id="backToFiltersBtn">Back</button>
+                <button id="nextToQuizBtn" class="primary">Take Quiz</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div class="screen" id="quizScreen">
+            <h2>Test Your Knowledge</h2>
+            <p>What is the primary purpose of convolutional layers in a CNN?</p>
+            <div class="quiz-options">
+                <div class="quiz-option" data-correct="false">Data storage</div>
+                <div class="quiz-option" data-correct="true">Feature detection</div>
+                <div class="quiz-option" data-correct="false">Color adjustment</div>
+                <div class="quiz-option" data-correct="false">Image compression</div>
+            </div>
+            <div class="feedback" id="quizFeedback"></div>
+            <div class="nav-buttons">
+                <button id="backToLayersBtn">Back</button>
+                <button id="nextToSummaryBtn" class="primary" disabled>Next</button>
+            </div>
+        </div>
+
+        <!-- Summary Screen -->
+        <div class="screen" id="summaryScreen">
+            <h2>CNN Concepts Summary</h2>
+            <p>You've learned how CNNs process images through:</p>
+            <ul style="margin: 20px; padding-left: 20px;">
+                <li>Drawing recognition of basic shapes</li>
+                <li>Applying filters for feature detection</li>
+                <li>Processing through multiple layers</li>
+                <li>Building complex understanding from simple patterns</li>
+            </ul>
+            <p>CNNs power modern image recognition systems by mimicking how humans visually process information.</p>
+            <div class="nav-buttons">
+                <button id="restartBtn">Restart Learning</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state management
+        const screens = [
+            'introScreen',
+            'drawingScreen',
+            'filtersScreen',
+            'layersScreen',
+            'quizScreen',
+            'summaryScreen'
+        ];
+        
+        let currentScreenIndex = 0;
+        let playerDrawing = null;
+        
+        // DOM Elements
+        const progressBar = document.getElementById('progressBar');
+        const startBtn = document.getElementById('startBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const nextToLayersBtn = document.getElementById('nextToLayersBtn');
+        const nextToQuizBtn = document.getElementById('nextToQuizBtn');
+        const nextToSummaryBtn = document.getElementById('nextToSummaryBtn');
+        const backToDrawingBtn = document.getElementById('backToDrawingBtn');
+        const backToFiltersBtn = document.getElementById('backToFiltersBtn');
+        const backToLayersBtn = document.getElementById('backToLayersBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const layerSlider = document.getElementById('layerSlider');
+        const layerNum = document.getElementById('layerNum');
+        const quizFeedback = document.getElementById('quizFeedback');
+        
+        // Canvas setup
+        const drawingCanvas = document.getElementById('drawingCanvas');
+        const filterCanvas = document.getElementById('filterCanvas');
+        const drawingCtx = drawingCanvas.getContext('2d');
+        const filterCtx = filterCanvas.getContext('2d');
+        
+        // Initialize canvas
+        function initCanvas() {
+            drawingCtx.fillStyle = 'white';
+            drawingCtx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+            drawingCtx.lineWidth = 3;
+            drawingCtx.strokeStyle = '#333333';
+            
+            filterCtx.fillStyle = 'white';
+            filterCtx.fillRect(0, 0, filterCanvas.width, filterCanvas.height);
+        }
+        
+        // Navigation functions
+        function showScreen(index) {
+            screens.forEach((screen, i) => {
+                document.getElementById(screen).classList.toggle('active', i === index);
+            });
+            currentScreenIndex = index;
+            updateProgress();
+        }
+        
+        function updateProgress() {
+            const progress = (currentScreenIndex / (screens.length - 1)) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+        
+        // Drawing functionality
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+        
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            const [x, y] = getCoordinates(e);
+            
+            drawingCtx.beginPath();
+            drawingCtx.moveTo(lastX, lastY);
+            drawingCtx.lineTo(x, y);
+            drawingCtx.stroke();
+            
+            [lastX, lastY] = [x, y];
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        function getCoordinates(e) {
+            const rect = drawingCanvas.getBoundingClientRect();
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            
+            return [
+                clientX - rect.left,
+                clientY - rect.top
+            ];
+        }
+        
+        function clearCanvas() {
+            drawingCtx.fillStyle = 'white';
+            drawingCtx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+        }
+        
+        function applyFilter(filterType) {
+            filterCtx.drawImage(drawingCanvas, 0, 0);
+            
+            if (filterType === 'edge') {
+                applyEdgeDetection();
+            } else if (filterType === 'color') {
+                applyColorRecognition();
+            } else if (filterType === 'texture') {
+                applyTextureAnalysis();
+            }
+        }
+        
+        function applyEdgeDetection() {
+            const imageData = filterCtx.getImageData(0, 0, filterCanvas.width, filterCanvas.height);
+            const data = imageData.data;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                data[i] = avg;
+                data[i + 1] = avg;
+                data[i + 2] = avg;
+            }
+            
+            filterCtx.putImageData(imageData, 0, 0);
+        }
+        
+        function applyColorRecognition() {
+            const imageData = filterCtx.getImageData(0, 0, filterCanvas.width, filterCanvas.height);
+            const data = imageData.data;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                const max = Math.max(data[i], data[i + 1], data[i + 2]);
+                const min = Math.min(data[i], data[i + 1], data[i + 2]);
+                const threshold = 50;
+                
+                if (max - min > threshold) {
+                    // Keep color
+                } else {
+                    // Convert to grayscale
+                    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                    data[i] = avg;
+                    data[i + 1] = avg;
+                    data[i + 2] = avg;
+                }
+            }
+            
+            filterCtx.putImageData(imageData, 0, 0);
+        }
+        
+        function applyTextureAnalysis() {
+            const imageData = filterCtx.getImageData(0, 0, filterCanvas.width, filterCanvas.height);
+            const data = imageData.data;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                // Simple texture effect
+                const noise = Math.random() * 50;
+                data[i] = Math.min(255, data[i] + noise);
+                data[i + 1] = Math.min(255, data[i + 1] + noise);
+                data[i + 2] = Math.min(255, data[i + 2] + noise);
+            }
+            
+            filterCtx.putImageData(imageData, 0, 0);
+        }
+        
+        // Event Listeners
+        startBtn.addEventListener('click', () => showScreen(1));
+        
+        clearBtn.addEventListener('click', clearCanvas);
+        
+        analyzeBtn.addEventListener('click', () => {
+            playerDrawing = drawingCanvas.toDataURL();
+            showScreen(2);
+        });
+        
+        nextToLayersBtn.addEventListener('click', () => showScreen(3));
+        nextToQuizBtn.addEventListener('click', () => showScreen(4));
+        
+        backToDrawingBtn.addEventListener('click', () => showScreen(1));
+        backToFiltersBtn.addEventListener('click', () => showScreen(2));
+        backToLayersBtn.addEventListener('click', () => showScreen(3));
+        
+        restartBtn.addEventListener('click', () => {
+            currentScreenIndex = 0;
+            showScreen(0);
+            clearCanvas();
+            initCanvas();
+        });
+        
+        // Drawing events
+        drawingCanvas.addEventListener('mousedown', startDrawing);
+        drawingCanvas.addEventListener('mousemove', draw);
+        drawingCanvas.addEventListener('mouseup', stopDrawing);
+        drawingCanvas.addEventListener('mouseout', stopDrawing);
+        
+        drawingCanvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startDrawing(e.touches[0]);
+        });
+        
+        drawingCanvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            draw(e.touches[0]);
+        });
+        
+        drawingCanvas.addEventListener('touchend', stopDrawing);
+        
+        // Filter selection
+        document.querySelectorAll('.filter-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.filter-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                applyFilter(item.dataset.filter);
+            });
+        });
+        
+        // Layer slider
+        layerSlider.addEventListener('input', () => {
+            const layerValue = parseInt(layerSlider.value);
+            layerNum.textContent = layerValue;
+            
+            let layerText = '';
+            if (layerValue === 1) layerText = 'Basic Shapes';
+            if (layerValue === 2) layerText = 'Structural Elements';
+            if (layerValue === 3) layerText = 'Complex Objects';
+            
+            layerNum.nextSibling.textContent = `: ${layerText}`;
+        });
+        
+        // Quiz functionality
+        document.querySelectorAll('.quiz-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const isCorrect = option.dataset.correct === 'true';
+                
+                document.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.classList.remove('correct', 'incorrect');
+                    if (opt.dataset.correct === 'true') {
+                        opt.classList.add('correct');
+                    }
+                });
+                
+                if (!isCorrect) {
+                    option.classList.add('incorrect');
+                }
+                
+                quizFeedback.textContent = isCorrect 
+                    ? 'Correct! Feature detection is the primary purpose of convolutional layers.' 
+                    : 'Incorrect. Try again!';
+                quizFeedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+                
+                if (isCorrect) {
+                    nextToSummaryBtn.disabled = false;
+                }
+            });
+        });
+        
+        nextToSummaryBtn.addEventListener('click', () => showScreen(5));
+        
+        // Initialize the game
+        initCanvas();
+        updateProgress();
+    </script>
+</body>
+</html>

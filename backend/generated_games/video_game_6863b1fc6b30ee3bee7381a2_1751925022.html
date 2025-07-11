@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai Islands Transformation</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .game-panel {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #444;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .map-container {
+            position: relative;
+            height: 400px;
+            background-color: #e9e9e9;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .map-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #ddd;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #333;
+        }
+
+        button:hover {
+            background-color: #ccc;
+        }
+
+        button.active {
+            background-color: #aaa;
+            color: white;
+        }
+
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            background-color: #bbb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #888;
+        }
+
+        .island:hover {
+            transform: scale(1.05);
+            background-color: #999;
+        }
+
+        .island-label {
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            text-align: center;
+            padding: 5px;
+        }
+
+        .info-panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 200px;
+            border: 1px solid #ddd;
+        }
+
+        .timeline {
+            display: flex;
+            overflow-x: auto;
+            padding: 20px 0;
+            gap: 30px;
+            margin-bottom: 25px;
+        }
+
+        .timeline-event {
+            min-width: 200px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .timeline-year {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #444;
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .score-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .level-indicator {
+            display: flex;
+            gap: 10px;
+        }
+
+        .level-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: #ddd;
+        }
+
+        .level-dot.active {
+            background-color: #777;
+        }
+
+        .instructions {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .map-container {
+                height: 300px;
+            }
+            
+            .timeline {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .timeline-event {
+                min-width: 100%;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mumbai Islands Transformation</h1>
+        <p>Explore how seven islands became modern Mumbai</p>
+    </header>
+
+    <main class="game-container">
+        <section class="game-panel">
+            <h2>Interactive Map</h2>
+            <div class="instructions">
+                <p>Click on islands to learn about their history. Toggle between historical and modern views.</p>
+            </div>
+            
+            <div class="map-buttons">
+                <button id="historicalBtn" class="active">Historical View (Islands)</button>
+                <button id="modernBtn">Modern View (Connected)</button>
+            </div>
+            
+            <div class="map-container" id="mapArea">
+                <!-- Islands will be dynamically inserted here -->
+            </div>
+            
+            <div class="info-panel" id="infoPanel">
+                <p>Select an island to learn about its history and connection year.</p>
+            </div>
+        </section>
+
+        <section class="game-panel">
+            <h2>Historical Timeline</h2>
+            <div class="instructions">
+                <p>Explore key events that shaped Mumbai's development:</p>
+            </div>
+            
+            <div class="timeline" id="timeline">
+                <!-- Timeline events will be dynamically inserted here -->
+            </div>
+        </section>
+
+        <section class="game-panel">
+            <h2>Transformation Challenge</h2>
+            <div class="instructions">
+                <p>Connect the islands in historical order by clicking the correct causeways:</p>
+            </div>
+            
+            <div class="map-buttons">
+                <button data-causeway="duncan">Duncan Causeway (1838)</button>
+                <button data-causeway="colaba">Colaba Causeway (1838)</button>
+                <button data-causeway="mahim">Mahim Causeway (1845)</button>
+            </div>
+            
+            <div class="info-panel" id="challengeInfo">
+                <p>Select the causeways in the order they were built to complete the challenge.</p>
+            </div>
+        </section>
+
+        <div class="progress-container">
+            <div class="score-display">
+                Score: <span id="scoreValue">0</span> pts
+            </div>
+            <div class="level-indicator">
+                <div class="level-dot active"></div>
+                <div class="level-dot"></div>
+                <div class="level-dot"></div>
+            </div>
+            <button id="restartBtn">Restart Game</button>
+        </div>
+    </main>
+
+    <script>
+        // Game data
+        const islands = [
+            { id: 'colaba', name: 'Colaba', top: '20%', left: '80%', width: '12%', height: '12%', 
+              info: 'Originally known as Kolbhat. Connected in 1838 via Duncan Causeway.' },
+            { id: 'oldWoman', name: "Old Woman's Island", top: '25%', left: '70%', width: '10%', height: '10%', 
+              info: 'Small island near Colaba. Merged during early reclamation projects.' },
+            { id: 'bombay', name: 'Bombay Island', top: '40%', left: '50%', width: '18%', height: '18%', 
+              info: 'The main island where the British established their base. Connected in 1838.' },
+            { id: 'mazagaon', name: 'Mazagaon', top: '60%', left: '65%', width: '14%', height: '14%', 
+              info: 'Portuguese trading post. Connected via the Sion Causeway in 1803.' },
+            { id: 'worli', name: 'Worli', top: '35%', left: '30%', width: '15%', height: '15%', 
+              info: 'Fishing village connected via the Hornby Vellard project in 1784.' },
+            { id: 'mahim', name: 'Mahim', top: '65%', left: '35%', width: '16%', height: '16%', 
+              info: 'Site of the Mahim Causeway completed in 1845, connecting to Bandra.' },
+            { id: 'parel', name: 'Parel', top: '55%', left: '45%', width: '12%', height: '12%', 
+              info: 'Industrial area connected during early 19th century reclamation.' }
+        ];
+
+        const timelineEvents = [
+            { year: '1508', event: 'Portuguese control the islands' },
+            { year: '1661', event: 'Portuguese give islands to England as dowry' },
+            { year: '1668', event: 'British East India Company takes control' },
+            { year: '1784', event: 'Hornby Vellard project connects Bombay to Worli' },
+            { year: '1838', event: 'Construction of Colaba and Duncan Causeways' },
+            { year: '1845', event: 'Mahim Causeway completed' },
+            { year: '1854', event: 'First railway connects Bombay to Thane' },
+            { year: '1864', event: 'Back Bay reclamation project begins' }
+        ];
+
+        const causeways = [
+            { id: 'duncan', name: 'Duncan Causeway', year: 1838, info: 'Connected Colaba to Old Woman\'s Island' },
+            { id: 'colaba', name: 'Colaba Causeway', year: 1838, info: 'Connected Old Woman\'s Island to Bombay' },
+            { id: 'mahim', name: 'Mahim Causeway', year: 1845, info: 'Connected Mahim to Bandra on the mainland' }
+        ];
+
+        // Game state
+        let score = 0;
+        let currentLevel = 1;
+        let selectedIslands = [];
+        let selectedCauseways = [];
+        let modernView = false;
+
+        // DOM elements
+        const mapArea = document.getElementById('mapArea');
+        const infoPanel = document.getElementById('infoPanel');
+        const timeline = document.getElementById('timeline');
+        const scoreValue = document.getElementById('scoreValue');
+        const historicalBtn = document.getElementById('historicalBtn');
+        const modernBtn = document.getElementById('modernBtn');
+        const restartBtn = document.getElementById('restartBtn');
+
+        // Initialize game
+        function initGame() {
+            renderIslands();
+            renderTimeline();
+            setupEventListeners();
+            updateScore();
+        }
+
+        // Render islands on the map
+        function renderIslands() {
+            mapArea.innerHTML = '';
+            
+            islands.forEach(island => {
+                const islandEl = document.createElement('div');
+                islandEl.className = 'island';
+                islandEl.id = island.id;
+                islandEl.style.top = island.top;
+                islandEl.style.left = island.left;
+                islandEl.style.width = island.width;
+                islandEl.style.height = island.height;
+                
+                const label = document.createElement('div');
+                label.className = 'island-label';
+                label.textContent = modernView ? '' : island.name;
+                islandEl.appendChild(label);
+                
+                islandEl.addEventListener('click', () => handleIslandClick(island));
+                mapArea.appendChild(islandEl);
+            });
+        }
+
+        // Render timeline events
+        function renderTimeline() {
+            timeline.innerHTML = '';
+            
+            timelineEvents.forEach(event => {
+                const eventEl = document.createElement('div');
+                eventEl.className = 'timeline-event';
+                eventEl.innerHTML = `
+                    <div class="timeline-year">${event.year}</div>
+                    <div>${event.event}</div>
+                `;
+                timeline.appendChild(eventEl);
+            });
+        }
+
+        // Handle island click
+        function handleIslandClick(island) {
+            if (modernView) return;
+            
+            infoPanel.innerHTML = `
+                <h3>${island.name}</h3>
+                <p>${island.info}</p>
+            `;
+            
+            if (!selectedIslands.includes(island.id)) {
+                selectedIslands.push(island.id);
+                score += 10;
+                updateScore();
+                
+                if (selectedIslands.length === islands.length) {
+                    infoPanel.innerHTML += '<p class="success">All islands discovered! +50 bonus points</p>';
+                    score += 50;
+                    updateScore();
+                }
+            }
+        }
+
+        // Handle causeway selection
+        function handleCausewaySelect(causewayId) {
+            const causeway = causeways.find(c => c.id === causewayId);
+            
+            if (!selectedCauseways.includes(causewayId)) {
+                selectedCauseways.push(causewayId);
+                
+                document.querySelector(`[data-causeway="${causewayId}"]`).classList.add('active');
+                
+                document.getElementById('challengeInfo').innerHTML = `
+                    <h3>${causeway.name} (${causeway.year})</h3>
+                    <p>${causeway.info}</p>
+                `;
+                
+                score += 15;
+                updateScore();
+                
+                if (selectedCauseways.length === causeways.length) {
+                    document.getElementById('challengeInfo').innerHTML += '<p class="success">All causeways connected! Level completed.</p>';
+                    score += 100;
+                    updateScore();
+                }
+            }
+        }
+
+        // Update score display
+        function updateScore() {
+            scoreValue.textContent = score;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Map view toggle
+            historicalBtn.addEventListener('click', () => {
+                modernView = false;
+                historicalBtn.classList.add('active');
+                modernBtn.classList.remove('active');
+                renderIslands();
+            });
+            
+            modernBtn.addEventListener('click', () => {
+                modernView = true;
+                modernBtn.classList.add('active');
+                historicalBtn.classList.remove('active');
+                renderIslands();
+            });
+            
+            // Causeway buttons
+            document.querySelectorAll('[data-causeway]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    handleCausewaySelect(e.target.dataset.causeway);
+                });
+            });
+            
+            // Restart button
+            restartBtn.addEventListener('click', () => {
+                score = 0;
+                selectedIslands = [];
+                selectedCauseways = [];
+                modernView = false;
+                
+                historicalBtn.classList.add('active');
+                modernBtn.classList.remove('active');
+                
+                document.querySelectorAll('[data-causeway]').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                infoPanel.innerHTML = '<p>Select an island to learn about its history and connection year.</p>';
+                document.getElementById('challengeInfo').innerHTML = '<p>Select the causeways in the order they were built to complete the challenge.</p>';
+                
+                renderIslands();
+                updateScore();
+            });
+        }
+
+        // Initialize the game when page loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>

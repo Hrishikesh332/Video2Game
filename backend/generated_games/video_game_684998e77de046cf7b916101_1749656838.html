@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Dimension Challenge</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        h1 {
+            color: #222222;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+        
+        .subtitle {
+            color: #555555;
+            font-size: 1.2rem;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            background-color: #f9f9f9;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #eeeeee;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 12px;
+            background-color: #e0e0e0;
+            border-radius: 6px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #4a6fa5;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .nav-btn {
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background-color: #3a5a80;
+        }
+        
+        .challenge-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .challenge-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 2px solid #eeeeee;
+            padding-bottom: 10px;
+        }
+        
+        .challenge-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .pca-visualization {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 250px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+        }
+        
+        .graph-container {
+            width: 100%;
+            height: 200px;
+            background-color: #222222;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .data-point {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #4fc3f7;
+            transform: translate(-50%, -50%);
+        }
+        
+        .pc-line {
+            position: absolute;
+            height: 3px;
+            background-color: #ff5252;
+            transform-origin: 0 0;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .option {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .option:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-3px);
+        }
+        
+        .option.selected {
+            background-color: #4a6fa5;
+            color: white;
+            border-color: #3a5a80;
+        }
+        
+        .option.correct {
+            background-color: #4caf50;
+            color: white;
+            border-color: #388e3c;
+        }
+        
+        .option.incorrect {
+            background-color: #f44336;
+            color: white;
+            border-color: #d32f2f;
+        }
+        
+        .feedback {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s;
+        }
+        
+        .feedback.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .feedback.correct {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .feedback.incorrect {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        
+        .explanation {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .action-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .submit-btn {
+            background-color: #4a6fa5;
+            color: white;
+        }
+        
+        .submit-btn:hover {
+            background-color: #3a5a80;
+        }
+        
+        .results-screen {
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .score-display {
+            font-size: 5rem;
+            font-weight: 700;
+            color: #4a6fa5;
+            margin: 30px 0;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .restart-btn {
+            background-color: #4caf50;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+        }
+        
+        .restart-btn:hover {
+            background-color: #388e3c;
+        }
+        
+        @media (max-width: 768px) {
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .progress-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .progress-bar {
+                width: 100%;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCA Dimension Challenge</h1>
+        <p class="subtitle">Master Principal Component Analysis through interactive challenges</p>
+    </header>
+    
+    <div class="game-container">
+        <div class="progress-container">
+            <button id="prevBtn" class="nav-btn" disabled>Previous</button>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <span id="progressText">Challenge 1 of 6</span>
+            <button id="nextBtn" class="nav-btn" disabled>Next</button>
+        </div>
+        
+        <div class="challenge-container">
+            <div class="challenge-title" id="challengeTitle">Understanding Principal Components</div>
+            
+            <div class="challenge-content" id="challengeContent">
+                <!-- Challenge content will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game data and state
+        const challenges = [
+            {
+                title: "What is PCA?",
+                question: "What is the primary purpose of Principal Component Analysis (PCA)?",
+                options: [
+                    "To increase the dimensionality of datasets",
+                    "To reduce dimensionality while preserving variance",
+                    "To classify data into categories",
+                    "To cluster similar data points together"
+                ],
+                correct: 1,
+                explanation: "PCA is a dimensionality reduction technique that transforms data into a new coordinate system where the greatest variance lies on the first axis (principal component), the second greatest on the next axis, and so on."
+            },
+            {
+                title: "First Principal Component",
+                question: "What does the first principal component represent in PCA?",
+                options: [
+                    "The direction of least variance in the data",
+                    "The mean direction of all data points",
+                    "The direction of maximum variance in the data",
+                    "The orthogonal complement to the data spread"
+                ],
+                correct: 2,
+                explanation: "The first principal component is the direction in which the data varies the most. It captures the largest possible variance in the dataset."
+            },
+            {
+                title: "Visualizing Components",
+                question: "Identify the first principal component in this data visualization:",
+                visual: true,
+                explanation: "The red line shows the direction of maximum variance, which is the first principal component. It minimizes the perpendicular distances to the data points."
+            },
+            {
+                title: "Second Principal Component",
+                question: "How is the second principal component determined?",
+                options: [
+                    "Parallel to the first component",
+                    "In the direction of next highest variance, orthogonal to the first",
+                    "Opposite to the first principal component",
+                    "As the average of all remaining dimensions"
+                ],
+                correct: 1,
+                explanation: "The second principal component is orthogonal (perpendicular) to the first and represents the direction of the next highest variance in the data."
+            },
+            {
+                title: "Dimensionality Reduction",
+                question: "When applying PCA to a 5-dimensional dataset, how many dimensions would you have after reducing to 90% variance?",
+                options: [
+                    "1 dimension",
+                    "2 dimensions",
+                    "3 dimensions",
+                    "4 dimensions"
+                ],
+                correct: 2,
+                explanation: "The number of components needed is determined by the cumulative explained variance. Typically, 2-3 components capture most of the variance in many datasets."
+            },
+            {
+                title: "PCA Applications",
+                question: "In which scenario would PCA be most beneficial?",
+                options: [
+                    "Adding new features to a dataset",
+                    "Visualizing high-dimensional data in 2D/3D",
+                    "Handling missing data values",
+                    "Classifying images of handwritten digits"
+                ],
+                correct: 1,
+                explanation: "PCA is particularly useful for visualizing high-dimensional data by projecting it onto a 2D or 3D space while preserving the most important patterns in the data."
+            }
+        ];
+
+        let currentChallenge = 0;
+        let score = 0;
+        let selectedOption = null;
+        let answerSubmitted = false;
+        
+        // DOM elements
+        const challengeTitle = document.getElementById('challengeTitle');
+        const challengeContent = document.getElementById('challengeContent');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        
+        // Initialize game
+        function initGame() {
+            renderChallenge();
+            updateProgress();
+        }
+        
+        // Render current challenge
+        function renderChallenge() {
+            const challenge = challenges[currentChallenge];
+            challengeTitle.textContent = challenge.title;
+            
+            let contentHTML = '';
+            
+            if (currentChallenge === challenges.length) {
+                // Results screen
+                contentHTML = `
+                    <div class="results-screen">
+                        <h2>PCA Mastery Achieved!</h2>
+                        <div class="score-display">${score}/${challenges.length}</div>
+                        <p>You've successfully demonstrated your understanding of Principal Component Analysis.</p>
+                        <button class="action-btn restart-btn" onclick="restartGame()">Play Again</button>
+                    </div>
+                `;
+            } else {
+                // Regular challenge
+                contentHTML = `
+                    <p><strong>${challenge.question}</strong></p>
+                    ${challenge.visual ? '<div class="pca-visualization"><div class="graph-container" id="pcaGraph"></div></div>' : ''}
+                    <div class="options-container" id="optionsContainer">
+                        ${challenge.options ? challenge.options.map((option, index) => `
+                            <div class="option" data-index="${index}">${option}</div>
+                        `).join('') : ''}
+                    </div>
+                    <div class="feedback" id="feedback"></div>
+                    ${!challenge.visual ? `<div class="explanation">${challenge.explanation}</div>` : ''}
+                    <div class="controls">
+                        <button class="action-btn submit-btn" id="submitBtn" ${answerSubmitted ? 'disabled' : ''}>Submit Answer</button>
+                    </div>
+                `;
+            }
+            
+            challengeContent.innerHTML = contentHTML;
+            
+            if (challenge.visual) {
+                renderPCAVisualization();
+            }
+            
+            if (!challenge.options) {
+                document.getElementById('submitBtn').disabled = true;
+            }
+            
+            setupEventListeners();
+        }
+        
+        // Render PCA visualization
+        function renderPCAVisualization() {
+            const graph = document.getElementById('pcaGraph');
+            graph.innerHTML = '';
+            
+            // Create random data points
+            for (let i = 0; i < 30; i++) {
+                const point = document.createElement('div');
+                point.className = 'data-point';
+                
+                // Generate clustered data
+                const cluster = Math.random() > 0.5 ? 1 : -1;
+                const x = 50 + cluster * 20 + (Math.random() - 0.5) * 30;
+                const y = 50 + (Math.random() - 0.5) * 40;
+                
+                point.style.left = `${x}%`;
+                point.style.top = `${y}%`;
+                graph.appendChild(point);
+            }
+            
+            // Create principal component lines
+            const pc1 = document.createElement('div');
+            pc1.className = 'pc-line';
+            pc1.style.width = '80%';
+            pc1.style.left = '50%';
+            pc1.style.top = '50%';
+            pc1.style.transform = 'rotate(30deg)';
+            graph.appendChild(pc1);
+            
+            const pc2 = document.createElement('div');
+            pc2.className = 'pc-line';
+            pc2.style.width = '60%';
+            pc2.style.left = '50%';
+            pc2.style.top = '50%';
+            pc2.style.transform = 'rotate(120deg)';
+            graph.appendChild(pc2);
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            const options = document.querySelectorAll('.option');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            options.forEach(option => {
+                option.addEventListener('click', () => {
+                    if (answerSubmitted) return;
+                    
+                    // Remove previous selection
+                    options.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Select new option
+                    option.classList.add('selected');
+                    selectedOption = parseInt(option.dataset.index);
+                    submitBtn.disabled = false;
+                });
+            });
+            
+            if (submitBtn) {
+                submitBtn.addEventListener('click', checkAnswer);
+            }
+        }
+        
+        // Check answer
+        function checkAnswer() {
+            const challenge = challenges[currentChallenge];
+            const feedback = document.getElementById('feedback');
+            const options = document.querySelectorAll('.option');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            answerSubmitted = true;
+            submitBtn.disabled = true;
+            
+            if (selectedOption === challenge.correct) {
+                feedback.textContent = 'Correct! Well done.';
+                feedback.className = 'feedback show correct';
+                score++;
+            } else {
+                feedback.textContent = 'Incorrect. Try again next time!';
+                feedback.className = 'feedback show incorrect';
+            }
+            
+            // Show correct answer
+            if (challenge.options) {
+                options[challenge.correct].classList.add('correct');
+                if (selectedOption !== null && selectedOption !== challenge.correct) {
+                    options[selectedOption].classList.add('incorrect');
+                }
+            }
+            
+            // Show explanation for visual challenges
+            if (challenge.visual) {
+                const explanation = document.createElement('div');
+                explanation.className = 'explanation';
+                explanation.textContent = challenge.explanation;
+                challengeContent.appendChild(explanation);
+            }
+            
+            nextBtn.disabled = false;
+        }
+        
+        // Update progress
+        function updateProgress() {
+            const progress = ((currentChallenge) / challenges.length) * 100;
+            progressFill.style.width = `${progress}%`;
+            progressText.textContent = `Challenge ${Math.min(currentChallenge + 1, challenges.length)} of ${challenges.length}`;
+            
+            prevBtn.disabled = currentChallenge === 0;
+            
+            if (currentChallenge === challenges.length) {
+                nextBtn.disabled = true;
+            }
+        }
+        
+        // Navigation functions
+        nextBtn.addEventListener('click', () => {
+            if (currentChallenge < challenges.length) {
+                currentChallenge++;
+                answerSubmitted = false;
+                selectedOption = null;
+                
+                if (currentChallenge === challenges.length) {
+                    nextBtn.disabled = true;
+                }
+                
+                renderChallenge();
+                updateProgress();
+                nextBtn.disabled = true;
+            }
+        });
+        
+        prevBtn.addEventListener('click', () => {
+            if (currentChallenge > 0) {
+                currentChallenge--;
+                answerSubmitted = false;
+                selectedOption = null;
+                renderChallenge();
+                updateProgress();
+                nextBtn.disabled = answerSubmitted ? false : true;
+            }
+        });
+        
+        // Restart game
+        function restartGame() {
+            currentChallenge = 0;
+            score = 0;
+            selectedOption = null;
+            answerSubmitted = false;
+            renderChallenge();
+            updateProgress();
+            nextBtn.disabled = true;
+        }
+        
+        // Initialize the game
+        initGame();
+    </script>
+</body>
+</html>

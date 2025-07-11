@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .description {
+            color: #666;
+            max-width: 700px;
+            margin: 0 auto 20px;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .plot-area {
+            flex: 1;
+            min-width: 300px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            background: white;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        button:hover {
+            background: #e0e0e0;
+        }
+        
+        button.primary {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+        
+        button.primary:hover {
+            background: #2980b9;
+        }
+        
+        .info-panel {
+            flex: 1;
+            min-width: 300px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #eee;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background: white;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 15px 0;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #222;
+        }
+        
+        h3 {
+            font-size: 1.2rem;
+            margin: 20px 0 10px;
+            color: #333;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 10px;
+        }
+        
+        .level-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ddd;
+            border: 2px solid #ccc;
+        }
+        
+        .level-dot.active {
+            background: #3498db;
+            border-color: #2980b9;
+        }
+        
+        .level-dot.completed {
+            background: #2ecc71;
+            border-color: #27ae60;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #eee;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .feedback {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+        
+        .feedback.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .feedback.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .instructions {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCA Explorer</h1>
+        <p class="description">Learn Principal Component Analysis through interactive visualization and challenges</p>
+    </header>
+    
+    <div class="level-indicator">
+        <div class="level-dot active" data-level="1"></div>
+        <div class="level-dot" data-level="2"></div>
+        <div class="level-dot" data-level="3"></div>
+    </div>
+    
+    <div class="game-container">
+        <div class="plot-area">
+            <div class="canvas-container">
+                <canvas id="plotCanvas"></canvas>
+            </div>
+            
+            <div class="controls">
+                <button id="addPointBtn">Add Point</button>
+                <button id="movePointBtn">Move Points</button>
+                <button id="toggleVectorsBtn">Toggle Vectors</button>
+                <button id="transformBtn" class="primary">Apply PCA</button>
+                <button id="resetBtn">Reset</button>
+            </div>
+            
+            <div class="instructions">
+                <p><strong>Level 1:</strong> Add at least 5 points to the plot. Observe how PCA vectors change with your data.</p>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-label">Points</div>
+                    <div class="stat-value" id="pointCount">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Level</div>
+                    <div class="stat-value" id="levelDisplay">1/3</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Progress</div>
+                    <div class="stat-value" id="progress">0%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <div class="tabs">
+                <div class="tab active" data-tab="concept">PCA Concepts</div>
+                <div class="tab" data-tab="challenge">Level Challenge</div>
+                <div class="tab" data-tab="explanation">How It Works</div>
+            </div>
+            
+            <div class="tab-content active" id="concept-tab">
+                <h2>Principal Component Analysis</h2>
+                <p>PCA is a dimensionality reduction technique that transforms data into a new coordinate system where the greatest variances lie on the axes.</p>
+                
+                <h3>Key Concepts</h3>
+                <p>• <strong>Principal Components</strong>: Orthogonal vectors that capture maximum variance</p>
+                <p>• <strong>Eigenvectors</strong>: Directions of the new feature space</p>
+                <p>• <strong>Eigenvalues</strong>: Magnitude of variance along each eigenvector</p>
+                
+                <h3>Applications</h3>
+                <p>• Data compression and visualization</p>
+                <p>• Noise reduction in datasets</p>
+                <p>• Feature extraction for machine learning</p>
+            </div>
+            
+            <div class="tab-content" id="challenge-tab">
+                <h2>Level Challenges</h2>
+                
+                <div class="level-challenge" data-level="1">
+                    <h3>Level 1: Data Exploration</h3>
+                    <p>• Add at least 5 data points to the plot</p>
+                    <p>• Observe how PCA vectors change with your data</p>
+                    <p>• Click "Apply PCA" to see the transformation</p>
+                </div>
+                
+                <div class="level-challenge" data-level="2" style="display:none">
+                    <h3>Level 2: Vector Alignment</h3>
+                    <p>• Arrange points so the primary PCA vector is at 45°</p>
+                    <p>• Maintain at least 5 points in the plot</p>
+                    <p>• Achieve angle tolerance within ±5°</p>
+                </div>
+                
+                <div class="level-challenge" data-level="3" style="display:none">
+                    <h3>Level 3: Variance Maximization</h3>
+                    <p>• Configure points to maximize variance ratio (≥5:1)</p>
+                    <p>• Primary component should capture ≥85% of variance</p>
+                    <p>• Use at least 8 data points</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="explanation-tab">
+                <h2>How PCA Works</h2>
+                <p>1. <strong>Center Data</strong>: Subtract mean from each feature</p>
+                <p>2. <strong>Covariance Matrix</strong>: Compute relationships between dimensions</p>
+                <p>3. <strong>Eigendecomposition</strong>: Calculate eigenvectors and eigenvalues</p>
+                <p>4. <strong>Sort Components</strong>: Order by decreasing eigenvalues</p>
+                <p>5. <strong>Transform Data</strong>: Project onto principal components</p>
+                
+                <h3>Visual Guide</h3>
+                <p>• <span style="color:#e74c3c">Red Vector</span>: Primary component (max variance)</p>
+                <p>• <span style="color:#3498db">Blue Vector</span>: Secondary component</p>
+                <p>• Transformed points show data in new coordinate system</p>
+            </div>
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin: 30px 0;">
+        <button id="nextLevelBtn" class="primary" style="padding: 12px 30px; font-size: 1.1rem; display: none;">Next Level →</button>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            level: 1,
+            points: [],
+            showVectors: true,
+            mode: 'add', // 'add' or 'move'
+            selectedPoint: null,
+            transformed: false,
+            completedLevels: []
+        };
+
+        // DOM Elements
+        const canvas = document.getElementById('plotCanvas');
+        const ctx = canvas.getContext('2d');
+        const pointCountEl = document.getElementById('pointCount');
+        const levelDisplayEl = document.getElementById('levelDisplay');
+        const progressEl = document.getElementById('progress');
+        const feedbackEl = document.getElementById('feedback');
+        const nextLevelBtn = document.getElementById('nextLevelBtn');
+        
+        // Initialize canvas
+        function initCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            draw();
+        }
+        
+        // Resize handler
+        window.addEventListener('resize', initCanvas);
+        
+        // Initialize game
+        function initGame() {
+            initCanvas();
+            setupEventListeners();
+            updateStats();
+            updateLevelDisplay();
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Button event listeners
+            document.getElementById('addPointBtn').addEventListener('click', () => {
+                gameState.mode = 'add';
+                updateButtonStates();
+            });
+            
+            document.getElementById('movePointBtn').addEventListener('click', () => {
+                gameState.mode = 'move';
+                updateButtonStates();
+            });
+            
+            document.getElementById('toggleVectorsBtn').addEventListener('click', () => {
+                gameState.showVectors = !gameState.showVectors;
+                draw();
+            });
+            
+            document.getElementById('transformBtn').addEventListener('click', applyPCA);
+            document.getElementById('resetBtn').addEventListener('click', resetPlot);
+            document.getElementById('nextLevelBtn').addEventListener('click', nextLevel);
+            
+            // Canvas event listeners
+            canvas.addEventListener('click', handleCanvasClick);
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            
+            // Tab event listeners
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+                });
+            });
+        }
+        
+        // Update button states
+        function updateButtonStates() {
+            document.getElementById('addPointBtn').classList.toggle('primary', gameState.mode === 'add');
+            document.getElementById('movePointBtn').classList.toggle('primary', gameState.mode === 'move');
+        }
+        
+        // Handle canvas click
+        function handleCanvasClick(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (gameState.mode === 'add') {
+                addPoint(x, y);
+            } else if (gameState.mode === 'move') {
+                selectPoint(x, y);
+            }
+        }
+        
+        // Mouse event handlers for dragging
+        function handleMouseDown(e) {
+            if (gameState.mode !== 'move') return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            selectPoint(x, y);
+        }
+        
+        function handleMouseMove(e) {
+            if (!gameState.selectedPoint) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            gameState.selectedPoint.x = x;
+            gameState.selectedPoint.y = y;
+            draw();
+        }
+        
+        function handleMouseUp() {
+            gameState.selectedPoint = null;
+            checkLevelCompletion();
+        }
+        
+        // Add a new point
+        function addPoint(x, y) {
+            gameState.points.push({ x, y });
+            draw();
+            updateStats();
+            checkLevelCompletion();
+        }
+        
+        // Select a point for moving
+        function selectPoint(x, y) {
+            for (let i = gameState.points.length - 1; i >= 0; i--) {
+                const point = gameState.points[i];
+                const distance = Math.sqrt((point.x - x) ** 2 + (point.y - y) ** 2);
+                
+                if (distance < 10) {
+                    gameState.selectedPoint = point;
+                    draw();
+                    return;
+                }
+            }
+        }
+        
+        // Apply PCA transformation
+        function applyPCA() {
+            gameState.transformed = true;
+            draw();
+            showFeedback("PCA transformation applied! Data projected onto principal components.", "success");
+            
+            if (gameState.level === 1) {
+                setTimeout(() => {
+                    nextLevelBtn.style.display = 'block';
+                }, 1500);
+            }
+            
+            checkLevelCompletion();
+        }
+        
+        // Reset the plot
+        function resetPlot() {
+            gameState.points = [];
+            gameState.transformed = false;
+            gameState.selectedPoint = null;
+            draw();
+            updateStats();
+            feedbackEl.style.display = 'none';
+        }
+        
+        // Draw everything on canvas
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            drawGrid();
+            
+            // Draw axes
+            drawAxes();
+            
+            // Draw points
+            drawPoints();
+            
+            // Draw vectors if enabled
+            if (gameState.showVectors && gameState.points.length >= 2) {
+                drawVectors();
+            }
+            
+            // Draw transformed points if applicable
+            if (gameState.transformed) {
+                drawTransformedPoints();
+            }
+            
+            // Draw selected point
+            if (gameState.selectedPoint) {
+                drawSelectedPoint();
+            }
+        }
+        
+        // Draw grid
+        function drawGrid() {
+            ctx.strokeStyle = '#eee';
+            ctx.lineWidth = 1;
+            
+            // Vertical lines
+            for (let x = 0; x <= canvas.width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Horizontal lines
+            for (let y = 0; y <= canvas.height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+        
+        // Draw axes
+        function drawAxes() {
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 2;
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+            
+            // Labels
+            ctx.fillStyle = '#666';
+            ctx.font = '14px Arial';
+            ctx.fillText('X', canvas.width - 20, canvas.height / 2 - 10);
+            ctx.fillText('Y', canvas.width / 2 + 10, 20);
+        }
+        
+        // Draw data points
+        function drawPoints() {
+            gameState.points.forEach(point => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#3498db';
+                ctx.fill();
+                ctx.strokeStyle = '#2980b9';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+        }
+        
+        // Draw PCA vectors
+        function drawVectors() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            // Calculate PCA vectors (simplified for visualization)
+            const vector1 = { x: 150, y: 150 };
+            const vector2 = { x: -100, y: 100 };
+            
+            // Draw primary vector (PC1)
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + vector1.x, centerY + vector1.y);
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Draw secondary vector (PC2)
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + vector2.x, centerY + vector2.y);
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Draw vector labels
+            ctx.fillStyle = '#e74c3c';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('PC1', centerX + vector1.x * 0.7, centerY + vector1.y * 0.7 - 10);
+            
+            ctx.fillStyle = '#3498db';
+            ctx.fillText('PC2', centerX + vector2.x * 0.7, centerY + vector2.y * 0.7 - 10);
+        }
+        
+        // Draw transformed points
+        function drawTransformedPoints() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            gameState.points.forEach(point => {
+                // Simplified transformation for visualization
+                const tx = (point.x - centerX) * 0.8 + centerX;
+                const ty = (point.y - centerY) * 0.6 + centerY;
+                
+                ctx.beginPath();
+                ctx.arc(tx, ty, 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#2ecc71';
+                ctx.fill();
+                ctx.strokeStyle = '#27ae60';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+        }
+        
+        // Draw selected point
+        function drawSelectedPoint() {
+            ctx.beginPath();
+            ctx.arc(gameState.selectedPoint.x, gameState.selectedPoint.y, 10, 0, Math.PI * 2);
+            ctx.strokeStyle = '#f1c40f';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+        
+        // Show feedback message
+        function showFeedback(message, type) {
+            feedbackEl.textContent = message;
+            feedbackEl.className = 'feedback ' + type;
+            feedbackEl.style.display = 'block';
+            
+            setTimeout(() => {
+                feedbackEl.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Update stats display
+        function updateStats() {
+            pointCountEl.textContent = gameState.points.length;
+            
+            // Calculate progress based on level
+            let progress = 0;
+            if (gameState.level === 1) {
+                progress = Math.min(100, Math.floor(gameState.points.length / 5 * 100));
+            } else if (gameState.level === 2) {
+                progress = gameState.transformed ? 100 : 30;
+            } else if (gameState.level === 3) {
+                progress = gameState.transformed ? 100 : 30;
+            }
+            
+            progressEl.textContent = progress + '%';
+        }
+        
+        // Check level completion
+        function checkLevelCompletion() {
+            if (gameState.level === 1) {
+                if (gameState.points.length >= 5 && gameState.transformed) {
+                    showFeedback("Level 1 completed! You're ready for the next challenge.", "success");
+                    document.querySelector('.level-dot[data-level="1"]').classList.add('completed');
+                }
+            }
+        }
+        
+        // Update level display
+        function updateLevelDisplay() {
+            levelDisplayEl.textContent = `${gameState.level}/3`;
+            
+            // Update level dots
+            document.querySelectorAll('.level-dot').forEach(dot => {
+                dot.classList.remove('active');
+                if (parseInt(dot.dataset.level) === gameState.level) {
+                    dot.classList.add('active');
+                }
+            });
+            
+            // Update challenge display
+            document.querySelectorAll('.level-challenge').forEach(challenge => {
+                challenge.style.display = 'none';
+                if (parseInt(challenge.dataset.level) === gameState.level) {
+                    challenge.style.display = 'block';
+                }
+            });
+            
+            // Update instructions
+            const instructionEl = document.querySelector('.instructions p');
+            if (gameState.level === 1) {
+                instructionEl.innerHTML = '<strong>Level 1:</strong> Add at least 5 points to the plot. Observe how PCA vectors change with your data.';
+            } else if (gameState.level === 2) {
+                instructionEl.innerHTML = '<strong>Level 2:</strong> Arrange points so the primary PCA vector is at 45°. Click "Apply PCA" when ready.';
+            } else if (gameState.level === 3) {
+                instructionEl.innerHTML = '<strong>Level 3:</strong> Configure points to maximize variance ratio (≥5:1). Apply PCA to complete.';
+            }
+        }
+        
+        // Go to next level
+        function nextLevel() {
+            if (gameState.level < 3) {
+                gameState.level++;
+                resetPlot();
+                nextLevelBtn.style.display = 'none';
+                updateLevelDisplay();
+                showFeedback(`Level ${gameState.level} unlocked! New challenge available.`, "success");
+            } else {
+                showFeedback("Congratulations! You've completed all levels.", "success");
+            }
+        }
+        
+        // Initialize the game when page loads
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>

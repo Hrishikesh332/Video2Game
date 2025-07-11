@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Financial Analysis Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 12px;
+            background-color: #bdc3c7;
+            border-radius: 6px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .challenge-container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+            min-height: 400px;
+            position: relative;
+        }
+        
+        .challenge-title {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        
+        .question {
+            margin-bottom: 25px;
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .option {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .option:hover {
+            background-color: #d6dbdf;
+            transform: translateY(-3px);
+        }
+        
+        .option.selected {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+        
+        .option.correct {
+            background-color: #2ecc71;
+            color: white;
+            border-color: #27ae60;
+        }
+        
+        .option.incorrect {
+            background-color: #e74c3c;
+            color: white;
+            border-color: #c0392b;
+        }
+        
+        .graph-container {
+            background-color: #2c3e50;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .graph {
+            height: 250px;
+            position: relative;
+            background: linear-gradient(to bottom, #1a2530, #2c3e50);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .graph-line {
+            position: absolute;
+            height: 3px;
+            background-color: #3498db;
+            transform-origin: left center;
+        }
+        
+        .graph-point {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.7);
+        }
+        
+        .graph-label {
+            position: absolute;
+            color: #ecf0f1;
+            font-size: 0.8rem;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .feedback {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+            display: block;
+        }
+        
+        .feedback.incorrect {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: #c0392b;
+            display: block;
+        }
+        
+        .score-container {
+            display: flex;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .score-value {
+            font-size: 1.8rem;
+            color: #3498db;
+            margin: 0 5px;
+        }
+        
+        .completion-screen {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 40px;
+            text-align: center;
+            display: none;
+        }
+        
+        .completion-title {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+        
+        .final-score {
+            font-size: 3rem;
+            color: #3498db;
+            margin: 20px 0;
+        }
+        
+        .restart-btn {
+            background-color: #2ecc71;
+            margin-top: 20px;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+        }
+        
+        .restart-btn:hover {
+            background-color: #27ae60;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .explanation {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+            display: none;
+        }
+        
+        .explanation.show {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .progress-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .progress-bar {
+                width: 100%;
+                margin: 10px 0;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCA Financial Analysis Challenge</h1>
+        <p class="subtitle">Test your understanding of Principal Component Analysis in loan payment forecasting</p>
+        
+        <div class="progress-container">
+            <div class="score-container">
+                Score: <span class="score-value" id="score">0</span>/8
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+            <div id="challenge-count">Challenge 1 of 8</div>
+        </div>
+    </header>
+    
+    <main>
+        <div class="challenge-container" id="challenge-container">
+            <h2 class="challenge-title" id="challenge-title">Understanding PCA Fundamentals</h2>
+            <div class="question" id="question">
+                What is the primary purpose of Principal Component Analysis (PCA) in financial data analysis?
+            </div>
+            
+            <div class="graph-container" id="graph-container">
+                <div class="graph" id="graph">
+                    <!-- Dynamic graph will be generated here -->
+                </div>
+            </div>
+            
+            <div class="options-container" id="options-container">
+                <!-- Options will be dynamically generated -->
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="explanation" id="explanation">
+                <!-- Explanation will be dynamically added -->
+            </div>
+            
+            <div class="controls">
+                <button id="prev-btn" disabled>Previous</button>
+                <button id="submit-btn">Submit Answer</button>
+                <button id="next-btn" disabled>Next Challenge</button>
+            </div>
+        </div>
+        
+        <div class="completion-screen" id="completion-screen">
+            <h2 class="completion-title">Analysis Complete!</h2>
+            <p>You've finished the PCA Financial Analysis Challenge</p>
+            <div class="final-score">Your Score: <span id="final-score">0</span>/8</div>
+            <p id="completion-message">Well done! You've demonstrated a strong understanding of PCA in financial contexts.</p>
+            <button class="restart-btn" id="restart-btn">Restart Analysis</button>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            const gameState = {
+                currentChallenge: 0,
+                score: 0,
+                challenges: [
+                    {
+                        title: "Understanding PCA Fundamentals",
+                        question: "What is the primary purpose of Principal Component Analysis (PCA) in financial data analysis?",
+                        options: [
+                            "To predict future stock prices",
+                            "To reduce dimensionality while preserving variance",
+                            "To calculate compound interest rates",
+                            "To visualize geographic distribution of loans"
+                        ],
+                        correct: 1,
+                        explanation: "PCA reduces the number of variables while preserving as much variance as possible, helping to simplify complex financial datasets like loan payment timelines.",
+                        hasGraph: true
+                    },
+                    {
+                        title: "Loan Data Visualization",
+                        question: "In the video, what two primary variables were visualized in the initial scatterplot?",
+                        options: [
+                            "Loan Amount and Interest Rate",
+                            "Annual Income and Loan Duration",
+                            "Credit Score and Default Risk",
+                            "Annual Income and Loan Amount"
+                        ],
+                        correct: 3,
+                        explanation: "The presenter showed a scatterplot comparing Annual Income (x-axis) and Loan Amount (y-axis) as the starting point before adding time as a third dimension.",
+                        hasGraph: true
+                    },
+                    {
+                        title: "Adding Dimensions",
+                        question: "What challenge arises when adding time as a third dimension to loan payment analysis?",
+                        options: [
+                            "Increased computational requirements",
+                            "Difficulty in visualizing multi-dimensional data",
+                            "Decreased accuracy of predictions",
+                            "Incompatibility with PCA techniques"
+                        ],
+                        correct: 1,
+                        explanation: "Adding dimensions beyond three makes visualization challenging. PCA helps address this by reducing dimensions while preserving the most important patterns.",
+                        hasGraph: true
+                    },
+                    {
+                        title: "PCA in Finance",
+                        question: "How does PCA help financial analysts understand loan payments over time?",
+                        options: [
+                            "By predicting individual payment dates",
+                            "By identifying patterns across multiple time periods",
+                            "By calculating total interest payments",
+                            "By determining optimal loan durations"
+                        ],
+                        correct: 1,
+                        explanation: "PCA identifies the most significant patterns across multiple time periods, helping analysts understand how loan payment behaviors evolve.",
+                        hasGraph: true
+                    },
+                    {
+                        title: "Variance Preservation",
+                        question: "What does the first principal component represent in PCA?",
+                        options: [
+                            "The dimension with least correlation",
+                            "The direction of maximum variance",
+                            "The average of all variables",
+                            "The residual error component"
+                        ],
+                        correct: 1,
+                        explanation: "The first principal component captures the direction in the data with the highest variance, representing the most significant pattern.",
+                        hasGraph: true
+                    },
+                    {
+                        title: "Data Standardization",
+                        question: "Why is data standardization important before applying PCA?",
+                        options: [
+                            "To reduce the number of variables",
+                            "To ensure all variables contribute equally",
+                            "To convert categorical data to numerical",
+                            "To eliminate missing values"
+                        ],
+                        correct: 1,
+                        explanation: "Standardization (z-score normalization) ensures variables with larger scales don't dominate the principal components.",
+                        hasGraph: false
+                    },
+                    {
+                        title: "Component Interpretation",
+                        question: "In the loan payment analysis, what might a principal component represent?",
+                        options: [
+                            "Individual borrower characteristics",
+                            "A combination of income, loan amount, and time",
+                            "Geographic loan distribution patterns",
+                            "Interest rate fluctuations"
+                        ],
+                        correct: 1,
+                        explanation: "Principal components are linear combinations of original variables that capture the most significant patterns across multiple dimensions.",
+                        hasGraph: true
+                    },
+                    {
+                        title: "PCA Applications",
+                        question: "Which financial analysis benefit was demonstrated in the video?",
+                        options: [
+                            "Predicting stock market trends",
+                            "Identifying high-risk loan applicants",
+                            "Understanding payment behavior over time",
+                            "Optimizing investment portfolios"
+                        ],
+                        correct: 2,
+                        explanation: "The video focused on using PCA to understand how loan payments evolve over multiple time periods.",
+                        hasGraph: true
+                    }
+                ],
+                selectedOption: null
+            };
+
+            // DOM elements
+            const challengeContainer = document.getElementById('challenge-container');
+            const completionScreen = document.getElementById('completion-screen');
+            const challengeTitle = document.getElementById('challenge-title');
+            const questionEl = document.getElementById('question');
+            const optionsContainer = document.getElementById('options-container');
+            const graphContainer = document.getElementById('graph');
+            const feedbackEl = document.getElementById('feedback');
+            const explanationEl = document.getElementById('explanation');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            const scoreEl = document.getElementById('score');
+            const finalScoreEl = document.getElementById('final-score');
+            const progressFill = document.getElementById('progress');
+            const challengeCount = document.getElementById('challenge-count');
+            const restartBtn = document.getElementById('restart-btn');
+            const completionMessage = document.getElementById('completion-message');
+
+            // Initialize game
+            function initGame() {
+                gameState.currentChallenge = 0;
+                gameState.score = 0;
+                gameState.selectedOption = null;
+                updateScore();
+                renderChallenge();
+                challengeContainer.style.display = 'block';
+                completionScreen.style.display = 'none';
+            }
+
+            // Render current challenge
+            function renderChallenge() {
+                const challenge = gameState.challenges[gameState.currentChallenge];
+                challengeTitle.textContent = challenge.title;
+                questionEl.textContent = challenge.question;
+                challengeCount.textContent = `Challenge ${gameState.currentChallenge + 1} of ${gameState.challenges.length}`;
+                
+                // Update progress bar
+                const progressPercent = (gameState.currentChallenge / gameState.challenges.length) * 100;
+                progressFill.style.width = `${progressPercent}%`;
+                
+                // Render options
+                optionsContainer.innerHTML = '';
+                challenge.options.forEach((option, index) => {
+                    const optionEl = document.createElement('div');
+                    optionEl.className = 'option';
+                    optionEl.textContent = option;
+                    optionEl.dataset.index = index;
+                    optionEl.addEventListener('click', () => selectOption(optionEl));
+                    optionsContainer.appendChild(optionEl);
+                });
+                
+                // Render graph if needed
+                graphContainer.innerHTML = '';
+                if (challenge.hasGraph) {
+                    renderFinancialGraph();
+                } else {
+                    document.querySelector('.graph-container').style.display = 'none';
+                }
+                
+                // Reset feedback and explanation
+                feedbackEl.className = 'feedback';
+                feedbackEl.textContent = '';
+                explanationEl.className = 'explanation';
+                explanationEl.textContent = '';
+                
+                // Update button states
+                prevBtn.disabled = gameState.currentChallenge === 0;
+                nextBtn.disabled = true;
+                submitBtn.disabled = false;
+                
+                // Clear selection
+                gameState.selectedOption = null;
+            }
+
+            // Render financial graph
+            function renderFinancialGraph() {
+                document.querySelector('.graph-container').style.display = 'block';
+                
+                // Create axes
+                createAxis(50, 20, 50, 230, 'Loan Amount'); // Y-axis
+                createAxis(50, 230, 450, 230, 'Annual Income'); // X-axis
+                
+                // Create data points
+                const dataPoints = [
+                    { x: 100, y: 80 },
+                    { x: 150, y: 120 },
+                    { x: 200, y: 60 },
+                    { x: 250, y: 180 },
+                    { x: 300, y: 140 },
+                    { x: 350, y: 200 }
+                ];
+                
+                dataPoints.forEach(point => {
+                    const pointEl = document.createElement('div');
+                    pointEl.className = 'graph-point';
+                    pointEl.style.left = `${point.x}px`;
+                    pointEl.style.top = `${230 - point.y}px`;
+                    graphContainer.appendChild(pointEl);
+                });
+                
+                // Create PCA line
+                const lineEl = document.createElement('div');
+                lineEl.className = 'graph-line';
+                lineEl.style.left = '50px';
+                lineEl.style.top = '180px';
+                lineEl.style.width = '350px';
+                lineEl.style.transform = 'rotate(-30deg)';
+                graphContainer.appendChild(lineEl);
+                
+                // Add labels
+                const pcLabel = document.createElement('div');
+                pcLabel.className = 'graph-label';
+                pcLabel.textContent = 'PC1';
+                pcLabel.style.left = '250px';
+                pcLabel.style.top = '100px';
+                graphContainer.appendChild(pcLabel);
+            }
+
+            // Create axis
+            function createAxis(x1, y1, x2, y2, label) {
+                const axis = document.createElement('div');
+                axis.className = 'graph-line';
+                axis.style.left = `${x1}px`;
+                axis.style.top = `${y1}px`;
+                axis.style.width = `${Math.sqrt(Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2))}px`;
+                axis.style.transform = `rotate(${Math.atan2(y2-y1, x2-x1)}rad)`;
+                graphContainer.appendChild(axis);
+                
+                const axisLabel = document.createElement('div');
+                axisLabel.className = 'graph-label';
+                axisLabel.textContent = label;
+                axisLabel.style.left = `${x2 + 10}px`;
+                axisLabel.style.top = `${y2}px`;
+                graphContainer.appendChild(axisLabel);
+            }
+
+            // Select option
+            function selectOption(optionEl) {
+                // Clear previous selection
+                document.querySelectorAll('.option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Set new selection
+                optionEl.classList.add('selected');
+                gameState.selectedOption = parseInt(optionEl.dataset.index);
+            }
+
+            // Submit answer
+            function submitAnswer() {
+                if (gameState.selectedOption === null) return;
+                
+                const challenge = gameState.challenges[gameState.currentChallenge];
+                const isCorrect = gameState.selectedOption === challenge.correct;
+                
+                // Update score
+                if (isCorrect) {
+                    gameState.score++;
+                    updateScore();
+                }
+                
+                // Show feedback
+                feedbackEl.textContent = isCorrect ? 
+                    "Correct! Well done." : "Incorrect. Let's review the explanation.";
+                feedbackEl.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+                
+                // Show explanation
+                explanationEl.textContent = challenge.explanation;
+                explanationEl.className = 'explanation show';
+                
+                // Highlight correct answer
+                document.querySelectorAll('.option').forEach((opt, index) => {
+                    if (index === challenge.correct) {
+                        opt.classList.add('correct');
+                    } else if (index === gameState.selectedOption && !isCorrect) {
+                        opt.classList.add('incorrect');
+                    }
+                    opt.style.pointerEvents = 'none';
+                });
+                
+                // Update button states
+                submitBtn.disabled = true;
+                nextBtn.disabled = false;
+            }
+
+            // Navigate to next challenge
+            function nextChallenge() {
+                if (gameState.currentChallenge < gameState.challenges.length - 1) {
+                    gameState.currentChallenge++;
+                    renderChallenge();
+                } else {
+                    showCompletionScreen();
+                }
+            }
+
+            // Navigate to previous challenge
+            function prevChallenge() {
+                if (gameState.currentChallenge > 0) {
+                    gameState.currentChallenge--;
+                    renderChallenge();
+                }
+            }
+
+            // Update score display
+            function updateScore() {
+                scoreEl.textContent = gameState.score;
+            }
+
+            // Show completion screen
+            function showCompletionScreen() {
+                challengeContainer.style.display = 'none';
+                completionScreen.style.display = 'block';
+                finalScoreEl.textContent = gameState.score;
+                
+                // Custom message based on score
+                if (gameState.score >= 7) {
+                    completionMessage.textContent = "Excellent work! You've mastered PCA concepts in financial analysis.";
+                } else if (gameState.score >= 5) {
+                    completionMessage.textContent = "Great job! You have a solid understanding of PCA in financial contexts.";
+                } else {
+                    completionMessage.textContent = "Good effort! Review the material and try again to improve your score.";
+                }
+            }
+
+            // Event listeners
+            submitBtn.addEventListener('click', submitAnswer);
+            nextBtn.addEventListener('click', nextChallenge);
+            prevBtn.addEventListener('click', prevChallenge);
+            restartBtn.addEventListener('click', initGame);
+
+            // Initialize the game
+            initGame();
+        });
+    </script>
+</body>
+</html>

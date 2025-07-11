@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHAP Values Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .game-container {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+        
+        .tab-btn {
+            background-color: #e9e9e9;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #444444;
+        }
+        
+        .tab-btn.active {
+            background-color: #d0d0d0;
+            color: #000000;
+        }
+        
+        .tab-btn.completed {
+            background-color: #c8e6c9;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #222222;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+        }
+        
+        .chart-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #333333;
+        }
+        
+        .chart {
+            height: 300px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 6px;
+        }
+        
+        .bar {
+            width: 60px;
+            background-color: #888888;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .bar:hover {
+            transform: scale(1.05);
+        }
+        
+        .bar-label {
+            position: absolute;
+            bottom: -30px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .interaction-panel {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        button {
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+            display: block;
+            width: 100%;
+        }
+        
+        button:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #ffffff;
+            border-radius: 6px;
+            border-left: 4px solid #888888;
+            display: none;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #888888;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .score-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .controls button {
+            flex: 1;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        @media (max-width: 768px) {
+            .chart {
+                flex-direction: column;
+                align-items: center;
+                height: auto;
+            }
+            
+            .bar {
+                width: 80%;
+                height: 50px;
+                margin-bottom: 40px;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHAP Values Explorer</h1>
+        <p>Learn how machine learning models make decisions through interactive exploration</p>
+    </header>
+    
+    <div class="game-container">
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="intro">Introduction</button>
+            <button class="tab-btn" data-tab="examples">Examples</button>
+            <button class="tab-btn" data-tab="benefits">Benefits</button>
+            <button class="tab-btn" data-tab="resources">Resources</button>
+        </div>
+        
+        <div class="progress-container">
+            <span>Progress:</span>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="score-display">Score: <span id="score">0</span>/300</div>
+        </div>
+        
+        <!-- Introduction Tab -->
+        <div id="intro" class="tab-content active">
+            <h2>Understanding SHAP Values</h2>
+            <p>SHAP (SHapley Additive exPlanations) values help explain the output of machine learning models by showing how much each feature contributes to a prediction.</p>
+            <p>Imagine a team of employees where each person contributes differently to a project's success. SHAP values quantify each feature's contribution to the final prediction.</p>
+            
+            <div class="interaction-panel">
+                <h3>Quick Quiz</h3>
+                <p>What do SHAP values measure in a machine learning model?</p>
+                <div class="input-group">
+                    <select id="quiz-answer">
+                        <option value="">Select an answer</option>
+                        <option value="a">The accuracy of the model</option>
+                        <option value="b">Feature importance for individual predictions</option>
+                        <option value="c">The training time of the model</option>
+                    </select>
+                </div>
+                <button id="check-answer">Check Answer</button>
+                <div class="result" id="quiz-result"></div>
+            </div>
+            
+            <div class="controls">
+                <button id="next-examples" disabled>Next: Examples →</button>
+            </div>
+        </div>
+        
+        <!-- Examples Tab -->
+        <div id="examples" class="tab-content">
+            <h2>Interactive SHAP Examples</h2>
+            <p>Explore how different features impact model predictions in these interactive examples.</p>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Regression: Employee Bonus Prediction</h3>
+                <p>Base value: $5,000 | Prediction: <span id="reg-prediction">$7,200</span></p>
+                <div class="chart" id="regression-chart"></div>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Classification: Mushroom Safety Prediction</h3>
+                <p>Base value: 50% poisonous | Prediction: <span id="class-prediction">85% poisonous</span></p>
+                <div class="chart" id="classification-chart"></div>
+            </div>
+            
+            <div class="interaction-panel">
+                <h3>Feature Impact Challenge</h3>
+                <p>Which feature has the strongest positive impact on the employee bonus?</p>
+                <div id="feature-choices" style="display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                <div class="result" id="feature-result"></div>
+            </div>
+            
+            <div class="controls">
+                <button id="prev-intro">← Back: Introduction</button>
+                <button id="next-benefits" disabled>Next: Benefits →</button>
+            </div>
+        </div>
+        
+        <!-- Benefits Tab -->
+        <div id="benefits" class="tab-content">
+            <h2>Benefits of SHAP Values</h2>
+            <p>SHAP values provide multiple benefits for understanding and improving machine learning models.</p>
+            
+            <div class="interaction-panel">
+                <h3>Debugging Exercise</h3>
+                <p>Model predicted a safe mushroom as poisonous. Adjust features to fix the prediction.</p>
+                <div class="input-group">
+                    <label for="odor">Odor:</label>
+                    <select id="odor">
+                        <option value="none">None</option>
+                        <option value="almond">Almond</option>
+                        <option value="creosote">Creosote</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="bruises">Bruises:</label>
+                    <select id="bruises">
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+                <button id="debug-btn">Check Prediction</button>
+                <div class="result" id="debug-result"></div>
+            </div>
+            
+            <div class="interaction-panel">
+                <h3>Explanation Challenge</h3>
+                <p>Explain why the model predicted a high bonus for this employee:</p>
+                <ul>
+                    <li>Experience: 8 years</li>
+                    <li>Degree: Master's</li>
+                    <li>Sales: $250,000</li>
+                </ul>
+                <button id="explain-btn">Generate Explanation</button>
+                <div class="result" id="explanation-result"></div>
+            </div>
+            
+            <div class="controls">
+                <button id="prev-examples">← Back: Examples</button>
+                <button id="next-resources">Next: Resources →</button>
+            </div>
+        </div>
+        
+        <!-- Resources Tab -->
+        <div id="resources" class="tab-content">
+            <h2>Learning Resources</h2>
+            <p>Continue your SHAP learning journey with these resources:</p>
+            
+            <div class="interaction-panel">
+                <h3>Recommended Materials</h3>
+                <ul style="margin: 20px;">
+                    <li style="margin-bottom: 10px;">The SHAP GitHub Repository</li>
+                    <li style="margin-bottom: 10px;">"Interpretable Machine Learning" Book</li>
+                    <li style="margin-bottom: 10px;">SHAP Values Explained (Video Series)</li>
+                </ul>
+            </div>
+            
+            <div class="interaction-panel">
+                <h3>Get the SHAP Course</h3>
+                <p>Sign up for our free Python SHAP course:</p>
+                <div class="input-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" placeholder="Enter your email">
+                </div>
+                <button id="signup-btn">Sign Up</button>
+                <div class="result" id="signup-result"></div>
+            </div>
+            
+            <div class="controls">
+                <button id="prev-benefits">← Back: Benefits</button>
+                <button id="restart-btn">Play Again</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tooltip" id="tooltip"></div>
+    
+    <script>
+        // Game state
+        const gameState = {
+            currentTab: 'intro',
+            score: 0,
+            progress: 0,
+            completedTabs: {
+                intro: false,
+                examples: false,
+                benefits: false,
+                resources: false
+            }
+        };
+        
+        // Chart data
+        const regressionData = [
+            { feature: 'Experience', value: 1.8, color: '#6a89cc' },
+            { feature: 'Degree', value: 0.9, color: '#4a69bd' },
+            { feature: 'Sales', value: 2.5, color: '#1e3799' },
+            { feature: 'Performance', value: 1.2, color: '#0c2461' },
+            { feature: 'Days Late', value: -0.7, color: '#e55039' }
+        ];
+        
+        const classificationData = [
+            { feature: 'Odor', value: 1.9, color: '#78e08f' },
+            { feature: 'Gill Size', value: 0.8, color: '#38ada9' },
+            { feature: 'Bruises', value: -1.2, color: '#f8c291' },
+            { feature: 'Stalk Shape', value: 0.5, color: '#e55039' }
+        ];
+        
+        // DOM Elements
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const progressFill = document.getElementById('progress-fill');
+        const scoreDisplay = document.getElementById('score');
+        const tooltip = document.getElementById('tooltip');
+        
+        // Initialize game
+        function initGame() {
+            renderCharts();
+            setupEventListeners();
+            updateProgress();
+        }
+        
+        // Render charts
+        function renderCharts() {
+            renderChart('regression-chart', regressionData, 7200);
+            renderChart('classification-chart', classificationData, 85);
+            populateFeatureChoices();
+        }
+        
+        function renderChart(chartId, data, prediction) {
+            const chart = document.getElementById(chartId);
+            chart.innerHTML = '';
+            
+            const maxValue = Math.max(...data.map(item => Math.abs(item.value)));
+            const scale = 120 / maxValue;
+            
+            data.forEach(item => {
+                const barHeight = Math.abs(item.value) * scale;
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = `${barHeight}px`;
+                bar.style.backgroundColor = item.color;
+                bar.style.marginTop = item.value < 0 ? 'auto' : '0';
+                bar.dataset.feature = item.feature;
+                bar.dataset.value = item.value.toFixed(2);
+                
+                const barValue = document.createElement('div');
+                barValue.className = 'bar-value';
+                barValue.textContent = item.value > 0 ? `+${item.value.toFixed(1)}` : item.value.toFixed(1);
+                
+                const barLabel = document.createElement('div');
+                barLabel.className = 'bar-label';
+                barLabel.textContent = item.feature;
+                
+                bar.appendChild(barValue);
+                bar.appendChild(barLabel);
+                chart.appendChild(bar);
+                
+                // Add event listeners for tooltip
+                bar.addEventListener('mousemove', (e) => {
+                    tooltip.style.opacity = '1';
+                    tooltip.textContent = `${item.feature}: ${item.value > 0 ? '+' : ''}${item.value.toFixed(2)}`;
+                    tooltip.style.left = `${e.pageX + 10}px`;
+                    tooltip.style.top = `${e.pageY + 10}px`;
+                });
+                
+                bar.addEventListener('mouseout', () => {
+                    tooltip.style.opacity = '0';
+                });
+            });
+            
+            if (chartId === 'regression-chart') {
+                document.getElementById('reg-prediction').textContent = `$${prediction}`;
+            } else {
+                document.getElementById('class-prediction').textContent = `${prediction}% poisonous`;
+            }
+        }
+        
+        function populateFeatureChoices() {
+            const container = document.getElementById('feature-choices');
+            container.innerHTML = '';
+            
+            regressionData.forEach(item => {
+                const btn = document.createElement('button');
+                btn.textContent = item.feature;
+                btn.dataset.feature = item.feature;
+                btn.classList.add('feature-choice');
+                container.appendChild(btn);
+            });
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Tab navigation
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    switchTab(btn.dataset.tab);
+                });
+            });
+            
+            // Introduction tab
+            document.getElementById('check-answer').addEventListener('click', checkQuizAnswer);
+            
+            // Examples tab
+            document.querySelectorAll('.feature-choice').forEach(btn => {
+                btn.addEventListener('click', checkFeatureChoice);
+            });
+            
+            // Benefits tab
+            document.getElementById('debug-btn').addEventListener('click', runDebugging);
+            document.getElementById('explain-btn').addEventListener('click', generateExplanation);
+            
+            // Resources tab
+            document.getElementById('signup-btn').addEventListener('click', handleSignup);
+            
+            // Navigation buttons
+            document.getElementById('next-examples').addEventListener('click', () => switchTab('examples'));
+            document.getElementById('next-benefits').addEventListener('click', () => switchTab('benefits'));
+            document.getElementById('next-resources').addEventListener('click', () => switchTab('resources'));
+            document.getElementById('prev-intro').addEventListener('click', () => switchTab('intro'));
+            document.getElementById('prev-examples').addEventListener('click', () => switchTab('examples'));
+            document.getElementById('prev-benefits').addEventListener('click', () => switchTab('benefits'));
+            document.getElementById('restart-btn').addEventListener('click', restartGame);
+        }
+        
+        // Tab switching
+        function switchTab(tabId) {
+            // Update UI
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+            
+            tabBtns.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.tab === tabId) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            gameState.currentTab = tabId;
+        }
+        
+        // Quiz answer check
+        function checkQuizAnswer() {
+            const answer = document.getElementById('quiz-answer').value;
+            const result = document.getElementById('quiz-result');
+            
+            if (answer === 'b') {
+                result.textContent = 'Correct! SHAP values measure feature importance for individual predictions.';
+                result.style.display = 'block';
+                result.style.borderLeftColor = '#78e08f';
+                addScore(50);
+                gameState.completedTabs.intro = true;
+                document.getElementById('next-examples').disabled = false;
+                updateProgress();
+            } else {
+                result.textContent = 'Try again. Remember SHAP values explain individual predictions.';
+                result.style.display = 'block';
+                result.style.borderLeftColor = '#e55039';
+            }
+        }
+        
+        // Feature choice check
+        function checkFeatureChoice(e) {
+            const feature = e.target.dataset.feature;
+            const result = document.getElementById('feature-result');
+            const correctFeature = regressionData.reduce((max, item) => 
+                item.value > max.value ? item : max, regressionData[0]).feature;
+            
+            if (feature === correctFeature) {
+                result.textContent = `Correct! ${feature} has the strongest positive impact.`;
+                result.style.display = 'block';
+                result.style.borderLeftColor = '#78e08f';
+                addScore(100);
+                gameState.completedTabs.examples = true;
+                document.getElementById('next-benefits').disabled = false;
+                updateProgress();
+            } else {
+                result.textContent = `Not quite. ${feature} isn't the strongest positive contributor.`;
+                result.style.display = 'block';
+                result.style.borderLeftColor = '#e55039';
+            }
+        }
+        
+        // Debugging exercise
+        function runDebugging() {
+            const odor = document.getElementById('odor').value;
+            const bruises = document.getElementById('bruises').value;
+            const result = document.getElementById('debug-result');
+            
+            if (odor === 'almond' && bruises === 'yes') {
+                result.textContent = 'Success! The model now correctly identifies the mushroom as safe.';
+                result.style.display = 'block';
+                result.style.borderLeftColor = '#78e08f';
+                addScore(75);
+                gameState.completedTabs.benefits = true;
+                updateProgress();
+            } else {
+                result.textContent = 'The model still thinks it\'s poisonous. Try changing odor to almond and bruises to yes.';
+                result.style.display = 'block';
+                result.style.borderLeftColor = '#e55039';
+            }
+        }
+        
+        // Explanation generation
+        function generateExplanation() {
+            const result = document.getElementById('explanation-result');
+            result.innerHTML = `
+                <p>The model predicted a high bonus because:</p>
+                <ul>
+                    <li>Sales ($250K) contributed +$1,800</li>
+                    <li>Experience (8 years) contributed +$1,200</li>
+                    <li>Master's degree contributed +$900</li>
+                </ul>
+                <p>These positive contributions outweighed any negative factors.</p>
+            `;
+            result.style.display = 'block';
+            result.style.borderLeftColor = '#78e08f';
+            addScore(75);
+            gameState.completedTabs.benefits = true;
+            updateProgress();
+        }
+        
+        // Signup handling
+        function handleSignup() {
+            const email = document.getElementById('email').value;
+            const result = document.getElementById('signup-result');
+            
+            if (email && email.includes('@')) {
+                result.textContent = 'Thank you! Course details have been sent to your email.';
+                result.style.display = 'block';
+                result.style.borderLeftColor = '#78e08f';
+                addScore(50);
+                gameState.completedTabs.resources = true;
+                updateProgress();
+            } else {
+                result.textContent = 'Please enter a valid email address.';
+                result.style.display = 'block';
+                result.style.borderLeftColor = '#e55039';
+            }
+        }
+        
+        // Score management
+        function addScore(points) {
+            gameState.score += points;
+            scoreDisplay.textContent = gameState.score;
+        }
+        
+        // Progress tracking
+        function updateProgress() {
+            const completedCount = Object.values(gameState.completedTabs).filter(Boolean).length;
+            gameState.progress = (completedCount / 4) * 100;
+            progressFill.style.width = `${gameState.progress}%`;
+        }
+        
+        // Restart game
+        function restartGame() {
+            gameState.score = 0;
+            gameState.progress = 0;
+            gameState.completedTabs = {
+                intro: false,
+                examples: false,
+                benefits: false,
+                resources: false
+            };
+            
+            scoreDisplay.textContent = '0';
+            progressFill.style.width = '0%';
+            
+            // Reset UI elements
+            document.getElementById('quiz-answer').value = '';
+            document.getElementById('quiz-result').style.display = 'none';
+            document.getElementById('feature-result').style.display = 'none';
+            document.getElementById('debug-result').style.display = 'none';
+            document.getElementById('explanation-result').style.display = 'none';
+            document.getElementById('signup-result').style.display = 'none';
+            document.getElementById('email').value = '';
+            
+            document.getElementById('next-examples').disabled = true;
+            document.getElementById('next-benefits').disabled = true;
+            
+            switchTab('intro');
+        }
+        
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

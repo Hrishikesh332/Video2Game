@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parisian Landmarks Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: white;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .game-section {
+            display: none;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #222;
+        }
+        
+        .menu {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .btn:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .btn-primary {
+            background-color: #FFD700;
+            color: #333;
+        }
+        
+        .btn-primary:hover {
+            background-color: #e6c200;
+        }
+        
+        .map-container {
+            position: relative;
+            height: 400px;
+            background-color: #e9e9e9;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .landmark {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #FF69B4;
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            border: 3px solid white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        
+        .info-window {
+            position: absolute;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            max-width: 300px;
+            z-index: 10;
+            display: none;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .timeline-container {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 20px 0;
+            margin-bottom: 20px;
+            background-color: #e9e9e9;
+            border-radius: 8px;
+        }
+        
+        .timeline {
+            display: inline-flex;
+            height: 150px;
+            gap: 30px;
+            padding: 0 20px;
+        }
+        
+        .era {
+            display: inline-block;
+            width: 200px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+        }
+        
+        .quiz-container {
+            background-color: #e9e9e9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .question {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .option {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .option.selected {
+            background-color: #d0e8ff;
+            border: 2px solid #008000;
+        }
+        
+        .feedback {
+            text-align: center;
+            font-weight: bold;
+            margin: 15px 0;
+            min-height: 25px;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #008000;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .score-container {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .results {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .high-score {
+            font-weight: bold;
+            color: #008000;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .map-container {
+                height: 300px;
+            }
+            
+            .btn {
+                padding: 10px 15px;
+                font-size: 1rem;
+            }
+            
+            .timeline {
+                gap: 15px;
+            }
+            
+            .era {
+                width: 180px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .map-container {
+                height: 250px;
+            }
+            
+            .timeline {
+                gap: 10px;
+            }
+            
+            .era {
+                width: 160px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Parisian Landmarks Explorer</h1>
+            <p class="description">Discover the iconic landmarks of Paris through interactive exploration and challenges</p>
+        </header>
+        
+        <div class="menu">
+            <button class="btn btn-primary" data-section="map">Interactive Map</button>
+            <button class="btn btn-primary" data-section="timeline">Historical Timeline</button>
+            <button class="btn btn-primary" data-section="quiz">Cultural Quiz</button>
+        </div>
+        
+        <!-- Interactive Map Section -->
+        <section id="map-section" class="game-section">
+            <h2 class="section-title">Paris Landmarks Map</h2>
+            <div class="map-container">
+                <div class="landmark" style="top: 30%; left: 40%;" data-landmark="eiffel"></div>
+                <div class="landmark" style="top: 45%; left: 55%;" data-landmark="louvre"></div>
+                <div class="landmark" style="top: 50%; left: 52%;" data-landmark="notre-dame"></div>
+                <div class="landmark" style="top: 35%; left: 45%;" data-landmark="arc"></div>
+                
+                <div class="info-window">
+                    <span class="close-btn">×</span>
+                    <h3 class="landmark-title"></h3>
+                    <p class="landmark-description"></p>
+                </div>
+            </div>
+            <div class="nav-buttons">
+                <button class="btn" id="back-to-menu">Back to Menu</button>
+            </div>
+        </section>
+        
+        <!-- Historical Timeline Section -->
+        <section id="timeline-section" class="game-section">
+            <h2 class="section-title">Paris Through History</h2>
+            <div class="timeline-container">
+                <div class="timeline">
+                    <div class="era" data-era="medieval">
+                        <h3>Medieval Era</h3>
+                        <p>12th-15th Century</p>
+                    </div>
+                    <div class="era" data-era="renaissance">
+                        <h3>Renaissance</h3>
+                        <p>16th Century</p>
+                    </div>
+                    <div class="era" data-era="enlightenment">
+                        <h3>Enlightenment</h3>
+                        <p>18th Century</p>
+                    </div>
+                    <div class="era" data-era="modern">
+                        <h3>Modern</h3>
+                        <p>19th-21st Century</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="era-info">
+                <h3>Select an era to learn more</h3>
+                <p class="era-description"></p>
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="btn" id="back-to-menu-2">Back to Menu</button>
+            </div>
+        </section>
+        
+        <!-- Cultural Quiz Section -->
+        <section id="quiz-section" class="game-section">
+            <h2 class="section-title">Paris Culture Quiz</h2>
+            <div class="progress-container">
+                <span class="progress-text">Question <span id="current-q">1</span> of 5</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="quiz-progress"></div>
+                </div>
+            </div>
+            
+            <div class="quiz-container">
+                <div class="question" id="question-text"></div>
+                <div class="options" id="options-container"></div>
+                <div class="feedback" id="feedback"></div>
+            </div>
+            
+            <div class="score-container">
+                Score: <span id="score">0</span> / 5
+            </div>
+            
+            <div class="nav-buttons">
+                <button class="btn" id="back-to-menu-3">Back to Menu</button>
+                <button class="btn btn-primary" id="next-btn">Next Question</button>
+            </div>
+            
+            <div class="results" id="results" style="display: none;">
+                <h2>Quiz Completed!</h2>
+                <p>Your final score: <span id="final-score">0</span> / 5</p>
+                <p class="high-score">High Score: <span id="high-score">0</span></p>
+                <button class="btn btn-primary" id="restart-quiz">Restart Quiz</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Game state management
+        const gameState = {
+            currentSection: null,
+            quiz: {
+                currentQuestion: 0,
+                score: 0,
+                questions: [
+                    {
+                        question: "Which Paris landmark was originally built as a triumphal arch for Napoleon's armies?",
+                        options: ["Eiffel Tower", "Arc de Triomphe", "Louvre Pyramid", "Notre-Dame Cathedral"],
+                        answer: 1
+                    },
+                    {
+                        question: "What famous painting is housed in the Louvre Museum?",
+                        options: ["The Starry Night", "The Scream", "Mona Lisa", "The Persistence of Memory"],
+                        answer: 2
+                    },
+                    {
+                        question: "In which century was the Eiffel Tower constructed?",
+                        options: ["17th Century", "18th Century", "19th Century", "20th Century"],
+                        answer: 2
+                    },
+                    {
+                        question: "Which historical event significantly damaged Notre-Dame Cathedral in 2019?",
+                        options: ["Earthquake", "Flood", "Fire", "Revolution"],
+                        answer: 2
+                    },
+                    {
+                        question: "What river flows through the center of Paris?",
+                        options: ["Thames", "Seine", "Rhine", "Loire"],
+                        answer: 1
+                    }
+                ]
+            },
+            highScore: localStorage.getItem('parisQuizHighScore') || 0
+        };
+
+        // DOM Elements
+        const sections = {
+            map: document.getElementById('map-section'),
+            timeline: document.getElementById('timeline-section'),
+            quiz: document.getElementById('quiz-section')
+        };
+
+        const menuButtons = document.querySelectorAll('.menu .btn');
+        const backButtons = document.querySelectorAll('[id^="back-to-menu"]');
+        const landmarks = document.querySelectorAll('.landmark');
+        const infoWindow = document.querySelector('.info-window');
+        const closeBtn = document.querySelector('.close-btn');
+        const eraElements = document.querySelectorAll('.era');
+        const eraDescription = document.querySelector('.era-description');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+        const scoreElement = document.getElementById('score');
+        const currentQElement = document.getElementById('current-q');
+        const progressFill = document.getElementById('quiz-progress');
+        const nextBtn = document.getElementById('next-btn');
+        const resultsDiv = document.getElementById('results');
+        const finalScore = document.getElementById('final-score');
+        const highScoreElement = document.getElementById('high-score');
+        const restartQuizBtn = document.getElementById('restart-quiz');
+
+        // Landmark information
+        const landmarkInfo = {
+            eiffel: {
+                title: "Eiffel Tower",
+                description: "Constructed in 1889 for the World's Fair, the Eiffel Tower stands 324 meters tall and was the world's tallest man-made structure for 41 years. Designed by Gustave Eiffel, it's become the global icon of Paris."
+            },
+            louvre: {
+                title: "Louvre Museum",
+                description: "The world's largest art museum, housing over 380,000 objects including the Mona Lisa and Venus de Milo. Originally a fortress in the 12th century, it became a public museum during the French Revolution."
+            },
+            "notre-dame": {
+                title: "Notre-Dame Cathedral",
+                description: "A masterpiece of French Gothic architecture begun in 1163 and completed in 1345. Known for its flying buttresses, gargoyles, and rose windows. The cathedral survived the French Revolution and a major fire in 2019."
+            },
+            arc: {
+                title: "Arc de Triomphe",
+                description: "Commissioned by Napoleon in 1806 to honor his imperial armies, this 50-meter tall triumphal arch stands at the western end of the Champs-Élysées. Beneath it lies the Tomb of the Unknown Soldier from WWI."
+            }
+        };
+
+        // Era information
+        const eraInfo = {
+            medieval: "During the medieval period, Paris grew around the Île de la Cité. Key developments included the construction of Notre-Dame Cathedral (1163-1345) and the founding of the University of Paris (1150). The city was protected by walls built by Philip II Augustus.",
+            renaissance: "The Renaissance brought cultural flourishing to Paris. Francis I moved the royal residence to the Louvre and brought Leonardo da Vinci to France. The Pont Neuf, Paris's oldest standing bridge, was constructed during this period (1578-1607).",
+            enlightenment: "The Age of Enlightenment saw Paris become Europe's intellectual capital. Salons hosted by influential women facilitated philosophical discussions. Major projects included the Panthéon (1758) and Place de la Concorde (1755). The French Revolution began in Paris in 1789.",
+            modern: "Modern Paris was shaped by Baron Haussmann's 19th-century renovation, creating wide boulevards. Iconic structures like the Eiffel Tower (1889) and Sacré-Cœur (1914) were built. In the 20th century, landmarks like the Pompidou Center (1977) added contemporary architecture."
+        };
+
+        // Initialize game
+        function initGame() {
+            // Menu button event listeners
+            menuButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const section = button.dataset.section;
+                    showSection(section);
+                });
+            });
+            
+            // Back button event listeners
+            backButtons.forEach(button => {
+                button.addEventListener('click', showMenu);
+            });
+            
+            // Landmark event listeners
+            landmarks.forEach(landmark => {
+                landmark.addEventListener('click', (e) => {
+                    const landmarkId = e.target.dataset.landmark;
+                    showLandmarkInfo(landmarkId, e.clientX, e.clientY);
+                });
+            });
+            
+            // Close info window
+            closeBtn.addEventListener('click', () => {
+                infoWindow.style.display = 'none';
+            });
+            
+            // Era event listeners
+            eraElements.forEach(era => {
+                era.addEventListener('click', () => {
+                    const eraId = era.dataset.era;
+                    showEraInfo(eraId);
+                });
+            });
+            
+            // Quiz event listeners
+            nextBtn.addEventListener('click', nextQuestion);
+            restartQuizBtn.addEventListener('click', restartQuiz);
+            
+            // Initialize high score display
+            highScoreElement.textContent = gameState.highScore;
+        }
+        
+        // Show selected section
+        function showSection(sectionId) {
+            // Hide all sections
+            Object.values(sections).forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            sections[sectionId].classList.add('active');
+            
+            // Initialize quiz if needed
+            if (sectionId === 'quiz') {
+                resetQuiz();
+                loadQuestion();
+            }
+        }
+        
+        // Show menu
+        function showMenu() {
+            // Hide all sections
+            Object.values(sections).forEach(section => {
+                section.classList.remove('active');
+            });
+        }
+        
+        // Show landmark information
+        function showLandmarkInfo(landmarkId, x, y) {
+            const info = landmarkInfo[landmarkId];
+            const infoWindow = document.querySelector('.info-window');
+            
+            document.querySelector('.landmark-title').textContent = info.title;
+            document.querySelector('.landmark-description').textContent = info.description;
+            
+            // Position the info window near the landmark
+            infoWindow.style.left = `${x}px`;
+            infoWindow.style.top = `${y}px`;
+            infoWindow.style.display = 'block';
+        }
+        
+        // Show era information
+        function showEraInfo(eraId) {
+            eraDescription.textContent = eraInfo[eraId];
+        }
+        
+        // Quiz functions
+        function loadQuestion() {
+            const currentQ = gameState.quiz.currentQuestion;
+            const question = gameState.quiz.questions[currentQ];
+            
+            questionText.textContent = question.question;
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('option');
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+                
+                optionElement.addEventListener('click', () => {
+                    // Remove selection from other options
+                    document.querySelectorAll('.option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // Select this option
+                    optionElement.classList.add('selected');
+                    gameState.quiz.selectedAnswer = index;
+                });
+                
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            // Update progress
+            currentQElement.textContent = currentQ + 1;
+            const progress = ((currentQ) / gameState.quiz.questions.length) * 100;
+            progressFill.style.width = `${progress}%`;
+            
+            // Reset feedback
+            feedback.textContent = '';
+            nextBtn.disabled = true;
+        }
+        
+        function nextQuestion() {
+            const currentQ = gameState.quiz.currentQuestion;
+            const question = gameState.quiz.questions[currentQ];
+            
+            // Check if answer is selected
+            if (gameState.quiz.selectedAnswer === undefined) {
+                feedback.textContent = "Please select an answer";
+                feedback.style.color = "#FF69B4";
+                return;
+            }
+            
+            // Check if answer is correct
+            const isCorrect = gameState.quiz.selectedAnswer === question.answer;
+            
+            if (isCorrect) {
+                gameState.quiz.score++;
+                feedback.textContent = "Correct!";
+                feedback.style.color = "#008000";
+            } else {
+                feedback.textContent = `Incorrect. The correct answer is: ${question.options[question.answer]}`;
+                feedback.style.color = "#FF69B4";
+            }
+            
+            // Update score display
+            scoreElement.textContent = gameState.quiz.score;
+            
+            // Move to next question or show results
+            gameState.quiz.currentQuestion++;
+            
+            if (gameState.quiz.currentQuestion < gameState.quiz.questions.length) {
+                setTimeout(() => {
+                    gameState.quiz.selectedAnswer = undefined;
+                    loadQuestion();
+                }, 1500);
+            } else {
+                setTimeout(showResults, 1500);
+            }
+            
+            nextBtn.disabled = true;
+        }
+        
+        function showResults() {
+            document.querySelector('.quiz-container').style.display = 'none';
+            document.querySelector('.score-container').style.display = 'none';
+            document.querySelector('.nav-buttons').style.display = 'none';
+            
+            finalScore.textContent = gameState.quiz.score;
+            
+            // Update high score if needed
+            if (gameState.quiz.score > gameState.highScore) {
+                gameState.highScore = gameState.quiz.score;
+                localStorage.setItem('parisQuizHighScore', gameState.highScore);
+                highScoreElement.textContent = gameState.highScore;
+            }
+            
+            resultsDiv.style.display = 'block';
+        }
+        
+        function resetQuiz() {
+            gameState.quiz.currentQuestion = 0;
+            gameState.quiz.score = 0;
+            gameState.quiz.selectedAnswer = undefined;
+            
+            document.querySelector('.quiz-container').style.display = 'block';
+            document.querySelector('.score-container').style.display = 'block';
+            document.querySelector('.nav-buttons').style.display = 'flex';
+            resultsDiv.style.display = 'none';
+            
+            scoreElement.textContent = '0';
+            progressFill.style.width = '0%';
+        }
+        
+        function restartQuiz() {
+            resetQuiz();
+            loadQuestion();
+        }
+        
+        // Initialize the game when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

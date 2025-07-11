@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Data Classifier</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 900px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .screen {
+            padding: 40px;
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        h2 {
+            color: #3498db;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        p {
+            color: #34495e;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .progress-bar {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 0 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-reject {
+            background-color: #e74c3c;
+        }
+
+        .btn-reject:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-approve {
+            background-color: #2ecc71;
+        }
+
+        .btn-approve:hover {
+            background-color: #27ae60;
+        }
+
+        .btn-next {
+            background-color: #9b59b6;
+            display: block;
+            margin: 30px auto 0;
+            padding: 12px 40px;
+        }
+
+        .btn-next:hover {
+            background-color: #8e44ad;
+        }
+
+        .data-container {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .data-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .data-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 7px 14px rgba(0,0,0,0.1);
+        }
+
+        .data-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .data-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #3498db;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .decision-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .feedback {
+            background-color: #e8f4fc;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+            display: none;
+        }
+
+        .feedback h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .score-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .score {
+            font-size: 48px;
+            font-weight: 700;
+            color: #3498db;
+            margin: 10px 0;
+        }
+
+        .completion-message {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .completion-message h2 {
+            color: #2ecc71;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .completion-message p {
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 12px;
+            }
+            
+            .screen {
+                padding: 25px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            h2 {
+                font-size: 20px;
+            }
+            
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .decision-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                width: 100%;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active">
+            <header>
+                <h1>Loan Data Classifier</h1>
+            </header>
+            
+            <div class="content">
+                <h2>Financial Decision Challenge</h2>
+                <p>Welcome to the Loan Data Classifier! In this interactive experience, you'll analyze loan applications using multi-dimensional financial data. Make smart decisions based on annual income, loan amount, and credit metrics.</p>
+                
+                <div class="data-container">
+                    <p><strong>Educational Objective:</strong> Understand how financial metrics interact in multi-dimensional space and how they influence loan approval decisions.</p>
+                </div>
+                
+                <p>You'll be presented with real-world financial scenarios. Your task is to approve or reject loan applications based on the provided data. Ready to test your financial analysis skills?</p>
+                
+                <button id="start-btn" class="btn">Start Challenge</button>
+            </div>
+        </div>
+
+        <!-- Challenge Screen -->
+        <div id="challenge-screen" class="screen">
+            <header>
+                <h1>Loan Application Analysis</h1>
+                <div class="progress-container">
+                    <span>Challenge <span id="current-challenge">1</span>/3</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="content">
+                <h2 id="scenario-title">Loan Application #1024</h2>
+                <p id="scenario-description">Review the applicant's financial metrics below. Based on lending criteria, decide whether to approve or reject this loan application.</p>
+                
+                <div class="data-container">
+                    <div class="data-grid">
+                        <div class="data-card">
+                            <h3>Annual Income</h3>
+                            <div class="data-value" id="income-value">$85,000</div>
+                            <p>Gross yearly earnings before taxes</p>
+                        </div>
+                        <div class="data-card">
+                            <h3>Loan Amount</h3>
+                            <div class="data-value" id="loan-value">$45,000</div>
+                            <p>Total amount requested</p>
+                        </div>
+                        <div class="data-card">
+                            <h3>Credit Score</h3>
+                            <div class="data-value" id="credit-value">720</div>
+                            <p>FICO credit rating</p>
+                        </div>
+                        <div class="data-card">
+                            <h3>Debt-to-Income</h3>
+                            <div class="data-value" id="dti-value">32%</div>
+                            <p>Monthly debt payments ÷ Gross income</p>
+                        </div>
+                    </div>
+                    
+                    <div class="decision-container">
+                        <button id="reject-btn" class="btn btn-reject">Reject Application</button>
+                        <button id="approve-btn" class="btn btn-approve">Approve Loan</button>
+                    </div>
+                </div>
+                
+                <div id="feedback" class="feedback">
+                    <h3>Analysis Result</h3>
+                    <p id="feedback-text">Based on our lending criteria, this application meets approval standards. The applicant's income comfortably supports the requested loan amount, and their credit score is in the good range.</p>
+                </div>
+                
+                <button id="next-btn" class="btn btn-next">Next Application</button>
+            </div>
+        </div>
+
+        <!-- Completion Screen -->
+        <div id="completion-screen" class="screen">
+            <header>
+                <h1>Challenge Complete!</h1>
+            </header>
+            
+            <div class="content">
+                <div class="completion-message">
+                    <h2>Congratulations!</h2>
+                    <p>You've successfully analyzed multiple loan applications using multi-dimensional financial data. Your decisions demonstrate understanding of key financial metrics.</p>
+                    
+                    <div class="score-container">
+                        <p>Your Final Score</p>
+                        <div class="score" id="final-score">0</div>
+                        <p>out of 300 points</p>
+                    </div>
+                    
+                    <p>Financial data analysis requires considering multiple dimensions simultaneously. You've shown how metrics like income, loan amount, and credit score interact in decision-making.</p>
+                    
+                    <div class="nav-buttons">
+                        <button id="restart-btn" class="btn">Play Again</button>
+                        <button id="review-btn" class="btn">Review Decisions</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentScreen: 'start',
+            currentChallenge: 1,
+            totalChallenges: 3,
+            score: 0,
+            decisions: []
+        };
+
+        // Financial scenarios data
+        const scenarios = [
+            {
+                title: "Loan Application #1024",
+                description: "Review the applicant's financial metrics below. Based on lending criteria, decide whether to approve or reject this loan application.",
+                income: "$85,000",
+                loan: "$45,000",
+                credit: "720",
+                dti: "32%",
+                correctDecision: "approve",
+                feedback: "Based on our lending criteria, this application meets approval standards. The applicant's income comfortably supports the requested loan amount, and their credit score is in the good range."
+            },
+            {
+                title: "Loan Application #2048",
+                description: "Evaluate this small business loan request. Consider the applicant's financial health across multiple dimensions.",
+                income: "$62,000",
+                loan: "$75,000",
+                credit: "680",
+                dti: "45%",
+                correctDecision: "reject",
+                feedback: "This application should be rejected due to the high debt-to-income ratio and the loan amount exceeding annual income. The credit score is borderline, but the overall risk is too high."
+            },
+            {
+                title: "Loan Application #3096",
+                description: "Analyze this mortgage application. Multiple financial dimensions must be considered together for a sound decision.",
+                income: "$120,000",
+                loan: "$350,000",
+                credit: "760",
+                dti: "38%",
+                correctDecision: "approve",
+                feedback: "Approval is recommended despite the high loan amount. The applicant has strong income, excellent credit, and a manageable debt-to-income ratio for this mortgage."
+            }
+        ];
+
+        // DOM Elements
+        const startScreen = document.getElementById('start-screen');
+        const challengeScreen = document.getElementById('challenge-screen');
+        const completionScreen = document.getElementById('completion-screen');
+        const startBtn = document.getElementById('start-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const approveBtn = document.getElementById('approve-btn');
+        const rejectBtn = document.getElementById('reject-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const reviewBtn = document.getElementById('review-btn');
+        const currentChallengeEl = document.getElementById('current-challenge');
+        const progressFill = document.getElementById('progress-fill');
+        const scenarioTitle = document.getElementById('scenario-title');
+        const scenarioDesc = document.getElementById('scenario-description');
+        const incomeValue = document.getElementById('income-value');
+        const loanValue = document.getElementById('loan-value');
+        const creditValue = document.getElementById('credit-value');
+        const dtiValue = document.getElementById('dti-value');
+        const feedback = document.getElementById('feedback');
+        const feedbackText = document.getElementById('feedback-text');
+        const finalScore = document.getElementById('final-score');
+
+        // Initialize game
+        function initGame() {
+            startBtn.addEventListener('click', showChallengeScreen);
+            nextBtn.addEventListener('click', nextChallenge);
+            approveBtn.addEventListener('click', () => makeDecision('approve'));
+            rejectBtn.addEventListener('click', () => makeDecision('reject'));
+            restartBtn.addEventListener('click', restartGame);
+            reviewBtn.addEventListener('click', () => showChallengeScreen(0));
+        }
+
+        // Show challenge screen
+        function showChallengeScreen() {
+            startScreen.classList.remove('active');
+            challengeScreen.classList.add('active');
+            completionScreen.classList.remove('active');
+            gameState.currentScreen = 'challenge';
+            loadChallenge(0);
+        }
+
+        // Load challenge
+        function loadChallenge(index) {
+            const scenario = scenarios[index];
+            scenarioTitle.textContent = scenario.title;
+            scenarioDesc.textContent = scenario.description;
+            incomeValue.textContent = scenario.income;
+            loanValue.textContent = scenario.loan;
+            creditValue.textContent = scenario.credit;
+            dtiValue.textContent = scenario.dti;
+            
+            currentChallengeEl.textContent = index + 1;
+            const progressPercent = ((index + 1) / gameState.totalChallenges) * 100;
+            progressFill.style.width = `${progressPercent}%`;
+            
+            feedback.style.display = 'none';
+            nextBtn.disabled = true;
+            nextBtn.style.opacity = '0.5';
+            nextBtn.style.cursor = 'not-allowed';
+        }
+
+        // Make decision
+        function makeDecision(decision) {
+            const currentScenario = scenarios[gameState.currentChallenge - 1];
+            const isCorrect = decision === currentScenario.correctDecision;
+            
+            // Update score
+            if (isCorrect) {
+                gameState.score += 100;
+            }
+            
+            // Store decision
+            gameState.decisions.push({
+                scenario: gameState.currentChallenge,
+                decision: decision,
+                correct: isCorrect
+            });
+            
+            // Show feedback
+            feedbackText.textContent = currentScenario.feedback;
+            feedback.style.display = 'block';
+            
+            // Enable next button
+            nextBtn.disabled = false;
+            nextBtn.style.opacity = '1';
+            nextBtn.style.cursor = 'pointer';
+        }
+
+        // Next challenge
+        function nextChallenge() {
+            if (gameState.currentChallenge < gameState.totalChallenges) {
+                gameState.currentChallenge++;
+                loadChallenge(gameState.currentChallenge - 1);
+            } else {
+                showCompletionScreen();
+            }
+        }
+
+        // Show completion screen
+        function showCompletionScreen() {
+            challengeScreen.classList.remove('active');
+            completionScreen.classList.add('active');
+            finalScore.textContent = gameState.score;
+        }
+
+        // Restart game
+        function restartGame() {
+            gameState.currentChallenge = 1;
+            gameState.score = 0;
+            gameState.decisions = [];
+            showChallengeScreen();
+        }
+
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dance Studio Rhythm and Flow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: white;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .game-container {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .dance-floor {
+            position: relative;
+            height: 300px;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .beat-indicator {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background-color: #008080;
+            transform-origin: left;
+            transform: scaleX(0);
+        }
+        
+        .dance-target {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border: 3px dashed #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .dance-move {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: #2E8B57;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+        
+        .dance-move.highlight {
+            background-color: #FFC107;
+            transform: scale(1.2);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            background-color: #008080;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #006666;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #008080;
+        }
+        
+        .instructions {
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .level-dot {
+            width: 15px;
+            height: 15px;
+            background-color: #ccc;
+            border-radius: 50%;
+            margin: 0 5px;
+        }
+        
+        .level-dot.active {
+            background-color: #008080;
+        }
+        
+        .feedback {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            min-height: 30px;
+            margin-bottom: 20px;
+            color: #2E8B57;
+        }
+        
+        .game-over {
+            text-align: center;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .high-score {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #008080;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Dance Studio Rhythm and Flow</h1>
+        <p>Match the rhythm and hit the dance moves at the right time!</p>
+    </header>
+    
+    <main>
+        <div class="game-container">
+            <div class="dance-floor" id="danceFloor">
+                <div class="beat-indicator" id="beatIndicator"></div>
+                <div class="dance-target" id="danceTarget">BEAT</div>
+                <!-- Dance moves will be dynamically added here -->
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="controls">
+                <button id="startBtn">Start Dance</button>
+                <button id="restartBtn" disabled>Restart</button>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div>Score</div>
+                    <div class="stat-value" id="score">0</div>
+                </div>
+                <div class="stat-item">
+                    <div>Combo</div>
+                    <div class="stat-value" id="combo">1x</div>
+                </div>
+                <div class="stat-item">
+                    <div>Moves</div>
+                    <div class="stat-value" id="moves">0/10</div>
+                </div>
+            </div>
+            
+            <div class="level-indicator">
+                <div class="level-dot active" data-level="1"></div>
+                <div class="level-dot" data-level="2"></div>
+                <div class="level-dot" data-level="3"></div>
+            </div>
+            
+            <div class="instructions">
+                <h3>How to Play:</h3>
+                <p>Tap the dance moves when they reach the center target and match the beat rhythm. Each successful hit increases your combo multiplier!</p>
+            </div>
+        </div>
+        
+        <div class="game-over" id="gameOver">
+            <h2>Game Complete!</h2>
+            <div class="high-score">Final Score: <span id="finalScore">0</span></div>
+            <button id="playAgainBtn">Play Again</button>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game elements
+            const danceFloor = document.getElementById('danceFloor');
+            const beatIndicator = document.getElementById('beatIndicator');
+            const danceTarget = document.getElementById('danceTarget');
+            const startBtn = document.getElementById('startBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            const playAgainBtn = document.getElementById('playAgainBtn');
+            const scoreDisplay = document.getElementById('score');
+            const comboDisplay = document.getElementById('combo');
+            const movesDisplay = document.getElementById('moves');
+            const feedback = document.getElementById('feedback');
+            const gameOverScreen = document.getElementById('gameOver');
+            const finalScoreDisplay = document.getElementById('finalScore');
+            const levelDots = document.querySelectorAll('.level-dot');
+            
+            // Game state
+            let gameState = {
+                isPlaying: false,
+                score: 0,
+                combo: 1,
+                level: 1,
+                moves: 0,
+                totalMoves: 10,
+                beatInterval: null,
+                moveInterval: null,
+                activeMoves: [],
+                highScore: localStorage.getItem('danceHighScore') || 0
+            };
+            
+            // Dance moves
+            const danceMoves = ['↑', '→', '↓', '←'];
+            
+            // Initialize game
+            function initGame() {
+                gameState.isPlaying = false;
+                gameState.score = 0;
+                gameState.combo = 1;
+                gameState.moves = 0;
+                gameState.level = 1;
+                gameState.activeMoves = [];
+                
+                updateUI();
+                clearDanceFloor();
+                gameOverScreen.style.display = 'none';
+                startBtn.disabled = false;
+                restartBtn.disabled = true;
+                feedback.textContent = '';
+                
+                // Set active level indicator
+                levelDots.forEach(dot => {
+                    dot.classList.toggle('active', dot.dataset.level == gameState.level);
+                });
+            }
+            
+            // Start the game
+            function startGame() {
+                if (gameState.isPlaying) return;
+                
+                gameState.isPlaying = true;
+                startBtn.disabled = true;
+                restartBtn.disabled = false;
+                feedback.textContent = 'Feel the rhythm!';
+                
+                // Start beat indicator
+                startBeat();
+                
+                // Start generating dance moves
+                generateDanceMoves();
+            }
+            
+            // Start the beat rhythm
+            function startBeat() {
+                let beatProgress = 0;
+                let beatDirection = 1;
+                const beatSpeed = 0.02;
+                
+                gameState.beatInterval = setInterval(() => {
+                    beatProgress += beatSpeed * beatDirection;
+                    
+                    if (beatProgress >= 1) {
+                        beatDirection = -1;
+                    } else if (beatProgress <= 0) {
+                        beatDirection = 1;
+                    }
+                    
+                    beatIndicator.style.transform = `scaleX(${beatProgress})`;
+                }, 50);
+            }
+            
+            // Generate dance moves
+            function generateDanceMoves() {
+                const moveDelay = 1500 - (gameState.level * 300); // Faster at higher levels
+                
+                gameState.moveInterval = setInterval(() => {
+                    if (gameState.moves >= gameState.totalMoves) {
+                        completeLevel();
+                        return;
+                    }
+                    
+                    createDanceMove();
+                    gameState.moves++;
+                    updateUI();
+                }, moveDelay);
+            }
+            
+            // Create a dance move element
+            function createDanceMove() {
+                const move = document.createElement('div');
+                move.className = 'dance-move';
+                move.textContent = danceMoves[Math.floor(Math.random() * danceMoves.length)];
+                
+                // Random starting position around the dance floor
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.min(danceFloor.offsetWidth, danceFloor.offsetHeight) * 0.4;
+                const centerX = danceFloor.offsetWidth / 2;
+                const centerY = danceFloor.offsetHeight / 2;
+                
+                const startX = centerX + Math.cos(angle) * radius;
+                const startY = centerY + Math.sin(angle) * radius;
+                
+                move.style.left = `${startX}px`;
+                move.style.top = `${startY}px`;
+                
+                // Add click/tap event
+                move.addEventListener('click', () => handleMoveClick(move));
+                
+                danceFloor.appendChild(move);
+                gameState.activeMoves.push({
+                    element: move,
+                    x: startX,
+                    y: startY,
+                    targetX: centerX,
+                    targetY: centerY,
+                    speed: 1 + (gameState.level * 0.3) // Faster at higher levels
+                });
+            }
+            
+            // Handle dance move click
+            function handleMoveClick(move) {
+                const targetRect = danceTarget.getBoundingClientRect();
+                const moveRect = move.getBoundingClientRect();
+                
+                // Calculate distance to target center
+                const dx = (moveRect.left + moveRect.width/2) - (targetRect.left + targetRect.width/2);
+                const dy = (moveRect.top + moveRect.height/2) - (targetRect.top + targetRect.height/2);
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                
+                // Scoring based on accuracy
+                if (distance < 40) { // Perfect
+                    gameState.score += 100 * gameState.combo;
+                    feedback.textContent = 'Perfect!';
+                    feedback.style.color = '#2E8B57';
+                    gameState.combo++;
+                } else if (distance < 80) { // Good
+                    gameState.score += 50 * gameState.combo;
+                    feedback.textContent = 'Good!';
+                    feedback.style.color = '#008080';
+                    gameState.combo = Math.max(1, gameState.combo - 0.5);
+                } else { // Miss
+                    feedback.textContent = 'Miss!';
+                    feedback.style.color = '#FF6B6B';
+                    gameState.combo = 1;
+                }
+                
+                // Remove move
+                move.remove();
+                gameState.activeMoves = gameState.activeMoves.filter(m => m.element !== move);
+                
+                updateUI();
+                
+                // Reset feedback after delay
+                setTimeout(() => {
+                    if (gameState.isPlaying) feedback.textContent = '';
+                }, 1000);
+            }
+            
+            // Update game UI
+            function updateUI() {
+                scoreDisplay.textContent = gameState.score;
+                comboDisplay.textContent = gameState.combo + 'x';
+                movesDisplay.textContent = `${gameState.moves}/${gameState.totalMoves}`;
+            }
+            
+            // Complete current level
+            function completeLevel() {
+                clearInterval(gameState.moveInterval);
+                
+                if (gameState.level < 3) {
+                    // Move to next level
+                    gameState.level++;
+                    gameState.moves = 0;
+                    
+                    // Update level indicator
+                    levelDots.forEach(dot => {
+                        dot.classList.toggle('active', dot.dataset.level == gameState.level);
+                    });
+                    
+                    feedback.textContent = `Level ${gameState.level}! More rhythm!`;
+                    
+                    // Start next level after delay
+                    setTimeout(() => {
+                        generateDanceMoves();
+                    }, 2000);
+                } else {
+                    // Game completed
+                    endGame();
+                }
+            }
+            
+            // End the game
+            function endGame() {
+                gameState.isPlaying = false;
+                clearInterval(gameState.beatInterval);
+                clearInterval(gameState.moveInterval);
+                
+                // Update high score
+                if (gameState.score > gameState.highScore) {
+                    gameState.highScore = gameState.score;
+                    localStorage.setItem('danceHighScore', gameState.highScore);
+                }
+                
+                // Show game over screen
+                finalScoreDisplay.textContent = gameState.score;
+                gameOverScreen.style.display = 'block';
+            }
+            
+            // Clear dance floor
+            function clearDanceFloor() {
+                while (danceFloor.children.length > 2) {
+                    danceFloor.removeChild(danceFloor.lastChild);
+                }
+                gameState.activeMoves = [];
+            }
+            
+            // Animation loop for moving dance elements
+            function animate() {
+                if (gameState.isPlaying) {
+                    gameState.activeMoves.forEach(move => {
+                        // Calculate direction to center
+                        const dx = move.targetX - move.x;
+                        const dy = move.targetY - move.y;
+                        const distance = Math.sqrt(dx*dx + dy*dy);
+                        
+                        if (distance > 5) {
+                            // Move toward center
+                            move.x += (dx / distance) * move.speed;
+                            move.y += (dy / distance) * move.speed;
+                            
+                            move.element.style.left = `${move.x}px`;
+                            move.element.style.top = `${move.y}px`;
+                            
+                            // Highlight when close to center
+                            const isClose = distance < 60;
+                            move.element.classList.toggle('highlight', isClose);
+                        } else {
+                            // Remove move when it reaches center
+                            move.element.remove();
+                            gameState.activeMoves = gameState.activeMoves.filter(m => m !== move);
+                            
+                            // Reset combo on miss
+                            gameState.combo = 1;
+                            feedback.textContent = 'Missed!';
+                            feedback.style.color = '#FF6B6B';
+                            updateUI();
+                            
+                            setTimeout(() => {
+                                if (gameState.isPlaying) feedback.textContent = '';
+                            }, 1000);
+                        }
+                    });
+                }
+                
+                requestAnimationFrame(animate);
+            }
+            
+            // Event listeners
+            startBtn.addEventListener('click', startGame);
+            restartBtn.addEventListener('click', initGame);
+            playAgainBtn.addEventListener('click', initGame);
+            
+            // Initialize and start animation
+            initGame();
+            animate();
+        });
+    </script>
+</body>
+</html>

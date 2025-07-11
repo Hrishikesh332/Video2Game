@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai Islands Unification Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .game-section {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #222222;
+            text-align: center;
+        }
+        
+        .map-container {
+            position: relative;
+            height: 500px;
+            background-color: #e8f4f8;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+            border: 1px solid #d0d0d0;
+        }
+        
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            background-color: #a0a0a0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 2px solid #808080;
+        }
+        
+        .island:hover {
+            transform: scale(1.05);
+            background-color: #888888;
+        }
+        
+        .island-info {
+            display: none;
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            padding: 20px;
+            width: 300px;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .timeline {
+            display: flex;
+            overflow-x: auto;
+            padding: 20px 0;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .timeline-item {
+            min-width: 200px;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: 1px solid #d0d0d0;
+        }
+        
+        .timeline-item:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .causeway {
+            position: absolute;
+            background-color: #c0c0c0;
+            z-index: 5;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .causeway:hover {
+            background-color: #a0a0a0;
+        }
+        
+        .construction-zone {
+            position: absolute;
+            background-color: rgba(192, 192, 192, 0.3);
+            border: 2px dashed #a0a0a0;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .construction-zone:hover {
+            background-color: rgba(160, 160, 160, 0.4);
+        }
+        
+        .info-panel {
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            background-color: #d0d0d0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #b0b0b0;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 0 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #a0a0a0;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .completed {
+            background-color: #707070 !important;
+        }
+        
+        .highlight {
+            animation: highlight 1.5s ease-in-out;
+        }
+        
+        @keyframes highlight {
+            0% { box-shadow: 0 0 0 0 rgba(128, 128, 128, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(128, 128, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(128, 128, 128, 0); }
+        }
+        
+        @media (max-width: 768px) {
+            .map-container {
+                height: 400px;
+            }
+            
+            .island {
+                font-size: 0.8rem;
+                padding: 5px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .map-container {
+                height: 300px;
+            }
+            
+            .timeline {
+                flex-direction: column;
+            }
+            
+            .timeline-item {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mumbai Islands Unification</h1>
+        <p>Explore how seven islands became India's financial capital</p>
+    </header>
+    
+    <main class="game-container">
+        <section class="game-section">
+            <h2>The Seven Islands of Mumbai</h2>
+            <div class="map-container" id="islandMap">
+                <!-- Islands will be positioned by JavaScript -->
+            </div>
+            <div class="info-panel" id="islandInfo">
+                <p>Click on any island to learn about its history and rulers</p>
+            </div>
+        </section>
+        
+        <section class="game-section">
+            <h2>Historical Timeline</h2>
+            <div class="timeline" id="timeline">
+                <!-- Timeline items will be added by JavaScript -->
+            </div>
+            <div class="info-panel" id="timelineInfo">
+                <p>Select a period to see which dynasties ruled the islands</p>
+            </div>
+        </section>
+        
+        <section class="game-section">
+            <h2>Land Reclamation Process</h2>
+            <div class="map-container" id="reclamationMap">
+                <!-- Reclamation elements will be added by JavaScript -->
+            </div>
+            <div class="info-panel" id="reclamationInfo">
+                <p>Connect the islands by building causeways to unify Mumbai</p>
+            </div>
+        </section>
+        
+        <div class="progress-container">
+            <span>Progress</span>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <button id="restartBtn">Restart</button>
+        </div>
+        
+        <div class="controls">
+            <button id="prevBtn">Previous</button>
+            <button id="nextBtn">Next</button>
+        </div>
+    </main>
+
+    <script>
+        // Game data
+        const islands = [
+            { id: 'bombay', name: 'Isle of Bombay', x: 20, y: 40, width: 120, height: 100, 
+              info: 'Original center of Mumbai. Ruled by Satavahanas (2nd century BC) and later by Western Satraps.' },
+            { id: 'mazagon', name: 'Mazagon', x: 25, y: 200, width: 90, height: 80, 
+              info: 'Controlled by Abhiras (3rd century CE) and later by Vakatakas.' },
+            { id: 'colaba', name: 'Colaba', x: 30, y: 320, width: 100, height: 90, 
+              info: 'Ruled by Kalachuris (5th century CE) before coming under Chalukya control.' },
+            { id: 'oldwoman', name: 'Old Woman’s Island', x: 180, y: 350, width: 70, height: 70, 
+              info: 'Small island controlled by various dynasties including Rashtrakutas (8th century CE).' },
+            { id: 'worli', name: 'Worli', x: 300, y: 150, width: 110, height: 90, 
+              info: 'Under Chalukya rule (6th century CE) and later Rashtrakutas.' },
+            { id: 'mahim', name: 'Mahim', x: 450, y: 100, width: 100, height: 100, 
+              info: 'Controlled by Rashtrakutas in the 9th century CE.' },
+            { id: 'parel', name: 'Parel', x: 400, y: 250, width: 120, height: 110, 
+              info: 'Ruled by Chalukyas before coming under Rashtrakuta control.' }
+        ];
+        
+        const timelineData = [
+            { period: '2nd Century BC', info: 'Satavahanas rule Bombay island' },
+            { period: '1st Century CE', info: 'Western Satraps control coastal islands' },
+            { period: '3rd Century CE', info: 'Abhiras dynasty rules Mazagon' },
+            { period: '4th Century CE', info: 'Vakatakas control multiple islands' },
+            { period: '5th Century CE', info: 'Kalachuris rule Colaba and southern islands' },
+            { period: '6th Century CE', info: 'Chalukyas expand control to Worli and Parel' },
+            { period: '8th Century CE', info: 'Rashtrakutas dominate all seven islands' }
+        ];
+        
+        const causeways = [
+            { id: 'duncan', name: 'Duncan Causeway', x1: 150, y1: 140, x2: 280, y2: 150, width: 130, height: 20, built: false },
+            { id: 'colabaCauseway', name: 'Colaba Causeway', x1: 130, y1: 320, x2: 180, y2: 350, width: 50, height: 30, built: false },
+            { id: 'mahimCauseway', name: 'Mahim Causeway', x1: 350, y1: 150, x2: 450, y2: 150, width: 100, height: 20, built: false }
+        ];
+        
+        // Game state
+        let currentStep = 0;
+        let progress = 0;
+        const totalSteps = 3;
+        let completedCauseways = 0;
+        
+        // DOM elements
+        const islandMap = document.getElementById('islandMap');
+        const reclamationMap = document.getElementById('reclamationMap');
+        const timeline = document.getElementById('timeline');
+        const islandInfo = document.getElementById('islandInfo');
+        const timelineInfo = document.getElementById('timelineInfo');
+        const reclamationInfo = document.getElementById('reclamationInfo');
+        const progressFill = document.getElementById('progressFill');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        
+        // Initialize the game
+        function initGame() {
+            createIslands();
+            createTimeline();
+            createReclamationMap();
+            updateProgress();
+            updateNavigation();
+        }
+        
+        // Create island elements
+        function createIslands() {
+            islands.forEach(island => {
+                const islandEl = document.createElement('div');
+                islandEl.className = 'island';
+                islandEl.id = island.id;
+                islandEl.style.left = `${island.x}px`;
+                islandEl.style.top = `${island.y}px`;
+                islandEl.style.width = `${island.width}px`;
+                islandEl.style.height = `${island.height}px`;
+                islandEl.innerHTML = island.name;
+                
+                islandEl.addEventListener('click', () => {
+                    islandInfo.innerHTML = `<h3>${island.name}</h3><p>${island.info}</p>`;
+                    islandEl.classList.add('highlight');
+                    setTimeout(() => islandEl.classList.remove('highlight'), 1500);
+                    
+                    // Mark as visited
+                    if (!islandEl.classList.contains('completed')) {
+                        islandEl.classList.add('completed');
+                        updateProgress(10);
+                    }
+                });
+                
+                islandMap.appendChild(islandEl);
+            });
+        }
+        
+        // Create timeline elements
+        function createTimeline() {
+            timelineData.forEach((item, index) => {
+                const timelineItem = document.createElement('div');
+                timelineItem.className = 'timeline-item';
+                timelineItem.innerHTML = `<h3>${item.period}</h3>`;
+                
+                timelineItem.addEventListener('click', () => {
+                    timelineInfo.innerHTML = `<h3>${item.period}</h3><p>${item.info}</p>`;
+                    timelineItem.classList.add('highlight');
+                    setTimeout(() => timelineItem.classList.remove('highlight'), 1500);
+                    
+                    // Mark as visited
+                    if (!timelineItem.classList.contains('completed')) {
+                        timelineItem.classList.add('completed');
+                        updateProgress(10);
+                    }
+                });
+                
+                timeline.appendChild(timelineItem);
+            });
+        }
+        
+        // Create reclamation map
+        function createReclamationMap() {
+            // Add islands
+            islands.forEach(island => {
+                const islandEl = document.createElement('div');
+                islandEl.className = 'island completed';
+                islandEl.style.left = `${island.x}px`;
+                islandEl.style.top = `${island.y}px`;
+                islandEl.style.width = `${island.width}px`;
+                islandEl.style.height = `${island.height}px`;
+                islandEl.innerHTML = island.name;
+                reclamationMap.appendChild(islandEl);
+            });
+            
+            // Add causeway construction zones
+            causeways.forEach(causeway => {
+                const zone = document.createElement('div');
+                zone.className = 'construction-zone';
+                zone.style.left = `${Math.min(causeway.x1, causeway.x2)}px`;
+                zone.style.top = `${Math.min(causeway.y1, causeway.y2)}px`;
+                zone.style.width = `${causeway.width}px`;
+                zone.style.height = `${causeway.height}px`;
+                
+                zone.addEventListener('click', () => {
+                    if (!causeway.built) {
+                        causeway.built = true;
+                        completedCauseways++;
+                        
+                        // Create the causeway
+                        const causewayEl = document.createElement('div');
+                        causewayEl.className = 'causeway completed';
+                        causewayEl.style.left = `${Math.min(causeway.x1, causeway.x2)}px`;
+                        causewayEl.style.top = `${Math.min(causeway.y1, causeway.y2)}px`;
+                        causewayEl.style.width = `${causeway.width}px`;
+                        causewayEl.style.height = `${causeway.height}px`;
+                        causewayEl.title = causeway.name;
+                        reclamationMap.appendChild(causewayEl);
+                        
+                        zone.style.display = 'none';
+                        
+                        // Update info
+                        reclamationInfo.innerHTML = `<h3>${causeway.name} Built!</h3>
+                            <p>This causeway connected important parts of Mumbai.</p>`;
+                        
+                        updateProgress(20);
+                        
+                        // Check if all causeways are built
+                        if (completedCauseways === causeways.length) {
+                            reclamationInfo.innerHTML += `<p>All causeways completed! Mumbai is now unified.</p>`;
+                        }
+                    }
+                });
+                
+                reclamationMap.appendChild(zone);
+            });
+            
+            // Add Hornby Vellard area
+            const hornbyVellard = document.createElement('div');
+            hornbyVellard.className = 'construction-zone';
+            hornbyVellard.style.left = '200px';
+            hornbyVellard.style.top = '400px';
+            hornbyVellard.style.width = '200px';
+            hornbyVellard.style.height = '30px';
+            hornbyVellard.title = 'Hornby Vellard Breakwater';
+            
+            hornbyVellard.addEventListener('click', () => {
+                reclamationInfo.innerHTML = `<h3>Hornby Vellard Project (1784)</h3>
+                    <p>This breakwater protected the harbor from strong waves, enabling further development.</p>
+                    <p>It was a crucial engineering project that facilitated Mumbai's growth as a major port city.</p>`;
+                hornbyVellard.classList.add('completed');
+                hornbyVellard.style.backgroundColor = 'rgba(160, 160, 160, 0.6)';
+                hornbyVellard.style.cursor = 'default';
+                updateProgress(20);
+            });
+            
+            reclamationMap.appendChild(hornbyVellard);
+        }
+        
+        // Update progress
+        function updateProgress(value = 0) {
+            if (value) {
+                progress = Math.min(100, progress + value);
+                progressFill.style.width = `${progress}%`;
+            }
+            
+            // Check if game is complete
+            if (progress >= 100) {
+                reclamationInfo.innerHTML = `<h3>Mumbai Unification Complete!</h3>
+                    <p>Through land reclamation projects between 1661-1845, the seven islands were connected to form modern Mumbai.</p>
+                    <p>This transformation enabled Mumbai to become India's financial capital and a major metropolitan area.</p>`;
+            }
+        }
+        
+        // Navigation functions
+        function updateNavigation() {
+            prevBtn.disabled = currentStep === 0;
+            nextBtn.disabled = currentStep === totalSteps - 1;
+        }
+        
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 0) {
+                currentStep--;
+                updateNavigation();
+            }
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < totalSteps - 1) {
+                currentStep++;
+                updateNavigation();
+            }
+        });
+        
+        restartBtn.addEventListener('click', () => {
+            // Reset game state
+            currentStep = 0;
+            progress = 0;
+            completedCauseways = 0;
+            
+            // Reset UI
+            progressFill.style.width = '0%';
+            islandInfo.innerHTML = '<p>Click on any island to learn about its history and rulers</p>';
+            timelineInfo.innerHTML = '<p>Select a period to see which dynasties ruled the islands</p>';
+            reclamationInfo.innerHTML = '<p>Connect the islands by building causeways to unify Mumbai</p>';
+            
+            // Reset islands
+            document.querySelectorAll('.island').forEach(island => {
+                island.classList.remove('completed', 'highlight');
+            });
+            
+            // Reset timeline
+            document.querySelectorAll('.timeline-item').forEach(item => {
+                item.classList.remove('completed', 'highlight');
+            });
+            
+            // Reset reclamation map
+            reclamationMap.innerHTML = '';
+            createReclamationMap();
+            
+            updateNavigation();
+        });
+        
+        // Initialize the game when page loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>

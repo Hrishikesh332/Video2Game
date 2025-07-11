@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morning Stretch Routine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        #app {
+            width: 100%;
+            max-width: 600px;
+            background-color: #f8f8f8;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .screen {
+            padding: 30px;
+            display: none;
+            flex-direction: column;
+            min-height: 500px;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #222222;
+        }
+        
+        h2 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: #222222;
+        }
+        
+        p {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+            height: 12px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #4a4a4a;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .pose-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+            height: 200px;
+        }
+        
+        .pose {
+            width: 150px;
+            height: 150px;
+            background-color: #e9e9e9;
+            border-radius: 50%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .pose-figure {
+            position: relative;
+            width: 80px;
+            height: 120px;
+        }
+        
+        .head {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            background-color: #333;
+            border-radius: 50%;
+        }
+        
+        .body {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 50px;
+            background-color: #333;
+        }
+        
+        .arm {
+            position: absolute;
+            width: 40px;
+            height: 8px;
+            background-color: #333;
+            top: 40px;
+        }
+        
+        .arm.left {
+            left: -20px;
+            transform-origin: right center;
+        }
+        
+        .arm.right {
+            right: -20px;
+            transform-origin: left center;
+        }
+        
+        .leg {
+            position: absolute;
+            width: 8px;
+            height: 40px;
+            background-color: #333;
+            top: 80px;
+        }
+        
+        .leg.left {
+            left: 35px;
+        }
+        
+        .leg.right {
+            right: 35px;
+        }
+        
+        .timer {
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            color: #333;
+        }
+        
+        .breathing-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            transition: all 1.5s ease;
+        }
+        
+        .instructions {
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 30px;
+            background-color: #4a4a4a;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            background-color: #333;
+        }
+        
+        button.secondary {
+            background-color: #b0b0b0;
+        }
+        
+        button.secondary:hover {
+            background-color: #999;
+        }
+        
+        .step-indicator {
+            text-align: center;
+            margin: 10px 0;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .motivation {
+            text-align: center;
+            font-style: italic;
+            margin: 15px 0;
+            color: #555;
+        }
+        
+        .completion-screen {
+            text-align: center;
+        }
+        
+        .completion-screen h1 {
+            margin-bottom: 10px;
+        }
+        
+        .completion-screen p {
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 480px) {
+            .screen {
+                padding: 20px 15px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            h2 {
+                font-size: 20px;
+            }
+            
+            .pose {
+                width: 130px;
+                height: 130px;
+            }
+            
+            button {
+                padding: 10px 20px;
+                font-size: 14px;
+                min-width: 100px;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="screen active">
+            <h1>Morning Stretch Routine</h1>
+            <p>Start your day with this 3-minute stretching routine to energize your body and mind.</p>
+            <div class="pose-container">
+                <div class="pose">
+                    <div class="pose-figure">
+                        <div class="head"></div>
+                        <div class="body"></div>
+                        <div class="arm left" style="transform: rotate(45deg);"></div>
+                        <div class="arm right" style="transform: rotate(-45deg);"></div>
+                        <div class="leg left"></div>
+                        <div class="leg right"></div>
+                    </div>
+                </div>
+            </div>
+            <p>Follow along with Michelle's guided stretches to improve flexibility and mindfulness.</p>
+            <div class="controls">
+                <button id="start-btn">Begin Routine</button>
+            </div>
+        </div>
+        
+        <!-- Breathing Exercise Screen -->
+        <div id="breathing-screen" class="screen">
+            <h2>Breathing Exercise</h2>
+            <div class="step-indicator">Step 1 of 4</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="breath-progress"></div>
+            </div>
+            <div class="motivation">Focus on your breath to center yourself</div>
+            <div class="breathing-circle" id="breath-circle">Inhale</div>
+            <div class="instructions">Breathe deeply as the circle expands and contracts</div>
+            <div class="timer" id="breath-timer">0:30</div>
+            <div class="controls">
+                <button id="pause-btn" class="secondary">Pause</button>
+                <button id="next-btn1">Next</button>
+            </div>
+        </div>
+        
+        <!-- Arm Stretch Screen -->
+        <div id="arm-screen" class="screen">
+            <h2>Arm Stretch</h2>
+            <div class="step-indicator">Step 2 of 4</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="arm-progress"></div>
+            </div>
+            <div class="motivation">Feel the stretch through your shoulders and back</div>
+            <div class="pose-container">
+                <div class="pose">
+                    <div class="pose-figure">
+                        <div class="head"></div>
+                        <div class="body"></div>
+                        <div class="arm left" style="transform: rotate(135deg); top: 35px;"></div>
+                        <div class="arm right" style="transform: rotate(-135deg); top: 35px;"></div>
+                        <div class="leg left"></div>
+                        <div class="leg right"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="instructions">Reach both arms straight up toward the ceiling</div>
+            <div class="timer" id="arm-timer">0:45</div>
+            <div class="controls">
+                <button id="pause-btn2" class="secondary">Pause</button>
+                <button id="next-btn2">Next</button>
+            </div>
+        </div>
+        
+        <!-- Elbow Rotation Screen -->
+        <div id="elbow-screen" class="screen">
+            <h2>Elbow Rotations</h2>
+            <div class="step-indicator">Step 3 of 4</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="elbow-progress"></div>
+            </div>
+            <div class="motivation">Keep movements slow and controlled</div>
+            <div class="pose-container">
+                <div class="pose">
+                    <div class="pose-figure">
+                        <div class="head"></div>
+                        <div class="body"></div>
+                        <div class="arm left" style="transform: rotate(90deg); top: 45px; width: 30px;"></div>
+                        <div class="arm right" style="transform: rotate(-90deg); top: 45px; width: 30px;"></div>
+                        <div class="leg left"></div>
+                        <div class="leg right"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="instructions">Rotate elbows in large circles, forward and backward</div>
+            <div class="timer" id="elbow-timer">0:45</div>
+            <div class="controls">
+                <button id="pause-btn3" class="secondary">Pause</button>
+                <button id="next-btn3">Next</button>
+            </div>
+        </div>
+        
+        <!-- Torso Twist Screen -->
+        <div id="torso-screen" class="screen">
+            <h2>Torso Twists</h2>
+            <div class="step-indicator">Step 4 of 4</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="torso-progress"></div>
+            </div>
+            <div class="motivation">Engage your core as you rotate</div>
+            <div class="pose-container">
+                <div class="pose">
+                    <div class="pose-figure" style="transform: rotate(-20deg);">
+                        <div class="head"></div>
+                        <div class="body"></div>
+                        <div class="arm left" style="transform: rotate(30deg);"></div>
+                        <div class="arm right" style="transform: rotate(-30deg);"></div>
+                        <div class="leg left"></div>
+                        <div class="leg right"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="instructions">Gently twist your upper body from side to side</div>
+            <div class="timer" id="torso-timer">0:45</div>
+            <div class="controls">
+                <button id="pause-btn4" class="secondary">Pause</button>
+                <button id="next-btn4">Complete</button>
+            </div>
+        </div>
+        
+        <!-- Completion Screen -->
+        <div id="completion-screen" class="screen">
+            <div class="completion-screen">
+                <h1>Great Job!</h1>
+                <p>You've completed the Morning Stretch Routine.</p>
+                <div class="pose-container">
+                    <div class="pose">
+                        <div class="pose-figure">
+                            <div class="head"></div>
+                            <div class="body"></div>
+                            <div class="arm left" style="transform: rotate(45deg);"></div>
+                            <div class="arm right" style="transform: rotate(-45deg);"></div>
+                            <div class="leg left"></div>
+                            <div class="leg right"></div>
+                        </div>
+                    </div>
+                </div>
+                <p>Take this energy with you throughout your day!</p>
+                <div class="controls">
+                    <button id="restart-btn">Restart Routine</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const screens = {
+            welcome: document.getElementById('welcome-screen'),
+            breathing: document.getElementById('breathing-screen'),
+            arm: document.getElementById('arm-screen'),
+            elbow: document.getElementById('elbow-screen'),
+            torso: document.getElementById('torso-screen'),
+            completion: document.getElementById('completion-screen')
+        };
+        
+        const progressBars = {
+            breath: document.getElementById('breath-progress'),
+            arm: document.getElementById('arm-progress'),
+            elbow: document.getElementById('elbow-progress'),
+            torso: document.getElementById('torso-progress')
+        };
+        
+        const timers = {
+            breath: document.getElementById('breath-timer'),
+            arm: document.getElementById('arm-timer'),
+            elbow: document.getElementById('elbow-timer'),
+            torso: document.getElementById('torso-timer')
+        };
+        
+        const breathCircle = document.getElementById('breath-circle');
+        const startBtn = document.getElementById('start-btn');
+        const nextBtns = {
+            step1: document.getElementById('next-btn1'),
+            step2: document.getElementById('next-btn2'),
+            step3: document.getElementById('next-btn3'),
+            step4: document.getElementById('next-btn4')
+        };
+        
+        const pauseBtns = {
+            step1: document.getElementById('pause-btn'),
+            step2: document.getElementById('pause-btn2'),
+            step3: document.getElementById('pause-btn3'),
+            step4: document.getElementById('pause-btn4')
+        };
+        
+        const restartBtn = document.getElementById('restart-btn');
+        
+        // State variables
+        let currentScreen = 'welcome';
+        let timersActive = {
+            breath: false,
+            arm: false,
+            elbow: false,
+            torso: false
+        };
+        let timerIntervals = {};
+        let timerValues = {
+            breath: 30,
+            arm: 45,
+            elbow: 45,
+            torso: 45
+        };
+        let isBreathingIn = true;
+        let breathingInterval;
+        
+        // Initialize progress bars
+        progressBars.breath.style.width = '0%';
+        progressBars.arm.style.width = '0%';
+        progressBars.elbow.style.width = '0%';
+        progressBars.torso.style.width = '0%';
+        
+        // Switch between screens
+        function showScreen(screenName) {
+            screens[currentScreen].classList.remove('active');
+            screens[screenName].classList.add('active');
+            currentScreen = screenName;
+            
+            // Start appropriate timer when screen is shown
+            if (screenName === 'breathing') {
+                startBreathingExercise();
+            } else if (screenName === 'arm') {
+                startTimer('arm');
+            } else if (screenName === 'elbow') {
+                startTimer('elbow');
+            } else if (screenName === 'torso') {
+                startTimer('torso');
+            }
+        }
+        
+        // Breathing exercise logic
+        function startBreathingExercise() {
+            timersActive.breath = true;
+            breathCircle.textContent = 'Inhale';
+            breathCircle.style.backgroundColor = '#d0e8f2';
+            breathCircle.style.transform = 'scale(1)';
+            isBreathingIn = true;
+            
+            // Start breathing animation
+            breathingInterval = setInterval(() => {
+                if (isBreathingIn) {
+                    breathCircle.textContent = 'Exhale';
+                    breathCircle.style.backgroundColor = '#e0e0e0';
+                    breathCircle.style.transform = 'scale(0.7)';
+                } else {
+                    breathCircle.textContent = 'Inhale';
+                    breathCircle.style.backgroundColor = '#d0e8f2';
+                    breathCircle.style.transform = 'scale(1)';
+                }
+                isBreathingIn = !isBreathingIn;
+            }, 3000);
+            
+            // Start countdown timer
+            startTimer('breath');
+        }
+        
+        // Timer logic
+        function startTimer(step) {
+            if (timerIntervals[step]) {
+                clearInterval(timerIntervals[step]);
+            }
+            
+            let timeLeft = timerValues[step];
+            updateTimerDisplay(step, timeLeft);
+            
+            timerIntervals[step] = setInterval(() => {
+                if (timersActive[step]) {
+                    timeLeft--;
+                    updateTimerDisplay(step, timeLeft);
+                    updateProgressBar(step, timeLeft);
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timerIntervals[step]);
+                        if (step === 'breath') {
+                            clearInterval(breathingInterval);
+                        }
+                    }
+                }
+            }, 1000);
+        }
+        
+        function updateTimerDisplay(step, timeLeft) {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timers[step].textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+        
+        function updateProgressBar(step, timeLeft) {
+            const totalTime = timerValues[step];
+            const percentage = ((totalTime - timeLeft) / totalTime) * 100;
+            progressBars[step].style.width = `${percentage}%`;
+        }
+        
+        function togglePause(step) {
+            timersActive[step] = !timersActive[step];
+            pauseBtns[`step${step === 'breath' ? 1 : step === 'arm' ? 2 : step === 'elbow' ? 3 : 4}`].textContent = 
+                timersActive[step] ? 'Pause' : 'Resume';
+        }
+        
+        // Event Listeners
+        startBtn.addEventListener('click', () => showScreen('breathing'));
+        
+        nextBtns.step1.addEventListener('click', () => showScreen('arm'));
+        nextBtns.step2.addEventListener('click', () => showScreen('elbow'));
+        nextBtns.step3.addEventListener('click', () => showScreen('torso'));
+        nextBtns.step4.addEventListener('click', () => showScreen('completion'));
+        
+        pauseBtns.step1.addEventListener('click', () => togglePause('breath'));
+        pauseBtns.step2.addEventListener('click', () => togglePause('arm'));
+        pauseBtns.step3.addEventListener('click', () => togglePause('elbow'));
+        pauseBtns.step4.addEventListener('click', () => togglePause('torso'));
+        
+        restartBtn.addEventListener('click', () => {
+            // Reset all timers and progress
+            Object.keys(timerIntervals).forEach(step => {
+                clearInterval(timerIntervals[step]);
+            });
+            
+            timerValues = {
+                breath: 30,
+                arm: 45,
+                elbow: 45,
+                torso: 45
+            };
+            
+            progressBars.breath.style.width = '0%';
+            progressBars.arm.style.width = '0%';
+            progressBars.elbow.style.width = '0%';
+            progressBars.torso.style.width = '0%';
+            
+            timersActive = {
+                breath: false,
+                arm: false,
+                elbow: false,
+                torso: false
+            };
+            
+            showScreen('welcome');
+        });
+    </script>
+</body>
+</html>

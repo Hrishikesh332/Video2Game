@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Financial Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 900px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .nav-buttons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .nav-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .content-area {
+            padding: 30px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 10px;
+        }
+
+        .visualization-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .pca-canvas-container {
+            flex: 1;
+            min-width: 300px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        canvas {
+            background: white;
+            border-radius: 8px;
+            width: 100%;
+            height: 300px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .controls {
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .dimension-control {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #e0e7ff;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .dimension-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .dim-btn {
+            flex: 1;
+            min-width: 120px;
+            background: #ecf0f1;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dim-btn:hover {
+            background: #d5dbdb;
+        }
+
+        .dim-btn.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .classification-area {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .classify-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .classify-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .low-risk {
+            background: #e8f6f3;
+            color: #1abc9c;
+        }
+
+        .low-risk:hover {
+            background: #d1f2eb;
+        }
+
+        .high-risk {
+            background: #fdedec;
+            color: #e74c3c;
+        }
+
+        .high-risk:hover {
+            background: #fadbd8;
+        }
+
+        .feedback {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
+        .success {
+            background: #d5f5e3;
+            color: #27ae60;
+        }
+
+        .error {
+            background: #fadbd8;
+            color: #c0392b;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 12px;
+            background: #ecf0f1;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #3498db;
+            border-radius: 6px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .score-container {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .score-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 10px 0;
+            color: #3498db;
+        }
+
+        .completion-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .completion-screen h2 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .completion-screen p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: #34495e;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .badge {
+            font-size: 5rem;
+            margin: 20px 0;
+            color: #f1c40f;
+        }
+
+        .final-score {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #3498db;
+            margin: 20px 0;
+        }
+
+        .restart-btn {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .restart-btn:hover {
+            background: #1a252f;
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .visualization-container {
+                flex-direction: column;
+            }
+            
+            .nav-buttons {
+                position: static;
+                justify-content: center;
+                margin-top: 15px;
+            }
+            
+            .dimension-buttons, .classify-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1>PCA Financial Explorer</h1>
+            <p class="subtitle">Analyze Loan Risk with Principal Component Analysis</p>
+            <div class="nav-buttons">
+                <button class="nav-btn" id="prevBtn" disabled>Previous</button>
+                <button class="nav-btn" id="nextBtn">Next</button>
+            </div>
+        </header>
+
+        <div class="content-area">
+            <!-- Introduction Screen -->
+            <div class="screen active" id="introScreen">
+                <div class="instructions">
+                    <h2>Welcome to PCA Financial Explorer!</h2>
+                    <p>In this game, you'll analyze loan applications using Principal Component Analysis (PCA). Your task is to classify loans as low or high risk by adjusting data dimensions and interpreting the PCA visualization.</p>
+                </div>
+                
+                <div class="visualization-container">
+                    <div class="pca-canvas-container">
+                        <canvas id="introCanvas"></canvas>
+                    </div>
+                    
+                    <div class="controls">
+                        <h3>How to Play:</h3>
+                        <ol style="padding-left: 20px; margin-top: 15px; display: flex; flex-direction: column; gap: 12px;">
+                            <li>Adjust data dimensions using the sliders</li>
+                            <li>Observe how PCA transforms the visualization</li>
+                            <li>Classify loans based on cluster positions</li>
+                            <li>Earn points for accurate risk assessment</li>
+                            <li>Complete all challenges to master PCA!</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 10%;"></div>
+                    </div>
+                    <span>Level 1 of 3</span>
+                </div>
+            </div>
+
+            <!-- Game Screen -->
+            <div class="screen" id="gameScreen">
+                <div class="instructions">
+                    <h2>Loan Risk Analysis Challenge</h2>
+                    <p>Adjust the data dimensions below and classify the highlighted loan application based on its position in the PCA visualization.</p>
+                </div>
+                
+                <div class="visualization-container">
+                    <div class="pca-canvas-container">
+                        <canvas id="pcaCanvas"></canvas>
+                    </div>
+                    
+                    <div class="controls">
+                        <div class="dimension-control">
+                            <h3>Adjust Data Dimensions</h3>
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>Income Level</span>
+                                    <span id="incomeValue">50%</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="50" class="slider" id="incomeSlider">
+                            </div>
+                            
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>Loan Amount</span>
+                                    <span id="loanValue">50%</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="50" class="slider" id="loanSlider">
+                            </div>
+                            
+                            <div class="slider-container">
+                                <div class="slider-label">
+                                    <span>Credit Score</span>
+                                    <span id="creditValue">50%</span>
+                                </div>
+                                <input type="range" min="0" max="100" value="50" class="slider" id="creditSlider">
+                            </div>
+                            
+                            <div class="dimension-buttons">
+                                <button class="dim-btn" id="addDimBtn">Add Dimension</button>
+                                <button class="dim-btn" id="resetDimBtn">Reset Dimensions</button>
+                            </div>
+                        </div>
+                        
+                        <div class="classification-area">
+                            <h3>Classify This Loan</h3>
+                            <p>Based on its position in the PCA plot, is this loan low risk or high risk?</p>
+                            <div class="classify-buttons">
+                                <button class="classify-btn low-risk" id="lowRiskBtn">Low Risk</button>
+                                <button class="classify-btn high-risk" id="highRiskBtn">High Risk</button>
+                            </div>
+                            <div class="feedback" id="feedback"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="score-container">
+                    <h3>Your Current Score</h3>
+                    <div class="score-value" id="scoreValue">250</div>
+                    <p>Points increase with accurate classifications</p>
+                </div>
+            </div>
+
+            <!-- Completion Screen -->
+            <div class="screen" id="completionScreen">
+                <div class="completion-screen">
+                    <div class="badge">🏆</div>
+                    <h2>PCA Master Unlocked!</h2>
+                    <p>Congratulations! You've successfully mastered Principal Component Analysis for financial risk assessment. Your ability to interpret multidimensional data and identify risk clusters is exceptional.</p>
+                    
+                    <div class="final-score" id="finalScore">850 Points</div>
+                    
+                    <p>You've demonstrated advanced skills in dimensionality reduction and financial data interpretation.</p>
+                    <button class="restart-btn" id="restartBtn">Play Again</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state management
+        const gameState = {
+            currentScreen: 0,
+            score: 250,
+            progress: 1,
+            maxProgress: 3,
+            dimensions: {
+                income: 50,
+                loan: 50,
+                credit: 50
+            },
+            currentChallenge: 1
+        };
+
+        // DOM elements
+        const screens = document.querySelectorAll('.screen');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const progressFill = document.getElementById('progressFill');
+        const scoreValue = document.getElementById('scoreValue');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        
+        // Dimension controls
+        const incomeSlider = document.getElementById('incomeSlider');
+        const loanSlider = document.getElementById('loanSlider');
+        const creditSlider = document.getElementById('creditSlider');
+        const incomeValue = document.getElementById('incomeValue');
+        const loanValue = document.getElementById('loanValue');
+        const creditValue = document.getElementById('creditValue');
+        const addDimBtn = document.getElementById('addDimBtn');
+        const resetDimBtn = document.getElementById('resetDimBtn');
+        
+        // Classification controls
+        const lowRiskBtn = document.getElementById('lowRiskBtn');
+        const highRiskBtn = document.getElementById('highRiskBtn');
+        const feedback = document.getElementById('feedback');
+        
+        // Canvas elements
+        const introCanvas = document.getElementById('introCanvas');
+        const pcaCanvas = document.getElementById('pcaCanvas');
+        const introCtx = introCanvas.getContext('2d');
+        const pcaCtx = pcaCanvas.getContext('2d');
+
+        // Initialize canvas sizes
+        function initCanvas() {
+            introCanvas.width = introCanvas.offsetWidth;
+            introCanvas.height = introCanvas.offsetHeight;
+            pcaCanvas.width = pcaCanvas.offsetWidth;
+            pcaCanvas.height = pcaCanvas.offsetHeight;
+            
+            drawIntroVisualization();
+            drawPCAVisualization();
+        }
+
+        // Draw introductory visualization
+        function drawIntroVisualization() {
+            const width = introCanvas.width;
+            const height = introCanvas.height;
+            
+            // Clear canvas
+            introCtx.clearRect(0, 0, width, height);
+            
+            // Draw grid
+            introCtx.strokeStyle = '#e0e7ff';
+            introCtx.lineWidth = 1;
+            
+            // Vertical lines
+            for (let x =
+    </script>
+</body>
+</html>

@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Principal Component Analysis Interactive App</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #e74c3c;
+            --accent: #f1c40f;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --mid: #bdc3c7;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: white;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background-color: var(--dark);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 20px;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .panel-title {
+            color: var(--dark);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--mid);
+        }
+        
+        .plot-container {
+            position: relative;
+            height: 400px;
+            background-color: #f0f2f5;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        button.secondary {
+            background-color: var(--mid);
+            color: var(--dark);
+        }
+        
+        button.secondary:hover {
+            background-color: #95a5a6;
+        }
+        
+        button.accent {
+            background-color: var(--accent);
+            color: var(--dark);
+        }
+        
+        button.accent:hover {
+            background-color: #f39c12;
+        }
+        
+        .explanation {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary);
+            margin: 15px 0;
+            font-size: 0.95rem;
+        }
+        
+        .pca-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f0f2f5;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .info-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .info-value {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+        
+        .vector {
+            stroke-width: 2;
+            stroke-linecap: round;
+        }
+        
+        .vector-label {
+            font-size: 12px;
+            font-weight: bold;
+            text-anchor: middle;
+        }
+        
+        .point {
+            fill: var(--primary);
+            stroke: white;
+            stroke-width: 1.5;
+            cursor: move;
+            transition: r 0.2s;
+        }
+        
+        .point:hover {
+            r: 6;
+            fill: var(--secondary);
+        }
+        
+        .mean-point {
+            fill: var(--secondary);
+            stroke: white;
+            stroke-width: 2;
+            r: 8;
+        }
+        
+        .pc1 {
+            stroke: var(--secondary);
+        }
+        
+        .pc2 {
+            stroke: var(--accent);
+        }
+        
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: #95a5a6;
+            shape-rendering: crispEdges;
+        }
+        
+        .axis text {
+            font-size: 11px;
+            fill: #7f8c8d;
+        }
+        
+        .grid line {
+            stroke: #e0e0e0;
+            stroke-opacity: 0.7;
+            shape-rendering: crispEdges;
+        }
+        
+        .grid path {
+            stroke-width: 0;
+        }
+        
+        .instructions {
+            background-color: #f0f2f5;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-size: 0.9rem;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid var(--mid);
+            background-color: #f8f9fa;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Principal Component Analysis Interactive</h1>
+            <p class="subtitle">Visualize how PCA transforms data by identifying directions of maximum variance</p>
+        </header>
+        
+        <div class="content">
+            <div class="panel">
+                <h2 class="panel-title">Original Data Space</h2>
+                
+                <div class="instructions">
+                    <h3>How to Interact:</h3>
+                    <ul>
+                        <li><strong>Add points</strong> by clicking anywhere in the plot area</li>
+                        <li><strong>Move points</strong> by dragging them to new positions</li>
+                        <li><strong>Remove points</strong> by double-clicking on them</li>
+                        <li>Click <strong>Perform PCA</strong> to calculate principal components</li>
+                    </ul>
+                </div>
+                
+                <div id="original-plot" class="plot-container"></div>
+                
+                <div class="controls">
+                    <button id="add-point">Add Random Point</button>
+                    <button id="perform-pca" class="accent">Perform PCA</button>
+                    <button id="reset" class="secondary">Reset All Points</button>
+                </div>
+                
+                <div class="explanation">
+                    <p><strong>Principal Component Analysis (PCA)</strong> is a dimensionality reduction technique that identifies the directions (principal components) in which the data varies the most. The first principal component (PC1) captures the most variance, followed by the second (PC2), and so on.</p>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2 class="panel-title">PCA Transformed Space</h2>
+                
+                <div class="instructions">
+                    <h3>Understanding the Transformation:</h3>
+                    <ul>
+                        <li>The new coordinate system is aligned with the principal components</li>
+                        <li>PC1 becomes the new x-axis (horizontal direction)</li>
+                        <li>PC2 becomes the new y-axis (vertical direction)</li>
+                        <li>The data is centered at the origin (mean point)</li>
+                    </ul>
+                </div>
+                
+                <div id="transformed-plot" class="plot-container"></div>
+                
+                <div class="pca-info">
+                    <div class="info-item">
+                        <div>Variance Explained</div>
+                        <div class="info-value" id="variance-pc1">0%</div>
+                        <div>(PC1)</div>
+                    </div>
+                    <div class="info-item">
+                        <div>Variance Explained</div>
+                        <div class="info-value" id="variance-pc2">0%</div>
+                        <div>(PC2)</div>
+                    </div>
+                    <div class="info-item">
+                        <div>Total Variance</div>
+                        <div class="info-value" id="total-variance">0%</div>
+                        <div>Explained</div>
+                    </div>
+                </div>
+                
+                <div class="explanation">
+                    <p>After PCA transformation, the data is represented in a new coordinate system where the axes are uncorrelated. This often reveals underlying patterns in the data and allows for dimensionality reduction by keeping only the most important components.</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Interactive PCA Visualization | Educational Tool for Understanding Dimensionality Reduction</p>
+        </footer>
+    </div>
+
+    <script>
+        // Configuration
+        const margin = {top: 40, right: 30, bottom: 50, left: 50};
+        const width = 500 - margin.left - margin.right;
+        const height = 350 - margin.top - margin.bottom;
+        const pointRadius = 5;
+        
+        // Data storage
+        let originalData = [];
+        let transformedData = [];
+        let pcaModel = null;
+        
+        // Initialize plots
+        const originalSvg = d3.select("#original-plot")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+        
+        const transformedSvg = d3.select("#transformed-plot")
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+        
+        // Scales
+        const xScale = d3.scaleLinear()
+            .domain([-10, 10])
+            .range([0, width]);
+        
+        const yScale = d3.scaleLinear()
+            .domain([-10, 10])
+            .range([height, 0]);
+        
+        // Create axes
+        const xAxis = d3.axisBottom(xScale).ticks(5);
+        const yAxis = d3.axisLeft(yScale).ticks(5);
+        
+        // Add grid
+        originalSvg.append("g")
+            .attr("class", "grid")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).tickSize(-height).tickFormat(""));
+        
+        originalSvg.append("g")
+            .attr("class", "grid")
+            .call(d3.axisLeft(yScale).tickSize(-width).tickFormat(""));
+        
+        transformedSvg.append("g")
+            .attr("class", "grid")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(xScale).tickSize(-height).tickFormat(""));
+        
+        transformedSvg.append("g")
+            .attr("class", "grid")
+            .call(d3.axisLeft(yScale).tickSize(-width).tickFormat(""));
+        
+        // Add axes
+        originalSvg.append("g")
+            .attr("class", "axis")
+            .attr("transform", `translate(0,${height})`)
+            .call(xAxis);
+        
+        originalSvg.append("g")
+            .attr("class", "axis")
+            .call(yAxis);
+        
+        transformedSvg.append("g")
+            .attr("class", "axis")
+            .attr("transform", `translate(0,${height})`)
+            .call(xAxis);
+        
+        transformedSvg.append("g")
+            .attr("class", "axis")
+            .call(yAxis);
+        
+        // Add axis labels
+        originalSvg.append("text")
+            .attr("class", "axis-label")
+            .attr("x", width / 2)
+            .attr("y", height + margin.bottom - 10)
+            .style("text-anchor", "middle")
+            .text("Feature 1");
+        
+        originalSvg.append("text")
+            .attr("class", "axis-label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2)
+            .attr("y", -margin.left + 15)
+            .style("text-anchor", "middle")
+            .text("Feature 2");
+        
+        transformedSvg.append("text")
+            .attr("class", "axis-label")
+            .attr("x", width / 2)
+            .attr("y", height + margin.bottom - 10)
+            .style("text-anchor", "middle")
+            .text("Principal Component 1 (PC1)");
+        
+        transformedSvg.append("text")
+            .attr("class", "axis-label")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -height / 2)
+            .attr("y", -margin.left + 15)
+            .style("text-anchor", "middle")
+            .text("Principal Component 2 (PC2)");
+        
+        // Add title
+        originalSvg.append("text")
+            .attr("x", width / 2)
+            .attr("y", -10)
+            .attr("text-anchor", "middle")
+            .style("font-size", "14px")
+            .style("font-weight", "bold")
+            .text("Original Data with Principal Components");
+        
+        transformedSvg.append("text")
+            .attr("x", width / 2)
+            .attr("y", -10)
+            .attr("text-anchor", "middle")
+            .style("font-size", "14px")
+            .style("font-weight", "bold")
+            .text("Data in PCA Space");
+        
+        // Draw mean point
+        const meanPoint = originalSvg.append("circle")
+            .attr("class", "mean-point")
+            .attr("cx", xScale(0))
+            .attr("cy", yScale(0))
+            .attr("r", 0)
+            .style("opacity", 0);
+        
+        // Draw PC vectors
+        const pc1Vector = originalSvg.append("line")
+            .attr("class", "vector pc1")
+            .attr("x1", xScale(0))
+            .attr("y1", yScale(0))
+            .attr("x2", xScale(0))
+            .attr("y2", yScale(0))
+            .style("opacity", 0);
+        
+        const pc2Vector = originalSvg.append("line")
+            .attr("class", "vector pc2")
+            .attr("x1", xScale(0))
+            .attr("y1", yScale(0))
+            .attr("x2", xScale(0))
+            .attr("y2", yScale(0))
+            .style("opacity", 0);
+        
+        // Add vector labels
+        const pc1Label = originalSvg.append("text")
+            .attr("class", "vector-label pc1")
+            .attr("x", xScale(0))
+            .attr("y", yScale(0))
+            .text("PC1")
+            .style("opacity", 0);
+        
+        const pc2Label = originalSvg.append("text")
+            .attr("class", "vector-label pc2")
+            .attr("x", xScale(0))
+            .attr("y", yScale(0))
+            .text("PC2")
+            .style("opacity", 0);
+        
+        // Function to calculate mean
+        function calculateMean(data) {
+            if (data.length === 0) return [0, 0];
+            
+            const sum = data.reduce((acc, point) => {
+                return [acc[0] + point[0], acc[1] + point[1]];
+            }, [0, 0]);
+            
+            return [sum[0] / data.length, sum[1] / data.length];
+        }
+        
+        // Function to center data
+        function centerData(data, mean) {
+            return data.map(point => [point[0] - mean[0], point[1] - mean[1]]);
+        }
+        
+        // Function to calculate covariance matrix
+        function calculateCovarianceMatrix(data) {
+            if (data.length < 2) return [[0, 0], [0, 0]];
+            
+            const n = data.length;
+            let covXX = 0;
+            let covXY = 0;
+            let covYY = 0;
+            
+            for (const point of data) {
+                covXX += point[0] * point[0];
+                covXY += point[0] * point[1];
+                covYY += point[1] * point[1];
+            }
+            
+            covXX /= (n - 1);
+            covXY /= (n - 1);
+            covYY /= (n - 1);
+            
+            return [
+                [covXX, covXY],
+                [covXY, covYY]
+            ];
+        }
+        
+        // Function to calculate eigenvalues and eigenvectors for 2x2 matrix
+        function eigenDecomposition2x2(matrix) {
+            const a = matrix[0][0];
+            const b = matrix[0][1];
+            const c = matrix[1][0];
+            const d = matrix[1][1];
+            
+            // Calculate eigenvalues
+            const trace = a + d;
+            const determinant = a * d - b * c;
+            const discriminant = Math.sqrt(trace * trace - 4 * determinant);
+            
+            const lambda1 = (trace + discriminant) / 2;
+            const lambda2 = (trace - discriminant) / 2;
+            
+            // Calculate eigenvectors
+            function eigenvectorForEigenvalue(lambda) {
+                // Solve (A - lambda*I) * v = 0
+                const m11 = a - lambda;
+                const m12 = b;
+                const m21 = c;
+                const m22 = d - lambda;
+                
+                // For 2x2 matrix, eigenvector is [-m12, m11] if m11 != 0
+                if (m11 !== 0 || m12 !== 0) {
+                    return [-m12, m11];
+                } else {
+                    return [-m22, m21];
+                }
+            }
+            
+            const v1 = eigenvectorForEigenvalue(lambda1);
+            const v2 = eigenvectorForEigenvalue(lambda2);
+            
+            // Normalize eigenvectors
+            const norm1 = Math.sqrt(v1[0] * v1[0] + v1[1] * v1[1]);
+            const norm2 = Math.sqrt(v2[0] * v2[0] + v2[1] * v2[1]);
+            
+            const e1 = [v1[0] / norm1, v1[1] / norm1];
+            const e2 = [v2[0] / norm2, v2[1] / norm2];
+            
+            return {
+                eigenvalues: [lambda1, lambda2],
+                eigenvectors: [e1, e2]
+            };
+        }
+        
+        // Function to perform PCA
+        function performPCA() {
+            if (originalData.length < 2) {
+                alert("Please add at least 2 data points to perform PCA");
+                return;
+            }
+            
+            // Calculate mean
+            const mean = calculateMean(originalData);
+            
+            // Center data
+            const centeredData = centerData(originalData, mean);
+            
+            // Calculate covariance matrix
+            const covarianceMatrix = calculateCovarianceMatrix(centeredData);
+            
+            // Calculate eigenvalues and eigenvectors
+            const { eigenvalues, eigenvectors } = eigenDecomposition2x2(covarianceMatrix);
+            
+            // Sort by eigenvalues descending
+            const sortedIndices = [0, 1].sort((a, b) => eigenvalues[b] - eigenvalues[a]);
+            const sortedEigenvalues = sortedIndices.map(i => eigenvalues[i]);
+            const sortedEigenvectors = sortedIndices.map(i => eigenvectors[i]);
+            
+            // Transform data
+            transformedData = centeredData.map(point => {
+                const pc1 = point[0] * sortedEigenvectors[0][0] + point[1] * sortedEigenvectors[0][1];
+                const pc2 = point[0] * sortedEigenvectors[1][0] + point[1] * sortedEigenvectors[1][1];
+                return [pc1, pc2];
+            });
+            
+            // Store PCA model
+            pcaModel = {
+                mean: mean,
+                eigenvalues: sortedEigenvalues,
+                eigenvectors: sortedEigenvectors
+            };
+            
+            // Update visualizations
+            updateOriginalPlot();
+            updateTransformedPlot();
+            updateVarianceInfo();
+        }
+        
+        // Function to update original plot
+        function updateOriginalPlot() {
+            // Update points
+            const points = originalSvg.selectAll(".point")
+                .data(originalData, (d, i) => i);
+            
+            points.enter()
+                .append("circle")
+                .attr("class", "point")
+                .attr("cx", d => xScale(d[0]))
+                .attr("cy", d => yScale(d[1]))
+                .attr("r", pointRadius)
+                .call(d3.drag()
+                    .on("start", dragStarted)
+                    .on("drag", dragged)
+                    .on("end", dragEnded))
+                .on("dblclick", removePoint)
+                .merge(points)
+                .attr("cx", d => xScale(d[0]))
+                .attr("cy", d => yScale(d[1]));
+            
+            points.exit().remove();
+            
+            // Update mean point
+            const mean = calculateMean(originalData);
+            meanPoint
+                .attr("cx", xScale(mean[0]))
+                .attr("cy", yScale(mean[1]))
+                .attr("r", originalData.length > 0 ? 5 : 0)
+                .style("opacity", originalData.length > 0 ? 1 : 0);
+            
+            // Update PC vectors if PCA has been performed
+            if (pcaModel) {
+                const scaleFactor = 5;
+                const pc1 = pcaModel.eigenvectors[0];
+                const pc2 = pcaModel.eigenvectors[1];
+                
+                // Scale vectors by eigenvalues
+                const pc1Scaled = [pc1[0] * Math.sqrt(pcaModel.eigenvalues[0]) * scaleFactor, 
+                                  pc1[1] * Math.sqrt(pcaModel.eigenvalues[0]) * scaleFactor];
+                const pc2Scaled = [pc2[0] * Math.sqrt(pcaModel.eigenvalues[1]) * scaleFactor, 
+                                  pc2[1] * Math.sqrt(pcaModel.eigenvalues[1]) * scaleFactor];
+                
+                // Update PC1 vector
+                pc1Vector
+                    .attr("x1", xScale(mean[0]))
+                    .attr("y1", yScale(mean[1]))
+                    .attr("x2", xScale(mean[0] + pc1Scaled[0]))
+                    .attr("y2", yScale(mean[1] + pc1Scaled[1]))
+                    .style("opacity", 1);
+                
+                // Update PC2 vector
+                pc2Vector
+                    .attr("x1", xScale(mean[0]))
+                    .attr("y1", yScale(mean[1]))
+                    .attr("x2", xScale(mean[0] + pc2Scaled[0]))
+                    .attr("y2", yScale(mean[1] + pc2Scaled[1]))
+                    .style("opacity", 1);
+                
+                // Update labels
+                pc1Label
+                    .attr("x", xScale(mean[0] + pc1Scaled[0] * 1.1))
+                    .attr("y", yScale(mean[1] + pc1Scaled[1] * 1.1))
+                    .style("opacity", 1);
+                
+                pc2Label
+                    .attr("x", xScale(mean[0] + pc2Scaled[0] * 1.1))
+                    .attr("y", yScale(mean[1] + pc2Scaled[1] * 1.1))
+                    .style("opacity", 1);
+            } else {
+                pc1Vector.style("opacity", 0);
+                pc2Vector.style("opacity", 0);
+                pc1Label.style("opacity", 0);
+                pc2Label.style("opacity", 0);
+            }
+        }
+        
+        // Function to update transformed plot
+        function updateTransformedPlot() {
+            // Clear previous points
+            transformedSvg.selectAll(".point").remove();
+            
+            if (transformedData.length === 0) return;
+            
+            // Find max absolute value for scaling
+            const maxAbs = Math.max(
+                d3.max(transformedData, d => Math.abs(d[0])),
+                d3.max(transformedData, d => Math.abs(d[1]))
+            );
+            
+            // Update scales for transformed plot
+            const padding = 1.2;
+            const domain = Math.max(10, maxAbs * padding);
+            
+            transformedSvg.select(".axis.x")
+                .call(d3.axisBottom(xScale.domain([-domain, domain])));
+            
+            transformedSvg.select(".axis.y")
+                .call(d3.axisLeft(yScale.domain([-domain, domain])));
+            
+            transformedSvg.selectAll(".grid.x")
+                .call(d3.axisBottom(xScale.domain([-domain, domain])).tickSize(-height).tickFormat(""));
+            
+            transformedSvg.selectAll(".grid.y")
+                .call(d3.axisLeft(yScale.domain([-domain, domain])).tickSize(-width).tickFormat(""));
+            
+            // Add points to transformed plot
+            transformedSvg.selectAll(".point")
+                .data(transformedData)
+                .enter()
+                .append("circle")
+                .attr("class", "point")
+                .attr("cx", d => xScale(d[0]))
+                .attr("cy", d => yScale(d[1]))
+                .attr("r", pointRadius);
+        }
+        
+        // Function to update variance information
+        function updateVarianceInfo() {
+            if (!pcaModel) return;
+            
+            const totalVariance = pcaModel.eigenvalues[0] + pcaModel.eigenvalues[1];
+            const pc1Variance = (pcaModel.eigenvalues[0] / totalVariance) * 100;
+            const pc2Variance = (pcaModel.eigenvalues[1] / totalVariance) * 100;
+            
+            document.getElementById("variance-pc1").textContent = `${pc1Variance.toFixed(1)}%`;
+            document.getElementById("variance-pc2").textContent = `${pc2Variance.toFixed(1)}%`;
+            document.getElementById("total-variance").textContent = `${(pc1Variance + pc2Variance).toFixed(1)}%`;
+        }
+        
+        // Drag functions for points
+        function dragStarted(event, d) {
+            d3.select(this).raise().attr("stroke", "black");
+        }
+        
+        function dragged(event, d) {
+            const newX = x
+    </script>
+</body>
+</html>

@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Dimension Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #000;
+            color: #0ff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            border-bottom: 2px solid #0ff;
+            padding-bottom: 15px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px #0ff;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #8af;
+            font-size: 1.2rem;
+        }
+        
+        .game-container {
+            background-color: #111;
+            border: 2px solid #0ff;
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background: linear-gradient(to bottom, #0088cc, #0055aa);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
+        }
+        
+        .btn:hover {
+            background: linear-gradient(to bottom, #00aaff, #0077cc);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 200, 255, 0.7);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn:disabled {
+            background: #444;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin: 15px 0;
+            padding: 15px;
+            background-color: rgba(0, 50, 80, 0.3);
+            border-radius: 10px;
+            border: 1px solid #0ff;
+        }
+        
+        .stat-box {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff0;
+            text-shadow: 0 0 8px rgba(255, 255, 0, 0.7);
+        }
+        
+        .stat-label {
+            color: #8af;
+            font-size: 0.9rem;
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background-color: rgba(0, 30, 60, 0.5);
+            border: 1px solid #0ff;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 300px;
+        }
+        
+        .panel-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #ff0;
+            font-size: 1.3rem;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .data-table th {
+            background-color: rgba(0, 100, 150, 0.5);
+            color: #ff0;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .data-table td {
+            padding: 8px;
+            border-bottom: 1px solid #0ff;
+            color: #8af;
+        }
+        
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .graph-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background-color: rgba(0, 20, 40, 0.7);
+            border: 1px solid #0ff;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .dimension-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .dim-btn {
+            background: rgba(0, 150, 200, 0.3);
+            color: #0ff;
+            border: 1px solid #0ff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .dim-btn:hover {
+            background: rgba(0, 200, 255, 0.5);
+        }
+        
+        .dim-btn.active {
+            background: #ff0;
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 10px #ff0;
+        }
+        
+        .feedback {
+            text-align: center;
+            margin: 20px 0;
+            min-height: 60px;
+            font-size: 1.2rem;
+            color: #ff0;
+            text-shadow: 0 0 8px rgba(255, 255, 0, 0.7);
+            padding: 10px;
+            transition: all 0.5s ease;
+        }
+        
+        .instructions {
+            background-color: rgba(0, 50, 80, 0.3);
+            border: 1px solid #0ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            width: 100%;
+        }
+        
+        .instructions h3 {
+            color: #ff0;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .instructions p {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .completion-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        
+        .completion-screen.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .completion-content {
+            background: linear-gradient(to bottom, #001a33, #000);
+            border: 3px solid #0ff;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.7);
+        }
+        
+        .completion-title {
+            font-size: 2.5rem;
+            color: #ff0;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(255, 255, 0, 0.8);
+        }
+        
+        .final-score {
+            font-size: 3rem;
+            color: #0f0;
+            margin: 20px 0;
+            text-shadow: 0 0 15px rgba(0, 255, 0, 0.8);
+        }
+        
+        .restart-btn {
+            background: linear-gradient(to bottom, #00cc00, #008800);
+            font-size: 1.2rem;
+            padding: 15px 40px;
+            margin-top: 20px;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .glow {
+            animation: glow 1.5s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 10px rgba(0, 200, 255, 0.5); }
+            to { box-shadow: 0 0 30px rgba(0, 200, 255, 0.9); }
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 15px #0ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="neon-text">PCA Dimension Challenge</h1>
+            <p class="subtitle">Reduce Dimensions to Reveal Hidden Patterns</p>
+        </header>
+        
+        <div class="controls">
+            <button id="resetBtn" class="btn">Reset Game</button>
+            <button id="nextBtn" class="btn">Next Challenge</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-value" id="scoreValue">0</div>
+                <div class="stat-label">SCORE</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="dimensionValue">6</div>
+                <div class="stat-label">DIMENSIONS</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="varianceValue">0%</div>
+                <div class="stat-label">VARIANCE</div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>How to Play</h3>
+            <p>Your goal is to reduce the dimensions of loan data while preserving the maximum variance.</p>
+            <p>1. Analyze the loan data table and scatter plot visualization</p>
+            <p>2. Select dimensions to remove by clicking on them</p>
+            <p>3. Find the optimal 2 dimensions that capture the most variance</p>
+            <p>4. Click "Reduce Dimensions" when you're ready to test your solution</p>
+        </div>
+        
+        <div class="game-container">
+            <div class="game-board">
+                <div class="panel">
+                    <h3 class="panel-title">Loan Data Table</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Income</th>
+                                <th>Credit Score</th>
+                                <th>Loan Amount</th>
+                                <th>Age</th>
+                                <th>Employment</th>
+                                <th>Debt Ratio</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody">
+                            <!-- Data will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="panel">
+                    <h3 class="panel-title">Data Visualization</h3>
+                    <div class="graph-container">
+                        <canvas id="dataCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dimension-controls">
+                <h3 class="panel-title">Select Dimensions to Remove</h3>
+                <div id="dimensionButtons">
+                    <!-- Dimension buttons will be added by JavaScript -->
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <button id="reduceBtn" class="btn">Reduce Dimensions</button>
+            </div>
+            
+            <div class="feedback" id="feedback">
+                Select dimensions to remove and click "Reduce Dimensions"
+            </div>
+        </div>
+        
+        <div class="completion-screen" id="completionScreen">
+            <div class="completion-content">
+                <h2 class="completion-title">PCA Mastery Achieved!</h2>
+                <p>You've successfully reduced dimensions while preserving variance</p>
+                <div class="final-score">Score: <span id="finalScore">0</span></div>
+                <p>Principal Component Analysis helps reveal hidden patterns in complex data</p>
+                <button id="restartBtn" class="btn restart-btn">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            const gameState = {
+                score: 0,
+                dimensions: 6,
+                currentVariance: 0,
+                selectedDimensions: [],
+                currentChallenge: 0,
+                maxChallenges: 3,
+                data: [],
+                optimalDimensions: []
+            };
+            
+            // DOM elements
+            const scoreValue = document.getElementById('scoreValue');
+            const dimensionValue = document.getElementById('dimensionValue');
+            const varianceValue = document.getElementById('varianceValue');
+            const dataTableBody = document.getElementById('dataTableBody');
+            const dimensionButtons = document.getElementById('dimensionButtons');
+            const feedback = document.getElementById('feedback');
+            const reduceBtn = document.getElementById('reduceBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const completionScreen = document.getElementById('completionScreen');
+            const finalScore = document.getElementById('finalScore');
+            const restartBtn = document.getElementById('restartBtn');
+            const canvas = document.getElementById('dataCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Dimension labels
+            const dimensionLabels = [
+                'Income', 
+                'Credit Score', 
+                'Loan Amount', 
+                'Age', 
+                'Employment', 
+                'Debt Ratio'
+            ];
+            
+            // Initialize game
+            function initGame() {
+                gameState.score = 0;
+                gameState.currentChallenge = 0;
+                updateScore();
+                generateNewChallenge();
+                setupCanvas();
+                completionScreen.classList.remove('active');
+            }
+            
+            // Generate new challenge
+            function generateNewChallenge() {
+                gameState.currentChallenge++;
+                gameState.dimensions = 6;
+                gameState.selectedDimensions = [];
+                gameState.currentVariance = 0;
+                gameState.data = generateLoanData();
+                gameState.optimalDimensions = calculateOptimalDimensions();
+                
+                updateDimensionDisplay();
+                renderDataTable();
+                createDimensionButtons();
+                setupCanvas();
+                drawData();
+                
+                feedback.textContent = "Select dimensions to remove and click 'Reduce Dimensions'";
+                feedback.style.color = "#ff0";
+                
+                if (gameState.currentChallenge > 1) {
+                    feedback.textContent = `Challenge ${gameState.currentChallenge}/${gameState.maxChallenges}! Select dimensions to remove.`;
+                }
+                
+                nextBtn.disabled = true;
+                reduceBtn.disabled = false;
+            }
+            
+            // Generate sample loan data
+            function generateLoanData() {
+                const data = [];
+                for (let i = 1; i <= 10; i++) {
+                    data.push({
+                        id: `LOAN${i}`,
+                        income: Math.floor(Math.random() * 5000) + 3000,
+                        creditScore: Math.floor(Math.random() * 300) + 500,
+                        loanAmount: Math.floor(Math.random() * 100000) + 20000,
+                        age: Math.floor(Math.random() * 40) + 20,
+                        employment: Math.floor(Math.random() * 15) + 1,
+                        debtRatio: (Math.random() * 0.7 + 0.1).toFixed(2)
+                    });
+                }
+                return data;
+            }
+            
+            // Calculate optimal dimensions for this challenge
+            function calculateOptimalDimensions() {
+                // In a real PCA, we would compute covariance and eigenvalues
+                // For this game, we'll randomly select two dimensions to be optimal
+                const dims = [0, 1, 2, 3, 4, 5];
+                const optimal = [];
+                
+                // Select two random dimensions as optimal
+                while (optimal.length < 2) {
+                    const randomIndex = Math.floor(Math.random() * dims.length);
+                    optimal.push(dims.splice(randomIndex, 1)[0]);
+                }
+                
+                return optimal;
+            }
+            
+            // Render data table
+            function renderDataTable() {
+                dataTableBody.innerHTML = '';
+                gameState.data.forEach(loan => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${loan.id}</td>
+                        <td>$${loan.income.toLocaleString()}</td>
+                        <td>${loan.creditScore}</td>
+                        <td>$${loan.loanAmount.toLocaleString()}</td>
+                        <td>${loan.age}</td>
+                        <td>${loan.employment} yrs</td>
+                        <td>${loan.debtRatio}</td>
+                    `;
+                    dataTableBody.appendChild(row);
+                });
+            }
+            
+            // Create dimension buttons
+            function createDimensionButtons() {
+                dimensionButtons.innerHTML = '';
+                dimensionLabels.forEach((label, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'dim-btn';
+                    button.textContent = label;
+                    button.dataset.index = index;
+                    button.addEventListener('click', () => toggleDimension(index));
+                    dimensionButtons.appendChild(button);
+                });
+            }
+            
+            // Toggle dimension selection
+            function toggleDimension(index) {
+                if (gameState.selectedDimensions.includes(index)) {
+                    gameState.selectedDimensions = gameState.selectedDimensions.filter(dim => dim !== index);
+                    gameState.dimensions++;
+                } else {
+                    if (gameState.dimensions > 2) {
+                        gameState.selectedDimensions.push(index);
+                        gameState.dimensions--;
+                    } else {
+                        feedback.textContent = "You need to keep at least 2 dimensions!";
+                        feedback.style.color = "#f00";
+                        setTimeout(() => {
+                            feedback.textContent = "Select dimensions to remove and click 'Reduce Dimensions'";
+                            feedback.style.color = "#ff0";
+                        }, 2000);
+                        return;
+                    }
+                }
+                
+                updateDimensionDisplay();
+                
+                // Update button states
+                document.querySelectorAll('.dim-btn').forEach((btn, i) => {
+                    if (gameState.selectedDimensions.includes(i)) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Update dimension display
+            function updateDimensionDisplay() {
+                dimensionValue.textContent = gameState.dimensions;
+            }
+            
+            // Update score display
+            function updateScore() {
+                scoreValue.textContent = gameState.score;
+            }
+            
+            // Setup canvas
+            function setupCanvas() {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            }
+            
+            // Draw data visualization
+            function drawData() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw grid
+                ctx.strokeStyle = 'rgba(0, 150, 200, 0.2)';
+                ctx.lineWidth = 1;
+                
+                // Vertical lines
+                for (let x = 0; x <= canvas.width; x += canvas.width / 10) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                
+                // Horizontal lines
+                for (let y = 0; y <= canvas.height; y += canvas.height / 10) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+                
+                // Draw axes
+                ctx.strokeStyle = '#0ff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2, 0);
+                ctx.lineTo(canvas.width / 2, canvas.height);
+                ctx.moveTo(0, canvas.height / 2);
+                ctx.lineTo(canvas.width, canvas.height / 2);
+                ctx.stroke();
+                
+                // Draw data points
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const scale = 0.02;
+                
+                gameState.data.forEach(loan => {
+                    // For visualization, we'll use income and credit score as axes
+                    const x = centerX + (loan.income - 5500) * scale;
+                    const y = centerY - (loan.creditScore - 650) * scale * 2;
+                    
+                    // Draw point
+                    ctx.fillStyle = '#0f0';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Draw halo
+                    ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                });
+                
+                // Draw clusters
+                drawClusters();
+            }
+            
+            // Draw cluster areas
+            function drawClusters() {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                
+                // Cluster 1
+                ctx.fillStyle = 'rgba(255, 0, 255, 0.1)';
+                ctx.beginPath();
+                ctx.arc(centerX - 50, centerY - 30, 80, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Cluster 2
+                ctx.fillStyle = 'rgba(0, 255, 255, 0.1)';
+                ctx.beginPath();
+                ctx.arc(centerX + 60, centerY + 40, 70, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Cluster 3
+                ctx.fillStyle = 'rgba(255, 255, 0, 0.1)';
+                ctx.beginPath();
+                ctx.arc(centerX + 30, centerY - 60, 60, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Reduce dimensions
+            function reduceDimensions() {
+                if (gameState.dimensions > 6 || gameState.dimensions < 2) {
+                    feedback.textContent = "Invalid number of dimensions!";
+                    feedback.style.color = "#f00";
+                    return;
+                }
+                
+                // Calculate variance preserved
+                const variancePreserved = calculateVariancePreserved();
+                gameState.currentVariance = variancePreserved;
+                varianceValue.textContent = `${variancePreserved}%`;
+                
+                // Calculate score for this round
+                const roundScore = Math.floor(variancePreserved * 10);
+                gameState.score += roundScore;
+                updateScore();
+                
+                // Provide feedback
+                if (variancePreserved >= 85) {
+                    feedback.innerHTML = `Excellent! You preserved <span style="color:#0f0">${variancePreserved}%</span> of variance.<br>+${roundScore} points!`;
+                    feedback.style.color = "#0f0";
+                } else if (variancePreserved >= 70) {
+                    feedback.innerHTML = `Good job! You preserved <span style="color:#8f0">${variancePreserved}%</span> of variance.<br>+${roundScore} points!`;
+                    feedback.style.color = "#8f0";
+                } else {
+                    feedback.innerHTML = `You preserved <span style="color:#f80">${variancePreserved}%</span> of variance.<br>Try to keep more important dimensions.<br>+${roundScore} points!`;
+                    feedback.style.color = "#f80";
+                }
+                
+                // Show optimal dimensions
+                setTimeout(() => {
+                    const optimalLabels = gameState.optimalDimensions.map(i => dimensionLabels[i]).join(' and ');
+                    feedback.innerHTML += `<br><br>Optimal dimensions for this dataset: ${optimalLabels}`;
+                }, 2000);
+                
+                reduceBtn.disabled = true;
+                nextBtn.disabled = false;
+                
+                // Check if game is complete
+                if (gameState.currentChallenge >= gameState.maxChallenges) {
+                    setTimeout(showCompletionScreen, 4000);
+                }
+            }
+            
+            // Calculate variance preserved (simplified for game)
+            function calculateVariancePreserved() {
+                // Count how many optimal dimensions were kept
+                const keptOptimal = gameState.optimalDimensions.filter(
+                    dim => !gameState.selectedDimensions.includes(dim)
+                ).length;
+                
+                // Base variance based on kept optimal dimensions
+    </script>
+</body>
+</html>

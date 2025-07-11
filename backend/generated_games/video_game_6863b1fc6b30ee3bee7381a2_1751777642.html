@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai: The Seven Islands</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #555555;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .game-section {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #222222;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title::before {
+            content: "";
+            display: block;
+            width: 8px;
+            height: 30px;
+            background-color: #666666;
+            border-radius: 2px;
+        }
+        
+        .map-container {
+            position: relative;
+            height: 500px;
+            background-color: #e9e9e9;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        #island-map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background-color: #666666;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #555555;
+        }
+        
+        button.active {
+            background-color: #444444;
+            font-weight: bold;
+        }
+        
+        .info-panel {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 150px;
+            margin-top: 20px;
+        }
+        
+        .timeline {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding: 15px 0;
+            margin-bottom: 20px;
+            scrollbar-width: thin;
+        }
+        
+        .timeline-item {
+            flex: 0 0 auto;
+            width: 200px;
+            background-color: #e9e9e9;
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .timeline-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .timeline-item.active {
+            background-color: #d0d0d0;
+            border-left: 4px solid #444444;
+        }
+        
+        .timeline-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #222222;
+        }
+        
+        .reclamation-steps {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .step {
+            flex: 1;
+            min-width: 200px;
+            background-color: #e9e9e9;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: #666666;
+            color: white;
+            border-radius: 50%;
+            line-height: 30px;
+            margin-bottom: 10px;
+        }
+        
+        .quiz-container {
+            background-color: #f0f0f0;
+            padding: 25px;
+            border-radius: 8px;
+        }
+        
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .option {
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #d9d9d9;
+        }
+        
+        .option.selected {
+            background-color: #d0d0d0;
+            border-left: 4px solid #444444;
+        }
+        
+        .feedback {
+            min-height: 30px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 0 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #666666;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .score-display {
+            font-weight: bold;
+            font-size: 1.1rem;
+            min-width: 100px;
+            text-align: right;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .restart-btn {
+            background-color: #444444;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .map-container {
+                height: 400px;
+            }
+            
+            .reclamation-steps {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .map-container {
+                height: 300px;
+            }
+            
+            .section-title {
+                font-size: 1.3rem;
+            }
+            
+            .question {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mumbai: The Seven Islands</h1>
+        <p class="subtitle">Explore the historical transformation of Mumbai from seven separate islands to a unified metropolis</p>
+    </header>
+    
+    <main class="game-container">
+        <section class="game-section">
+            <h2 class="section-title">Interactive Map</h2>
+            <div class="map-container">
+                <svg id="island-map" viewBox="0 0 800 500">
+                    <!-- Historical Islands -->
+                    <g id="historical-islands">
+                        <path id="colaba" d="M100,200 Q150,150 200,200 Q180,250 100,250 Z" fill="#aaaaaa" stroke="#444444" stroke-width="2" />
+                        <path id="old-woman" d="M220,180 Q250,150 280,180 Q270,220 220,220 Z" fill="#aaaaaa" stroke="#444444" stroke-width="2" />
+                        <path id="bombay" d="M300,150 Q400,100 450,150 Q420,250 350,250 Z" fill="#aaaaaa" stroke="#444444" stroke-width="2" />
+                        <path id="mazagaon" d="M500,200 Q550,180 580,220 Q540,280 480,250 Z" fill="#aaaaaa" stroke="#444444" stroke-width="2" />
+                        <path id="worli" d="M200,300 Q250,280 300,320 Q280,380 220,350 Z" fill="#aaaaaa" stroke="#444444" stroke-width="2" />
+                        <path id="mahim" d="M350,300 Q400,280 450,320 Q420,380 360,350 Z" fill="#aaaaaa" stroke="#444444" stroke-width="2" />
+                        <path id="parel" d="M500,300 Q550,280 600,320 Q570,380 520,350 Z" fill="#aaaaaa" stroke="#444444" stroke-width="2" />
+                    </g>
+                    
+                    <!-- Modern Mumbai -->
+                    <g id="modern-mumbai" class="hidden">
+                        <path d="M80,180 Q150,100 300,120 Q450,100 600,150 Q650,200 620,300 Q550,380 400,400 Q250,380 150,320 Q100,250 80,180 Z" fill="#aaaaaa" stroke="#444444" stroke-width="2" />
+                        <!-- Landmarks -->
+                        <circle id="gateway" cx="550" cy="250" r="15" fill="#666666" stroke="#333333" stroke-width="2" />
+                    </g>
+                    
+                    <!-- Water -->
+                    <rect width="800" height="500" fill="#a0d0ff" opacity="0.3" />
+                </svg>
+            </div>
+            
+            <div class="controls">
+                <button id="historical-btn" class="active">View Historical Islands</button>
+                <button id="modern-btn">View Modern Mumbai</button>
+            </div>
+            
+            <div class="info-panel">
+                <p id="map-info">Click on any island to learn about its history</p>
+            </div>
+        </section>
+        
+        <section class="game-section">
+            <h2 class="section-title">Historical Timeline</h2>
+            <div class="timeline">
+                <div class="timeline-item" data-period="satavahanas">
+                    <div class="timeline-title">Satavahanas (1st-3rd CE)</div>
+                    <p>Early rulers of the region</p>
+                </div>
+                <div class="timeline-item" data-period="satraps">
+                    <div class="timeline-title">Western Satraps (2nd-4th CE)</div>
+                    <p>Indo-Scythian rulers</p>
+                </div>
+                <div class="timeline-item" data-period="abhiras">
+                    <div class="timeline-title">Abhiras (3rd-5th CE)</div>
+                    <p>Pastoral dynasty</p>
+                </div>
+                <div class="timeline-item" data-period="vakatakas">
+                    <div class="timeline-title">Vakatakas (3rd-5th CE)</div>
+                    <p>Central Indian empire</p>
+                </div>
+                <div class="timeline-item" data-period="kalachuris">
+                    <div class="timeline-title">Kalachuris (6th-7th CE)</div>
+                    <p>Warrior dynasty</p>
+                </div>
+                <div class="timeline-item" data-period="chalukyas">
+                    <div class="timeline-title">Chalukyas (6th-8th CE)</div>
+                    <p>Deccan power</p>
+                </div>
+                <div class="timeline-item" data-period="rashtrakutas">
+                    <div class="timeline-title">Rashtrakutas (8th-10th CE)</div>
+                    <p>Expansionist empire</p>
+                </div>
+                <div class="timeline-item" data-period="british">
+                    <div class="timeline-title">British (1661-1947)</div>
+                    <p>Colonial transformation</p>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <p id="timeline-info">Select a period to learn about its significance in Mumbai's history</p>
+            </div>
+        </section>
+        
+        <section class="game-section">
+            <h2 class="section-title">Land Reclamation Process</h2>
+            <div class="reclamation-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Original Islands</h3>
+                    <p>Seven separate islands with waterways</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Early Connections</h3>
+                    <p>Construction of causeways (18th century)</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Major Reclamation</h3>
+                    <p>British engineering projects (19th century)</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Modern Mumbai</h3>
+                    <p>Fully connected metropolis</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="game-section">
+            <h2 class="section-title">Mumbai History Quiz</h2>
+            <div class="quiz-container">
+                <div class="question" id="question">Which empire controlled Mumbai before the British?</div>
+                
+                <div class="options">
+                    <div class="option" data-correct="false">Mughal Empire</div>
+                    <div class="option" data-correct="true">Portuguese Empire</div>
+                    <div class="option" data-correct="false">Maratha Empire</div>
+                    <div class="option" data-correct="false">Dutch Empire</div>
+                </div>
+                
+                <div class="feedback" id="feedback"></div>
+                
+                <div class="progress-container">
+                    <div>Question: <span id="current-q">1</span>/3</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="score-display">Score: <span id="score">0</span></div>
+                </div>
+                
+                <button id="next-btn">Next Question</button>
+                <button id="restart-btn" class="restart-btn hidden">Restart Quiz</button>
+            </div>
+        </section>
+    </main>
+    
+    <script>
+        // Island information data
+        const islandInfo = {
+            "colaba": "Colaba: Originally known as Kolbhat. Site of the Gateway of India, built to commemorate the 1911 royal visit.",
+            "old-woman": "Old Woman's Island: Smallest of the seven islands. Now part of Colaba with the iconic Taj Mahal Palace hotel.",
+            "bombay": "Bombay Island: The largest island. Home to Fort area and the historic Bombay Castle built by the British.",
+            "mazagaon": "Mazagaon: Portuguese settlement area. Known for its dockyards and later industrial development.",
+            "worli": "Worli: Fishing village origin. Site of the Worli Fort built by the British in 1675.",
+            "mahim": "Mahim: Strategic location with Mahim Fort. Important during Portuguese and British rule.",
+            "parel": "Parel: Industrial center with textile mills. Now a major commercial and residential area.",
+            "gateway": "Gateway of India: Built in 1924. Symbol of colonial Bombay and now a major tourist attraction."
+        };
+        
+        // Timeline information data
+        const timelineInfo = {
+            "satavahanas": "Satavahanas (1st-3rd century CE): Early rulers of the region. Mumbai islands were part of their trading network.",
+            "satraps": "Western Satraps (2nd-4th century CE): Indo-Scythian rulers who controlled the region after the Satavahanas.",
+            "abhiras": "Abhiras (3rd-5th century CE): Pastoral dynasty that ruled the region before the Kalachuris.",
+            "vakatakas": "Vakatakas (3rd-5th century CE): Central Indian empire that had influence over parts of the Konkan coast.",
+            "kalachuris": "Kalachuris (6th-7th century CE): Warrior dynasty that controlled the islands before the Chalukyas.",
+            "chalukyas": "Chalukyas (6th-8th century CE): Powerful Deccan empire that incorporated the islands into their territory.",
+            "rashtrakutas": "Rashtrakutas (8th-10th century CE): Expansionist empire that controlled Mumbai during their peak.",
+            "british": "British Rule (1661-1947): Transformed the islands through land reclamation projects. Built causeways connecting the islands and developed Bombay into a major port city."
+        };
+        
+        // Quiz questions
+        const quizQuestions = [
+            {
+                question: "Which empire controlled Mumbai before the British?",
+                options: ["Mughal Empire", "Portuguese Empire", "Maratha Empire", "Dutch Empire"],
+                correct: 1
+            },
+            {
+                question: "How many original islands formed Mumbai?",
+                options: ["Five", "Six", "Seven", "Eight"],
+                correct: 2
+            },
+            {
+                question: "What was the primary method used to connect the islands?",
+                options: ["Bridges", "Tunnels", "Land reclamation", "Ferries"],
+                correct: 2
+            }
+        ];
+        
+        // DOM Elements
+        const historicalBtn = document.getElementById('historical-btn');
+        const modernBtn = document.getElementById('modern-btn');
+        const historicalIslands = document.getElementById('historical-islands');
+        const modernMumbai = document.getElementById('modern-mumbai');
+        const mapInfo = document.getElementById('map-info');
+        const timelineItems = document.querySelectorAll('.timeline-item');
+        const timelineInfoEl = document.getElementById('timeline-info');
+        const questionEl = document.getElementById('question');
+        const optionsEl = document.querySelector('.options');
+        const feedbackEl = document.getElementById('feedback');
+        const currentQEl = document.getElementById('current-q');
+        const scoreEl = document.getElementById('score');
+        const progressFill = document.getElementById('progress-fill');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        // Game State
+        let currentMapView = 'historical';
+        let selectedTimeline = null;
+        let quizState = {
+            currentQuestion: 0,
+            score: 0,
+            selectedOption: null
+        };
+        
+        // Initialize Game
+        function initGame() {
+            // Setup map event listeners
+            document.querySelectorAll('#historical-islands path, #gateway').forEach(island => {
+                island.addEventListener('click', () => {
+                    const islandId = island.id;
+                    mapInfo.textContent = islandInfo[islandId] || "Information not available";
+                });
+            });
+            
+            // Setup timeline event listeners
+            timelineItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    timelineItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    const period = item.dataset.period;
+                    timelineInfoEl.textContent = timelineInfo[period] || "Information not available";
+                });
+            });
+            
+            // Setup map toggle buttons
+            historicalBtn.addEventListener('click', () => {
+                if (currentMapView !== 'historical') {
+                    historicalBtn.classList.add('active');
+                    modernBtn.classList.remove('active');
+                    historicalIslands.classList.remove('hidden');
+                    modernMumbai.classList.add('hidden');
+                    currentMapView = 'historical';
+                    mapInfo.textContent = "Click on any island to learn about its history";
+                }
+            });
+            
+            modernBtn.addEventListener('click', () => {
+                if (currentMapView !== 'modern') {
+                    modernBtn.classList.add('active');
+                    historicalBtn.classList.remove('active');
+                    modernMumbai.classList.remove('hidden');
+                    historicalIslands.classList.add('hidden');
+                    currentMapView = 'modern';
+                    mapInfo.textContent = "Click on the Gateway of India to learn more";
+                }
+            });
+            
+            // Setup quiz
+            setupQuiz();
+            nextBtn.addEventListener('click', nextQuestion);
+            restartBtn.addEventListener('click', restartQuiz);
+        }
+        
+        // Quiz Functions
+        function setupQuiz() {
+            displayQuestion();
+            
+            // Add event listeners to options
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', () => {
+                    if (quizState.selectedOption !== null) return;
+                    
+                    document.querySelectorAll('.option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    option.classList.add('selected');
+                    quizState.selectedOption = option;
+                    
+                    const isCorrect = option.dataset.correct === "true";
+                    
+                    if (isCorrect) {
+                        feedbackEl.textContent = "Correct!";
+                        feedbackEl.style.color = "#2e7d32";
+                        quizState.score++;
+                        scoreEl.textContent = quizState.score;
+                    } else {
+                        feedbackEl.textContent = "Incorrect. Try again next time!";
+                        feedbackEl.style.color = "#c62828";
+                    }
+                });
+            });
+        }
+        
+        function displayQuestion() {
+            const currentQ = quizQuestions[quizState.currentQuestion];
+            questionEl.textContent = currentQ.question;
+            
+            optionsEl.innerHTML = '';
+            currentQ.options.forEach((option, index) => {
+                const optionEl = document.createElement('div');
+                optionEl.className = 'option';
+                optionEl.textContent = option;
+                optionEl.dataset.correct = (index === currentQ.correct).toString();
+                optionsEl.appendChild(optionEl);
+            });
+            
+            feedbackEl.textContent = "";
+            quizState.selectedOption = null;
+            currentQEl.textContent = quizState.currentQuestion + 1;
+            progressFill.style.width = `${((quizState.currentQuestion) / quizQuestions.length) * 100}%`;
+            
+            // Reattach event listeners
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', () => {
+                    if (quizState.selectedOption !== null) return;
+                    
+                    document.querySelectorAll('.option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    option.classList.add('selected');
+                    quizState.selectedOption = option;
+                    
+                    const isCorrect = option.dataset.correct === "true";
+                    
+                    if (isCorrect) {
+                        feedbackEl.textContent = "Correct!";
+                        feedbackEl.style.color = "#2e7d32";
+                        quizState.score++;
+                        scoreEl.textContent = quizState.score;
+                    } else {
+                        feedbackEl.textContent = "Incorrect. Try again next time!";
+                        feedbackEl.style.color = "#c62828";
+                    }
+                });
+            });
+        }
+        
+        function nextQuestion() {
+            if (quizState.selectedOption === null) {
+                feedbackEl.textContent = "Please select an answer";
+                feedbackEl.style.color = "#c62828";
+                return;
+            }
+            
+            quizState.currentQuestion++;
+            
+            if (quizState.currentQuestion < quizQuestions.length) {
+                displayQuestion();
+            } else {
+                // Quiz completed
+                questionEl.textContent = "Quiz Completed!";
+                optionsEl.innerHTML = "";
+                feedbackEl.textContent = `Your final score: ${quizState.score}/${quizQuestions.length}`;
+                feedbackEl.style.color = "#333";
+                nextBtn.classList.add('hidden');
+                restartBtn.classList.remove('hidden');
+                progressFill.style.width = "100%";
+            }
+        }
+        
+        function restartQuiz() {
+            quizState = {
+                currentQuestion: 0,
+                score: 0,
+                selectedOption: null
+            };
+            
+            scoreEl.textContent = "0";
+            nextBtn.classList.remove('hidden');
+            restartBtn.classList.add('hidden');
+            displayQuestion();
+        }
+        
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Principal Component Analysis Interactive App</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+            font-size: 1.5rem;
+        }
+        
+        #scatter-plot {
+            height: 450px;
+            position: relative;
+        }
+        
+        .plot-container {
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        
+        button {
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #1a252f;
+        }
+        
+        button.secondary {
+            background-color: #7f8c8d;
+        }
+        
+        button.secondary:hover {
+            background-color: #636e72;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: white;
+            border: 1px solid #e0e0e0;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background-color: #ecf0f1;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        th:hover {
+            background-color: #d5dbdb;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .explanation {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        
+        .concept {
+            margin-bottom: 25px;
+        }
+        
+        .concept h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .concept p {
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .pc-line {
+            stroke-width: 2px;
+            stroke-linecap: round;
+        }
+        
+        .pc1 {
+            stroke: #e74c3c;
+        }
+        
+        .pc2 {
+            stroke: #3498db;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 3px;
+        }
+        
+        .pc1-color {
+            background-color: #e74c3c;
+        }
+        
+        .pc2-color {
+            background-color: #3498db;
+        }
+        
+        .point-label {
+            font-size: 0.8rem;
+            fill: #333;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 20px;
+        }
+        
+        .instructions {
+            background-color: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .instructions p {
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Principal Component Analysis Interactive App</h1>
+        <p class="subtitle">Explore dimensionality reduction through interactive visualization</p>
+    </header>
+    
+    <div class="instructions">
+        <p><strong>How to use:</strong> Drag data points to modify the dataset. Watch how principal components change in real-time.</p>
+        <p>Sort table columns by clicking headers. Reset to original dataset with the reset button.</p>
+    </div>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Interactive Scatter Plot</h2>
+            <div id="scatter-plot">
+                <div class="plot-container"></div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color pc1-color"></div>
+                        <span>PC1 (Primary Component)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color pc2-color"></div>
+                        <span>PC2 (Secondary Component)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="controls">
+                <button id="reset-btn">Reset Data Points</button>
+                <button id="randomize-btn" class="secondary">Randomize Data</button>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Data Table</h2>
+            <table id="data-table">
+                <thead>
+                    <tr>
+                        <th data-sort="id">Point ID</th>
+                        <th data-sort="x">X Value</th>
+                        <th data-sort="y">Y Value</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="explanation">
+        <h2>Understanding Principal Component Analysis</h2>
+        
+        <div class="concept">
+            <h3>What is PCA?</h3>
+            <p>Principal Component Analysis (PCA) is a statistical technique for reducing the dimensionality of datasets while preserving as much information as possible. It transforms the data into a new coordinate system where the greatest variance lies on the first coordinate (principal component), the second greatest variance on the second coordinate, and so on.</p>
+        </div>
+        
+        <div class="concept">
+            <h3>How PCA Works</h3>
+            <p>PCA identifies the directions (principal components) where the data varies the most. The first principal component captures the most variation, the second (orthogonal to the first) captures the next most, and so on. This allows us to reduce dimensions by projecting data onto the first few principal components.</p>
+        </div>
+        
+        <div class="concept">
+            <h3>Real-World Applications</h3>
+            <p>PCA is widely used in fields like:</p>
+            <ul>
+                <li><strong>Image Processing:</strong> Facial recognition and image compression</li>
+                <li><strong>Genomics:</strong> Analyzing gene expression data</li>
+                <li><strong>Finance:</strong> Portfolio risk analysis and factor modeling</li>
+                <li><strong>Marketing:</strong> Customer segmentation and preference analysis</li>
+            </ul>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Interactive PCA Visualization | Educational Tool for Understanding Dimensionality Reduction</p>
+    </footer>
+
+    <script>
+        // Initial dataset
+        const initialData = [
+            { id: 1, x: 30, y: 40 },
+            { id: 2, x: 80, y: 90 },
+            { id: 3, x: 120, y: 130 },
+            { id: 4, x: 160, y: 150 },
+            { id: 5, x: 200, y: 220 }
+        ];
+        
+        let currentData = [...initialData];
+        let sortColumn = 'id';
+        let sortDirection = 'asc';
+        
+        // Set up dimensions for the scatter plot
+        const margin = { top: 40, right: 40, bottom: 60, left: 60 };
+        const width = 500 - margin.left - margin.right;
+        const height = 350 - margin.top - margin.bottom;
+        
+        // Create SVG container
+        const svg = d3.select('.plot-container')
+            .append('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom)
+            .append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+        
+        // Create scales
+        const xScale = d3.scaleLinear()
+            .range([0, width]);
+        
+        const yScale = d3.scaleLinear()
+            .range([height, 0]);
+        
+        // Create axes
+        const xAxis = d3.axisBottom(xScale);
+        const yAxis = d3.axisLeft(yScale);
+        
+        // Add axes to SVG
+        svg.append('g')
+            .attr('class', 'x-axis')
+            .attr('transform', `translate(0,${height})`);
+        
+        svg.append('g')
+            .attr('class', 'y-axis');
+        
+        // Add axis labels
+        svg.append('text')
+            .attr('class', 'axis-label')
+            .attr('transform', `translate(${width/2},${height + margin.bottom - 10})`)
+            .style('text-anchor', 'middle')
+            .text('X Variable');
+        
+        svg.append('text')
+            .attr('class', 'axis-label')
+            .attr('transform', 'rotate(-90)')
+            .attr('y', -margin.left + 15)
+            .attr('x', -height/2)
+            .style('text-anchor', 'middle')
+            .text('Y Variable');
+        
+        // Function to calculate PCA
+        function calculatePCA(data) {
+            // Calculate means
+            const meanX = d3.mean(data, d => d.x);
+            const meanY = d3.mean(data, d => d.y);
+            
+            // Center the data
+            const centered = data.map(d => ({
+                x: d.x - meanX,
+                y: d.y - meanY
+            }));
+            
+            // Calculate covariance matrix
+            const covXX = d3.sum(centered, d => d.x * d.x) / (data.length - 1);
+            const covXY = d3.sum(centered, d => d.x * d.y) / (data.length - 1);
+            const covYY = d3.sum(centered, d => d.y * d.y) / (data.length - 1);
+            
+            // Calculate eigenvalues and eigenvectors
+            const trace = covXX + covYY;
+            const det = covXX * covYY - covXY * covXY;
+            
+            const lambda1 = (trace + Math.sqrt(trace * trace - 4 * det)) / 2;
+            const lambda2 = (trace - Math.sqrt(trace * trace - 4 * det)) / 2;
+            
+            // Calculate eigenvectors
+            let v1, v2;
+            
+            if (covXY !== 0) {
+                v1 = [covXY, lambda1 - covXX];
+                v2 = [covXY, lambda2 - covXX];
+            } else {
+                v1 = [1, 0];
+                v2 = [0, 1];
+            }
+            
+            // Normalize eigenvectors
+            const norm1 = Math.sqrt(v1[0]*v1[0] + v1[1]*v1[1]);
+            const norm2 = Math.sqrt(v2[0]*v2[0] + v2[1]*v2[1]);
+            
+            v1 = [v1[0]/norm1, v1[1]/norm1];
+            v2 = [v2[0]/norm2, v2[1]/norm2];
+            
+            // Scale eigenvectors by eigenvalues for visualization
+            const scale = 100;
+            const pc1 = {
+                x1: meanX - v1[0] * Math.sqrt(lambda1) * scale,
+                y1: meanY - v1[1] * Math.sqrt(lambda1) * scale,
+                x2: meanX + v1[0
+    </script>
+</body>
+</html>

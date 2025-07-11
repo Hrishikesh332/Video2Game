@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cappuccino Making Interactive App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: white;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .progress-bar {
+            position: absolute;
+            height: 4px;
+            background-color: #ddd;
+            top: 12px;
+            left: 0;
+            right: 0;
+            z-index: 1;
+        }
+        
+        .progress-fill {
+            position: absolute;
+            height: 4px;
+            background-color: #4CAF50;
+            top: 12px;
+            left: 0;
+            z-index: 2;
+            transition: width 0.3s ease;
+        }
+        
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 3;
+            font-weight: bold;
+        }
+        
+        .step.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .step.completed {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .game-area {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 300px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .level {
+            display: none;
+        }
+        
+        .level.active {
+            display: block;
+        }
+        
+        .instructions {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .interactive-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .ingredient {
+            padding: 10px 20px;
+            background-color: #e0e0e0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            min-width: 150px;
+        }
+        
+        .ingredient:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .coffee-maker {
+            width: 150px;
+            height: 200px;
+            background-color: #b0b0b0;
+            border-radius: 10px;
+            position: relative;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+        
+        .liquid {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: #4e2a1d;
+            transition: height 0.5s;
+        }
+        
+        .sugar-level {
+            height: 0;
+            background-color: #f0f0f0;
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .sugar-fill {
+            height: 100%;
+            background-color: #d0d0d0;
+            width: 0;
+            transition: width 0.5s;
+        }
+        
+        .whisk-area {
+            width: 100%;
+            height: 150px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        .whisk {
+            width: 50px;
+            height: 100px;
+            background-color: #808080;
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s;
+        }
+        
+        .milk {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 0;
+            background-color: white;
+            transition: height 0.5s;
+        }
+        
+        .froth {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 0;
+            background-color: #f8f8f8;
+            transition: height 0.5s;
+        }
+        
+        .cup {
+            width: 100px;
+            height: 120px;
+            background-color: #e0e0e0;
+            border-radius: 0 0 20px 20px;
+            position: relative;
+            overflow: hidden;
+            margin: 20px auto;
+        }
+        
+        .coffee-liquid {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 40%;
+            background-color: #4e2a1d;
+        }
+        
+        .milk-liquid {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 0;
+            background-color: #f0f0f0;
+            transition: height 0.5s;
+        }
+        
+        .spoon {
+            width: 80px;
+            height: 20px;
+            background-color: #a0a0a0;
+            border-radius: 5px;
+            position: absolute;
+            cursor: pointer;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .score-container {
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .completion-screen {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .completion-screen h2 {
+            margin-bottom: 20px;
+        }
+        
+        .high-score {
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .game-area {
+                padding: 10px;
+            }
+            
+            .ingredient {
+                padding: 8px 16px;
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cappuccino Maker</h1>
+            <p>Learn to make the perfect cappuccino!</p>
+        </header>
+        
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+            <div class="progress-fill" id="progressFill"></div>
+            <div class="step completed">1</div>
+            <div class="step">2</div>
+            <div class="step">3</div>
+            <div class="step">4</div>
+            <div class="step">5</div>
+        </div>
+        
+        <div class="score-container">
+            Score: <span id="score">0</span>
+        </div>
+        
+        <div class="game-area">
+            <!-- Level 1: Coffee Maker -->
+            <div class="level active" id="level1">
+                <div class="instructions">
+                    <h2>Step 1: Brew Coffee</h2>
+                    <p>Add coffee powder and hot water to the coffee maker</p>
+                </div>
+                
+                <div class="interactive-area">
+                    <div class="ingredient" id="coffeePowder">Coffee Powder (1 tbsp)</div>
+                    <div class="ingredient" id="hotWater">Hot Water</div>
+                    
+                    <div class="coffee-maker">
+                        <div class="liquid" id="coffeeLiquid"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Level 2: Sugar Addition -->
+            <div class="level" id="level2">
+                <div class="instructions">
+                    <h2>Step 2: Add Sugar</h2>
+                    <p>Add 2 tablespoons of sugar to your coffee</p>
+                </div>
+                
+                <div class="interactive-area">
+                    <div class="ingredient" id="sugar">Sugar (2 tbsp)</div>
+                    
+                    <div class="sugar-level">
+                        <div class="sugar-fill" id="sugarFill"></div>
+                    </div>
+                    
+                    <div class="cup">
+                        <div class="coffee-liquid"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Level 3: Milk Frothing -->
+            <div class="level" id="level3">
+                <div class="instructions">
+                    <h2>Step 3: Froth Milk</h2>
+                    <p>Click the whisk repeatedly to froth the milk</p>
+                </div>
+                
+                <div class="interactive-area">
+                    <div class="whisk-area">
+                        <div class="whisk" id="whisk"></div>
+                        <div class="milk" id="milk"></div>
+                        <div class="froth" id="froth"></div>
+                    </div>
+                    <div>Froth Progress: <span id="frothProgress">0%</span></div>
+                </div>
+            </div>
+            
+            <!-- Level 4: Final Pour -->
+            <div class="level" id="level4">
+                <div class="instructions">
+                    <h2>Step 4: Pour Milk</h2>
+                    <p>Pour the frothed milk into your coffee</p>
+                </div>
+                
+                <div class="interactive-area">
+                    <div class="ingredient" id="frothedMilk">Frothed Milk</div>
+                    
+                    <div class="cup">
+                        <div class="coffee-liquid"></div>
+                        <div class="milk-liquid" id="milkPour"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Level 5: Stirring -->
+            <div class="level" id="level5">
+                <div class="instructions">
+                    <h2>Step 5: Stir</h2>
+                    <p>Drag the spoon in a circular motion to stir your cappuccino</p>
+                </div>
+                
+                <div class="interactive-area">
+                    <div class="cup" id="stirCup">
+                        <div class="coffee-liquid"></div>
+                        <div class="milk-liquid" style="height: 60%;"></div>
+                        <div class="spoon" id="spoon"></div>
+                    </div>
+                    <div>Stir Count: <span id="stirCount">0</span>/3</div>
+                </div>
+            </div>
+            
+            <!-- Completion Screen -->
+            <div class="level" id="completionScreen">
+                <div class="completion-screen">
+                    <h2>Cappuccino Complete!</h2>
+                    <p>Congratulations on making your cappuccino!</p>
+                    <div class="score-container">Final Score: <span id="finalScore">0</span></div>
+                    <div class="high-score">High Score: <span id="highScore">0</span></div>
+                    <button id="playAgain">Make Another</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="prevBtn" disabled>Previous</button>
+            <button id="nextBtn" disabled>Next</button>
+            <button id="restartBtn">Restart</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentLevel: 1,
+            score: 0,
+            levelsCompleted: [false, false, false, false, false],
+            highScore: localStorage.getItem('cappuccinoHighScore') || 0
+        };
+
+        // DOM Elements
+        const levels = document.querySelectorAll('.level');
+        const steps = document.querySelectorAll('.step');
+        const progressFill = document.getElementById('progressFill');
+        const scoreDisplay = document.getElementById('score');
+        const highScoreDisplay = document.getElementById('highScore');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const playAgainBtn = document.getElementById('playAgain');
+
+        // Initialize high score display
+        highScoreDisplay.textContent = gameState.highScore;
+
+        // Level 1 elements
+        const coffeePowder = document.getElementById('coffeePowder');
+        const hotWater = document.getElementById('hotWater');
+        const coffeeLiquid = document.getElementById('coffeeLiquid');
+
+        // Level 2 elements
+        const sugar = document.getElementById('sugar');
+        const sugarFill = document.getElementById('sugarFill');
+
+        // Level 3 elements
+        const whisk = document.getElementById('whisk');
+        const milk = document.getElementById('milk');
+        const froth = document.getElementById('froth');
+        const frothProgress = document.getElementById('frothProgress');
+        let frothLevel = 0;
+
+        // Level 4 elements
+        const frothedMilk = document.getElementById('frothedMilk');
+        const milkPour = document.getElementById('milkPour');
+
+        // Level 5 elements
+        const spoon = document.getElementById('spoon');
+        const stirCup = document.getElementById('stirCup');
+        const stirCountDisplay = document.getElementById('stirCount');
+        let stirCount = 0;
+        let lastAngle = 0;
+        let totalRotation = 0;
+
+        // Initialize game
+        function initGame() {
+            updateProgress();
+            updateScore();
+            setupLevel1();
+        }
+
+        // Update progress bar and steps
+        function updateProgress() {
+            const progress = (gameState.currentLevel - 1) * 25;
+            progressFill.style.width = `${progress}%`;
+            
+            steps.forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                if (index < gameState.currentLevel - 1) {
+                    step.classList.add('completed');
+                } else if (index === gameState.currentLevel - 1) {
+                    step.classList.add('active');
+                }
+            });
+        }
+
+        // Update score display
+        function updateScore() {
+            scoreDisplay.textContent = gameState.score;
+        }
+
+        // Show level
+        function showLevel(level) {
+            levels.forEach(lvl => lvl.classList.remove('active'));
+            document.getElementById(`level${level}`).classList.add('active');
+            gameState.currentLevel = level;
+            updateProgress();
+            
+            // Update button states
+            prevBtn.disabled = level === 1;
+            nextBtn.disabled = !gameState.levelsCompleted[level - 1];
+            
+            // Setup level-specific interactions
+            if (level === 1) setupLevel1();
+            if (level === 2) setupLevel2();
+            if (level === 3) setupLevel3();
+            if (level === 4) setupLevel4();
+            if (level === 5) setupLevel5();
+        }
+
+        // Level 1: Coffee Maker
+        function setupLevel1() {
+            coffeeLiquid.style.height = '0';
+            coffeePowder.onclick = () => {
+                coffeePowder.style.opacity = '0.5';
+                coffeePowder.style.cursor = 'default';
+                coffeePowder.onclick = null;
+                checkLevel1Completion();
+            };
+            
+            hotWater.onclick = () => {
+                if (coffeePowder.style.opacity === '0.5') {
+                    coffeeLiquid.style.height = '80%';
+                    hotWater.style.opacity = '0.5';
+                    hotWater.style.cursor = 'default';
+                    hotWater.onclick = null;
+                    checkLevel1Completion();
+                }
+            };
+        }
+
+        function checkLevel1Completion() {
+            if (coffeePowder.style.opacity === '0.5' && hotWater.style.opacity === '0.5') {
+                gameState.levelsCompleted[0] = true;
+                gameState.score += 20;
+                updateScore();
+                nextBtn.disabled = false;
+            }
+        }
+
+        // Level 2: Sugar Addition
+        function setupLevel2() {
+            sugarFill.style.width = '0';
+            let sugarAdded = 0;
+            
+            sugar.onclick = () => {
+                sugarAdded++;
+                sugarFill.style.width = `${sugarAdded * 50}%`;
+                
+                if (sugarAdded === 2) {
+                    sugar.style.opacity = '0.5';
+                    sugar.style.cursor = 'default';
+                    sugar.onclick = null;
+                    gameState.levelsCompleted[1] = true;
+                    gameState.score += 20;
+                    updateScore();
+                    nextBtn.disabled = false;
+                }
+            };
+        }
+
+        // Level 3: Milk Frothing
+        function setupLevel3() {
+            milk.style.height = '80%';
+            froth.style.height = '0';
+            frothLevel = 0;
+            frothProgress.textContent = '0%';
+            
+            whisk.onclick = () => {
+                frothLevel += 5;
+                if (frothLevel > 100) frothLevel = 100;
+                
+                froth.style.height = `${frothLevel}%`;
+                frothProgress.textContent = `${frothLevel}%`;
+                
+                // Add animation effect
+                whisk.style.transform = 'scale(1.1)';
+                setTimeout(() => whisk.style.transform = 'scale(1)', 100);
+                
+                if (frothLevel === 100) {
+                    gameState.levelsCompleted[2] = true;
+                    gameState.score += 20;
+                    updateScore();
+                    nextBtn.disabled = false;
+                }
+            };
+        }
+
+        // Level 4: Final Pour
+        function setupLevel4() {
+            milkPour.style.height = '0';
+            
+            frothedMilk.onclick = () => {
+                milkPour.style.height = '60%';
+                frothedMilk.style.opacity = '0.5';
+                frothedMilk.style.cursor = 'default';
+                frothedMilk.onclick = null;
+                
+                gameState.levelsCompleted[3] = true;
+                gameState.score += 20;
+                updateScore();
+                nextBtn.disabled = false;
+            };
+        }
+
+        // Level 5: Stirring
+        function setupLevel5() {
+            stirCount = 0;
+            stirCountDisplay.textContent = '0';
+            spoon.style.left = '10px';
+            spoon.style.top = '50px';
+            totalRotation = 0;
+            
+            let isDragging = false;
+            let startX, startY;
+            
+            spoon.addEventListener('mousedown', startDrag);
+            spoon.addEventListener('touchstart', startDragTouch);
+            
+            function startDrag(e) {
+                e.preventDefault();
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', stopDrag);
+            }
+            
+            function startDragTouch(e) {
+                e.preventDefault();
+                isDragging = true;
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                document.addEventListener('touchmove', dragTouch);
+                document.addEventListener('touchend', stopDrag);
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                const cupRect = stirCup.getBoundingClientRect();
+                const x = e.clientX - cupRect.left - spoon.offsetWidth/2;
+                const y = e.clientY - cupRect.top - spoon.offsetHeight/2;
+                
+                // Keep spoon within cup bounds
+                if (x > 0 && x < cupRect.width - spoon.offsetWidth && 
+                    y > 0 && y < cupRect.height - spoon.offsetHeight) {
+                    spoon.style.left = `${x}px`;
+                    spoon.style.top = `${y}px`;
+                    
+                    // Calculate rotation
+                    const centerX = cupRect.width/2;
+                    const centerY = cupRect.height/2;
+                    const relX = x + spoon.offsetWidth/2 - centerX;
+                    const relY = y + spoon.offsetHeight/2 - centerY;
+                    const angle = Math.atan2(relY, relX) * 180 / Math.PI;
+                    
+                    // Check for full rotations
+                    if (lastAngle !== 0) {
+                        let diff = angle - lastAngle;
+                        if (diff < -180) diff += 360;
+                        if (diff > 180) diff -= 360;
+                        totalRotation += Math.abs(diff);
+                        
+                        if (totalRotation >= 360) {
+                            stirCount++;
+                            stirCountDisplay.textContent = stirCount;
+                            totalRotation = 0;
+                            
+                            if (stirCount >= 3) {
+                                gameState.levelsCompleted[4] = true;
+                                gameState.score += 20;
+                                updateScore();
+                                nextBtn.disabled = false;
+                                document.removeEventListener('mousemove', drag);
+                                document.removeEventListener('touchmove', dragTouch);
+                            }
+                        }
+                    }
+                    lastAngle = angle;
+                }
+            }
+            
+            function dragTouch(e) {
+                if (!isDragging) return;
+                drag({clientX: e.touches[0].clientX, clientY: e.touches[0].clientY});
+            }
+            
+            function stopDrag() {
+                isDragging = false;
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('touchmove', dragTouch);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchend', stopDrag);
+            }
+        }
+
+        // Show completion screen
+        function showCompletionScreen() {
+            levels.forEach(lvl => lvl.classList.remove('active'));
+            document.getElementById('completionScreen').classList.add('active');
+            finalScoreDisplay.textContent = gameState.score;
+            
+            // Update high score
+            if (gameState.score > gameState.highScore) {
+                gameState.highScore = gameState.score;
+                localStorage.setItem('cappuccinoHighScore', gameState.highScore);
+                highScoreDisplay.textContent = gameState.highScore;
+            }
+            
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+        }
+
+        // Event Listeners
+        nextBtn.addEventListener('click', () => {
+            if (gameState.currentLevel < 5) {
+                showLevel(gameState.currentLevel + 1);
+            } else {
+                showCompletionScreen();
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (gameState.currentLevel > 1) {
+                showLevel(gameState.currentLevel - 1);
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            resetGame();
+            showLevel(1);
+        });
+
+        playAgainBtn.addEventListener('click', () => {
+            resetGame();
+            showLevel(1);
+        });
+
+        // Reset game state
+        function resetGame() {
+            gameState.currentLevel = 1;
+            gameState.score = 0;
+            gameState.levelsCompleted = [false, false, false, false, false];
+            updateScore();
+            updateProgress();
+            nextBtn.disabled = true;
+            prevBtn.disabled = true;
+        }
+
+        // Initialize the game
+        initGame();
+    </script>
+</body>
+</html>

@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Classification: PCA Challenge</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .game-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .loan-options {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .categories {
+            flex: 1;
+            min-width: 300px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .loan-card {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .loan-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-color: #3498db;
+        }
+
+        .loan-card h3 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .loan-attributes {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        .category {
+            background-color: #f9f9f9;
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 150px;
+            transition: all 0.3s ease;
+        }
+
+        .category.highlight {
+            border-color: #3498db;
+            background-color: #e3f2fd;
+        }
+
+        .category h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .category p {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            text-align: center;
+        }
+
+        .pca-visualization {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .graph-container {
+            position: relative;
+            height: 300px;
+            margin: 20px auto;
+            max-width: 600px;
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .axis {
+            position: absolute;
+            background-color: #7f8c8d;
+        }
+
+        .x-axis {
+            width: 100%;
+            height: 2px;
+            bottom: 50%;
+            left: 0;
+        }
+
+        .y-axis {
+            width: 2px;
+            height: 100%;
+            left: 50%;
+            top: 0;
+        }
+
+        .axis-label {
+            position: absolute;
+            color: #7f8c8d;
+            font-size: 0.8rem;
+        }
+
+        .x-label {
+            bottom: 45%;
+            right: 10px;
+        }
+
+        .y-label {
+            top: 10px;
+            left: 52%;
+            transform: rotate(-90deg);
+            transform-origin: left top;
+        }
+
+        .data-point {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+        }
+
+        .feedback-area {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 100px;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            background-color: #2c3e50;
+            color: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        #reset-btn {
+            background-color: #e74c3c;
+        }
+
+        #reset-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .feedback-message {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .instructions {
+            background-color: #e3f2fd;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .completed {
+            background-color: #d4edda;
+            border-color: #28a745;
+        }
+
+        .game-complete {
+            text-align: center;
+            padding: 30px;
+            background-color: #d4edda;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .game-complete h2 {
+            color: #155724;
+            margin-bottom: 15px;
+        }
+
+        .pca-explanation {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .pca-explanation h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .pca-explanation p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                flex-direction: column;
+            }
+            
+            .categories {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Loan Classification Challenge</h1>
+            <p class="subtitle">Apply Principal Component Analysis to categorize loan options based on their attributes</p>
+        </header>
+
+        <div class="instructions">
+            <h3>How to Play:</h3>
+            <p>Drag each loan option to the correct category based on its attributes. Use the PCA visualization to understand how loans are grouped in multidimensional space.</p>
+        </div>
+
+        <div class="score-board">
+            <div class="score">
+                <h3>SCORE</h3>
+                <p id="score-value">0</p>
+            </div>
+            <div class="progress">
+                <h3>PROGRESS</h3>
+                <p id="progress-value">0/8</p>
+            </div>
+            <div class="timer">
+                <h3>TIME</h3>
+                <p id="timer-value">0s</p>
+            </div>
+        </div>
+
+        <div class="pca-visualization">
+            <h2 class="section-title">PCA Loan Visualization</h2>
+            <p>Visual representation of loan options in reduced dimensional space</p>
+            <div class="graph-container" id="pca-graph">
+                <!-- PCA graph will be generated here -->
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="loan-options">
+                <h2 class="section-title">Loan Options</h2>
+                <div id="loan-container">
+                    <!-- Loan cards will be generated here -->
+                </div>
+            </div>
+
+            <div class="categories">
+                <h2 class="section-title" style="grid-column: span 2;">Loan Categories</h2>
+                <div class="category" id="category-lowRisk">
+                    <h3>Low Risk</h3>
+                    <p>Low interest, high credit score required</p>
+                </div>
+                <div class="category" id="category-moderateRisk">
+                    <h3>Moderate Risk</h3>
+                    <p>Medium interest, medium credit score</p>
+                </div>
+                <div class="category" id="category-highRisk">
+                    <h3>High Risk</h3>
+                    <p>High interest, low credit score required</p>
+                </div>
+                <div class="category" id="category-specialProgram">
+                    <h3>Special Program</h3>
+                    <p>Government-backed, flexible terms</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="feedback-area">
+            <h2 class="section-title">Classification Feedback</h2>
+            <div id="feedback-messages">
+                <!-- Feedback messages will appear here -->
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="check-btn">Check Classifications</button>
+            <button id="reset-btn">Reset Game</button>
+        </div>
+
+        <div class="game-complete" id="game-complete">
+            <h2>Congratulations! 🎉</h2>
+            <p>You've successfully classified all loan options using PCA principles.</p>
+            <p>Your final score: <span id="final-score">0</span></p>
+            <button id="play-again-btn">Play Again</button>
+        </div>
+
+        <div class="pca-explanation">
+            <h3>Principal Component Analysis in Loan Classification</h3>
+            <p>PCA helps reduce the complexity of loan data by transforming multiple variables (interest rate, credit score requirement, loan term, etc.) into principal components that capture the most important patterns in the data.</p>
+            <p>In this visualization, loans that appear closer together in the PCA plot share similar characteristics and belong to the same category. By analyzing these groupings, financial experts can make better decisions about loan classification and risk assessment.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game data
+            const loanOptions = [
+                { id: 'loan1', name: 'Standard Mortgage', interest: 3.5, creditScore: 750, term: 30, risk: 'lowRisk' },
+                { id: 'loan2', name: 'First-Time Buyer', interest: 4.2, creditScore: 680, term: 30, risk: 'moderateRisk' },
+                { id: 'loan3', name: 'Small Business', interest: 6.8, creditScore: 650, term: 10, risk: 'highRisk' },
+                { id: 'loan4', name: 'VA Home Loan', interest: 3.2, creditScore: 620, term: 30, risk: 'specialProgram' },
+                { id: 'loan5', name: 'Personal Loan', interest: 9.5, creditScore: 600, term: 5, risk: 'highRisk' },
+                { id: 'loan6', name: 'Jumbo Mortgage', interest: 4.0, creditScore: 740, term: 30, risk: 'lowRisk' },
+                { id: 'loan7', name: 'FHA Loan', interest: 3.8, creditScore: 580, term: 30, risk: 'specialProgram' },
+                { id: 'loan8', name: 'Auto Loan', interest: 5.5, creditScore: 670, term: 6, risk: 'moderateRisk' }
+            ];
+
+            const categories = [
+                { id: 'lowRisk', name: 'Low Risk', description: 'Low interest, high credit score required' },
+                { id: 'moderateRisk', name: 'Moderate Risk', description: 'Medium interest, medium credit score' },
+                { id: 'highRisk', id: 'highRisk', name: 'High Risk', description: 'High interest, low credit score required' },
+                { id: 'specialProgram', name: 'Special Program', description: 'Government-backed, flexible terms' }
+            ];
+
+            // Game state
+            let gameState = {
+                score: 0,
+                progress: 0,
+                startTime: Date.now(),
+                currentTime: 0,
+                timerInterval: null,
+                completed: false,
+                placements: {}
+            };
+
+            // DOM elements
+            const loanContainer = document.getElementById('loan-container');
+            const feedbackMessages = document.getElementById('feedback-messages');
+            const scoreValue = document.getElementById('score-value');
+            const progressValue = document.getElementById('progress-value');
+            const timerValue = document.getElementById('timer-value');
+            const checkBtn = document.getElementById('check-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const playAgainBtn = document.getElementById('play-again-btn');
+            const gameComplete = document.getElementById('game-complete');
+            const finalScore = document.getElementById('final-score');
+            const pcaGraph = document.getElementById('pca-graph');
+
+            // Initialize game
+            function initGame() {
+                // Reset game state
+                gameState.score = 0;
+                gameState.progress = 0;
+                gameState.startTime = Date.now();
+                gameState.completed = false;
+                gameState.placements = {};
+                
+                // Clear containers
+                loanContainer.innerHTML = '';
+                feedbackMessages.innerHTML = '';
+                gameComplete.style.display = 'none';
+                
+                // Update UI
+                updateScore();
+                updateProgress();
+                
+                // Create loan cards
+                loanOptions.forEach(loan => {
+                    const loanCard = document.createElement('div');
+                    loanCard.className = 'loan-card';
+                    loanCard.id = loan.id;
+                    loanCard.draggable = true;
+                    loanCard.innerHTML = `
+                        <h3>${loan.name}</h3>
+                        <div class="loan-attributes">
+                            <span>Interest: ${loan.interest}%</span>
+                            <span>Credit Score: ${loan.creditScore}</span>
+                            <span>Term: ${loan.term} yrs</span>
+                        </div>
+                    `;
+                    
+                    // Add drag event listeners
+                    loanCard.addEventListener('dragstart', handleDragStart);
+                    
+                    loanContainer.appendChild(loanCard);
+                });
+                
+                // Add drop event listeners to categories
+                categories.forEach(category => {
+                    const categoryElement = document.getElementById(`category-${category.id}`);
+                    categoryElement.addEventListener('dragover', handleDragOver);
+                    categoryElement.addEventListener('drop', handleDrop);
+                });
+                
+                // Start timer
+                if (gameState.timerInterval) {
+                    clearInterval(gameState.timerInterval);
+                }
+                gameState.timerInterval = setInterval(updateTimer, 1000);
+                
+                // Render PCA visualization
+                renderPCA();
+            }
+
+            // Handle drag start
+            function handleDragStart(e) {
+                e.dataTransfer.setData('text/plain', e.target.id);
+                setTimeout(() => {
+                    e.target.classList.add('dragging');
+                }, 0);
+            }
+
+            // Handle drag over
+            function handleDragOver(e) {
+                e.preventDefault();
+                e.target.classList.add('highlight');
+            }
+
+            // Handle drop
+            function handleDrop(e) {
+                e.preventDefault();
+                e.target.classList.remove('highlight');
+                
+                const loanId = e.dataTransfer.getData('text/plain');
+                const loanCard = document.getElementById(loanId);
+                const categoryId = e.target.id.replace('category-', '');
+                
+                // Remove dragging class
+                loanCard.classList.remove('dragging');
+                
+                // Check if this loan has already been placed
+                if (gameState.placements[loanId]) {
+                    showFeedback(`You've already classified ${loanCard.querySelector('h3').textContent}.`, 'incorrect');
+                    return;
+                }
+                
+                // Place loan in category
+                e.target.appendChild(loanCard);
+                
+                // Store placement
+                gameState.placements[loanId] = categoryId;
+                
+                // Update progress
+                gameState.progress++;
+                updateProgress();
+                
+                // Show feedback
+                showFeedback(`Placed ${loanCard.querySelector('h3').textContent} in ${categories.find(c => c.id === categoryId).name}`, 'info');
+            }
+
+            // Update score display
+            function updateScore() {
+                scoreValue.textContent = gameState.score;
+            }
+
+            // Update progress display
+            function updateProgress() {
+                progressValue.textContent = `${gameState.progress}/${loanOptions.length}`;
+            }
+
+            // Update timer
+            function updateTimer() {
+                const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+                gameState.currentTime = elapsed;
+                timerValue.textContent = `${elapsed}s`;
+            }
+
+            // Show feedback message
+            function showFeedback(message, type) {
+                const feedback = document.createElement('div');
+                feedback.className = `feedback-message ${type}`;
+                feedback.textContent = message;
+                
+                feedbackMessages.appendChild(feedback);
+                
+                // Auto-scroll to bottom
+                feedbackMessages.scrollTop = feedbackMessages.scrollHeight;
+                
+                // Remove after delay
+                setTimeout(() => {
+                    feedback.remove();
+                }, 3000);
+            }
+
+            // Render PCA visualization
+            function renderPCA() {
+                // Clear previous graph
+                pcaGraph.innerHTML = '';
+                
+                // Create axes
+                const xAxis = document.createElement('div');
+                xAxis.className = 'axis x-axis';
+                pcaGraph.appendChild(xAxis);
+                
+                const yAxis = document.createElement('div');
+                yAxis.className = 'axis y-axis';
+                pcaGraph.appendChild(yAxis);
+                
+                // Create axis labels
+                const xLabel = document.createElement('div');
+                xLabel.className = 'axis-label x-label';
+                xLabel.textContent = 'Principal Component 1 (Interest Rate)';
+                pcaGraph.appendChild(xLabel);
+                
+                const yLabel = document.createElement('div');
+                yLabel.className = 'axis-label y-label';
+                yLabel.textContent = 'Principal Component 2 (Credit Score)';
+                pcaGraph.appendChild(yLabel);
+                
+                // Create data points
+                loanOptions.forEach(loan => {
+                    // Simplified PCA positioning based on loan attributes
+                    // In a real PCA, this would be calculated mathematically
+                    const x = 50 + (loan.interest - 3) * 10; // Scale interest rate
+                    const y = 50 + (loan.creditScore - 600) / 3; // Scale credit score
+                    
+                    const point = document.createElement('div');
+                    point.className = 'data-point';
+                    point.style.left = `${x}%`;
+                    point.style.top = `${y}%`;
+                    
+                    // Color based on risk category
+                    switch(loan.risk) {
+                        case 'lowRisk':
+                            point.style.backgroundColor = '#2ecc71';
+                            break;
+                        case 'moderateRisk':
+                            point.style.backgroundColor = '#f39c12';
+                            break;
+                        case 'highRisk':
+                            point.style.backgroundColor = '#e74c3c';
+                            break;
+                        case 'specialProgram':
+                            point.style.backgroundColor = '#3498db';
+                            break;
+                    }
+                    
+                    // Tooltip
+                    point.title = `${loan.name}\nInterest: ${loan.interest}%\nCredit Score: ${loan.creditScore}`;
+                    
+                    pcaGraph.appendChild(point);
+                });
+            }
+
+            // Check classifications
+            function checkClassifications() {
+                let correctCount = 0;
+                
+                // Check each placement
+                for (const loanId in gameState.placements) {
+                    const loan = loanOptions.find(l => l.id === loanId);
+                    const categoryId = gameState.placements[loanId];
+                    
+                    if (loan.risk === categoryId) {
+                        correctCount++;
+                        showFeedback(`Correct! ${loan.name} belongs to ${categories.find(c => c.id === categoryId).name}`, 'correct');
+                    } else {
+                        showFeedback(`Incorrect. ${loan.name} should be in ${categories.find(c => c.id === loan.risk).name}`, 'incorrect');
+                    }
+                }
+                
+                // Update score
+                gameState.score = Math.floor((correctCount / loanOptions.length) * 100);
+                updateScore();
+                
+                // Check if all loans are placed
+                if (gameState.progress === loanOptions.length) {
+                    if (correctCount === loanOptions.length) {
+                        showFeedback('Perfect! All loans classified correctly!', 'correct');
+                    } else {
+                        showFeedback('Some classifications are incorrect. Review your placements.', 'incorrect');
+                    }
+                    
+                    // Show game complete
+                    gameState.completed = true;
+                    finalScore.textContent = gameState.score;
+                    gameComplete.style.display = '
+    </script>
+</body>
+</html>

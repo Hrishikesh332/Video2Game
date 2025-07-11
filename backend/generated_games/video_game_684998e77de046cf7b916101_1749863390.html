@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Principal Component Analysis Interactive App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            color: #555555;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .plot-container {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .plot-area {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: white;
+            border: 1px solid #dddddd;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        
+        canvas {
+            display: block;
+            background-color: white;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #f0f0f0;
+            border: 1px solid #dddddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            color: #333333;
+        }
+        
+        button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .info-panel {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .level-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #e9e9e9;
+            border-radius: 4px;
+        }
+        
+        .level {
+            padding: 5px 15px;
+            border-radius: 4px;
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
+        
+        .level.active {
+            background-color: #d0d0d0;
+        }
+        
+        .instructions {
+            background-color: white;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px solid #eeeeee;
+        }
+        
+        .instructions h2 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            color: #222222;
+        }
+        
+        .instructions p {
+            margin-bottom: 10px;
+        }
+        
+        .pca-info {
+            background-color: white;
+            padding: 20px;
+            border-radius: 4px;
+            border: 1px solid #eeeeee;
+        }
+        
+        .pca-info h3 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            color: #222222;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+        }
+        
+        .score {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        #next-level {
+            background-color: #e0e0e0;
+            padding: 10px 25px;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+            }
+            
+            .plot-container, .info-panel {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Principal Component Analysis Interactive App</h1>
+        <p class="description">Understand PCA through interactive visualization and challenges</p>
+    </header>
+    
+    <main>
+        <div class="game-container">
+            <div class="plot-container">
+                <div class="plot-area">
+                    <canvas id="scatter-plot"></canvas>
+                </div>
+                <div class="controls">
+                    <button id="add-point">Add Point</button>
+                    <button id="compute-pca">Compute PCA</button>
+                    <button id="reset">Reset Points</button>
+                    <button id="toggle-components">Show Components</button>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <div class="level-indicator">
+                    <div class="level active">Level 1: Data Points</div>
+                    <div class="level">Level 2: Components</div>
+                    <div class="level">Level 3: Transformation</div>
+                </div>
+                
+                <div class="instructions">
+                    <h2>Current Challenge</h2>
+                    <p id="challenge-text">Add at least 5 data points to the scatter plot. Observe how the points are distributed.</p>
+                    <p id="level-instruction">Click "Add Point" then click on the canvas to place points. Try to create a clear pattern.</p>
+                </div>
+                
+                <div class="pca-info">
+                    <h3>About Principal Component Analysis</h3>
+                    <p>PCA is a technique for reducing the dimensionality of datasets while preserving important patterns and relationships.</p>
+                    <p>It works by identifying the directions (principal components) where the data varies the most.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="score">Points: <span id="points-count">0</span> | Level: <span id="current-level">1</span>/3</div>
+            <button id="next-level">Next Level</button>
+        </div>
+    </main>
+
+    <script>
+        // Game state
+        const gameState = {
+            level: 1,
+            points: [],
+            pcaComputed: false,
+            showComponents: false,
+            transformedPoints: [],
+            score: 0
+        };
+
+        // DOM elements
+        const canvas = document.getElementById('scatter-plot');
+        const ctx = canvas.getContext('2d');
+        const pointsCountEl = document.getElementById('points-count');
+        const currentLevelEl = document.getElementById('current-level');
+        const challengeTextEl = document.getElementById('challenge-text');
+        const levelInstructionEl = document.getElementById('level-instruction');
+        const nextLevelBtn = document.getElementById('next-level');
+        
+        // Initialize canvas
+        function initCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            drawGrid();
+            renderPoints();
+        }
+        
+        // Draw grid and axes
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#eeeeee';
+            ctx.lineWidth = 1;
+            
+            // Vertical lines
+            for (let x = 0; x <= canvas.width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Horizontal lines
+            for (let y = 0; y <= canvas.height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#cccccc';
+            ctx.lineWidth = 2;
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height / 2);
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+            
+            // Draw axis labels
+            ctx.fillStyle = '#999999';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            
+            // X-axis label
+            ctx.fillText('X', canvas.width - 20, canvas.height / 2 - 10);
+            
+            // Y-axis label
+            ctx.fillText('Y', canvas.width / 2 + 20, 20);
+        }
+        
+        // Render data points
+        function renderPoints() {
+            drawGrid();
+            
+            // Draw points
+            gameState.points.forEach(point => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#3498db';
+                ctx.fill();
+                ctx.strokeStyle = '#2980b9';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+            
+            // Draw PCA components if computed and visible
+            if (gameState.pcaComputed && gameState.showComponents) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                
+                // Draw first principal component (red)
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(centerX + 150, centerY - 80);
+                ctx.strokeStyle = '#e74c3c';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Draw second principal component (yellow)
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(centerX - 80, centerY - 150);
+                ctx.strokeStyle = '#f1c40f';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Draw component labels
+                ctx.fillStyle = '#e74c3c';
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText('PC1', centerX + 160, centerY - 85);
+                
+                ctx.fillStyle = '#f1c40f';
+                ctx.fillText('PC2', centerX - 90, centerY - 160);
+            }
+            
+            // Update points counter
+            pointsCountEl.textContent = gameState.points.length;
+        }
+        
+        // Add point to canvas
+        function addPoint(x, y) {
+            gameState.points.push({ x, y });
+            renderPoints();
+            checkLevelCompletion();
+        }
+        
+        // Reset all points
+        function resetPoints() {
+            gameState.points = [];
+            gameState.pcaComputed = false;
+            gameState.showComponents = false;
+            renderPoints();
+            updateInstructions();
+        }
+        
+        // Compute PCA (simulated for this example)
+        function computePCA() {
+            if (gameState.points.length < 3) return;
+            
+            gameState.pcaComputed = true;
+            gameState.showComponents = true;
+            gameState.score += 20;
+            renderPoints();
+            checkLevelCompletion();
+        }
+        
+        // Toggle PCA components visibility
+        function toggleComponents() {
+            gameState.showComponents = !gameState.showComponents;
+            renderPoints();
+        }
+        
+        // Update instructions based on current level
+        function updateInstructions() {
+            currentLevelEl.textContent = gameState.level;
+            
+            switch(gameState.level) {
+                case 1:
+                    challengeTextEl.textContent = 'Add at least 5 data points to the scatter plot. Observe how the points are distributed.';
+                    levelInstructionEl.textContent = 'Click "Add Point" then click on the canvas to place points. Try to create a clear pattern.';
+                    break;
+                case 2:
+                    challengeTextEl.textContent = 'Understand the principal components. The red line (PC1) shows the direction of maximum variance.';
+                    levelInstructionEl.textContent = 'Move points to see how components change. Toggle component visibility with the button.';
+                    break;
+                case 3:
+                    challengeTextEl.textContent = 'See how PCA transforms your data into a new coordinate system aligned with the principal components.';
+                    levelInstructionEl.textContent = 'Observe the transformed data points. Notice how PCA simplifies complex data.';
+                    break;
+            }
+        }
+        
+        // Check if level is completed
+        function checkLevelCompletion() {
+            let levelComplete = false;
+            
+            switch(gameState.level) {
+                case 1:
+                    levelComplete = gameState.points.length >= 5;
+                    break;
+                case 2:
+                    levelComplete = gameState.pcaComputed;
+                    break;
+                case 3:
+                    levelComplete = true;
+                    break;
+            }
+            
+            nextLevelBtn.disabled = !levelComplete;
+        }
+        
+        // Advance to next level
+        function nextLevel() {
+            if (gameState.level < 3) {
+                gameState.level++;
+                resetPoints();
+                updateInstructions();
+                checkLevelCompletion();
+                
+                if (gameState.level === 3) {
+                    challengeTextEl.textContent = 'Congratulations! You completed all levels.';
+                    levelInstructionEl.textContent = 'You can reset the game to start over or continue exploring PCA concepts.';
+                }
+            }
+        }
+        
+        // Initialize event listeners
+        function initEventListeners() {
+            // Canvas click to add points
+            canvas.addEventListener('click', (e) => {
+                if (gameState.level === 1) {
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    addPoint(x, y);
+                }
+            });
+            
+            // Button event listeners
+            document.getElementById('add-point').addEventListener('click', () => {
+                if (gameState.level === 1) {
+                    canvas.style.cursor = 'crosshair';
+                }
+            });
+            
+            document.getElementById('compute-pca').addEventListener('click', computePCA);
+            document.getElementById('reset').addEventListener('click', resetPoints);
+            document.getElementById('toggle-components').addEventListener('click', toggleComponents);
+            nextLevelBtn.addEventListener('click', nextLevel);
+            
+            // Window resize handler
+            window.addEventListener('resize', initCanvas);
+        }
+        
+        // Initialize game
+        function initGame() {
+            initCanvas();
+            initEventListeners();
+            updateInstructions();
+            checkLevelCompletion();
+        }
+        
+        // Start the game when page loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>

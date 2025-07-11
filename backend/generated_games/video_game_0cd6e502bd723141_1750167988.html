@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morning Stretch Routine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: #f8f8f8;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            overflow: hidden;
+            padding: 30px;
+            margin-top: 20px;
+        }
+        
+        h1, h2, h3 {
+            color: #222222;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-top: 10px;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-top: 15px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .active {
+            display: flex;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+            height: 12px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #4a4a4a;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .exercise-container {
+            width: 100%;
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .animation-area {
+            height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .figure {
+            position: relative;
+            width: 120px;
+            height: 200px;
+        }
+        
+        .head {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            background-color: #d0d0d0;
+            border-radius: 50%;
+        }
+        
+        .body {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 80px;
+            background-color: #d0d0d0;
+        }
+        
+        .arm {
+            position: absolute;
+            top: 60px;
+            width: 70px;
+            height: 15px;
+            background-color: #d0d0d0;
+            transform-origin: left center;
+        }
+        
+        .left-arm {
+            left: 20px;
+        }
+        
+        .right-arm {
+            right: 20px;
+        }
+        
+        .timer {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #333333;
+        }
+        
+        .instructions {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .breath-indicator {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 15px 0;
+            height: 30px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background-color: #e0e0e0;
+            color: #333333;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            background-color: #d0d0d0;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.primary {
+            background-color: #4a4a4a;
+            color: white;
+        }
+        
+        .gratitude-box {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .next-steps {
+            margin-top: 30px;
+            width: 100%;
+        }
+        
+        .next-steps ul {
+            text-align: left;
+            padding-left: 30px;
+            margin-top: 15px;
+        }
+        
+        .next-steps li {
+            margin-bottom: 10px;
+        }
+        
+        .exercise-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        /* Animations */
+        @keyframes breathe {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes stretch {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes twist {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(25deg); }
+            100% { transform: rotate(0deg); }
+        }
+        
+        .breathing .body {
+            animation: breathe 4s infinite ease-in-out;
+        }
+        
+        .stretching .left-arm {
+            animation: stretch 3s infinite ease-in-out;
+        }
+        
+        .stretching .right-arm {
+            animation: stretch 3s infinite ease-in-out 0.5s;
+        }
+        
+        .rotating .left-arm {
+            animation: rotate 4s infinite linear;
+            transform-origin: right center;
+        }
+        
+        .rotating .right-arm {
+            animation: rotate 4s infinite linear reverse;
+            transform-origin: left center;
+        }
+        
+        .twisting .figure {
+            animation: twist 5s infinite ease-in-out;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .animation-area {
+                height: 200px;
+            }
+            
+            .figure {
+                transform: scale(0.8);
+            }
+            
+            button {
+                padding: 10px 15px;
+                min-width: 100px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="screen active">
+            <h1>Morning Stretch Routine</h1>
+            <p>Start your day with this energizing sequence of stretches and breathing exercises.</p>
+            <div class="animation-area">
+                <div class="figure">
+                    <div class="head"></div>
+                    <div class="body"></div>
+                    <div class="arm left-arm"></div>
+                    <div class="arm right-arm"></div>
+                </div>
+            </div>
+            <p>Improve flexibility, reduce stress, and boost your energy levels.</p>
+            <button id="start-btn" class="primary">Begin Routine</button>
+        </div>
+        
+        <!-- Exercise Screen -->
+        <div id="exercise-screen" class="screen">
+            <h2 id="current-exercise-title">Exercise Title</h2>
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+            <div class="exercise-container">
+                <div class="animation-area">
+                    <div class="figure" id="exercise-animation">
+                        <div class="head"></div>
+                        <div class="body"></div>
+                        <div class="arm left-arm"></div>
+                        <div class="arm right-arm"></div>
+                    </div>
+                </div>
+                <div id="breath-indicator" class="breath-indicator"></div>
+                <div id="timer" class="timer">00:30</div>
+                <div id="instructions" class="instructions">
+                    Follow the on-screen instructions
+                </div>
+            </div>
+            <div class="controls">
+                <button id="repeat-btn">Repeat</button>
+                <button id="next-btn" class="primary">Next</button>
+            </div>
+        </div>
+        
+        <!-- Completion Screen -->
+        <div id="completion-screen" class="screen">
+            <h2>Well Done!</h2>
+            <div class="gratitude-box">
+                <h3>Take a Moment of Gratitude</h3>
+                <p>Thank yourself for taking this time for your well-being today.</p>
+                <p>You've completed your morning stretch routine!</p>
+            </div>
+            <div class="next-steps">
+                <h3>Next Steps</h3>
+                <p>Continue your wellness journey with these suggestions:</p>
+                <ul
+    </div>
+    </div>
+    </div>
+</body>
+</html>

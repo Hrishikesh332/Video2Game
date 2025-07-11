@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dance Studio Rhythm App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        body {
+            background-color: white;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .active {
+            display: flex;
+        }
+        
+        .dance-floor {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+        }
+        
+        .tile {
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .tile.active {
+            background-color: #3F51B5;
+            transform: scale(1.05);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #555;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #2196F3;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .feedback {
+            min-height: 40px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .score-display {
+            font-size: 24px;
+            margin: 10px 0;
+        }
+        
+        .level-select {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+        
+        .level-btn {
+            padding: 15px;
+            text-align: center;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .level-btn:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .countdown {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .results {
+            text-align: center;
+        }
+        
+        @media (max-width: 500px) {
+            .dance-floor {
+                width: 250px;
+                height: 250px;
+            }
+            
+            button {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Dance Studio Rhythm App</h1>
+        </header>
+        
+        <main>
+            <!-- Start Screen -->
+            <div id="start-screen" class="screen active">
+                <p>Test your rhythm and coordination skills!</p>
+                <button id="start-btn">Start Game</button>
+            </div>
+            
+            <!-- Level Select Screen -->
+            <div id="level-select-screen" class="screen">
+                <h2>Select Difficulty</h2>
+                <div class="level-select">
+                    <div class="level-btn" data-level="1">Beginner</div>
+                    <div class="level-btn" data-level="2">Intermediate</div>
+                    <div class="level-btn" data-level="3">Advanced</div>
+                </div>
+            </div>
+            
+            <!-- Game Screen -->
+            <div id="game-screen" class="screen">
+                <div class="countdown" id="countdown">3</div>
+                <div class="dance-floor" id="dance-floor">
+                    <div class="tile" data-index="0"></div>
+                    <div class="tile" data-index="1"></div>
+                    <div class="tile" data-index="2"></div>
+                    <div class="tile" data-index="3"></div>
+                    <div class="tile" data-index="4"></div>
+                    <div class="tile" data-index="5"></div>
+                    <div class="tile" data-index="6"></div>
+                    <div class="tile" data-index="7"></div>
+                    <div class="tile" data-index="8"></div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="score-display">Score: <span id="score">0</span></div>
+                <div class="feedback" id="feedback"></div>
+                <div class="controls">
+                    <button id="restart-btn">Restart</button>
+                </div>
+            </div>
+            
+            <!-- Results Screen -->
+            <div id="results-screen" class="screen">
+                <div class="results">
+                    <h2>Level Complete!</h2>
+                    <p>Your score: <span id="final-score">0</span></p>
+                    <div class="controls">
+                        <button id="play-again-btn">Play Again</button>
+                        <button id="level-select-again-btn">Select Level</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentScreen: 'start',
+            currentLevel: 1,
+            score: 0,
+            progress: 0,
+            sequence: [],
+            currentStep: 0,
+            gameActive: false,
+            countdownInterval: null,
+            gameInterval: null
+        };
+        
+        // DOM elements
+        const screens = {
+            start: document.getElementById('start-screen'),
+            levelSelect: document.getElementById('level-select-screen'),
+            game: document.getElementById('game-screen'),
+            results: document.getElementById('results-screen')
+        };
+        
+        const startBtn = document.getElementById('start-btn');
+        const levelBtns = document.querySelectorAll('.level-btn');
+        const danceFloor = document.getElementById('dance-floor');
+        const tiles = document.querySelectorAll('.tile');
+        const progressBar = document.getElementById('progress-bar');
+        const scoreDisplay = document.getElementById('score');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const feedbackDisplay = document.getElementById('feedback');
+        const countdownDisplay = document.getElementById('countdown');
+        const restartBtn = document.getElementById('restart-btn');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const levelSelectAgainBtn = document.getElementById('level-select-again-btn');
+        
+        // Level configurations
+        const levels = {
+            1: { name: "Beginner", speed: 1500, sequenceLength: 8, maxScore: 100 },
+            2: { name: "Intermediate", speed: 1000, sequenceLength: 12, maxScore: 200 },
+            3: { name: "Advanced", speed: 700, sequenceLength: 16, maxScore: 300 }
+        };
+        
+        // Initialize game
+        function init() {
+            startBtn.addEventListener('click', () => showScreen('levelSelect'));
+            
+            levelBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    gameState.currentLevel = parseInt(btn.dataset.level);
+                    startGame();
+                });
+            });
+            
+            tiles.forEach(tile => {
+                tile.addEventListener('click', () => handleTileClick(tile));
+            });
+            
+            restartBtn.addEventListener('click', restartGame);
+            playAgainBtn.addEventListener('click', restartGame);
+            levelSelectAgainBtn.addEventListener('click', () => showScreen('levelSelect'));
+        }
+        
+        // Show specific screen
+        function showScreen(screenName) {
+            Object.values(screens).forEach(screen => {
+                screen.classList.remove('active');
+            });
+            screens[screenName].classList.add('active');
+            gameState.currentScreen = screenName;
+        }
+        
+        // Start the game
+        function startGame() {
+            gameState.score = 0;
+            gameState.progress = 0;
+            gameState.currentStep = 0;
+            gameState.sequence = [];
+            scoreDisplay.textContent = '0';
+            progressBar.style.width = '0%';
+            feedbackDisplay.textContent = '';
+            
+            showScreen('game');
+            startCountdown();
+        }
+        
+        // Start countdown before game begins
+        function startCountdown() {
+            let count = 3;
+            countdownDisplay.textContent = count;
+            
+            gameState.countdownInterval = setInterval(() => {
+                count--;
+                countdownDisplay.textContent = count;
+                
+                if (count <= 0) {
+                    clearInterval(gameState.countdownInterval);
+                    countdownDisplay.textContent = 'Go!';
+                    setTimeout(() => {
+                        countdownDisplay.textContent = '';
+                        generateSequence();
+                        startSequence();
+                    }, 500);
+                }
+            }, 1000);
+        }
+        
+        // Generate random sequence
+        function generateSequence() {
+            const level = levels[gameState.currentLevel];
+            for (let i = 0; i < level.sequenceLength; i++) {
+                gameState.sequence.push(Math.floor(Math.random() * 9));
+            }
+        }
+        
+        // Start the sequence
+        function startSequence() {
+            gameState.gameActive = true;
+            activateNextTile();
+        }
+        
+        // Activate next tile in sequence
+        function activateNextTile() {
+            if (gameState.currentStep >= gameState.sequence.length) {
+                endGame();
+                return;
+            }
+            
+            // Clear any active tiles
+            tiles.forEach(tile => tile.classList.remove('active'));
+            
+            // Activate new tile
+            const tileIndex = gameState.sequence[gameState.currentStep];
+            tiles[tileIndex].classList.add('active');
+            
+            // Set timeout for auto-deactivation
+            gameState.gameInterval = setTimeout(() => {
+                if (tiles[tileIndex].classList.contains('active')) {
+                    tiles[tileIndex].classList.remove('active');
+                    feedbackDisplay.textContent = 'Missed!';
+                    setTimeout(() => feedbackDisplay.textContent = '', 1000);
+                    gameState.currentStep++;
+                    updateProgress();
+                    setTimeout(activateNextTile, 500);
+                }
+            }, levels[gameState.currentLevel].speed);
+        }
+        
+        // Handle tile click
+        function handleTileClick(tile) {
+            if (!gameState.gameActive) return;
+            
+            const clickedIndex = parseInt(tile.dataset.index);
+            const currentTileIndex = gameState.sequence[gameState.currentStep];
+            
+            if (clickedIndex === currentTileIndex && tile.classList.contains('active')) {
+                // Correct tile clicked
+                clearTimeout(gameState.gameInterval);
+                tile.classList.remove('active');
+                gameState.score += 10;
+                scoreDisplay.textContent = gameState.score;
+                feedbackDisplay.textContent = 'Perfect!';
+                setTimeout(() => feedbackDisplay.textContent = '', 1000);
+                
+                gameState.currentStep++;
+                updateProgress();
+                
+                if (gameState.currentStep < gameState.sequence.length) {
+                    setTimeout(activateNextTile, 500);
+                } else {
+                    endGame();
+                }
+            } else if (tile.classList.contains('active')) {
+                // Wrong tile clicked
+                feedbackDisplay.textContent = 'Wrong tile!';
+                setTimeout(() => feedbackDisplay.textContent = '', 1000);
+                gameState.score = Math.max(0, gameState.score - 5);
+                scoreDisplay.textContent = gameState.score;
+            }
+        }
+        
+        // Update progress
+        function updateProgress() {
+            const progress = (gameState.currentStep / gameState.sequence.length) * 100;
+            gameState.progress = progress;
+            progressBar.style.width = `${progress}%`;
+        }
+        
+        // End the game
+        function endGame() {
+            gameState.gameActive = false;
+            finalScoreDisplay.textContent = gameState.score;
+            showScreen('results');
+        }
+        
+        // Restart the game
+        function restartGame() {
+            clearInterval(gameState.countdownInterval);
+            clearTimeout(gameState.gameInterval);
+            startGame();
+        }
+        
+        // Initialize the game when loaded
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

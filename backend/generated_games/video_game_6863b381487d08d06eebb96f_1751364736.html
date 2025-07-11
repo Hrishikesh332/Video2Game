@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .game-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        
+        @media (min-width: 768px) {
+            .game-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .panel {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #444444;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            margin: 20px 0 15px;
+            color: #555555;
+        }
+        
+        .instructions {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .data-table th, .data-table td {
+            border: 1px solid #d0d0d0;
+            padding: 12px;
+            text-align: center;
+        }
+        
+        .data-table th {
+            background-color: #e8e8e8;
+            font-weight: 600;
+        }
+        
+        .data-table input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d0d0d0;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        button {
+            background-color: #e0e0e0;
+            color: #333333;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            background-color: #d0d0d0;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .btn-primary {
+            background-color: #4a4a4a;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #333333;
+        }
+        
+        .dimension-toggles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            background-color: #e8e8e8;
+            padding: 10px 15px;
+            border-radius: 30px;
+        }
+        
+        .toggle-container label {
+            margin-left: 8px;
+            font-weight: 500;
+        }
+        
+        .visualization {
+            position: relative;
+            height: 400px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        canvas {
+            display: block;
+            background-color: white;
+        }
+        
+        .explanation {
+            margin: 25px 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+        }
+        
+        .use-cases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .use-case {
+            background-color: #e8e8e8;
+            padding: 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .use-case:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        
+        .history {
+            margin: 25px 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            font-style: italic;
+        }
+        
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #e8e8e8;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .progress-container {
+            height: 20px;
+            background-color: #d0d0d0;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #4a4a4a;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .level-indicator {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 15px 0;
+        }
+        
+        .feedback {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #a5d6a7;
+        }
+        
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCA Explorer</h1>
+        <p>Understand Principal Component Analysis through interactive exploration</p>
+    </header>
+    
+    <div class="game-container">
+        <div class="panel">
+            <h2>Loan Data Input</h2>
+            <div class="instructions">
+                <p>Enter loan data below. Modify values to see how PCA transforms the data.</p>
+            </div>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Loan ID</th>
+                        <th>Amount ($)</th>
+                        <th>Credit Score</th>
+                        <th>Income ($)</th>
+                        <th>Job Years</th>
+                    </tr>
+                </thead>
+                <tbody id="data-body">
+                    <tr>
+                        <td>1</td>
+                        <td><input type="number" class="loan-amount" value="25000"></td>
+                        <td><input type="number" class="credit-score" value="720"></td>
+                        <td><input type="number" class="annual-income" value="65000"></td>
+                        <td><input type="number" class="job-years" value="3"></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><input type="number" class="loan-amount" value="18000"></td>
+                        <td><input type="number" class="credit-score" value="680"></td>
+                        <td><input type="number" class="annual-income" value="52000"></td>
+                        <td><input type="number" class="job-years" value="5"></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td><input type="number" class="loan-amount" value="32000"></td>
+                        <td><input type="number" class="credit-score" value="750"></td>
+                        <td><input type="number" class="annual-income" value="78000"></td>
+                        <td><input type="number" class="job-years" value="2"></td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td><input type="number" class="loan-amount" value="42000"></td>
+                        <td><input type="number" class="credit-score" value="690"></td>
+                        <td><input type="number" class="annual-income" value="48000"></td>
+                        <td><input type="number" class="job-years" value="7"></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="controls">
+                <button id="add-row">Add Loan</button>
+                <button id="reset-data">Reset Data</button>
+                <button id="calculate-pca" class="btn-primary">Calculate PCA</button>
+            </div>
+            
+            <h3>Dimensions to Include</h3>
+            <div class="dimension-toggles">
+                <div class="toggle-container">
+                    <input type="checkbox" id="toggle-amount" checked>
+                    <label for="toggle-amount">Loan Amount</label>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="toggle-credit" checked>
+                    <label for="toggle-credit">Credit Score</label>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="toggle-income" checked>
+                    <label for="toggle-income">Annual Income</label>
+                </div>
+                <div class="toggle-container">
+                    <input type="checkbox" id="toggle-job" checked>
+                    <label for="toggle-job">Job Years</label>
+                </div>
+            </div>
+            
+            <div class="game-stats">
+                <div>Level: <span id="level">1</span>/3</div>
+                <div>Score: <span id="score">0</span></div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <div class="level-indicator">
+                Level <span id="current-level">1</span>: Data Exploration
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="controls">
+                <button id="prev-level">Previous</button>
+                <button id="next-level" class="btn-primary">Next Level</button>
+                <button id="restart">Restart Game</button>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>PCA Visualization</h2>
+            <div class="visualization">
+                <canvas id="pca-plot" width="500" height="400"></canvas>
+            </div>
+            
+            <div class="explanation">
+                <h3>Understanding Principal Components</h3>
+                <p>Principal Component Analysis (PCA) reduces multidimensional data to fewer dimensions while preserving important patterns.</p>
+                <p>PC1 and PC2 are linear combinations of original variables that capture the maximum variance in the data.</p>
+            </div>
+            
+            <h3>PCA Applications</h3>
+            <div class="use-cases">
+                <div class="use-case">
+                    <h4>Image Compression</h4>
+                    <p>PCA reduces storage needs while preserving visual quality by eliminating redundant pixel information.</p>
+                </div>
+                <div class="use-case">
+                    <h4>Data Visualization</h4>
+                    <p>High-dimensional data becomes explorable in 2D/3D space while maintaining relationships.</p>
+                </div>
+                <div class="use-case">
+                    <h4>Noise Filtration</h4>
+    </div>
+    </div>
+    </div>
+    </div>
+</body>
+</html>

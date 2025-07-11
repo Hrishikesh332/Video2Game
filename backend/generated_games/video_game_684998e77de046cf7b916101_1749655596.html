@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Financial Analysis Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .game-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+        
+        @media (min-width: 768px) {
+            .game-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .challenge-section {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .challenge-section:hover {
+            transform: translateY(-5px);
+        }
+        
+        .challenge-title {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .visualization {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            height: 250px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
+        }
+        
+        .scatter-plot {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .axis {
+            position: absolute;
+            background-color: #6c757d;
+        }
+        
+        .x-axis {
+            bottom: 10%;
+            left: 5%;
+            width: 90%;
+            height: 2px;
+        }
+        
+        .y-axis {
+            left: 10%;
+            bottom: 10%;
+            width: 2px;
+            height: 80%;
+        }
+        
+        .data-point {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .data-point:hover {
+            transform: scale(1.2);
+        }
+        
+        .cluster-1 { background-color: #3498db; }
+        .cluster-2 { background-color: #e74c3c; }
+        .cluster-3 { background-color: #2ecc71; }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 15px 0;
+        }
+        
+        .option-btn {
+            padding: 12px;
+            background-color: #e9ecef;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .option-btn:hover {
+            background-color: #dee2e6;
+            transform: translateY(-2px);
+        }
+        
+        .option-btn.selected {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .dimension-controls {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        
+        .dimension-btn {
+            padding: 10px 15px;
+            background-color: #e9ecef;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .dimension-btn.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .dimension-btn:hover {
+            background-color: #dee2e6;
+        }
+        
+        .feedback {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+            display: block;
+        }
+        
+        .feedback.incorrect {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: #c0392b;
+            display: block;
+        }
+        
+        .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            margin-top: 15px;
+        }
+        
+        .submit-btn:hover {
+            background-color: #1a252f;
+        }
+        
+        .submit-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .progress-container {
+            margin: 30px 0;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .score-container {
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 20px 0;
+            color: #2c3e50;
+        }
+        
+        .completion-screen {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        
+        .completion-screen h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .completion-screen p {
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+        
+        .restart-btn {
+            padding: 14px 30px;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+        
+        .restart-btn:hover {
+            background-color: #1a252f;
+        }
+        
+        .pca-explanation {
+            background-color: #e9f7fe;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PCA Financial Analysis Challenge</h1>
+        <p>Apply Principal Component Analysis to loan and income data visualization</p>
+    </header>
+    
+    <div class="progress-container">
+        <div class="progress-header">
+            <span>Progress</span>
+            <span><span id="current-challenge">1</span>/8 Challenges</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+    </div>
+    
+    <div class="score-container">
+        Score: <span id="score">0</span> Points
+    </div>
+    
+    <div class="game-container" id="game-container">
+        <!-- Challenge 1: Cluster Identification -->
+        <div class="challenge-section">
+            <h3 class="challenge-title">Challenge 1: Identify Data Clusters</h3>
+            <p>Analyze the scatterplot showing annual income vs loan amounts. Identify the cluster with high-income borrowers.</p>
+            
+            <div class="visualization">
+                <div class="scatter-plot" id="scatter-plot-1">
+                    <div class="axis x-axis"></div>
+                    <div class="axis y-axis"></div>
+                    <!-- Data points will be generated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="options-container">
+                <button class="option-btn" data-challenge="1" data-value="A">Cluster A (Blue)</button>
+                <button class="option-btn" data-challenge="1" data-value="B">Cluster B (Red)</button>
+                <button class="option-btn" data-challenge="1" data-value="C">Cluster C (Green)</button>
+                <button class="option-btn" data-challenge="1" data-value="D">No clear clusters</button>
+            </div>
+            
+            <div class="feedback" id="feedback-1"></div>
+            <button class="submit-btn" data-challenge="1">Submit Answer</button>
+        </div>
+        
+        <!-- Challenge 2: Dimension Addition -->
+        <div class="challenge-section">
+            <h3 class="challenge-title">Challenge 2: Adding Dimensions</h3>
+            <p>Add a third dimension (credit score) to the visualization. Observe how clusters change with additional dimensions.</p>
+            
+            <div class="dimension-controls">
+                <button class="dimension-btn active" data-dimension="2">2 Dimensions</button>
+                <button class="dimension-btn" data-dimension="3">3 Dimensions</button>
+            </div>
+            
+            <div class="visualization">
+                <div class="scatter-plot" id="scatter-plot-2">
+                    <div class="axis x-axis"></div>
+                    <div class="axis y-axis"></div>
+                    <div class="axis z-axis" style="display:none"></div>
+                    <!-- Data points will be generated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="pca-explanation">
+                <p>Adding dimensions increases complexity but reveals more patterns. PCA helps reduce dimensions while preserving important information.</p>
+            </div>
+            
+            <div class="options-container">
+                <button class="option-btn" data-challenge="2" data-value="A">Clusters became more distinct</button>
+                <button class="option-btn" data-challenge="2" data-value="B">Clusters became less clear</button>
+                <button class="option-btn" data-challenge="2" data-value="C">No significant change</button>
+            </div>
+            
+            <div class="feedback" id="feedback-2"></div>
+            <button class="submit-btn" data-challenge="2">Submit Answer</button>
+        </div>
+        
+        <!-- Additional challenges would follow the same structure -->
+        <!-- Challenge 3 to 8 would be here in a complete implementation -->
+        
+    </div>
+    
+    <div class="completion-screen" id="completion-screen">
+        <h2>Analysis Complete!</h2>
+        <p>Congratulations on mastering PCA for financial data visualization.</p>
+        <p>Your final score: <span id="final-score">0</span> points</p>
+        <button class="restart-btn" id="restart-btn">Restart Analysis</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game state
+            const gameState = {
+                currentChallenge: 1,
+                totalChallenges: 8,
+                score: 0,
+                completedChallenges: 0,
+                challengeStatus: Array(8).fill(false)
+            };
+            
+            // Initialize scatter plots
+            initScatterPlot('scatter-plot-1', 2);
+            initScatterPlot('scatter-plot-2', 2);
+            
+            // Setup option buttons
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const challenge = this.dataset.challenge;
+                    const value = this.dataset.value;
+                    
+                    // Clear previous selections
+                    document.querySelectorAll(`.option-btn[data-challenge="${challenge}"]`).forEach(b => {
+                        b.classList.remove('selected');
+                    });
+                    
+                    // Select current
+                    this.classList.add('selected');
+                    this.dataset.selected = "true";
+                });
+            });
+            
+            // Dimension control buttons
+            document.querySelectorAll('.dimension-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const dimension = this.dataset.dimension;
+                    
+                    // Update UI
+                    document.querySelectorAll('.dimension-btn').forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Update visualization
+                    updateDimensions('scatter-plot-2', parseInt(dimension));
+                });
+            });
+            
+            // Submit buttons
+            document.querySelectorAll('.submit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const challenge = this.dataset.challenge;
+                    const selectedOption = document.querySelector(`.option-btn.selected[data-challenge="${challenge}"]`);
+                    
+                    if (!selectedOption) {
+                        alert('Please select an answer');
+                        return;
+                    }
+                    
+                    const selectedValue = selectedOption.dataset.value;
+                    const isCorrect = checkAnswer(parseInt(challenge), selectedValue);
+                    
+                    // Display feedback
+                    const feedback = document.getElementById(`feedback-${challenge}`);
+                    feedback.textContent = isCorrect ? 
+                        "Correct! Your analysis matches the financial patterns." : 
+                        "Incomplete analysis. Review the data patterns.";
+                    
+                    feedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+                    
+                    // Update score and progress
+                    if (isCorrect && !gameState.challengeStatus[challenge-1]) {
+                        gameState.score += 100;
+                        gameState.completedChallenges++;
+                        gameState.challengeStatus[challenge-1] = true;
+                        updateProgress();
+                    }
+                    
+                    // Disable buttons after submission
+                    document.querySelectorAll(`.option-btn[data-challenge="${challenge}"]`).forEach(b => {
+                        b.disabled = true;
+                    });
+                    this.disabled = true;
+                    
+                    // Move to next challenge
+                    if (gameState.completedChallenges === gameState.totalChallenges) {
+                        showCompletionScreen();
+                    }
+                });
+            });
+            
+            // Restart button
+            document.getElementById('restart-btn').addEventListener('click', function() {
+                resetGame();
+            });
+            
+            // Initialize progress
+            updateProgress();
+            
+            // Functions
+            function initScatterPlot(containerId, dimensions) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                
+                // Create axes
+                const xAxis = document.createElement('div');
+                xAxis.className = 'axis x-axis';
+                xAxis.style.bottom = '10%';
+                xAxis.style.left = '5%';
+                xAxis.style.width = '90%';
+                container.appendChild(xAxis);
+                
+                const yAxis = document.createElement('div');
+                yAxis.className = 'axis y-axis';
+                yAxis.style.left = '10%';
+                yAxis.style.bottom = '10%';
+                yAxis.style.height = '80%';
+                container.appendChild(yAxis);
+                
+                if (dimensions === 3) {
+                    const zAxis = document.createElement('div');
+                    zAxis.className = 'axis z-axis';
+                    zAxis.style.bottom = '10%';
+                    zAxis.style.left = '50%';
+                    zAxis.style.transform = 'rotate(-45deg)';
+                    zAxis.style.height = '40%';
+                    container.appendChild(zAxis);
+                }
+                
+                // Create data points (3 clusters)
+                for (let i = 0; i < 30; i++) {
+                    const point = document.createElement('div');
+                    point.className = 'data-point';
+                    
+                    // Cluster 1 (High income, medium loans)
+                    if (i < 10) {
+                        point.classList.add('cluster-1');
+                        point.style.width = '12px';
+                        point.style.height = '12px';
+                        point.style.left = `${70 + Math.random() * 20}%`;
+                        point.style.bottom = `${40 + Math.random() * 30}%`;
+                    }
+                    // Cluster 2 (Medium income, high loans)
+                    else if (i < 20) {
+                        point.classList.add('cluster-2');
+                        point.style.width = '14px';
+                        point.style.height = '14px';
+                        point.style.left = `${30 + Math.random() * 20}%`;
+                        point.style.bottom = `${60 + Math.random() * 20}%`;
+                    }
+                    // Cluster 3 (Low income, low loans)
+                    else {
+                        point.classList.add('cluster-3');
+                        point.style.width = '10px';
+                        point.style.height = '10px';
+                        point.style.left = `${10 + Math.random() * 20}%`;
+                        point.style.bottom = `${10 + Math.random() * 20}%`;
+                    }
+                    
+                    container.appendChild(point);
+                }
+            }
+            
+            function updateDimensions(containerId, dimensions) {
+                initScatterPlot(containerId, dimensions);
+            }
+            
+            function checkAnswer(challenge, answer) {
+                // In a real implementation, this would have actual validation logic
+                // For this demo, we'll return correct for specific answers
+                if (challenge === 1) return answer === 'A';
+                if (challenge === 2) return answer === 'A';
+                return Math.random() > 0.5; // Random for demo
+            }
+            
+            function updateProgress() {
+                document.getElementById('current-challenge').textContent = gameState.completedChallenges + 1;
+                document.getElementById('score').textContent = gameState.score;
+                
+                const progress = (gameState.completedChallenges / gameState.totalChallenges) * 100;
+                document.getElementById('progress-fill').style.width = `${progress}%`;
+            }
+            
+            function showCompletionScreen() {
+                document.getElementById('game-container').style.display = 'none';
+                document.getElementById('final-score').textContent = gameState.score;
+                document.getElementById('completion-screen').style.display = 'block';
+            }
+            
+            function resetGame() {
+                gameState.currentChallenge = 1;
+                gameState.score = 0;
+                gameState.completedChallenges = 0;
+                gameState.challengeStatus = Array(8).fill(false);
+                
+                document.getElementById('game-container').style.display = 'grid';
+                document.getElementById('completion-screen').style.display = 'none';
+                
+                // Reset all buttons
+                document.querySelectorAll('.option-btn').forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('selected');
+                });
+                
+                document.querySelectorAll('.submit-btn').forEach(btn => {
+                    btn.disabled = false;
+                });
+                
+                document.querySelectorAll('.feedback').forEach(fb => {
+                    fb.style.display = 'none';
+                });
+                
+                // Reset visualizations
+                initScatterPlot('scatter-plot-1', 2);
+                initScatterPlot('scatter-plot-2', 2);
+                
+                // Reset dimension buttons
+                document.querySelectorAll('.dimension-btn').forEach((btn, index) => {
+                    btn.classList.toggle('active', index === 0);
+                });
+                
+                updateProgress();
+            }
+        });
+    </script>
+</body>
+</html>

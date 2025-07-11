@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Learning Roadmap Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .game-section {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #444444;
+            border-left: 4px solid #666666;
+            padding-left: 15px;
+        }
+        
+        .module {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        
+        .module:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: #333333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 12px;
+            background-color: #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 0 15px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #666666;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .resources {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #e0e0e0;
+        }
+        
+        .resources h4 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #555555;
+        }
+        
+        .resource-list {
+            list-style-type: none;
+        }
+        
+        .resource-list li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .resource-list li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #666666;
+        }
+        
+        .resource-list a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        
+        .resource-list a:hover {
+            text-decoration: underline;
+        }
+        
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .option {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .option:hover {
+            background-color: #e5e5e5;
+        }
+        
+        .option.selected {
+            background-color: #d5d5d5;
+            border-color: #666666;
+        }
+        
+        .option.correct {
+            background-color: #e6f7e6;
+            border-color: #4CAF50;
+        }
+        
+        .option.incorrect {
+            background-color: #fde7e9;
+            border-color: #f44336;
+        }
+        
+        .feedback {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background-color: #e6f7e6;
+            border: 1px solid #4CAF50;
+            display: block;
+        }
+        
+        .feedback.incorrect {
+            background-color: #fde7e9;
+            border: 1px solid #f44336;
+            display: block;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+        }
+        
+        button {
+            background-color: #666666;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #555555;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .score-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .score-value {
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+        
+        .completion-badge {
+            background-color: #666666;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        .completed .completion-badge {
+            display: inline-block;
+        }
+        
+        .path-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .path {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .motivation-tip {
+            background-color: #ffffff;
+            border-left: 4px solid #666666;
+            padding: 15px;
+            margin: 15px 0;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .game-section {
+                padding: 20px 15px;
+            }
+            
+            .options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>AI Learning Roadmap</h1>
+        <p>Master the skills needed for self-studying Artificial Intelligence</p>
+    </header>
+    
+    <div class="container">
+        <div class="game-section">
+            <h2>Foundational Knowledge</h2>
+            
+            <div class="module" data-module="calculus">
+                <h3>Calculus <span class="completion-badge">Completed</span></h3>
+                <p>Master derivatives, integrals, and multivariable calculus concepts essential for understanding machine learning algorithms.</p>
+                <div class="progress-container">
+                    <span>Progress:</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                    </div>
+                    <span>100%</span>
+                </div>
+                <div class="resources">
+                    <h4>Recommended Resources:</h4>
+                    <ul class="resource-list">
+                        <li><a href="https://www.khanacademy.org/math/calculus-1" target="_blank">Khan Academy - Calculus</a></li>
+                        <li><a href="https://ocw.mit.edu/courses/mathematics/18-01sc-single-variable-calculus-fall-2010/" target="_blank">MIT OpenCourseWare - Single Variable Calculus</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="module" data-module="linear-algebra">
+                <h3>Linear Algebra <span class="completion-badge">Completed</span></h3>
+                <p>Learn vectors, matrices, eigenvalues, and other concepts critical for deep learning and data transformations.</p>
+                <div class="progress-container">
+                    <span>Progress:</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                    </div>
+                    <span>100%</span>
+                </div>
+                <div class="resources">
+                    <h4>Recommended Resources:</h4>
+                    <ul class="resource-list">
+                        <li><a href="https://www.khanacademy.org/math/linear-algebra" target="_blank">Khan Academy - Linear Algebra</a></li>
+                        <li><a href="https://ocw.mit.edu/courses/mathematics/18-06sc-linear-algebra-fall-2011/" target="_blank">MIT OpenCourseWare - Linear Algebra</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="module" data-module="programming">
+                <h3>Programming Fundamentals <span class="completion-badge">Completed</span></h3>
+                <p>Develop skills in Python, Linux command line, OOP, and data structures needed for AI development.</p>
+                <div class="progress-container">
+                    <span>Progress:</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                    </div>
+                    <span>100%</span>
+                </div>
+                <div class="resources">
+                    <h4>Recommended Resources:</h4>
+                    <ul class="resource-list">
+                        <li><a href="https://www.codecademy.com/learn/learn-python-3" target="_blank">Codecademy - Learn Python 3</a></li>
+                        <li><a href="https://www.learnenough.com/command-line-tutorial" target="_blank">Learn Enough Command Line</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-section">
+            <h2>AI Fundamentals Challenge</h2>
+            
+            <div class="quiz-container">
+                <div class="question">Question 1: Which mathematical concept is essential for understanding gradient descent in machine learning?</div>
+                <div class="options">
+                    <div class="option" data-correct="true">Derivatives</div>
+                    <div class="option">Integrals</div>
+                    <div class="option">Trigonometry</div>
+                    <div class="option">Complex Numbers</div>
+                </div>
+                
+                <div class="question">Question 2: What is the primary purpose of activation functions in neural networks?</div>
+                <div class="options">
+                    <div class="option">To reduce computation time</div>
+                    <div class="option" data-correct="true">To introduce non-linearity</div>
+                    <div class="option">To store network parameters</div>
+                    <div class="option">To visualize data</div>
+                </div>
+                
+                <div class="feedback"></div>
+                
+                <div class="controls">
+                    <button id="check-answers">Check Answers</button>
+                    <div class="score-container">
+                        Score: <span class="score-value">0</span>/2
+                    </div>
+                    <button id="next-section" disabled>Continue to Projects</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-section">
+            <h2>AI Learning Paths</h2>
+            
+            <div class="path-container">
+                <div class="path">
+                    <h3>Machine Learning Path</h3>
+                    <ul class="resource-list">
+                        <li>Supervised Learning Algorithms</li>
+                        <li>Unsupervised Learning Techniques</li>
+                        <li>Model Evaluation and Validation</li>
+                        <li>Feature Engineering</li>
+                    </ul>
+                    <div class="resources">
+                        <h4>Key Resources:</h4>
+                        <ul class="resource-list">
+                            <li><a href="https://www.coursera.org/learn/machine-learning" target="_blank">Andrew Ng's Machine Learning Course</a></li>
+                            <li><a href="https://www.kaggle.com/learn" target="_blank">Kaggle Learn</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="path">
+                    <h3>Artificial Intelligence Path</h3>
+                    <ul class="resource-list">
+                        <li>Search Algorithms</li>
+                        <li>Knowledge Representation</li>
+                        <li>Planning and Decision Making</li>
+                        <li>Natural Language Processing</li>
+                    </ul>
+                    <div class="resources">
+                        <h4>Key Resources:</h4>
+                        <ul class="resource-list">
+                            <li><a href="https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-034-artificial-intelligence-fall-2010/" target="_blank">MIT Introduction to AI</a></li>
+                            <li><a href="https://www.edx.org/course/artificial-intelligence-ai" target="_blank">Columbia AI Course</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-section">
+            <h2>Motivation & Tips</h2>
+            <div class="motivation-tip">
+                "Consistency is key. Dedicate at least 1 hour daily to learning rather than long irregular sessions."
+            </div>
+            <div class="motivation-tip">
+                "Build projects as you learn. Practical application reinforces theoretical knowledge."
+            </div>
+            <div class="motivation-tip">
+                "Join AI communities to stay motivated and get support when facing challenges."
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Quiz functionality
+            const options = document.querySelectorAll('.option');
+            const checkButton = document.getElementById('check-answers');
+            const nextButton = document.getElementById('next-section');
+            const scoreValue = document.querySelector('.score-value');
+            const feedback = document.querySelector('.feedback');
+            
+            let score = 0;
+            let answersChecked = false;
+            
+            // Add click event to options
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    if (answersChecked) return;
+                    
+                    // Remove selection from other options in the same question
+                    const questionOptions = this.parentElement.children;
+                    for (let opt of questionOptions) {
+                        opt.classList.remove('selected');
+                    }
+                    
+                    this.classList.add('selected');
+                });
+            });
+            
+            // Check answers
+            checkButton.addEventListener('click', function() {
+                if (answersChecked) return;
+                
+                let correctCount = 0;
+                const allOptions = document.querySelectorAll('.option');
+                
+                allOptions.forEach(option => {
+                    if (option.hasAttribute('data-correct')) {
+                        option.classList.add('correct');
+                        if (option.classList.contains('selected')) {
+                            correctCount++;
+                        }
+                    } else if (option.classList.contains('selected')) {
+                        option.classList.add('incorrect');
+                    }
+                });
+                
+                score = correctCount;
+                scoreValue.textContent = score;
+                
+                // Show feedback
+                if (score === 2) {
+                    feedback.textContent = "Excellent! You've mastered the fundamentals.";
+                    feedback.classList.add('correct');
+                } else {
+                    feedback.textContent = "Good effort! Review the concepts and try again.";
+                    feedback.classList.add('incorrect');
+                }
+                
+                answersChecked = true;
+                checkButton.disabled = true;
+                nextButton.disabled = false;
+            });
+            
+            // Next section button
+            nextButton.addEventListener('click', function() {
+                alert('Congratulations! You are ready to start AI projects.');
+                // In a full implementation, this would navigate to the next section
+            });
+            
+            // Module completion simulation
+            const modules = document.querySelectorAll('.module');
+            modules.forEach(module => {
+                module.classList.add('completed');
+            });
+        });
+    </script>
+</body>
+</html>

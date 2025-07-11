@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai Islands History Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .screen {
+            display: none;
+            padding: 20px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .active {
+            display: block;
+        }
+
+        h1, h2, h3 {
+            color: #222;
+            margin-bottom: 15px;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        button {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #d0d0d0;
+        }
+
+        .btn-primary {
+            background-color: #4a4a4a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #3a3a3a;
+        }
+
+        .map-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: #e9e9e9;
+            margin: 20px 0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            background-color: #a0a0a0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .island:hover {
+            transform: scale(1.05);
+            background-color: #888;
+        }
+
+        .island-info {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .timeline-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .timeline-event {
+            background-color: #e0e0e0;
+            padding: 15px;
+            border-radius: 4px;
+            cursor: move;
+        }
+
+        .quiz-option {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            text-align: left;
+            background-color: #e9e9e9;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .quiz-option:hover {
+            background-color: #d9d9d9;
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #e9e9e9;
+            border-radius: 4px;
+        }
+
+        .score-container {
+            text-align: right;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .feedback {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .toggle-container {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+        }
+
+        .active-toggle {
+            background-color: #4a4a4a;
+            color: white;
+        }
+
+        .location-info {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e9e9e9;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .map-container {
+                height: 300px;
+            }
+            
+            .island {
+                font-size: 12px;
+                padding: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .map-container {
+                height: 250px;
+            }
+            
+            button {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Start Screen -->
+    <div id="start-screen" class="screen active">
+        <h1>Mumbai Islands History Adventure</h1>
+        <p>Discover how Mumbai transformed from seven separate islands to the bustling metropolis it is today!</p>
+        <p>Complete three challenges to learn about Mumbai's fascinating history:</p>
+        <ul>
+            <li>Level 1: Explore the seven islands</li>
+            <li>Level 2: Test your historical knowledge</li>
+            <li>Level 3: Arrange key events in order</li>
+        </ul>
+        <button id="start-btn" class="btn-primary">Begin Journey</button>
+    </div>
+
+    <!-- Level 1: Island Exploration -->
+    <div id="level1" class="screen">
+        <h2>Level 1: The Seven Islands of Mumbai</h2>
+        <p>Click on each island to learn about its history and significance. Find all seven islands to proceed!</p>
+        
+        <div class="toggle-container">
+            <button id="historical-view" class="toggle-btn active-toggle">Historical View</button>
+            <button id="current-view" class="toggle-btn">Current View</button>
+        </div>
+        
+        <div class="map-container" id="map">
+            <!-- Islands will be positioned here by JavaScript -->
+        </div>
+        
+        <div class="progress-container">
+            <div>Islands Discovered: <span id="discovered-count">0</span>/7</div>
+            <div>Score: <span id="score-level1">0</span></div>
+        </div>
+        
+        <div id="island-details" class="island-info"></div>
+        
+        <button id="next-level1" class="btn-primary" disabled>Next Level</button>
+    </div>
+
+    <!-- Level 2: Historical Quiz -->
+    <div id="level2" class="screen">
+        <h2>Level 2: Historical Knowledge Challenge</h2>
+        <p>Test your knowledge about Mumbai's history and transformation.</p>
+        
+        <div id="quiz-container">
+            <h3 id="question-text"></h3>
+            <div id="options-container"></div>
+        </div>
+        
+        <div class="progress-container">
+            <div>Question: <span id="current-question">1</span>/5</div>
+            <div>Score: <span id="score-level2">0</span></div>
+        </div>
+        
+        <div id="quiz-feedback" class="feedback"></div>
+        
+        <button id="next-level2" class="btn-primary" disabled>Next Level</button>
+    </div>
+
+    <!-- Level 3: Timeline Challenge -->
+    <div id="level3" class="screen">
+        <h2>Level 3: Timeline Challenge</h2>
+        <p>Arrange these historical events in the correct chronological order.</p>
+        
+        <div class="timeline-container" id="timeline">
+            <!-- Timeline events will be added here by JavaScript -->
+        </div>
+        
+        <div class="progress-container">
+            <div>Events: <span id="sorted-count">0</span>/5</div>
+            <div>Score: <span id="score-level3">0</span></div>
+        </div>
+        
+        <div id="timeline-feedback" class="feedback"></div>
+        
+        <button id="check-order" class="btn-primary">Check Order</button>
+        <button id="next-level3" class="btn-primary" disabled>See Results</button>
+    </div>
+
+    <!-- End Screen -->
+    <div id="end-screen" class="screen">
+        <h2>Congratulations!</h2>
+        <p>You've completed the Mumbai Islands History Adventure.</p>
+        <div class="score-container">
+            Final Score: <span id="final-score">0</span>
+        </div>
+        <div class="score-container">
+            High Score: <span id="high-score">0</span>
+        </div>
+        <div id="performance-comment"></div>
+        <button id="restart-btn" class="btn-primary">Play Again</button>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentScreen: 'start',
+            score: 0,
+            highScore: localStorage.getItem('mumbaiHighScore') || 0,
+            level: 1,
+            discoveredIslands: [],
+            currentQuestion: 0,
+            correctAnswers: 0,
+            timelineOrder: []
+        };
+
+        // Island data
+        const islands = [
+            { id: 'colaba', name: 'Colaba', x: 15, y: 80, radius: 40, 
+              info: 'The southernmost island, known for the Gateway of India and military presence.' },
+            { id: 'oldWomans', name: 'Old Woman\'s Island', x: 25, y: 40, radius: 30, 
+              info: 'A small rocky island that now hosts the Raj Bhavan, the Governor\'s residence.' },
+            { id: 'bombay', name: 'Bombay', x: 40, y: 60, radius: 50, 
+              info: 'The main island that gave the city its former name, home to Fort area and business district.' },
+            { id: 'mazagaon', name: 'Mazagaon', x: 65, y: 30, radius: 45, 
+              info: 'Originally a fishing village, now an important dock area and residential neighborhood.' },
+            { id: 'worli', name: 'Worli', x: 50, y: 75, radius: 35, 
+              info: 'Known for the Worli Fort and fishing community, now connected by the Bandra-Worli Sea Link.' },
+            { id: 'mahim', name: 'Mahim', x: 65, y: 65, radius: 40, 
+              info: 'Site of the Mahim Fort and the Makhdoom Ali Mahimi shrine, important during Portuguese rule.' },
+            { id: 'parel', name: 'Parel', x: 75, y: 50, radius: 45, 
+              info: 'Formerly a mill district, now transformed into a commercial and residential hub.' }
+        ];
+
+        //
+    </script>
+</body>
+</html>

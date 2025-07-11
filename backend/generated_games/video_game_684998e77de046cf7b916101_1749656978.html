@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Financial Analysis Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            text-align: center;
+            flex-grow: 1;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .game-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        @media (min-width: 768px) {
+            .game-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .panel {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .visualization {
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .graph-container {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        canvas {
+            background-color: #ecf0f1;
+            border-radius: 5px;
+        }
+        
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .challenge {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .question {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        
+        @media (min-width: 480px) {
+            .options {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .option {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .option:hover {
+            background-color: #e9f7fe;
+            border-color: #3498db;
+        }
+        
+        .option.selected {
+            background-color: #d1ecf1;
+            border-color: #3498db;
+        }
+        
+        .feedback {
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 0 15px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .score-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .score {
+            color: #3498db;
+        }
+        
+        .completion-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .completion-screen h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .completion-screen p {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        
+        .highlight {
+            font-size: 1.5rem;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .animation-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            margin: 20px 0;
+        }
+        
+        .pca-animation {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 150px;
+        }
+        
+        .data-point {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #3498db;
+            transform: translate(-50%, -50%);
+        }
+        
+        .component-line {
+            position: absolute;
+            height: 2px;
+            background-color: #e74c3c;
+            transform-origin: 0 0;
+        }
+        
+        .explanation {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+            margin: 15px 0;
+        }
+        
+        .dimension-controls {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .dimension-btn {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+        
+        .dimension-btn.active {
+            background-color: #3498db;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <button id="prevBtn" disabled>← Previous</button>
+        <h1>Principal Component Analysis: Financial Data Explorer</h1>
+        <div class="controls">
+            <button id="resetBtn">Reset</button>
+            <button id="nextBtn">Next →</button>
+        </div>
+    </header>
+    
+    <div class="progress-container">
+        <span>Challenge <span id="currentChallenge">1</span> of 7</span>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="score-container">
+            Score: <span class="score" id="score">0</span>/70
+        </div>
+    </div>
+    
+    <div class="game-container">
+        <div class="panel visualization">
+            <h2>Financial Data Visualization</h2>
+            <div class="dimension-controls">
+                <button class="dimension-btn active" data-dim="2">2D View</button>
+                <button class="dimension-btn" data-dim="3">3D View</button>
+                <button class="dimension-btn" data-dim="pca">PCA Projection</button>
+            </div>
+            <div class="graph-container">
+                <canvas id="dataCanvas" width="500" height="300"></canvas>
+            </div>
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Loan ID</th>
+                            <th>Income ($)</th>
+                            <th>Loan Amount ($)</th>
+                            <th>Interest Rate (%)</th>
+                            <th>Risk Category</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Table rows will be generated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="panel challenge">
+            <div id="challengeContent">
+                <div class="question" id="question">Loading challenge...</div>
+                <div class="explanation" id="explanation">
+                    Principal Component Analysis (PCA) reduces high-dimensional data while preserving important patterns. 
+                    In finance, it helps identify key factors affecting loan risk.
+                </div>
+                <div class="options" id="options">
+                    <!-- Options will be generated by JavaScript -->
+                </div>
+                <div class="feedback" id="feedback"></div>
+                <button id="submitBtn" disabled>Submit Answer</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="panel completion-screen" id="completionScreen">
+        <h2>Analysis Complete!</h2>
+        <div class="animation-container">
+            <div class="pca-animation" id="pcaAnimation"></div>
+        </div>
+        <p>You've successfully mastered PCA for financial data analysis</p>
+        <p>Your final score: <span class="highlight" id="finalScore">0</span>/70</p>
+        <p id="performanceComment">Keep practicing to improve your financial analysis skills!</p>
+        <button id="restartBtn">Analyze Again</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            const gameState = {
+                currentChallenge: 1,
+                totalChallenges: 7,
+                score: 0,
+                selectedOption: null,
+                challenges: [],
+                answered: false
+            };
+            
+            // Financial data for visualization
+            const financialData = [
+                { id: 1, income: 45000, loan: 15000, interest: 5.2, risk: 'Low' },
+                { id: 2, income: 32000, loan: 22000, interest: 7.8, risk: 'Medium' },
+                { id: 3, income: 89000, loan: 45000, interest: 4.1, risk: 'Low' },
+                { id: 4, income: 28000, loan: 18000, interest: 9.3, risk: 'High' },
+                { id: 5, income: 65000, loan: 32000, interest: 6.2, risk: 'Medium' },
+                { id: 6, income: 55000, loan: 28000, interest: 5.8, risk: 'Low' },
+                { id: 7, income: 38000, loan: 25000, interest: 8.5, risk: 'High' },
+                { id: 8, income: 72000, loan: 38000, interest: 5.0, risk: 'Low' }
+            ];
+            
+            // Challenges data
+            const challenges = [
+                {
+                    question: "What is the primary purpose of Principal Component Analysis (PCA) in financial contexts?",
+                    options: [
+                        "To predict stock market movements",
+                        "To reduce data dimensionality while preserving patterns",
+                        "To calculate loan interest rates",
+                        "To visualize raw data without transformation"
+                    ],
+                    answer: 1,
+                    explanation: "PCA reduces high-dimensional data to fewer dimensions while retaining the most important patterns and relationships."
+                },
+                {
+                    question: "In the 2D scatter plot, what relationship is visualized between income and loan amount?",
+                    options: [
+                        "Higher income correlates with larger loans",
+                        "Lower income correlates with lower interest rates",
+                        "Loan amount is unrelated to income",
+                        "Risk increases with higher income"
+                    ],
+                    answer: 0,
+                    explanation: "The scatter plot shows that individuals with higher incomes tend to take larger loans, forming a positive correlation."
+                },
+                {
+                    question: "When we add a third dimension (interest rate) using color, what pattern emerges?",
+                    options: [
+                        "Higher interest rates for larger loans",
+                        "Lower interest rates for higher income borrowers",
+                        "No discernible pattern with interest rates",
+                        "Interest rates are random regardless of income"
+                    ],
+                    answer: 1,
+                    explanation: "The visualization shows that borrowers with higher incomes generally qualify for lower interest rates."
+                },
+                {
+                    question: "What does PCA help us achieve when visualizing high-dimensional financial data?",
+                    options: [
+                        "Add more dimensions to the data",
+                        "Increase data complexity",
+                        "Identify key patterns in fewer dimensions",
+                        "Remove all correlations between variables"
+                    ],
+                    answer: 2,
+                    explanation: "PCA identifies the most important patterns and relationships, allowing visualization in fewer dimensions."
+                },
+                {
+                    question: "In the PCA projection, what do the axes represent?",
+                    options: [
+                        "Original income and loan amount values",
+                        "Combinations of original variables capturing maximum variance",
+                        "Randomly transformed dimensions",
+                        "Time-based progression of loans"
+                    ],
+                    answer: 1,
+                    explanation: "PCA axes are linear combinations of original variables that capture the most variance in the data."
+                },
+                {
+                    question: "Based on the PCA visualization, which cluster represents high-risk loans?",
+                    options: [
+                        "Top-right cluster",
+                        "Bottom-left cluster",
+                        "Center cluster",
+                        "Scattered points with no clear cluster"
+                    ],
+                    answer: 1,
+                    explanation: "The bottom-left cluster in the PCA projection represents loans with higher risk characteristics."
+                },
+                {
+                    question: "How can PCA results inform investment decisions?",
+                    options: [
+                        "By predicting exact stock prices",
+                        "By identifying key risk factors in loan portfolios",
+                        "By guaranteeing profit on investments",
+                        "By eliminating all financial risk"
+                    ],
+                    answer: 1,
+                    explanation: "PCA helps identify the most significant risk factors, enabling better-informed investment decisions."
+                }
+            ];
+            
+            // DOM elements
+            const elements = {
+                currentChallenge: document.getElementById('currentChallenge'),
+                progressFill: document.getElementById('progressFill'),
+                score: document.getElementById('score'),
+                question: document.getElementById('question'),
+                explanation: document.getElementById('explanation'),
+                options: document.getElementById('options'),
+                feedback: document.getElementById('feedback'),
+                submitBtn: document.getElementById('submitBtn'),
+                prevBtn: document.getElementById('prevBtn'),
+                nextBtn: document.getElementById('nextBtn'),
+                resetBtn: document.getElementById('resetBtn'),
+                dataCanvas: document.getElementById('dataCanvas'),
+                dataTable: document.querySelector('#dataTable tbody'),
+                dimensionBtns: document.querySelectorAll('.dimension-btn'),
+                completionScreen: document.getElementById('completionScreen'),
+                finalScore: document.getElementById('finalScore'),
+                performanceComment: document.getElementById('performanceComment'),
+                restartBtn: document.getElementById('restartBtn'),
+                pcaAnimation: document.getElementById('pcaAnimation')
+            };
+            
+            // Initialize game
+            function initGame() {
+                gameState.currentChallenge = 1;
+                gameState.score = 0;
+                gameState.selectedOption = null;
+                gameState.answered = false;
+                
+                updateProgress();
+                updateScore();
+                renderChallenge();
+                renderFinancialData();
+                drawDataViz(2);
+                elements.completionScreen.style.display = 'none';
+                elements.challengeContent.style.display = 'block';
+            }
+            
+            // Render financial data table
+            function renderFinancialData() {
+                elements.dataTable.innerHTML = '';
+                financialData.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.id}</td>
+                        <td>${item.income.toLocaleString()}</td>
+                        <td>${item.loan.toLocaleString()}</td>
+                        <td>${item.interest}%</td>
+                        <td>${item.risk}</td>
+                    `;
+                    elements.dataTable.appendChild(row);
+                });
+            }
+            
+            // Draw data visualization
+            function drawDataViz(dimension) {
+                const canvas = elements.dataCanvas;
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                const padding = 40;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+                
+                // Draw axes
+                ctx.strokeStyle = '#34495e';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, height - padding);
+                ctx.lineTo(width - padding, height - padding);
+                ctx.stroke();
+                
+                // Draw axis labels
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = '14px Arial';
+                ctx.fillText('Annual Income ($)', width/2, height - 10);
+                ctx.save();
+                ctx.translate(15, height/2);
+                ctx.rotate(-Math.PI/2);
+                ctx.fillText('Loan Amount ($)', 0, 0);
+                ctx.restore();
+                
+                // Draw data points
+                financialData.forEach(item => {
+                    const x = padding + (item.income / 100000) * (width - 2*padding);
+                    const y = height - padding - (item.loan / 50000) * (height - 2*padding);
+                    
+                    // Set color based on risk
+                    let color;
+                    switch(item.risk) {
+                        case 'High': color = '#e74c3c'; break;
+                        case 'Medium': color = '#f39c12'; break;
+                        case 'Low': color = '#2ecc71'; break;
+                        default: color = '#3498db';
+                    }
+                    
+                    // Draw point
+                    ctx.beginPath();
+                    ctx.arc(x, y, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                    
+                    // Draw cluster connections for PCA view
+                    if (dimension === 'pca') {
+                        ctx.strokeStyle = 'rgba(52, 152, 219, 0.3)';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(width/2, height/2);
+                        ctx.lineTo(x, y);
+                        ctx.stroke();
+                    }
+                });
+                
+                // Draw PCA components if in PCA view
+                if (dimension === 'pca') {
+                    // Principal Component 1
+                    ctx.strokeStyle = '#e74c3c';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(width/2 - 100, height/2);
+                    ctx.lineTo(width/2 + 100, height/2);
+                    ctx.stroke();
+                    
+                    // Principal Component 2
+                    ctx.strokeStyle = '#2ecc71';
+                    ctx.beginPath();
+                    ctx.moveTo(width/2, height/2 - 80);
+                    ctx.lineTo(width/2, height/2 + 80);
+                    ctx.stroke();
+                    
+                    // Add labels
+                    ctx.fillStyle = '#e74c3c';
+                    ctx.fillText('PC1: Income/Loan Correlation', width/2 + 110, height/2 + 5);
+                    
+                    ctx.fillStyle = '#2ecc71';
+                    ctx.fillText('PC2: Risk Factor', width/2 - 100, height/2 - 90);
+                }
+            }
+            
+            // Render current challenge
+            function renderChallenge() {
+                const challenge = challenges[gameState.currentChallenge - 1];
+                elements.question.textContent = challenge.question;
+                elements.explanation.textContent = challenge.explanation;
+                
+                // Clear previous options
+                elements.options.innerHTML = '';
+                
+                // Create new options
+                challenge.options.forEach((option, index) => {
+                    const optionElement = document.createElement('div');
+                    optionElement.className = 'option';
+                    optionElement.textContent = option;
+                    optionElement.dataset.index = index;
+                    
+                    optionElement.addEventListener('click', () => {
+                        if (gameState.answered) return;
+                        
+                        // Remove selection from other options
+                        document.querySelectorAll('.option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        
+                        // Select this option
+                        optionElement.classList.add('selected');
+                        gameState.selectedOption = index;
+                        elements.submitBtn.disabled = false;
+                    });
+                    
+                    elements.options.appendChild(optionElement);
+                });
+                
+                // Reset feedback and button states
+                elements.feedback.style.display = 'none';
+                elements.submitBtn.disabled = true;
+                gameState.answered = false;
+                gameState.selectedOption = null;
+                
+                // Update navigation buttons
+                elements.prevBtn.disabled = gameState.currentChallenge === 1;
+                elements.nextBtn.disabled = true;
+                
+                // Update visualization based on challenge
+                let dimension = 2;
+                if (gameState.currentChallenge === 3) dimension = 3;
+                if (gameState.currentChallenge >= 5) dimension = 'pca';
+                drawDataViz(dimension);
+                
+                // Update active dimension button
+                elements.dimensionBtns.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.dim === dimension.toString()) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+            
+            // Submit answer
+            function submitAnswer() {
+                if (gameState.answered || gameState.selectedOption === null) return;
+                
+                const challenge = challenges[gameState.currentChallenge - 1];
+                const isCorrect = gameState.selectedOption === challenge.answer;
+                
+                // Display feedback
+                elements.feedback.textContent = isCorrect 
+                    ? "✓ Correct! " + challenge.explanation
+                    : "✗ Incorrect. " + challenge.explanation;
+                
+                elements.feedback.className = 'feedback ' + (isCorrect ? 'correct' : 'incorrect');
+                elements.feedback.style.display = 'block';
+                
+                // Update score if correct
+                if (isCorrect) {
+                    gameState.score += 10;
+                    updateScore();
+                }
+                
+                gameState.answered = true;
+                elements.submitBtn.disabled = true;
+                elements.nextBtn.disabled = false;
+            }
+            
+            // Navigate to next challenge
+            function nextChallenge() {
+                if (!gameState.answered) return;
+                
+                if (gameState.currentChallenge < gameState.totalChallenges) {
+                    gameState.currentChallenge++;
+                    updateProgress();
+                    renderChallenge();
+                } else {
+                    showCompletionScreen();
+                }
+            }
+            
+            // Navigate to previous challenge
+            function prevChallenge() {
+                if (gameState.currentChallenge > 1) {
+                    gameState.currentChallenge--;
+                    updateProgress();
+                    renderChallenge();
+                }
+            }
+            
+            // Update progress display
+            function updateProgress() {
+                elements.currentChallenge.textContent = gameState.currentChallenge;
+                const progress = (gameState.currentChallenge - 1) / gameState.totalChallenges * 100;
+                elements.progressFill.style.width = `${progress}%`;
+            }
+            
+            // Update score display
+            function updateScore() {
+                elements.score.textContent = gameState.score;
+            }
+            
+            // Show completion screen
+            function showCompletionScreen() {
+                elements.finalScore.textContent = gameState.score;
+                
+                // Performance comment
+                let comment;
+                if (gameState.score >= 60) {
+                    comment = "Excellent work! You've demonstrated strong understanding of PCA in financial analysis.";
+                } else if (gameState.score >= 40) {
+                    comment = "Good job! You have a solid grasp of PCA concepts with room for refinement.";
+                } else {
+                    comment = "Keep practicing! Review the concepts to strengthen your financial analysis skills.";
+                }
+                elements.performanceComment.textContent = comment;
+                
+                // Create PCA animation
+                createPCAAnimation();
+                
+                // Show completion screen
+                elements.challengeContent.style.display = 'none';
+                elements.completionScreen.style.display = 'flex';
+            }
+            
+            // Create PCA animation
+            function createPCAAnimation() {
+                elements.pcaAnimation.innerHTML = '';
+                
+                // Create data points
+                for (let i = 0; i < 20; i++) {
+                    const point = document.createElement('div');
+                    point.className = 'data-point';
+                    
+                    // Random position
+                    const x = Math.random() * 140;
+                    const y = Math.random() * 140;
+                    
+                    point.style.left = `${x}px`;
+                    point.style.top = `${y}px`;
+                    point.style.backgroundColor = i < 5 ? '#e74c3c' : '#3498db';
+                    point.style.transition = 'transform 1.5s ease-in-out';
+                    
+                    elements.pcaAnimation.appendChild(point);
+                    
+                    // Animate to PCA projection
+                    setTimeout(() => {
+                        const newX = 75 + (x - 75) * 0.6;
+                        const newY = 75 + (y - 75) * 0.6;
+                        point.style.transform = `translate(-50%, -50%) translate(${newX - 75}px, ${newY - 75}px)`;
+                    }, 500);
+                }
+                
+                // Create component lines
+                const pc1 = document.createElement('div');
+                pc1.className = 'component-line';
+                pc1.style.width = '140px';
+                pc1.style.left = '5px';
+                pc1.style.top = '75px';
+                pc1.style.transform = 'scaleX(0)';
+                pc1.style.transition = 'transform 1s ease-in-out';
+                elements.pcaAnimation.appendChild(pc1);
+                
+                const pc2 = document.createElement('div');
+                pc2.className = 'component-line';
+                pc2.style.width = '140px';
+                pc2.style.left = '75px';
+                pc2.style.top = '5px';
+                pc2.style.transform = 'rotate(90deg) scaleX(0)';
+                pc2.style.transition = 'transform 1s ease-in-out';
+                elements.pcaAnimation.appendChild(pc2);
+                
+                // Animate component lines
+                setTimeout(() => {
+                    pc1.style.transform = 'scaleX(1)';
+                    pc2.style.transform = 'rotate(90deg) scaleX(1)';
+                }, 1000);
+            }
+            
+            // Event listeners
+            elements.submitBtn.addEventListener('click', submitAnswer);
+            elements.nextBtn.addEventListener('click', nextChallenge);
+            elements.prevBtn.addEventListener('click', prevChallenge);
+            elements.resetBtn.addEventListener('click', initGame);
+            elements.restartBtn.addEventListener('click', initGame);
+            
+            // Dimension buttons
+            elements.dimensionBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    elements.dimensionBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    drawDataViz(btn.dataset.dim);
+                });
+            });
+            
+            // Initialize the game
+            initGame();
+        });
+    </script>
+</body>
+</html>

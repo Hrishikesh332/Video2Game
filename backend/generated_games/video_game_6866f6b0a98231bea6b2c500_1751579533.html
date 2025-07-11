@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parisian Landmarks Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            color: #555555;
+            margin-bottom: 30px;
+        }
+        
+        .game-screen {
+            display: none;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .screen-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #222222;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background-color: #e9e9e9;
+            border-radius: 20px;
+            padding: 5px;
+        }
+        
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #666666;
+        }
+        
+        .progress-step.active {
+            background-color: #d0d0d0;
+            color: #333333;
+        }
+        
+        .map-container {
+            position: relative;
+            height: 400px;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .landmark {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background-color: #888888;
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+            border: 2px solid #ffffff;
+        }
+        
+        .landmark:hover {
+            background-color: #666666;
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        
+        .landmark-info {
+            display: none;
+            position: absolute;
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 10;
+            max-width: 300px;
+        }
+        
+        .landmark-info h3 {
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .landmark-info img {
+            width: 100%;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .timeline-container {
+            position: relative;
+            height: 100px;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .timeline {
+            position: absolute;
+            height: 4px;
+            background-color: #888888;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+        }
+        
+        .timeline-handle {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background-color: #555555;
+            border-radius: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            z-index: 5;
+        }
+        
+        .timeline-handle:active {
+            cursor: grabbing;
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            height: 12px;
+            width: 2px;
+            background-color: #888888;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .timeline-marker::after {
+            content: attr(data-year);
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        
+        .timeline-info {
+            display: none;
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .quiz-container {
+            margin-bottom: 20px;
+        }
+        
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        
+        .option {
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .option.correct {
+            background-color: #c8e6c9;
+        }
+        
+        .option.incorrect {
+            background-color: #ffcdd2;
+        }
+        
+        .feedback {
+            display: none;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+            background-color: #e3f2fd;
+        }
+        
+        .score-container {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #e0e0e0;
+            color: #333333;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 30px
+    </style>
+</html>

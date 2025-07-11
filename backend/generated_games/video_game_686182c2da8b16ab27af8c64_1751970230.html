@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .graph-container {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        #graph {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            background-color: #e9ecef;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            color: #333;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background-color: #dee2e6;
+        }
+
+        button.primary {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        button.primary:hover {
+            background-color: #1a252f;
+        }
+
+        .data-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .data-table th {
+            background-color: #e9ecef;
+        }
+
+        .explanation {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .level-indicator, .score-display {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .challenge {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .challenge-content {
+            margin: 15px 0;
+        }
+
+        .outlier-section {
+            background-color: #fff3cd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .save-section {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Linear Regression Game</h1>
+        <p>Understand linear regression through interactive visualization</p>
+    </header>
+
+    <div class="game-container">
+        <div class="game-info">
+            <div class="level-indicator">Level: <span id="level">1</span>/3</div>
+            <div class="score-display">Score: <span id="score">0</span></div>
+        </div>
+
+        <div class="graph-container">
+            <canvas id="graph" width="800" height="500"></canvas>
+            <div class="controls">
+                <button id="add-line">Calculate Best Fit Line</button>
+                <button id="reset">Reset Points</button>
+                <button id="remove">Remove Last Point</button>
+                <button id="next-level" class="primary">Next Level</button>
+            </div>
+        </div>
+
+        <div class="data-section">
+            <h2>Data Points</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Point</th>
+                        <th>X Value</th>
+                        <th>Y Value</th>
+                    </tr>
+                </thead>
+                <tbody id="data-points">
+                    <!-- Data points will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="challenge">
+            <h2>Current Challenge</h2>
+            <div class="challenge-content" id="challenge-text">
+                <p>Add at least 5 data points to the graph showing a positive correlation.</p>
+            </div>
+            <div class="outlier-section" id="outlier-info" style="display: none;">
+                <h3>Outlier Detected!</h3>
+                <p>This point significantly affects the regression line. Try removing it to see how the line changes.</p>
+            </div>
+        </div>
+
+        <div class="explanation">
+            <h2>About Linear Regression</h2>
+            <p>Linear regression is a supervised learning algorithm used to predict continuous numerical values based on labeled datasets. It finds the best-fitting straight line through your data points.</p>
+            <p><strong>Key concepts:</strong></p>
+            <ul>
+                <li>The line represents the relationship between two variables</li>
+                <li>Outliers can significantly affect the regression line</li>
+                <li>Used for predicting continuous values (like price, temperature)</li>
+            </ul>
+        </div>
+
+        <div class="save-section">
+            <button id="save" class="primary">Save Graph as Image</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            points: [],
+            level: 1,
+            score: 0,
+            challengeCompleted: false,
+            outlierPresent: false,
+            outlierIndex: -1
+        };
+
+        // DOM elements
+        const canvas = document.getElementById('graph');
+        const ctx = canvas.getContext('2d');
+        const levelDisplay = document.getElementById('level');
+        const scoreDisplay = document.getElementById('score');
+        const dataPointsTable = document.getElementById('data-points');
+        const challengeText = document.getElementById('challenge-text');
+        const outlierInfo = document.getElementById('outlier-info');
+        const addLineBtn = document.getElementById('add-line');
+        const resetBtn = document.getElementById('reset');
+        const removeBtn = document.getElementById('remove');
+        const nextLevelBtn = document.getElementById('next-level');
+        const saveBtn = document.getElementById('save');
+
+        // Canvas setup
+        const padding = 50;
+        const xAxisLength = canvas.width - padding * 2;
+        const yAxisLength = canvas.height - padding * 2;
+        const originX = padding;
+        const originY = canvas.height - padding;
+
+        // Initialize game
+        function initGame() {
+            drawGrid();
+            setupEventListeners();
+            updateLevelDisplay();
+            updateScoreDisplay();
+            updateChallengeText();
+        }
+
+        // Draw grid and axes
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            
+            // Vertical grid lines
+            for (let x = originX; x <= originX + xAxisLength; x += xAxisLength / 10) {
+                ctx.beginPath();
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, originY);
+                ctx.stroke();
+            }
+            
+            // Horizontal grid lines
+            for (let y = originY; y >= padding; y -= yAxisLength / 10) {
+                ctx.beginPath();
+                ctx.moveTo(originX, y);
+                ctx.lineTo(originX + xAxisLength, y);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(originX + xAxisLength, originY);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(originX, padding);
+            ctx.stroke();
+            
+            // Draw labels
+            ctx.fillStyle = '#333';
+            ctx.font = '14px Arial';
+            
+            // X-axis labels
+            for (let i = 0; i <= 10; i++) {
+                const x = originX + (xAxisLength / 10) * i;
+                ctx.fillText(i, x - 5, originY + 20);
+            }
+            
+            // Y-axis labels
+            for (let i = 0; i <= 10; i++) {
+                const y = originY - (yAxisLength / 10) * i;
+                ctx.fillText(i, originX - 20, y + 5);
+            }
+            
+            // Draw axis titles
+            ctx.fillText('X Variable', originX + xAxisLength - 40, originY + 40);
+            ctx.save();
+            ctx.translate(20, canvas.height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Y Variable', 0, 0);
+            ctx.restore();
+        }
+
+        // Convert screen coordinates to graph coordinates
+        function screenToGraph(x, y) {
+            const graphX = ((x - originX) / xAxisLength) * 10;
+            const graphY = 10 - ((y - padding) / yAxisLength) * 10;
+            return { x: parseFloat(graphX.toFixed(2)), y: parseFloat(graphY.toFixed(2)) };
+        }
+
+        // Convert graph coordinates to screen coordinates
+        function graphToScreen(graphX, graphY) {
+            const screenX = originX + (graphX / 10) * xAxisLength;
+            const screenY = originY - (graphY / 10) * yAxisLength;
+            return { x: screenX, y: screenY };
+        }
+
+        // Draw data points
+        function drawPoints() {
+            gameState.points.forEach((point, index) => {
+                const screenCoords = graphToScreen(point.x, point.y);
+                
+                // Draw point
+                ctx.beginPath();
+                ctx.arc(screenCoords.x, screenCoords.y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = gameState.outlierPresent && index === gameState.outlierIndex ? '#ff9800' : '#3498db';
+                ctx.fill();
+                
+                // Draw point coordinates
+                ctx.fillStyle = '#333';
+                ctx.font = '12px Arial';
+                ctx.fillText(`(${point.x}, ${point.y})`, screenCoords.x + 10, screenCoords.y - 10);
+            });
+        }
+
+        // Calculate linear regression
+        function calculateRegression() {
+            if (gameState.points.length < 2) return null;
+            
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            const n = gameState.points.length;
+            
+            gameState.points.forEach(point => {
+                sumX += point.x;
+                sumY += point.y;
+                sumXY += point.x * point.y;
+                sumX2 += point.x * point.x;
+            });
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            return { slope, intercept };
+        }
+
+        // Draw regression line
+        function drawRegressionLine() {
+            const regression = calculateRegression();
+            if (!regression) return;
+            
+            const { slope, intercept } = regression;
+            
+            // Calculate start and end points for the line
+            const startX = 0;
+            const startY = intercept;
+            const endX = 10;
+            const endY = slope * 10 + intercept;
+            
+            const startScreen = graphToScreen(startX, startY);
+            const endScreen = graphToScreen(endX, endY);
+            
+            // Draw line
+            ctx.beginPath();
+            ctx.moveTo(startScreen.x, startScreen.y);
+            ctx.lineTo(endScreen.x, endScreen.y);
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Display equation
+            ctx.fillStyle = '#e74c3c';
+            ctx.font = '16px Arial';
+            ctx.fillText(`y = ${slope.toFixed(2)}x + ${intercept.toFixed(2)}`, canvas.width - 200, padding + 30);
+        }
+
+        // Update data points table
+        function updateDataTable() {
+            dataPointsTable.innerHTML = '';
+            gameState.points.forEach((point, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${point.x}</td>
+                    <td>${point.y}</td>
+                `;
+                dataPointsTable.appendChild(row);
+            });
+        }
+
+        // Update challenge text based on level
+        function updateChallengeText() {
+            switch(gameState.level) {
+                case 1:
+                    challengeText.innerHTML = `
+                        <p><strong>Level 1: Basic Correlation</strong></p>
+                        <p>Add at least 5 data points showing a positive correlation between X and Y variables.</p>
+                        <p>Points: ${gameState.points.length}/5</p>
+                    `;
+                    break;
+                case 2:
+                    challengeText.innerHTML = `
+                        <p><strong>Level 2: Outlier Impact</strong></p>
+                        <p>We've added an outlier to your dataset. Calculate the regression line, 
+                        identify the outlier, and remove it to see how it affects the line.</p>
+                    `;
+                    break;
+                case 3:
+                    challengeText.innerHTML = `
+                        <p><strong>Level 3: Prediction Challenge</strong></p>
+                        <p>Using your regression line, predict the Y value when X = 7.5.</p>
+                        <div class="prediction-input">
+                            <input type="number" id="prediction" step="0.1" placeholder="Enter prediction">
+                            <button id="submit-prediction">Submit</button>
+                        </div>
+                    `;
+                    break;
+            }
+        }
+
+        // Update level display
+        function updateLevelDisplay() {
+            levelDisplay.textContent = gameState.level;
+        }
+
+        // Update score display
+        function updateScoreDisplay() {
+            scoreDisplay.textContent = gameState.score;
+        }
+
+        // Add an outlier to the dataset
+        function addOutlier() {
+            if (gameState.points.length > 0 && !gameState.outlierPresent) {
+                const outlier = {
+                    x: Math.random() * 2 + 8, // x between 8-10
+                    y: Math.random() * 3 // y between 0-3
+                };
+                gameState.points.push(outlier);
+                gameState.outlierPresent = true;
+                gameState.outlierIndex = gameState.points.length - 1;
+                outlierInfo.style.display = 'block';
+                drawPoints();
+                updateDataTable();
+            }
+        }
+
+        // Check level completion
+        function checkLevelCompletion() {
+            switch(gameState.level) {
+                case 1:
+                    if (gameState.points.length >= 5) {
+                        gameState.challengeCompleted = true;
+                        gameState.score += 20;
+                        updateScoreDisplay();
+                        challengeText.innerHTML += '<p style="color:green;margin-top:10px;">✓ Level completed! +20 points</p>';
+                    }
+                    break;
+                case 2:
+                    if (!gameState.outlierPresent) {
+                        gameState.challengeCompleted = true;
+                        gameState.score += 30;
+                        updateScoreDisplay();
+                        challengeText.innerHTML += '<p style="color:green;margin-top:10px;">✓ Outlier removed! +30 points</p>';
+                    }
+                    break;
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Add point on canvas click
+            canvas.addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (x > originX && x < originX + xAxisLength && 
+                    y > padding && y < originY) {
+                    const point = screenToGraph(x, y);
+                    gameState.points.push(point);
+                    
+                    drawGrid();
+                    drawPoints();
+                    updateDataTable();
+                    checkLevelCompletion();
+                }
+            });
+
+            // Touch support for mobile
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                
+                if (x > originX && x < originX + xAxisLength && 
+                    y > padding && y < originY) {
+                    const point = screenToGraph(x, y);
+                    gameState.points.push(point);
+                    
+                    drawGrid();
+                    drawPoints();
+                    updateDataTable();
+                    checkLevelCompletion();
+                }
+            });
+
+            // Calculate best fit line
+            addLineBtn.addEventListener('click', () => {
+                drawGrid();
+                drawPoints();
+                drawRegressionLine();
+            });
+
+            // Reset points
+            resetBtn.addEventListener('click', () => {
+                gameState.points = [];
+                gameState.outlierPresent = false;
+                gameState.outlierIndex = -1;
+                outlierInfo.style.display = 'none';
+                drawGrid();
+                updateDataTable();
+                updateChallengeText();
+            });
+
+            // Remove last point
+            removeBtn.addEventListener('click', () => {
+                if (gameState.points.length > 0) {
+                    const removedIndex = gameState.points.length - 1;
+                    
+                    // Check if we're removing the outlier
+                    if (gameState.outlierPresent && removedIndex === gameState.outlierIndex) {
+                        gameState.outlierPresent = false;
+                        outlierInfo.style.display = 'none';
+                    }
+                    
+                    gameState.points.pop();
+                    drawGrid();
+                    drawPoints();
+                    updateDataTable();
+                    checkLevelCompletion();
+                }
+            });
+
+            // Next level button
+            nextLevelBtn.addEventListener('click', () => {
+                if (gameState.challengeCompleted || gameState.level === 3) {
+                    if (gameState.level < 3) {
+                        gameState.level++;
+                        gameState.challengeCompleted = false;
+                        
+                        // Add an outlier for level 2
+                        if (gameState.level === 2) {
+                            addOutlier();
+                        }
+                        
+                        updateLevelDisplay();
+                        updateChallengeText();
+                        drawGrid();
+                        drawPoints();
+                    } else {
+                        // Game completed
+                        gameState.score += 50;
+                        updateScoreDisplay();
+                        alert(`Congratulations! You completed all levels. Final score: ${gameState.score}`);
+                        resetGame();
+                    }
+                } else {
+                    alert('Complete the current challenge before advancing!');
+                }
+            });
+
+            // Save graph as image
+            saveBtn.addEventListener('click', () => {
+                const dataURL = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = 'linear-regression-graph.png';
+                link.href = dataURL;
+                link.click();
+            });
+        }
+
+        // Reset game to initial state
+        function resetGame() {
+            gameState.points = [];
+            gameState.level = 1;
+            gameState.score = 0;
+            gameState.challengeCompleted = false;
+            gameState.outlierPresent = false;
+            gameState.outlierIndex = -1;
+            
+            outlierInfo.style.display = 'none';
+            drawGrid();
+            updateDataTable();
+            updateLevelDisplay();
+            updateScoreDisplay();
+            updateChallengeText();
+        }
+
+        // Initialize the game
+        window.onload = initGame;
+    </script>
+</body>
+</html>

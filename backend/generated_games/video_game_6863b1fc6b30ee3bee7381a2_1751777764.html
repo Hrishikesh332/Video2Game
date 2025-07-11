@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai Islands Formation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .game-section {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #444444;
+            text-align: center;
+        }
+        
+        .map-container {
+            position: relative;
+            height: 400px;
+            background-color: #e9e9e9;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .island:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+            z-index: 10;
+        }
+        
+        .info-panel {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 200px;
+            border: 1px solid #e0e0e0;
+            margin-top: 20px;
+        }
+        
+        .timeline-container {
+            margin: 30px 0;
+        }
+        
+        .slider-container {
+            position: relative;
+            height: 60px;
+            margin: 40px 20px;
+        }
+        
+        .timeline-slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #d0d0d0;
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        .timeline-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #555555;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .timeline-marks {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding: 0 10px;
+        }
+        
+        .timeline-mark {
+            position: relative;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .timeline-mark::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            width: 2px;
+            height: 10px;
+            background: #999;
+            transform: translateX(-50%);
+        }
+        
+        .reclamation-animation {
+            height: 200px;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .land-mass {
+            position: absolute;
+            bottom: 0;
+            background-color: #a0a0a0;
+            height: 40%;
+            transition: width 1s ease-in-out;
+        }
+        
+        .quiz-container {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .question {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .options {
+            display: grid;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .option {
+            padding: 12px;
+            background-color: #f0f0f0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .option.selected {
+            background-color: #d0d0d0;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            background-color: #555555;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #444444;
+        }
+        
+        button:disabled {
+            background-color: #aaaaaa;
+            cursor: not-allowed;
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: #555555;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .score-container {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .close-btn {
+            float: right;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 768px) {
+            .map-container {
+                height: 300px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Formation of Mumbai: The Seven Islands</h1>
+        <p>Explore how land reclamation transformed Mumbai's geography</p>
+    </header>
+    
+    <div class="container">
+        <section class="game-section">
+            <h2>Interactive Map of the Seven Islands</h2>
+            <div class="map-container" id="map">
+                <!-- Islands will be positioned by JavaScript -->
+            </div>
+            <div class="info-panel" id="island-info">
+                <p>Click on an island to learn about its history</p>
+            </div>
+        </section>
+        
+        <section class="game-section">
+            <h2>Land Reclamation Timeline</h2>
+            <div class="timeline-container">
+                <div class="slider-container">
+                    <input type="range" min="1500" max="1900" value="1500" class="timeline-slider" id="timeline">
+                    <div class="timeline-marks">
+                        <div class="timeline-mark">1500</div>
+                        <div class="timeline-mark">1600</div>
+                        <div class="timeline-mark">1700</div>
+                        <div class="timeline-mark">1800</div>
+                        <div class="timeline-mark">1900</div>
+                    </div>
+                </div>
+                <div class="reclamation-animation">
+                    <div class="land-mass" id="land-mass"></div>
+                </div>
+                <div class="info-panel" id="timeline-info">
+                    <p>Drag the timeline slider to see how land reclamation connected the islands</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="game-section">
+            <h2>Mumbai History Challenge</h2>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="quiz-progress"></div>
+                </div>
+            </div>
+            <div class="quiz-container" id="quiz">
+                <!-- Quiz questions will be generated by JavaScript -->
+            </div>
+            <div class="score-container">
+                Score: <span id="score">0</span>/3
+            </div>
+            <div class="controls">
+                <button id="prev-btn">Previous</button>
+                <button id="next-btn">Next</button>
+            </div>
+        </section>
+    </div>
+    
+    <div class="modal" id="info-modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal">&times;</span>
+            <h3 id="modal-title">Island Information</h3>
+            <div id="modal-content">
+                <p>Detailed information about the island</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game data
+        const islands = [
+            { 
+                id: 'bombay', 
+                name: 'Bombay Island', 
+                position: { top: '30%', left: '20%' },
+                size: 100,
+                info: 'The main island where the British established their headquarters. Originally ruled by the Sultan of Gujarat before Portuguese control in 1534.'
+            },
+            { 
+                id: 'mazagaon', 
+                name: 'Mazagaon', 
+                position: { top: '50%', left: '40%' },
+                size: 80,
+                info: 'Known for its Portuguese fortifications. Transferred to British control in 1661 as part of Catherine of Braganza\'s dowry.'
+            },
+            { 
+                id: 'parel', 
+                name: 'Parel', 
+                position: { top: '60%', left: '25%' },
+                size: 90,
+                info: 'Site of the Governor\'s residence during British rule. Originally a collection of small fishing villages.'
+            },
+            { 
+                id: 'worli', 
+                name: 'Worli', 
+                position: { top: '40%', left: '60%' },
+                size: 70,
+                info: 'Famous for its fishing community and Worli Fort built by the British in 1675 to defend against pirates.'
+            },
+            { 
+                id: 'mahim', 
+                name: 'Mahim', 
+                position: { top: '65%', left: '55%' },
+                size: 85,
+                info: 'Home to the 15th century Mahim Fort. Strategically important during Portuguese and British colonial periods.'
+            },
+            { 
+                id: 'colaba', 
+                name: 'Colaba', 
+                position: { top: '25%', left: '75%' },
+                size: 75,
+                info: 'Southernmost island, location of the iconic Gateway of India. Originally two separate islets before reclamation.'
+            },
+            { 
+                id: 'old-womans', 
+                name: 'Old Woman\'s Island', 
+                position: { top: '15%', left: '65%' },
+                size: 60,
+                info: 'Smallest of the seven islands, now part of Colaba. Named after a local legend about an old woman who lived there.'
+            }
+        ];
+
+        const timelineEvents = {
+            1500: 'Seven separate islands inhabited by Koli fishing communities',
+            1534: 'Portuguese gain control of the islands from Sultan Bahadur Shah',
+            1661: 'Islands transferred to British as part of Catherine of Braganza\'s dowry',
+            1668: 'British East India Company leases islands for £10 per year',
+            1708: 'First reclamation projects begin connecting Mahim and Worli',
+            1748: 'Bombay Castle completed as British military headquarters',
+            1772: 'Construction begins on Hornby Vellard causeway connecting islands',
+            1838: 'Colaba Causeway completed, connecting Old Woman\'s Island to mainland',
+            1845: 'Major reclamation project connects all seven islands into single landmass',
+            1854: 'First railway in India opens between Bombay and Thane',
+            1862: 'Bombay Municipal Corporation established to manage rapid urbanization',
+            1869: 'Suez Canal opens, transforming Bombay into major international port'
+        };
+
+        const quizQuestions = [
+            {
+                question: 'Which European power first controlled the seven islands of Mumbai?',
+                options: ['British', 'Portuguese', 'Dutch', 'French'],
+                answer: 1
+            },
+            {
+                question: 'How did the British gain control of Mumbai?',
+                options: [
+                    'Military conquest',
+                    'Purchased from local rulers',
+                    'Part of a royal dowry',
+                    'Treaty after war'
+                ],
+                answer: 2
+            },
+            {
+                question: 'What was the main purpose of land reclamation in Mumbai?',
+                options: [
+                    'Agricultural expansion',
+                    'Creating a unified city for trade',
+                    'Military defense',
+                    'Tourism development'
+                ],
+                answer: 1
+            },
+            {
+                question: 'Which causeway was crucial in connecting the islands?',
+                options: [
+                    'Colaba Causeway',
+                    'Hornby Vellard',
+                    'Marine Drive',
+                    'Worli Sea Link'
+                ],
+                answer: 1
+            },
+            {
+                question: 'What major event in 1869 transformed Mumbai into an international port?',
+                options: [
+                    'Completion of railway network',
+                    'Discovery of oil',
+                    'Opening of Suez Canal',
+                    'British Royal visit'
+                ],
+                answer: 2
+            }
+        ];
+
+        // Game state
+        let currentIsland = null;
+        let currentYear = 1500;
+        let quizAnswers = [];
+        let currentQuestion = 0;
+        let score = 0;
+
+        // Initialize game
+        function initGame() {
+            createIslands();
+            setupTimeline();
+            setupQuiz();
+            updateProgress();
+        }
+
+        // Create interactive islands
+        function createIslands() {
+            const map = document.getElementById('map');
+            
+            islands.forEach(island => {
+                const islandEl = document.createElement('div');
+                islandEl.className = 'island';
+                islandEl.id = island.id;
+                islandEl.textContent = island.name;
+                
+                islandEl.style.width = `${island.size}px`;
+                islandEl.style.height = `${island.size}px`;
+                islandEl.style.top = island.position.top;
+                islandEl.style.left = island.position.left;
+                islandEl.style.backgroundColor = `hsl(${Math.random() * 360}, 30%, 85%)`;
+                
+                islandEl.addEventListener('click', () => showIslandInfo(island));
+                map.appendChild(islandEl);
+            });
+        }
+
+        // Show island information
+        function showIslandInfo(island) {
+            currentIsland = island;
+            document.getElementById('island-info').innerHTML = `
+                <h3>${island.name}</h3>
+                <p>${island.info}</p>
+            `;
+            
+            // Show modal with more info
+            document.getElementById('modal-title').textContent = island.name;
+            document.getElementById('modal-content').innerHTML = `
+                <p>${island.info}</p>
+                <p><strong>Historical Significance:</strong> This island played a crucial role in Mumbai's development as a trading hub during the colonial period.</p>
+            `;
+            document.getElementById('info-modal').style.display = 'flex';
+        }
+
+        // Setup timeline functionality
+        function setupTimeline() {
+            const timeline = document.getElementById('timeline');
+            const landMass = document.getElementById('land-mass');
+            const timelineInfo = document.getElementById('timeline-info');
+            
+            timeline.addEventListener('input', function() {
+                currentYear = parseInt(this.value);
+                updateTimeline();
+            });
+    </script>
+</body>
+</html>

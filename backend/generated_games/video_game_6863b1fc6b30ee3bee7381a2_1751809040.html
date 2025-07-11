@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai: From Seven Islands to Metropolis</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .panel {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #444;
+            text-align: center;
+        }
+
+        .map-container {
+            position: relative;
+            height: 400px;
+            background-color: #e9e9e9;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            background-color: #d0d0d0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #999;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .island:hover {
+            background-color: #c0c0c0;
+            transform: scale(1.05);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        button {
+            background-color: #555;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #333;
+        }
+
+        .causeway {
+            height: 20px;
+            background-color: #888;
+            position: absolute;
+            cursor: move;
+            border-radius: 4px;
+            z-index: 10;
+        }
+
+        .timeline {
+            display: flex;
+            overflow-x: auto;
+            padding: 20px 0;
+            gap: 25px;
+        }
+
+        .event {
+            min-width: 250px;
+            background: #e0e0e0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .event h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .quiz-container {
+            display: grid;
+            gap: 15px;
+        }
+
+        .question {
+            background: #e9e9e9;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .options {
+            display: grid;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .option {
+            background: #d9d9d9;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .option:hover {
+            background: #c9c9c9;
+        }
+
+        .option.selected {
+            background: #999;
+            color: white;
+        }
+
+        .progress-container {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #777;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .feedback {
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+            min-height: 30px;
+        }
+
+        .score-display {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 15px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .image-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .gallery-img {
+            width: 100%;
+            height: 180px;
+            background-color: #d9d9d9;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        @media (max-width: 768px) {
+            .map-container {
+                height: 300px;
+            }
+            
+            .timeline {
+                flex-direction: column;
+            }
+            
+            .event {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mumbai: From Seven Islands to Metropolis</h1>
+        <p>Explore how land reclamation transformed Mumbai's geography</p>
+    </header>
+
+    <div class="container">
+        <div class="panel">
+            <h2>Interactive Map</h2>
+            <div class="controls">
+                <button id="historicalBtn">Historical View (Islands)</button>
+                <button id="modernBtn">Modern View (Connected)</button>
+            </div>
+            <div class="map-container" id="map">
+                <!-- Islands will be positioned by JavaScript -->
+            </div>
+            <div class="feedback" id="mapFeedback"></div>
+        </div>
+
+        <div class="panel">
+            <h2>Connect the Islands</h2>
+            <p>Drag causeways to connect the islands and form modern Mumbai</p>
+            <div class="map-container" id="gameMap">
+                <!-- Game islands and causeways will be added by JavaScript -->
+            </div>
+            <div class="controls">
+                <button id="restartGame">Restart Game</button>
+            </div>
+            <div class="score-display">
+                Connections: <span id="connections">0</span>/4
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="gameProgress"></div>
+                </div>
+            </div>
+            <div class="feedback" id="gameFeedback"></div>
+        </div>
+
+        <div class="panel">
+            <h2>Historical Timeline</h2>
+            <div class="timeline">
+                <div class="event">
+                    <h3>Pre-1500</h3>
+                    <p>Seven separate islands inhabited by Koli fishing communities</p>
+                </div>
+                <div class="event">
+                    <h3>1534</h3>
+                    <p>Portuguese control the islands</p>
+                </div>
+                <div class="event">
+                    <h3>1661</h3>
+                    <p>British acquire islands as part of dowry</p>
+                </div>
+                <div class="event">
+                    <h3>1782-1784</h3>
+                    <p>Hornby Vellard project connects islands</p>
+                </div>
+                <div class="event">
+                    <h3>19th Century</h3>
+                    <p>Massive land reclamation creates modern Mumbai</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Land Reclamation Process</h2>
+            <p>The Hornby Vellard project was the first major engineering effort to connect the islands. Workers built causeways and embankments to bridge the gaps between islands.</p>
+            
+            <div class="image-gallery">
+                <div class="gallery-img"></div>
+                <div class="gallery-img"></div>
+                <div class="gallery-img"></div>
+            </div>
+            
+            <p>Over time, these connections expanded through additional reclamation projects, transforming the seven islands into the unified metropolis we know today.</p>
+        </div>
+
+        <div class="panel">
+            <h2>Test Your Knowledge</h2>
+            <div class="quiz-container" id="quizContainer">
+                <div class="question">
+                    <p>1. How many original islands formed Mumbai?</p>
+                    <div class="options">
+                        <div class="option" data-correct="true">7</div>
+                        <div class="option">5</div>
+                        <div class="option">10</div>
+                        <div class="option">3</div>
+                    </div>
+                </div>
+                
+                <div class="question">
+                    <p>2. Which project first connected the islands?</p>
+                    <div class="options">
+                        <div class="option">Bombay Fort Project</div>
+                        <div class="option" data-correct="true">Hornby Vellard</div>
+                        <div class="option">Marine Drive Construction</div>
+                        <div class="option">Nariman Point Development</div>
+                    </div>
+                </div>
+                
+                <div class="question">
+                    <p>3. What technique was primarily used to connect the islands?</p>
+                    <div class="options">
+                        <div class="option">Bridge construction</div>
+                        <div class="option">Tunnel digging</div>
+                        <div class="option" data-correct="true">Land reclamation</div>
+                        <div class="option">Artificial islands</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="submitQuiz">Submit Answers</button>
+                <button id="restartQuiz">Restart Quiz</button>
+            </div>
+            
+            <div class="score-display">
+                Score: <span id="quizScore">0</span>/3
+            </div>
+            <div class="feedback" id="quizFeedback"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Island data for the map
+            const islands = [
+                { id: 'colaba', name: 'Colaba', x: 20, y: 350, width: 80, height: 80 },
+                { id: 'oldWoman', name: 'Old Woman\'s Island', x: 150, y: 300, width: 90, height: 70 },
+                { id: 'bombay', name: 'Bombay', x: 300, y: 200, width: 120, height: 100 },
+                { id: 'mazagaon', name: 'Mazagaon', x: 500, y: 250, width: 90, height: 80 },
+                { id: 'worli', name: 'Worli', x: 650, y: 180, width: 80, height: 70 },
+                { id: 'mahim', name: 'Mahim', x: 800, y: 250, width: 90, height: 80 },
+                { id: 'parel', name: 'Parel', x: 950, y: 300, width: 100, height: 90 }
+            ];
+
+            // Game state
+            const gameState = {
+                connections: 0,
+                maxConnections: 4,
+                placedCauseways: []
+            };
+
+            // Initialize maps
+            initMap('map', islands, false);
+            initGameMap('gameMap', islands);
+
+            // Setup event listeners
+            document.getElementById('historicalBtn').addEventListener('click', () => {
+                document.getElementById('mapFeedback').textContent = 'Viewing the original seven islands of Mumbai';
+                initMap('map', islands, false);
+            });
+
+            document.getElementById('modernBtn').addEventListener('click', () => {
+                document.getElementById('mapFeedback').textContent = 'Viewing modern Mumbai after land reclamation';
+                initMap('map', islands, true);
+            });
+
+            document.getElementById('restartGame').addEventListener('click', () => {
+                resetGame();
+            });
+
+            document.getElementById('submitQuiz').addEventListener('click', () => {
+                checkQuiz();
+            });
+
+            document.getElementById('restartQuiz').addEventListener('click', () => {
+                resetQuiz();
+            });
+
+            // Initialize the map display
+            function initMap(containerId, islands, connected) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                
+                islands.forEach(island => {
+                    const el = document.createElement('div');
+                    el.className = 'island';
+                    el.id = island.id;
+                    el.textContent = island.name;
+                    el.style.width = island.width + 'px';
+                    el.style.height = island.height + 'px';
+                    el.style.left = island.x + 'px';
+                    el.style.top = island.y + 'px';
+                    container.appendChild(el);
+                });
+                
+                if (connected) {
+                    // Draw connections between islands
+                    drawConnection(container, islands[0], islands[1]);
+                    drawConnection(container, islands[1], islands[2]);
+                    drawConnection(container, islands[2], islands[3]);
+                    drawConnection(container, islands[3], islands[4]);
+                }
+            }
+
+            // Initialize the game map
+            function initGameMap(containerId, islands) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                
+                // Add islands
+                islands.forEach(island => {
+                    const el = document.createElement('div');
+                    el.className = 'island';
+                    el.id = 'game-' + island.id;
+                    el.textContent = island.name;
+                    el.style.width = island.width + 'px';
+                    el.style.height = island.height + 'px';
+                    el.style.left = island.x + 'px';
+                    el.style.top = island.y + 'px';
+                    container.appendChild(el);
+                });
+                
+                // Add draggable causeways
+                for (let i = 0; i < gameState.maxConnections; i++) {
+                    const causeway = document.createElement('div');
+                    causeway.className = 'causeway';
+                    causeway.style.width = '100px';
+                    causeway.style.top = '20px';
+                    causeway.style.left = (100 + i * 120) + 'px';
+                    causeway.textContent = 'Drag to connect';
+                    causeway.draggable = true;
+                    
+                    causeway.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', e.target.style.left + ',' + e.target.style.top);
+                    });
+                    
+                    container.appendChild(causeway);
+                }
+                
+                // Setup drop targets
+                container.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                });
+                
+                container.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const data = e.dataTransfer.getData('text/plain').split(',');
+                    const causeway = document.elementFromPoint(e.clientX, e.clientY);
+                    
+                    if (causeway && causeway.classList.contains('causeway')) {
+                        causeway.style.left = (e.clientX - container.getBoundingClientRect().left - 50) + 'px';
+                        causeway.style.top = (e.clientY - container.getBoundingClientRect().top - 10) + 'px';
+                        
+                        // Check if causeway is placed correctly
+                        checkCausewayPlacement(causeway);
+                    }
+                });
+                
+                updateGameDisplay();
+            }
+
+            // Draw connection between islands
+            function drawConnection(container, island1, island2) {
+                const line = document.createElement('div');
+                line.className = 'causeway';
+                
+                const x1 = island1.x + island1.width/2;
+                const y1 = island1.y + island1.height/2;
+                const x2 = island2.x + island2.width/2;
+                const y2 = island2.y + island2.height/2;
+                
+                const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+                
+                line.style.width = length + 'px';
+                line.style.height = '15px';
+                line.style.left = x1 + 'px';
+                line.style.top = (y1 - 7.5) + 'px';
+                line.style.transform = `rotate(${angle}deg)`;
+                line.style.transformOrigin = '0 50%';
+                
+                container.appendChild(line);
+            }
+
+            // Check causeway placement in game
+            function checkCausewayPlacement(causeway) {
+                const container = document.getElementById('gameMap');
+                const rect = container.getBoundingClientRect();
+                const x = parseFloat(causeway.style.left) + 50;
+                const y = parseFloat(causeway.style.top) + 10;
+                
+                // Check if causeway is placed between islands
+                if (x > 100 && x < 1000 && y > 100 && y < 300) {
+                    causeway.textContent = 'Connected!';
+                    causeway.style.backgroundColor = '#666';
+                    causeway.draggable = false;
+                    
+                    gameState.connections++;
+                    gameState.placedCauseways.push(causeway);
+                    
+                    if (gameState.connections === gameState.maxConnections) {
+                        document.getElementById('gameFeedback').textContent = 'Congratulations! You connected all islands!';
+                    }
+                    
+                    updateGameDisplay();
+                } else {
+                    document.getElementById('gameFeedback').textContent = 'Place causeways between islands to connect them';
+                }
+            }
+
+            // Update game display
+            function updateGameDisplay() {
+                document.getElementById('connections').textContent = gameState.connections;
+                document.getElementById('gameProgress').style.width = (gameState.connections / gameState.maxConnections * 100) + '%';
+            }
+
+            // Reset game
+            function resetGame() {
+                gameState.connections = 0;
+                gameState.placedCauseways = [];
+                document.getElementById('gameFeedback').textContent = '';
+                initGameMap('gameMap', islands);
+            }
+
+            // Check quiz answers
+            function checkQuiz() {
+                let score = 0;
+                const questions = document.querySelectorAll('.question');
+                
+                questions.forEach(question => {
+                    const options = question.querySelectorAll('.option');
+                    let answered = false;
+                    
+                    options.forEach(option => {
+                        if (option.classList.contains('selected')) {
+                            answered = true;
+                            if (option.dataset.correct === 'true') {
+                                score++;
+                                option.style.backgroundColor = '#4CAF50';
+                            } else {
+                                option.style.backgroundColor = '#F44336';
+                            }
+                        }
+                        
+                        // Highlight correct answer
+                        if (option.dataset.correct === 'true') {
+                            option.style.backgroundColor = '#4CAF50';
+                        }
+                        
+                        option.classList.remove('selected');
+                        option.style.pointerEvents = 'none';
+                    });
+                    
+                    if (!answered) {
+                        question.querySelector('.option[data-correct="true"]').style.backgroundColor = '#4CAF50';
+                    }
+                });
+                
+                document.getElementById('quizScore').textContent = score;
+                document.getElementById('quizFeedback').textContent = `You scored ${score} out of ${questions.length}!`;
+            }
+
+            // Reset quiz
+            function resetQuiz() {
+                document.getElementById('quizScore').textContent = '0';
+                document.getElementById('quizFeedback').textContent = '';
+                
+                document.querySelectorAll('.option').forEach(option => {
+                    option.classList.remove('selected');
+                    option.style.backgroundColor = '';
+                    option.style.pointerEvents = 'auto';
+                });
+            }
+
+            // Add option selection
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selection from other options in same question
+                    this.parentNode.querySelectorAll('.option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    this.classList.add('selected');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

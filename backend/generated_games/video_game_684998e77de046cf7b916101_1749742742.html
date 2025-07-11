@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Dimension Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2rem;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #3498db;
+        }
+        
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .challenge-container {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .active-challenge {
+            display: block;
+        }
+        
+        .challenge-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .challenge-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .explanation {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .visualization {
+            flex: 1;
+            min-width: 300px;
+            height: 350px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .option {
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .option:hover {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .option.selected {
+            background-color: #2c3e50;
+            color: white;
+        }
+        
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .feedback.correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .feedback.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .score-container {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+        
+        .completion-screen {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .completion-screen h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .completion-screen p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+        
+        .results {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .result-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            min-width: 200px;
+        }
+        
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #3498db;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            .challenge-content {
+                flex-direction: column;
+            }
+            
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Principal Component Analysis</h1>
+        <p class="subtitle">Master Dimensionality Reduction Through Interactive Challenges</p>
+    </header>
+    
+    <div class="game-container">
+        <div class="progress-container">
+            <button id="prev-btn" disabled>Previous</button>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <button id="next-btn">Next</button>
+        </div>
+        
+        <!-- Challenge 1: Dimension Understanding -->
+        <div class="challenge-container active-challenge" id="challenge1">
+            <h2 class="challenge-title">Challenge 1: Understanding Dimensions</h2>
+            <div class="challenge-content">
+                <div class="explanation">
+                    <p>Principal Component Analysis (PCA) helps reduce the number of dimensions in a dataset while preserving as much information as possible.</p>
+                    <p><strong>In this challenge:</strong> You'll see how adding dimensions affects data visualization. Select the correct statement about the relationship between dimensions and data representation.</p>
+                </div>
+                <div class="visualization">
+                    <canvas id="dimension-canvas"></canvas>
+                </div>
+            </div>
+            
+            <div class="options-container">
+                <div class="option" data-correct="false">Adding dimensions always improves data separation</div>
+                <div class="option" data-correct="true">Higher dimensions make visualization challenging</div>
+                <div class="option" data-correct="false">PCA increases the number of dimensions</div>
+                <div class="option" data-correct="false">Dimensions don't affect cluster identification</div>
+            </div>
+            
+            <div class="feedback" id="feedback1"></div>
+            <div class="controls">
+                <button id="submit1">Check Answer</button>
+            </div>
+        </div>
+        
+        <!-- Challenge 2: Principal Components -->
+        <div class="challenge-container" id="challenge2">
+            <h2 class="challenge-title">Challenge 2: Identifying Principal Components</h2>
+            <div class="challenge-content">
+                <div class="explanation">
+                    <p>The first principal component is the direction of maximum variance in the data. The second principal component is orthogonal to the first and captures the next highest variance.</p>
+                    <p><strong>In this challenge:</strong> Examine the data clusters and select which line represents the first principal component.</p>
+                </div>
+                <div class="visualization">
+                    <canvas id="component-canvas"></canvas>
+                </div>
+            </div>
+            
+            <div class="options-container">
+                <div class="option" data-correct="false">The horizontal axis (X)</div>
+                <div class="option" data-correct="true">The diagonal direction (A)</div>
+                <div class="option" data-correct="false">The vertical axis (Y)</div>
+                <div class="option" data-correct="false">The opposite diagonal (B)</div>
+            </div>
+            
+            <div class="feedback" id="feedback2"></div>
+            <div class="controls">
+                <button id="submit2">Check Answer</button>
+            </div>
+        </div>
+        
+        <!-- Challenge 3: Variance Explanation -->
+        <div class="challenge-container" id="challenge3">
+            <h2 class="challenge-title">Challenge 3: Variance Explained</h2>
+            <div class="challenge-content">
+                <div class="explanation">
+                    <p>PCA transforms original variables into new uncorrelated variables called principal components. The first few components typically explain most of the variance in the data.</p>
+                    <p><strong>In this challenge:</strong> Based on the variance chart, determine how many principal components are needed to explain 85% of the variance.</p>
+                </div>
+                <div class="visualization">
+                    <canvas id="variance-canvas"></canvas>
+                </div>
+            </div>
+            
+            <div class="options-container">
+                <div class="option" data-correct="false">1 component</div>
+                <div class="option" data-correct="true">2 components</div>
+                <div class="option" data-correct="false">3 components</div>
+                <div class="option" data-correct="false">4 components</div>
+            </div>
+            
+            <div class="feedback" id="feedback3"></div>
+            <div class="controls">
+                <button id="submit3">Check Answer</button>
+            </div>
+        </div>
+        
+        <!-- Challenge 4: Real-world Application -->
+        <div class="challenge-container" id="challenge4">
+            <h2 class="challenge-title">Challenge 4: PCA Application</h2>
+            <div class="challenge-content">
+                <div class="explanation">
+                    <p>PCA is widely used for data compression, noise reduction, and feature extraction. It helps simplify complex datasets while retaining essential patterns.</p>
+                    <p><strong>In this challenge:</strong> Select the scenario where PCA would be most beneficial.</p>
+                </div>
+                <div class="visualization">
+                    <canvas id="application-canvas"></canvas>
+                </div>
+            </div>
+            
+            <div class="options-container">
+                <div class="option" data-correct="false">When you need to add more features to your model</div>
+                <div class="option" data-correct="true">When working with high-dimensional image data</div>
+                <div class="option" data-correct="false">When all features are equally important</div>
+                <div class="option" data-correct="false">When you need to increase model complexity</div>
+            </div>
+            
+            <div class="feedback" id="feedback4"></div>
+            <div class="controls">
+                <button id="submit4">Check Answer</button>
+            </div>
+        </div>
+        
+        <!-- Completion Screen -->
+        <div class="completion-screen" id="completion-screen">
+            <h2>PCA Mastery Achieved!</h2>
+            <p>You've successfully completed all challenges and demonstrated your understanding of Principal Component Analysis.</p>
+            
+            <div class="results">
+                <div class="result-card">
+                    <div class="result-label">Your Score</div>
+                    <div class="result-value" id="final-score">0</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">Challenges Completed</div>
+                    <div class="result-value" id="challenges-completed">0</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">Accuracy</div>
+                    <div class="result-value" id="accuracy">0%</div>
+                </div>
+            </div>
+            
+            <button id="restart-btn">Play Again</button>
+        </div>
+        
+        <div class="score-container">
+            Score: <span id="score">0</span>/400
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentChallenge: 1,
+            totalChallenges: 4,
+            score: 0,
+            challengesCompleted: 0,
+            answers: {}
+        };
+
+        // DOM Elements
+        const challengeContainers = document.querySelectorAll('.challenge-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progressFill = document.getElementById('progress-fill');
+        const scoreDisplay = document.getElementById('score');
+        const finalScore = document.getElementById('final-score');
+        const challengesCompleted = document.getElementById('challenges-completed');
+        const accuracyDisplay = document.getElementById('accuracy');
+        const completionScreen = document.getElementById('completion-screen');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Initialize canvases
+        const dimensionCanvas = document.getElementById('dimension-canvas');
+        const componentCanvas = document.getElementById('component-canvas');
+        const varianceCanvas = document.getElementById('variance-canvas');
+        const applicationCanvas = document.getElementById('application-canvas');
+        
+        const ctx1 = dimensionCanvas.getContext('2d');
+        const ctx2 = componentCanvas.getContext('2d');
+        const ctx3 = varianceCanvas.getContext('2d');
+        const ctx4 = applicationCanvas.getContext('2d');
+        
+        // Set canvas dimensions
+        function setupCanvases() {
+            const canvases = [dimensionCanvas, componentCanvas, varianceCanvas, applicationCanvas];
+            canvases.forEach(canvas => {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            });
+            
+            drawChallenge1();
+            drawChallenge2();
+            drawChallenge3();
+            drawChallenge4();
+        }
+
+        // Draw Challenge 1: Dimension Understanding
+        function drawChallenge1() {
+            const width = dimensionCanvas.width;
+            const height = dimensionCanvas.height;
+            ctx1.clearRect(0, 0, width, height);
+            
+            // Draw grid
+            ctx1.strokeStyle = '#e0e0e0';
+            ctx1.lineWidth = 1;
+            
+            // Vertical lines
+            for (let x = 0; x <= width; x += width / 10) {
+                ctx1.beginPath();
+                ctx1.moveTo(x, 0);
+                ctx1.lineTo(x, height);
+                ctx1.stroke();
+            }
+            
+            // Horizontal lines
+            for (let y = 0; y <= height; y += height / 10) {
+                ctx1.beginPath();
+                ctx1.moveTo(0, y);
+                ctx1.lineTo(width, y);
+                ctx1.stroke();
+            }
+            
+            // Draw axes
+            ctx1.strokeStyle = '#2c3e50';
+            ctx1.lineWidth = 2;
+            ctx1.beginPath();
+            ctx1.moveTo(width/2, 0);
+            ctx1.lineTo(width/2, height);
+            ctx1.stroke();
+            
+            ctx1.beginPath();
+            ctx1.moveTo(0, height/2);
+            ctx1.lineTo(width, height/2);
+            ctx1.stroke();
+            
+            // Draw data points in 2D
+            const points = generatePoints(20, width/2, height/2, 100, 100);
+            points.forEach(point => {
+                drawPoint(ctx1, point.x, point.y, '#3498db');
+            });
+            
+            // Draw 3D representation
+            ctx1.fillStyle = 'rgba(52, 152, 219, 0.1)';
+            ctx1.fillRect(width - 150, 20, 130, 130);
+            
+            ctx1.font = '14px Arial';
+            ctx1.fillStyle = '#2c3e50';
+            ctx1.fillText('3D Representation', width - 150, 15);
+            
+            // Draw 3D points
+            const points3D = generatePoints(15, width - 85, 85, 50, 50);
+            points3D.forEach(point => {
+                drawPoint(ctx1, point.x, point.y, '#e74c3c');
+            });
+        }
+
+        // Draw Challenge 2: Principal Components
+        function drawChallenge2() {
+            const width = componentCanvas.width;
+            const height = componentCanvas.height;
+            ctx2.clearRect(0, 0, width, height);
+            
+            // Draw grid
+            ctx2.strokeStyle = '#e0e0e0';
+            ctx2.lineWidth = 1;
+            
+            // Vertical lines
+            for (let x = 0; x <= width; x += width / 10) {
+                ctx2.beginPath();
+                ctx2.moveTo(x, 0);
+                ctx2.lineTo(x, height);
+                ctx2.stroke();
+            }
+            
+            // Horizontal lines
+            for (let y = 0; y <= height; y += height / 10) {
+                ctx2.beginPath();
+                ctx2.moveTo(0, y);
+                ctx2.lineTo(width, y);
+                ctx2.stroke();
+            }
+            
+            // Draw axes
+            ctx2.strokeStyle = '#2c3e50';
+            ctx2.lineWidth = 2;
+            ctx2.beginPath();
+            ctx2.moveTo(width/2, 0);
+            ctx2.lineTo(width/2, height);
+            ctx2.stroke();
+            
+            ctx2.beginPath();
+            ctx2.moveTo(0, height/2);
+            ctx2.lineTo(width, height/2);
+            ctx2.stroke();
+            
+            // Draw clusters
+            const cluster1 = generatePoints(15, width/3, height/3, 70, 40);
+            const cluster2 = generatePoints(15, 2*width/3, 2*height/3, 70, 40);
+            
+            cluster1.forEach(point => {
+                drawPoint(ctx2, point.x, point.y, '#3498db');
+            });
+            
+            cluster2.forEach(point => {
+                drawPoint(ctx2, point.x, point.y, '#e74c3c');
+            });
+            
+            // Draw component lines
+            ctx2.strokeStyle = '#2ecc71';
+            ctx2.lineWidth = 3;
+            ctx2.beginPath();
+            ctx2.moveTo(width/2 - 150, height/2 - 150);
+            ctx2.lineTo(width/2 + 150, height/2 + 150);
+            ctx2.stroke();
+            ctx2.fillStyle = '#2ecc71';
+            ctx2.font = 'bold 16px Arial';
+            ctx2.fillText('A', width/2 + 160, height/2 + 150);
+            
+            ctx2.strokeStyle = '#f39c12';
+            ctx2.beginPath();
+            ctx2.moveTo(width/2 - 150, height/2 + 150);
+            ctx2.lineTo(width/2 + 150, height/2 - 150);
+            ctx2.stroke();
+            ctx2.fillStyle = '#f39c12';
+            ctx2.fillText('B', width/2 + 160, height/2 - 150);
+        }
+
+        // Draw Challenge 3: Variance Explained
+        function drawChallenge3() {
+            const width = varianceCanvas.width;
+            const height = varianceCanvas.height;
+            ctx3.clearRect(0, 0, width, height);
+            
+            // Draw axes
+            ctx3.strokeStyle = '#2c3e50';
+            ctx3.lineWidth = 2;
+            ctx3.beginPath();
+            ctx3.moveTo(50, 50);
+            ctx3.lineTo(50, height - 50);
+            ctx3.lineTo(width - 50, height - 50);
+            ctx3.stroke();
+            
+            // Axis labels
+            ctx3.font = '16px Arial';
+            ctx3.fillStyle = '#2c3e50';
+            ctx3.fillText('Principal Components', width/2 - 80, height - 15);
+            ctx3.save();
+            ctx3.rotate(-Math.PI/2);
+            ctx3.fillText('Variance Explained (%)', -height/2 - 60, 20);
+            ctx3.restore();
+            
+            // Draw variance bars
+            const variances = [72, 18, 6, 4];
+            const colors = ['#3498db', '#2ecc71', '#f39c12', '#e74c3c'];
+            const barWidth = 60;
+            const spacing = 30;
+            const startX = 100;
+            
+            for (let i = 0; i < variances.length; i++) {
+                const barHeight = (height - 100) * (variances[i] / 100);
+                const x = startX + i * (barWidth + spacing);
+                
+                // Draw bar
+                ctx3.fillStyle = colors[i];
+                ctx3.fillRect(x, height - 50 - barHeight, barWidth, barHeight);
+                
+                // Draw label
+                ctx3.fillStyle = '#2c3e50';
+                ctx3.font = '14px Arial';
+                ctx3.fillText(`PC${i+1}`, x + barWidth/2 - 15, height - 30);
+                
+                // Draw value
+                ctx3.fillText(`${variances[i]}%`, x + barWidth/2 - 15, height - 70 - barHeight);
+            }
+            
+            // Draw cumulative line
+            ctx3.strokeStyle = '#9b59b6';
+            ctx3.lineWidth = 3;
+            ctx3.beginPath();
+            ctx3.moveTo(startX, height - 50);
+            
+            let cumulative = 0;
+            for (let i = 0; i < variances.length; i++) {
+                cumulative += variances[i];
+                const y = height - 50 - (height - 100) * (cumulative / 100);
+                const x = startX + i * (barWidth + spacing) + barWidth/2;
+                
+                ctx3.lineTo(x, y);
+                
+                // Draw cumulative points
+                ctx3.fillStyle = '#9b59b6';
+                ctx3.beginPath();
+                ctx3.arc(x, y, 6, 0, Math.PI * 2);
+                ctx3.fill();
+                
+                // Draw cumulative labels
+                if (i > 0) {
+                    ctx3.fillStyle = '#9b59b6';
+                    ctx3.font = '14px Arial';
+                    ctx3.fillText(`${cumulative}%`, x - 20, y - 15);
+                }
+            }
+            
+            ctx3.stroke();
+        }
+
+        // Draw Challenge 4: PCA Application
+        function drawChallenge4() {
+            const width = applicationCanvas.width;
+            const height = applicationCanvas.height;
+            ctx4.clearRect(0, 0, width, height);
+            
+            // Draw high-dimensional data representation
+            ctx4.fillStyle = '#f8f9fa';
+            ctx4.fillRect(0, 0, width, height);
+            
+            // Draw complex data points
+            for (let i = 0; i < 200; i++) {
+                const x = Math.random() * width;
+                const y = Math.random() * height;
+                const size = Math.random() * 4 + 1;
+                const hue = Math.floor(Math.random() * 360);
+                
+                ctx4.fillStyle = `hsla(${hue}, 70%, 50%, 0.7)`;
+                ctx4.beginPath();
+                ctx4.arc(x, y, size, 0, Math.PI * 2);
+                ctx4.fill();
+            }
+            
+            // Draw PCA transformed data
+            ctx4.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx4.fillRect(width - 200, 20, 180, 180);
+            
+            // Draw simplified points
+            for (let i = 0; i < 50; i++) {
+                const x = width - 200 + 20 + Math.random() * 140;
+                const y = 20 + 20 + Math.random() * 140;
+                
+                ctx4.fillStyle = '#3498db';
+                ctx4.beginPath();
+                ctx4.arc(x, y, 3, 0, Math.PI * 2);
+                ctx4.fill();
+            }
+            
+            // Draw labels
+            ctx4.font = '16px Arial';
+            ctx4.fillStyle = '#2c3e50';
+            ctx4.fillText('High-Dimensional Data', 20, 30);
+            ctx4.fillText('PCA Simplified Data', width - 200, 15);
+        }
+
+        // Helper function to draw a point
+        function drawPoint(ctx, x, y, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Helper function to generate random points
+        function generatePoints(count, centerX, centerY, spreadX, spreadY) {
+            const points = [];
+            for (let i = 0; i < count; i++) {
+                points.push({
+                    x: centerX + (Math.random() - 0.5) * spreadX,
+                    y: centerY + (Math.random() - 0.5) * spreadY
+                });
+            }
+            return points;
+        }
+
+        // Initialize option selection
+        function setupOptionSelection() {
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selection from siblings
+                    this.parentElement.querySelectorAll('.option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    
+                    // Select clicked option
+                    this.classList.add('selected');
+                });
+            });
+        }
+
+        // Initialize challenge submissions
+        function setupSubmissions() {
+            document.getElementById('submit1').addEventListener('click', () => checkAnswer(1));
+            document.getElementById('submit2').addEventListener('click', () => checkAnswer(2));
+            document.getElementById('submit3').addEventListener('click', () => checkAnswer(3));
+            document.getElementById('submit4').addEventListener('click', () => checkAnswer(4));
+        }
+
+        // Check answer for a challenge
+        function checkAnswer(challengeNum) {
+            const container = document.getElementById(`challenge${challengeNum}`);
+            const selectedOption = container.querySelector('.option.selected');
+            const feedback = document.getElementById(`feedback${challengeNum}`);
+            
+            if (!selectedOption) {
+                feedback.textContent = 'Please select an answer!';
+                feedback.className = 'feedback incorrect';
+                feedback.style.display = 'block';
+                return;
+            }
+            
+            const isCorrect = selectedOption.dataset.correct === 'true';
+            gameState.answers[challengeNum] = isCorrect;
+            
+            if (isCorrect) {
+                feedback.textContent = 'Correct! ' + getFeedbackMessage(challengeNum);
+                feedback.className = 'feedback correct';
+                gameState.score += 100;
+                scoreDisplay.textContent = gameState.score;
+            } else {
+                feedback.textContent = 'Incorrect. ' + getExplanation(challengeNum);
+                feedback.className = 'feedback incorrect';
+            }
+            
+            feedback.style.display = 'block';
+            
+            // Update UI
+            selectedOption.classList.add(isCorrect ? 'correct-answer' : 'incorrect-answer');
+            container.querySelectorAll('.option').forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+            
+            gameState.challengesCompleted++;
+        }
+
+        // Get feedback message for correct answers
+        function getFeedbackMessage(challengeNum) {
+            const messages = {
+                1: "Higher dimensions make visualization challenging, which is why PCA is useful for dimensionality reduction.",
+                2: "Correct! The first principal component (A) captures the direction of maximum variance in the data.",
+                3: "Exactly! The first two principal components explain 90% of the variance (72% + 18%).",
+                4: "Well done! PCA is particularly valuable for simplifying high-dimensional data like images."
+            };
+            return messages[challengeNum];
+        }
+
+        // Get explanation for incorrect answers
+        function getExplanation(challengeNum) {
+            const explanations = {
+                1: "PCA reduces dimensions to simplify data while preserving important patterns. Higher dimensions make visualization and analysis more difficult.",
+                2: "The first principal component is the direction that captures the most variance in the data. In this case, it's the diagonal direction (A) where the clusters spread the most.",
+                3: "Look at the cumulative variance line. The first two components explain 90% of the variance (72% + 18%), which is more than the required 85%.",
+                4: "PCA is most beneficial when dealing with
+    </script>
+</body>
+</html>

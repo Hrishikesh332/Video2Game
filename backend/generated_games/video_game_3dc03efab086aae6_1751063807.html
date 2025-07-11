@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Vector Machines Interactive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .description {
+            color: #555555;
+            margin-bottom: 20px;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .level-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #cccccc;
+        }
+        
+        .level-dot.active {
+            background-color: #008080;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+        
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #008080;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #006666;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .feedback-panel {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .instructions {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            border-left: 4px solid #008080;
+        }
+        
+        .point-info {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 15px 0;
+        }
+        
+        .point-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .point-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        
+        .pink-point {
+            background-color: #FF6B6B;
+        }
+        
+        .blue-point {
+            background-color: #008080;
+        }
+        
+        .boundary-line {
+            height: 3px;
+            background-color: #FFFF00;
+            margin: 10px 0;
+        }
+        
+        @media (max-width: 600px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .canvas-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Support Vector Machines Interactive</h1>
+        <p class="description">Drag points to visualize SVM classification boundaries</p>
+    </header>
+    
+    <main class="game-container">
+        <div class="level-indicator">
+            <div class="level-dot active" id="level1-dot"></div>
+            <div class="level-dot" id="level2-dot"></div>
+            <div class="level-dot" id="level3-dot"></div>
+        </div>
+        
+        <div class="point-info">
+            <div class="point-type">
+                <div class="point-color pink-point"></div>
+                <span>Class A</span>
+            </div>
+            <div class="point-type">
+                <div class="point-color blue-point"></div>
+                <span>Class B</span>
+            </div>
+            <div class="point-type">
+                <div class="boundary-line"></div>
+                <span>Decision Boundary</span>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+        
+        <div class="score-container">
+            <div>Level: <span id="current-level">1</span>/3</div>
+            <div>Score: <span id="score">0</span></div>
+            <div>Accuracy: <span id="accuracy">0%</span></div>
+        </div>
+        
+        <div class="controls">
+            <button id="reset-btn">Reset Points</button>
+            <button id="check-btn">Check Classification</button>
+            <button id="next-btn">Next Level</button>
+        </div>
+        
+        <div class="instructions">
+            <p><strong>How to play:</strong> Drag the colored points to arrange them. The yellow line shows the SVM decision boundary. Maximize the margin between classes for better scores!</p>
+        </div>
+        
+        <div class="feedback-panel" id="feedback">
+            <p>Arrange the points to create clear separation between classes. Drag points to get started!</p>
+        </div>
+    </main>
+
+    <script>
+        // Game state and configuration
+        const gameState = {
+            currentLevel: 1,
+            score: 0,
+            points: [],
+            draggedPoint: null,
+            boundary: { x1: 0, y1: 0, x2: 0, y2: 0 },
+            margin: 20,
+            maxLevel: 3
+        };
+
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Initialize canvas size
+        function initCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            gameState.boundary = {
+                x1: 0,
+                y1: canvas.height / 2,
+                x2: canvas.width,
+                y2: canvas.height / 2
+            };
+            resetPoints();
+            drawGame();
+        }
+
+        // Initialize points based on level
+        function resetPoints() {
+            gameState.points = [];
+            const pointCount = 10 + (gameState.currentLevel * 2);
+            
+            for (let i = 0; i < pointCount; i++) {
+                const isBlue = Math.random() > 0.5;
+                const point = {
+                    x: Math.random() * (canvas.width - 60) + 30,
+                    y: Math.random() * (canvas.height - 60) + 30,
+                    radius: 12,
+                    color: isBlue ? '#008080' : '#FF6B6B',
+                    class: isBlue ? 'B' : 'A',
+                    originalClass: isBlue ? 'B' : 'A'
+                };
+                gameState.points.push(point);
+            }
+            
+            updateBoundary();
+        }
+
+        // Update decision boundary based on point positions
+        function updateBoundary() {
+            // Simplified SVM-like boundary calculation
+            const classA = gameState.points.filter(p => p.class === 'A');
+            const classB = gameState.points.filter(p => p.class === 'B');
+            
+            if (classA.length === 0 || classB.length === 0) return;
+            
+            // Calculate centroid of each class
+            const centroidA = classA.reduce((acc, p) => {
+                acc.x += p.x;
+                acc.y += p.y;
+                return acc;
+            }, {x: 0, y: 0});
+            
+            centroidA.x /= classA.length;
+            centroidA.y /= classA.length;
+            
+            const centroidB = classB.reduce((acc, p) => {
+                acc.x += p.x;
+                acc.y += p.y;
+                return acc;
+            }, {x: 0, y: 0});
+            
+            centroidB.x /= classB.length;
+            centroidB.y /= classB.length;
+            
+            // Midpoint between centroids
+            const midX = (centroidA.x + centroidB.x) / 2;
+            const midY = (centroidA.y + centroidB.y) / 2;
+            
+            // Perpendicular direction
+            const dx = centroidB.x - centroidA.x;
+            const dy = centroidB.y - centroidA.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            
+            if (length === 0) return;
+            
+            const perpX = -dy / length;
+            const perpY = dx / length;
+            
+            // Extend boundary to canvas edges
+            const scale = Math.max(canvas.width, canvas.height);
+            gameState.boundary = {
+                x1: midX - perpX * scale,
+                y1: midY - perpY * scale,
+                x2: midX + perpX * scale,
+                y2: midY + perpY * scale
+            };
+        }
+
+        // Draw game elements
+        function drawGame() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw margin area
+            ctx.fillStyle = 'rgba(255, 255, 0, 0.1)';
+            ctx.beginPath();
+            ctx.moveTo(0, gameState.boundary.y1 - gameState.margin);
+            ctx.lineTo(canvas.width, gameState.boundary.y1 - gameState.margin);
+            ctx.lineTo(canvas.width, gameState.boundary.y1 + gameState.margin);
+            ctx.lineTo(0, gameState.boundary.y1 + gameState.margin);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw decision boundary
+            ctx.beginPath();
+            ctx.moveTo(gameState.boundary.x1, gameState.boundary.y1);
+            ctx.lineTo(gameState.boundary.x2, gameState.boundary.y2);
+            ctx.strokeStyle = '#FFFF00';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Draw points
+            gameState.points.forEach(point => {
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, point.radius, 0, Math.PI * 2);
+                ctx.fillStyle = point.color;
+                ctx.fill();
+                ctx.strokeStyle = '#333333';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // Draw class label
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(point.class, point.x, point.y);
+            });
+        }
+
+        // Check point classification
+        function checkClassification() {
+            let correct = 0;
+            const total = gameState.points.length;
+            
+            gameState.points.forEach(point => {
+                // Simplified classification check
+                const side = (point.y - gameState.boundary.y1) * 
+                            (gameState.boundary.x2 - gameState.boundary.x1) - 
+                            (point.x - gameState.boundary.x1) * 
+                            (gameState.boundary.y2 - gameState.boundary.y1);
+                
+                const isAbove = side > 0;
+                const shouldBeAbove = point.originalClass === 'A';
+                
+                if (isAbove === shouldBeAbove) {
+                    correct++;
+                }
+            });
+            
+            const accuracy = Math.round((correct / total) * 100);
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+            
+            // Update score
+            const level
+    </script>
+</body>
+</html>

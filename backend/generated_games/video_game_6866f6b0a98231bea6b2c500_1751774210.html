@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parisian Landmarks Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            color: #666;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e9e9e9;
+            border-radius: 8px;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 20px;
+            background-color: #ddd;
+            border-radius: 10px;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .score-container {
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-width: 120px;
+            text-align: center;
+        }
+        
+        .level-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .level-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .level-description {
+            margin-bottom: 25px;
+            text-align: center;
+            color: #555;
+        }
+        
+        .game-area {
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .map-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: 400px;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+        
+        .landmark-marker {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        
+        .landmark-marker:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        
+        .info-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 0 auto;
+            display: none;
+        }
+        
+        .info-card h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .info-card p {
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        .info-card img {
+            width: 100%;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .option-btn {
+            padding: 15px;
+            background-color: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .option-btn:hover {
+            background-color: #e0e0e0;
+            border-color: #ccc;
+        }
+        
+        .option-btn.correct {
+            background-color: #2ecc71;
+            color: white;
+            border-color: #27ae60;
+        }
+        
+        .option-btn.incorrect {
+            background-color: #e74c3c;
+            color: white;
+            border-color: #c0392b;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn.restart {
+            background-color: #e74c3c;
+        }
+        
+        .btn.restart:hover {
+            background-color: #c0392b;
+        }
+        
+        .feedback {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-height: 30px;
+            margin: 15px 0;
+        }
+        
+        .feedback.correct {
+            color: #2ecc71;
+        }
+        
+        .feedback.incorrect {
+            color: #e74c3c;
+        }
+        
+        .results-screen {
+            text-align: center;
+            padding: 40px 20px;
+            display: none;
+        }
+        
+        .results-screen h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .final-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #3498db;
+            margin: 30px 0;
+        }
+        
+        .high-score {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .map-container {
+                height: 300px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .progress-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .progress-bar {
+                width: 100%;
+                margin: 10px 0;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Parisian Landmarks Explorer</h1>
+        <p class="description">Test your knowledge of Paris landmarks through interactive challenges</p>
+    </header>
+    
+    <main class="game-container">
+        <div class="progress-container">
+            <div class="level-indicator">Level: <span id="current-level">1</span>/3</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="score-container">Score: <span id="score">0</span></div>
+        </div>
+        
+        <div class="level-container" id="level-container">
+            <h2 class="level-title" id="level-title">Landmark Identification</h2>
+            <p class="level-description" id="level-description">Click on the correct landmark location on the map</p>
+            
+            <div class="game-area" id="game-area">
+                <!-- Level content will be dynamically inserted here -->
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div class="controls">
+                <button class="btn" id="next-btn">Next Level</button>
+                <button class="btn restart" id="restart-btn">Restart Game</button>
+            </div>
+        </div>
+        
+        <div class="results-screen" id="results-screen">
+            <h2>Game Completed!</h2>
+            <p>Your final score:</p>
+            <div class="final-score" id="final-score">0</div>
+            <p class="high-score">High Score: <span id="high-score">0</span></p>
+            <button class="btn restart" id="play-again-btn">Play Again</button>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            const gameState = {
+                currentLevel: 1,
+                score: 0,
+                maxLevels: 3,
+                levels: [
+                    {
+                        title: "Landmark Identification",
+                        description: "Click on the correct landmark location on the map",
+                        type: "map",
+                        question: "Where is the Eiffel Tower located?",
+                        landmarks: [
+                            { name: "Eiffel Tower", x: 30, y: 70, correct: true, 
+                              info: "The Eiffel Tower is a wrought-iron lattice tower on the Champ de Mars in Paris, France. It is named after the engineer Gustave Eiffel, whose company designed and built the tower." },
+                            { name: "Notre-Dame", x: 70, y: 50, correct: false, 
+                              info: "Notre-Dame de Paris is a medieval Catholic cathedral on the Île de la Cité in the 4th arrondissement of Paris." },
+                            { name: "Louvre", x: 50, y: 30, correct: false, 
+                              info: "The Louvre is the world's largest art museum and a historic monument in Paris, France." }
+                        ]
+                    },
+                    {
+                        title: "Historical Timeline",
+                        description: "Select the correct year for the historical event",
+                        type: "timeline",
+                        question: "When was the Eiffel Tower completed?",
+                        options: [
+                            { text: "1887", correct: false },
+                            { text: "1889", correct: true },
+                            { text: "1895", correct: false },
+                            { text: "1900", correct: false }
+                        ]
+                    },
+                    {
+                        title: "Art Gallery",
+                        description: "Identify the famous artwork",
+                        type: "art",
+                        question: "Which painting is housed in the Louvre Museum?",
+                        options: [
+                            { text: "Starry Night", correct: false },
+                            { text: "The Scream", correct: false },
+                            { text: "Mona Lisa", correct: true },
+                            { text: "The Persistence of Memory", correct: false }
+                        ]
+                    }
+                ]
+            };
+
+            // DOM elements
+            const elements = {
+                currentLevel: document.getElementById('current-level'),
+                progressFill: document.getElementById('progress-fill'),
+                score: document.getElementById('score'),
+                levelTitle: document.getElementById('level-title'),
+                levelDescription: document.getElementById('level-description'),
+                gameArea: document.getElementById('game-area'),
+                feedback: document.getElementById('feedback'),
+                nextBtn: document.getElementById('next-btn'),
+                restartBtn: document.getElementById('restart-btn'),
+                resultsScreen: document.getElementById('results-screen'),
+                finalScore: document.getElementById('final-score'),
+                highScore: document.getElementById('high-score'),
+                playAgainBtn: document.getElementById('play-again-btn')
+            };
+
+            // Initialize game
+            function initGame() {
+                gameState.currentLevel = 1;
+                gameState.score = 0;
+                updateProgress();
+                loadLevel(gameState.currentLevel - 1);
+                elements.resultsScreen.style.display = 'none';
+                elements.levelContainer.style.display = 'block';
+            }
+
+            // Update progress display
+            function updateProgress() {
+                elements.currentLevel.textContent = gameState.currentLevel;
+                elements.score.textContent = gameState.score;
+                const progress = ((gameState.currentLevel - 1) / gameState.maxLevels) * 100;
+                elements.progressFill.style.width = `${progress}%`;
+            }
+
+            // Load level based on index
+            function loadLevel(levelIndex) {
+                const level = gameState.levels[levelIndex];
+                elements.levelTitle.textContent = level.title;
+                elements.levelDescription.textContent = level.description;
+                elements.gameArea.innerHTML = '';
+                elements.feedback.textContent = '';
+                elements.feedback.className = 'feedback';
+                elements.nextBtn.disabled = true;
+
+                if (level.type === 'map') {
+                    loadMapLevel(level);
+                } else if (level.type === 'timeline' || level.type === 'art') {
+                    loadQuizLevel(level);
+                }
+            }
+
+            // Load map level
+            function loadMapLevel(level) {
+                const mapHTML = `
+                    <h3>${level.question}</h3>
+                    <div class="map-container" id="map-container"></div>
+                    <div class="info-card" id="info-card"></div>
+                `;
+                elements.gameArea.innerHTML = mapHTML;
+                
+                const mapContainer = document.getElementById('map-container');
+                level.landmarks.forEach(landmark => {
+                    const marker = document.createElement('div');
+                    marker.className = 'landmark-marker';
+                    marker.style.left = `${landmark.x}%`;
+                    marker.style.top = `${landmark.y}%`;
+                    marker.textContent = '!';
+                    marker.dataset.correct = landmark.correct;
+                    marker.dataset.info = landmark.info;
+                    
+                    marker.addEventListener('click', () => {
+                        if (landmark.correct) {
+                            gameState.score += 10;
+                            elements.feedback.textContent = 'Correct!';
+                            elements.feedback.className = 'feedback correct';
+                        } else {
+                            elements.feedback.textContent = 'Incorrect! Try again.';
+                            elements.feedback.className = 'feedback incorrect';
+                        }
+                        
+                        updateProgress();
+                        showLandmarkInfo(landmark);
+                        elements.nextBtn.disabled = false;
+                    });
+                    
+                    mapContainer.appendChild(marker);
+                });
+            }
+
+            // Show landmark info
+            function showLandmarkInfo(landmark) {
+                const infoCard = document.getElementById('info-card');
+                infoCard.style.display = 'block';
+                infoCard.innerHTML = `
+                    <h3>${landmark.name}</h3>
+                    <p>${landmark.info}</p>
+                    <div style="background-color:#ddd; height:150px; border-radius:5px; display:flex; align-items:center; justify-content:center; color:#666; margin-top:15px;">
+                        Landmark Image
+                    </div>
+                `;
+            }
+
+            // Load quiz level
+            function loadQuizLevel(level) {
+                const quizHTML = `
+                    <h3>${level.question}</h3>
+                    <div class="options-container" id="options-container"></div>
+                `;
+                elements.gameArea.innerHTML = quizHTML;
+                
+                const optionsContainer = document.getElementById('options-container');
+                level.options.forEach(option => {
+                    const optionBtn = document.createElement('button');
+                    optionBtn.className = 'option-btn';
+                    optionBtn.textContent = option.text;
+                    optionBtn.dataset.correct = option.correct;
+                    
+                    optionBtn.addEventListener('click', () => {
+                        if (option.correct) {
+                            gameState.score += 10;
+                            elements.feedback.textContent = 'Correct!';
+                            elements.feedback.className = 'feedback correct';
+                            optionBtn.classList.add('correct');
+                        } else {
+                            elements.feedback.textContent = 'Incorrect!';
+                            elements.feedback.className = 'feedback incorrect';
+                            optionBtn.classList.add('incorrect');
+                        }
+                        
+                        // Disable all buttons after selection
+                        document.querySelectorAll('.option-btn').forEach(btn => {
+                            btn.disabled = true;
+                        });
+                        
+                        updateProgress();
+                        elements.nextBtn.disabled = false;
+                    });
+                    
+                    optionsContainer.appendChild(optionBtn);
+                });
+            }
+
+            // Next level handler
+            elements.nextBtn.addEventListener('click', () => {
+                if (gameState.currentLevel < gameState.maxLevels) {
+                    gameState.currentLevel++;
+                    updateProgress();
+                    loadLevel(gameState.currentLevel - 1);
+                } else {
+                    endGame();
+                }
+            });
+
+            // End game and show results
+            function endGame() {
+                elements.finalScore.textContent = gameState.score;
+                
+                // Update high score
+                const currentHighScore = localStorage.getItem('parisHighScore') || 0;
+                if (gameState.score > currentHighScore) {
+                    localStorage.setItem('parisHighScore', gameState.score);
+                    elements.highScore.textContent = gameState.score;
+                } else {
+                    elements.highScore.textContent = currentHighScore;
+                }
+                
+                elements.levelContainer.style.display = 'none';
+                elements.resultsScreen.style.display = 'block';
+            }
+
+            // Restart and play again handlers
+            elements.restartBtn.addEventListener('click', initGame);
+            elements.playAgainBtn.addEventListener('click', initGame);
+
+            // Initialize high score display
+            const savedHighScore = localStorage.getItem('parisHighScore');
+            elements.highScore.textContent = savedHighScore || '0';
+
+            // Start the game
+            initGame();
+        });
+    </script>
+</body>
+</html>

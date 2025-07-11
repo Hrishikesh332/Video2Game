@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Women's 5000m Race Strategy</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .screen {
+            display: none;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        h1, h2, h3 {
+            color: #222222;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .track-container {
+            position: relative;
+            height: 200px;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+            border: 2px solid #cccccc;
+        }
+        
+        .track-lane {
+            position: absolute;
+            width: 100%;
+            height: 40px;
+            border-bottom: 1px dashed #aaaaaa;
+        }
+        
+        .runner {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            transition: left 0.5s ease;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .lap-marker {
+            position: absolute;
+            height: 100%;
+            width: 2px;
+            background-color: #999999;
+            z-index: 1;
+        }
+        
+        .finish-line {
+            position: absolute;
+            height: 100%;
+            width: 4px;
+            background-color: #ff0000;
+            right: 0;
+            z-index: 5;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+            background-color: #eeeeee;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        label {
+            min-width: 120px;
+            font-weight: bold;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+        }
+        
+        .energy-container {
+            height: 20px;
+            background-color: #cccccc;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .energy-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .stat-card {
+            background-color: #e9e9e9;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #333333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #555555;
+        }
+        
+        button:disabled {
+            background-color: #aaaaaa;
+            cursor: not-allowed;
+        }
+        
+        .feedback {
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .runner-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            background-color: #e9e9e9;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .runner-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .progress-container {
+            height: 10px;
+            background-color: #cccccc;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #333333;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        @media (max-width: 600px) {
+            .controls {
+                padding: 10px;
+            }
+            
+            .control-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Intro Screen -->
+    <div id="intro-screen" class="screen active">
+        <h1>Women's 5000m Race Strategy</h1>
+        <p>Learn pacing, strategy, and race dynamics in this interactive simulation</p>
+        <div class="buttons">
+            <button id="start-challenge1">Start Challenge 1: Steady Pacing</button>
+            <button id="start-challenge2">Start Challenge 2: Race Strategy</button>
+        </div>
+    </div>
+    
+    <!-- Challenge 1: Steady Pacing -->
+    <div id="challenge1-screen" class="screen">
+        <h2>Challenge 1: Maintain Steady Pace</h2>
+        <p>Control your speed to conserve energy and finish strong. Avoid burning out too early!</p>
+        
+        <div class="progress-container">
+            <div id="challenge1-progress" class="progress-bar"></div>
+        </div>
+        
+        <div class="track-container">
+            <div class="finish-line"></div>
+            <div class="track-lane" style="top: 40px;"></div>
+            <div class="track-lane" style="top: 100px;"></div>
+            <div class="track-lane" style="top: 160px;"></div>
+            <div class="runner" id="runner-user" style="background-color: #FFD700; top: 40px;">YOU</div>
+            <div class="runner" id="runner-ai1" style="background-color: #008000; top: 100px;">AI1</div>
+            <div class="runner" id="runner-ai2" style="background-color: #FF69B4; top: 160px;">AI2</div>
+            
+            <!-- Lap markers -->
+            <div class="lap-marker" style="left: 20%;"></div>
+            <div class="lap-marker" style="left: 40%;"></div>
+            <div class="lap-marker" style="left: 60%;"></div>
+            <div class="lap-marker" style="left: 80%;"></div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="speed-slider">Your Speed:</label>
+                <input type="range" id="speed-slider" min="1" max="10" value="5">
+                <span id="speed-value">5 m/s</span>
+            </div>
+            
+            <div>
+                <label>Energy Level:</label>
+                <div class="energy-container">
+                    <div id="energy-bar" class="energy-bar"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Current Lap</div>
+                <div id="current-lap" class="stat-value">1/12.5</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Distance</div>
+                <div id="distance" class="stat-value">0m</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Time</div>
+                <div id="race-time" class="stat-value">0s</div>
+            </div>
+        </div>
+        
+        <div id="challenge1-feedback" class="feedback">
+            Adjust your speed and maintain energy for the full race
+        </div>
+        
+        <div class="buttons">
+            <button id="start-race">Start Race</button>
+            <button id="reset-challenge1">Reset</button>
+            <button id="back-to-intro1">Menu</button>
+        </div>
+    </div>
+    
+    <!-- Challenge 2: Race Strategy -->
+    <div id="challenge2-screen" class="screen">
+        <h2>Challenge 2: Race Strategy</h2>
+        <p>Overtake opponents and conserve energy for the final sprint!</p>
+        
+        <div class="progress-container">
+            <div id="challenge2-progress" class="progress-bar"></div>
+        </div>
+        
+        <div class="track-container">
+            <div class="finish-line"></div>
+            <div class="track-lane" style="top: 40px;"></div>
+            <div class="track-lane" style="top: 100px;"></div>
+            <div class="track-lane" style="top: 160px;"></div>
+            <div class="runner" id="runner-user2" style="background-color: #FFD700; top: 40px;">YOU</div>
+            <div class="runner" id="runner-ai3" style="background-color: #008000; top: 100px;">AI1</div>
+            <div class="runner" id="runner-ai4" style="background-color: #FF69B4; top: 160px;">AI2</div>
+            
+            <!-- Lap markers -->
+            <div class="lap-marker" style="left: 20%;"></div>
+            <div class="lap-marker" style="left: 40%;"></div>
+            <div class="lap-marker" style="left: 60%;"></div>
+            <div class="lap-marker" style="left: 80%;"></div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="speed-slider2">Your Speed:</label>
+                <input type="range" id="speed-slider2" min="1" max="10" value="5">
+                <span id="speed-value2">5 m/s</span>
+            </div>
+            
+            <div>
+                <label>Energy Level:</label>
+                <div class="energy-container">
+                    <div id="energy-bar2" class="energy-bar"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Current Lap</div>
+                <div id="current-lap2" class="stat-value">1/12.5</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Position</div>
+                <div id="position" class="stat-value">3rd</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Time</div>
+                <div id="race-time2" class="stat-value">0s</div>
+            </div>
+        </div>
+        
+        <div id="challenge2-feedback" class="feedback">
+            Plan your strategy - when to conserve energy and when to push
+        </div>
+        
+        <div class="buttons">
+            <button id="start-race2">Start Race</button>
+            <button id="sprint">Final Sprint!</button>
+            <button id="reset-challenge2">Reset</button>
+            <button id="back-to-intro2">Menu</button>
+        </div>
+    </div>
+    
+    <!-- Results Screen -->
+    <div id="results-screen" class="screen">
+        <h2>Race Complete!</h2>
+        <div id="result-message"></div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Final Time</div>
+                <div id="final-time" class="stat-value">0s</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Position</div>
+                <div id="final-position" class="stat-value">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Energy Left</div>
+                <div id="final-energy" class="stat-value">0%</div>
+            </div>
+        </div>
+        
+        <div id="high-scores">
+            <h3>Best Times</h3>
+            <ol id="score-list"></ol>
+        </div>
+        
+        <div class="feedback" id="performance-feedback"></div>
+        
+        <div class="buttons">
+            <button id="restart">Race Again</button>
+            <button id="menu">Main Menu</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state management
+        const gameState = {
+            currentScreen: 'intro',
+            challenge: null,
+            raceRunning: false,
+            raceTime: 0,
+            distance: 0,
+            lap: 1,
+            userSpeed: 5,
+            energy: 100,
+            aiSpeeds: [4.8, 5.2],
+            positions: [0, 0, 0],
+            sprintUsed: false,
+            raceInterval: null
+        };
+        
+        // DOM elements
+        const screens = {
+            intro: document.getElementById('intro-screen'),
+            challenge1: document.getElementById('challenge1-screen'),
+            challenge2: document.getElementById('challenge2-screen'),
+            results: document.getElementById('results-screen')
+        };
+        
+        // High scores
+        let highScores = JSON.parse(localStorage.getItem('raceHighScores')) || [];
+        
+        // Switch between screens
+        function showScreen(screenName) {
+            Object.values(screens).forEach(screen => {
+                screen.classList.remove('active');
+            });
+            screens[screenName].classList.add('active');
+            gameState.currentScreen = screenName;
+        }
+        
+        // Initialize challenge
+        function initChallenge(challengeNum) {
+            gameState.challenge = challengeNum;
+            gameState.raceRunning = false;
+            gameState.raceTime = 0;
+            gameState.distance = 0;
+            gameState.lap = 1;
+            gameState.userSpeed = 5;
+            gameState.energy = 100;
+            gameState.positions = [0, 0, 0];
+            gameState.sprintUsed = false;
+            
+            if (challengeNum === 1) {
+                document.getElementById('speed-slider').value = 5;
+                document.getElementById('speed-value').textContent = '5 m/s';
+                document.getElementById('current-lap').textContent = '1/12.5';
+                document.getElementById('distance').textContent = '0m';
+                document.getElementById('race-time').textContent = '0s';
+                document.getElementById('energy-bar').style.width = '100%';
+                document.getElementById('challenge1-progress').style.width = '0%';
+                document.getElementById('challenge1-feedback').textContent = 'Adjust your speed and maintain energy for the full race';
+                showScreen('challenge1');
+            } else {
+                document.getElementById('speed-slider2').value = 5;
+                document.getElementById('speed-value2').textContent = '5 m/s';
+                document.getElementById('current-lap2').textContent = '1/12.5';
+                document.getElementById('position').textContent = '3rd';
+                document.getElementById('race-time2').textContent = '0s';
+                document.getElementById('energy-bar2').style.width = '100%';
+                document.getElementById('challenge2-progress').style.width = '0%';
+                document.getElementById('challenge2-feedback').textContent = 'Plan your strategy - when to conserve energy and when to push';
+                showScreen('challenge2');
+            }
+            
+            updateRunnerPositions();
+        }
+        
+        // Update runner positions on track
+        function updateRunnerPositions() {
+            const challenge = gameState.challenge;
+            const trackWidth = document.querySelector('.track-container').offsetWidth - 30;
+            
+            if (challenge === 1) {
+                document.getElementById('runner-user').style.left = 
+                    (gameState.positions[0] * trackWidth / 5000) + 'px';
+                document.getElementById('runner-ai1').style.left = 
+                    (gameState.positions[1] * trackWidth / 5000) + 'px';
+                document.getElementById('runner-ai2').style.left = 
+                    (gameState.positions[2] * trackWidth / 5000) + 'px';
+            } else {
+                document.getElementById('runner-user2').style.left = 
+                    (gameState.positions[0] * trackWidth / 5000) + 'px';
+                document.getElementById('runner-ai3').style.left = 
+                    (gameState.positions[1] * trackWidth / 5000) + 'px';
+                document.getElementById('runner-ai4').style.left = 
+                    (gameState.positions[2] * trackWidth / 5000) + 'px';
+            }
+        }
+        
+        // Start the race
+        function startRace() {
+            if (gameState.raceRunning) return;
+            
+            gameState.raceRunning = true;
+            gameState.raceStartTime = Date.now();
+            
+            if (gameState.raceInterval) clearInterval(gameState.raceInterval);
+            
+            gameState.raceInterval = setInterval(() => {
+                if (!gameState.raceRunning) return;
+                
+                // Update time
+                gameState.raceTime = Math.floor((Date.now() - gameState.raceStartTime) / 1000);
+                
+                // Update distance
+                const timeDelta = 0.1; // 100ms interval
+                gameState.distance += gameState.userSpeed * timeDelta;
+                
+                // Update AI positions
+                for (let i = 1; i < 3; i++) {
+                    gameState.positions[i] += gameState.aiSpeeds[i-1] * timeDelta;
+                }
+                
+                // Update user position
+                gameState.positions[0] = gameState.distance;
+                
+                // Update lap
+                gameState.lap = Math.min(Math.floor(gameState.distance / 400) + 1, 13);
+                
+                // Update energy based on speed
+                if (gameState.userSpeed > 7) {
+                    gameState.energy -= 0.5;
+                } else if (gameState.userSpeed > 5) {
+                    gameState.energy -= 0.2;
+                }
+                
+                // Prevent energy from going below 0
+                gameState.energy = Math.max(0, gameState.energy);
+                
+                // Update UI
+                if (gameState.challenge === 1) {
+                    document.getElementById('current-lap').textContent = 
+                        `${Math.min(gameState.lap, 12)}.${gameState.lap === 13 ? '5' : '0'}/12.5`;
+                    document.getElementById('distance').textContent = 
+                        `${Math.min(Math.round(gameState.distance), 5000)}m`;
+                    document.getElementById('race-time').textContent = 
+                        `${gameState.raceTime}s`;
+                    document.getElementById('energy-bar').style.width = 
+                        `${gameState.energy}%`;
+                    document.getElementById('challenge1-progress').style.width = 
+                        `${(gameState.distance / 5000) * 100}%`;
+                    
+                    // Check if energy is low
+                    if (gameState.energy < 30) {
+                        document.getElementById('challenge1-feedback').textContent = 
+                            'Energy low! Reduce speed to recover';
+                    }
+                } else {
+                    // Calculate position
+                    const sortedPositions = [...gameState.positions].sort((a, b) => b - a);
+                    const position = sortedPositions.indexOf(gameState.positions[0]) + 1;
+                    const positionText = position === 1 ? '1st' : position === 2 ? '2nd' : '3rd';
+                    
+                    document.getElementById('current-lap2').textContent = 
+                        `${Math.min(gameState.lap, 12)}.${gameState.lap === 13 ? '5' : '0'}/12.5`;
+                    document.getElementById('position').textContent = positionText;
+                    document.getElementById('race-time2').textContent = 
+                        `${gameState.raceTime}s`;
+                    document.getElementById('energy-bar2').style.width = 
+                        `${gameState.energy}%`;
+                    document.getElementById('challenge2-progress').style.width = 
+                        `${(gameState.distance / 5000) * 100}%`;
+                    
+                    // Strategy feedback
+                    if (gameState.lap < 6 && gameState.userSpeed > 6) {
+                        document.getElementById('challenge2-feedback').textContent = 
+                            'Conserve energy in the early laps!';
+                    } else if (gameState.lap > 10 && gameState.energy > 50 && !gameState.sprintUsed) {
+                        document.getElementById('challenge2-feedback').textContent = 
+                            'Good energy! Use your sprint in the final lap';
+                    }
+                }
+                
+                updateRunnerPositions();
+                
+                // Check if race is complete
+                if (gameState.distance >= 5000) {
+                    finishRace();
+                }
+                
+                // Check if energy is depleted
+                if (gameState.energy <= 0) {
+                    document.getElementById('challenge1-feedback').textContent = 
+                        'Energy depleted! You slowed down significantly';
+                    gameState.userSpeed = Math.max(3, gameState.userSpeed - 1);
+                    if (gameState.challenge === 1) {
+                        document.getElementById('speed-slider').value = gameState.userSpeed;
+                        document.getElementById('speed-value').textContent = `${gameState.userSpeed} m/s`;
+                    } else {
+                        document.getElementById('speed-slider2').value = gameState.userSpeed;
+                        document.getElementById('speed-value2').textContent = `${gameState.userSpeed} m/s`;
+                    }
+                }
+            }, 100);
+        }
+        
+        // Final sprint for challenge 2
+        function activateSprint() {
+            if (!gameState.raceRunning || gameState.sprintUsed || gameState.energy < 20) return;
+            
+            gameState.userSpeed = 9;
+            gameState.sprintUsed = true;
+            
+            if (gameState.challenge === 2) {
+                document.getElementById('speed-slider2').value = 9;
+                document.getElementById('speed-value2').textContent = '9 m/s';
+                document.getElementById('challenge2-feedback').textContent = 
+                    'Sprint activated! Push to the finish line';
+            }
+        }
+        
+        // Finish the race
+        function finishRace() {
+            clearInterval(gameState.raceInterval);
+            gameState.raceRunning = false;
+            
+            // Calculate position
+            const sortedPositions = [...gameState.positions].sort((a, b) => b - a);
+            const position = sortedPositions.indexOf(gameState.positions[0]) + 1;
+            const positionText = position === 1 ? '1st' : position === 2 ? '2nd' : '3rd';
+            
+            // Update results screen
+            document.getElementById('final-time').textContent = `${gameState.raceTime}s`;
+            document.getElementById('final-position').textContent = positionText;
+            document.getElementById('final-energy').textContent = `${Math.round(gameState.energy)}%`;
+            
+            // Performance feedback
+            let feedback = '';
+            if (position ===
+    </script>
+</body>
+</html>

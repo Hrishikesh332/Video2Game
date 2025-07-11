@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Women's 5000m Race Interactive App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: white;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .game-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .track-container {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .track {
+            position: relative;
+            height: 300px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .lane {
+            position: absolute;
+            width: 100%;
+            height: 40px;
+            border-bottom: 2px dashed #aaa;
+        }
+        
+        .runner {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            z-index: 10;
+            transition: left 0.3s ease;
+        }
+        
+        .runner-info {
+            position: absolute;
+            bottom: -25px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            color: #333;
+        }
+        
+        .profiles {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .profile-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .profile-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            width: calc(50% - 10px);
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .profile-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .profile-card h3 {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+        
+        .profile-card p {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #555;
+        }
+        
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        
+        .simulation {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .stat-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            flex: 1;
+            min-width: 150px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+        }
+        
+        .progress-container {
+            margin-top: 20px;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #333;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .level {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: #ddd;
+        }
+        
+        .level.active {
+            background-color: #333;
+        }
+        
+        .instructions {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .game-area {
+                flex-direction: column;
+            }
+            
+            .profile-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Women's 5000m Race Strategy</h1>
+        <p>Position runners strategically to win the race!</p>
+    </header>
+    
+    <div class="game-container">
+        <div class="instructions">
+            <p>Drag runners to the track lanes. Position them strategically before starting the race simulation.</p>
+        </div>
+        
+        <div class="level-indicator">
+            <div class="level active" data-level="1"></div>
+            <div class="level" data-level="2"></div>
+            <div class="level" data-level="3"></div>
+        </div>
+        
+        <div class="game-area">
+            <div class="profiles">
+                <h2>Runner Profiles</h2>
+                <div class="profile-list" id="runnerProfiles">
+                    <!-- Profiles will be added by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="track-container">
+                <h2>Race Track</h2>
+                <div class="track" id="raceTrack">
+                    <div class="lane" style="top: 30px;"></div>
+                    <div class="lane" style="top: 90px;"></div>
+                    <div class="lane" style="top: 150px;"></div>
+                    <div class="lane" style="top: 210px;"></div>
+                </div>
+                
+                <div class="controls">
+                    <button id="startBtn">Start Race</button>
+                    <button id="resetBtn">Reset Positions</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="simulation">
+            <h2>Race Simulation</h2>
+            <div class="progress-container">
+                <p>Race Progress: <span id="progressText">0%</span></p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>Current Leader</h3>
+                    <p id="leaderName">-</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Lap Time</h3>
+                    <p id="lapTime">-</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Positions</h3>
+                    <p id="positionCount">0/4</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game data
+            const runners = [
+                { id: 1, name: "Sarah Johnson", country: "USA", color: "#FF69B4", speed: 1.1 },
+                { id: 2, name: "Emma Chen", country: "CHN", color: "#008000", speed: 1.2 },
+                { id: 3, name: "Amina Diallo", country: "KEN", color: "#FFD700", speed: 1.3 },
+                { id: 4, name: "Maria Garcia", country: "ESP", color: "#4169E1", speed: 1.0 }
+            ];
+            
+            const levels = [
+                "Position all runners on the track",
+                "Place the fastest runner in the optimal position",
+                "Create a winning strategy for the underdog"
+            ];
+            
+            // Game state
+            let gameState = {
+                currentLevel: 1,
+                runnersPlaced: 0,
+                raceStarted: false,
+                raceProgress: 0,
+                leader: null,
+                lapTime: null,
+                placedRunners: []
+            };
+            
+            // DOM elements
+            const runnerProfiles = document.getElementById('runnerProfiles');
+            const raceTrack = document.getElementById('raceTrack');
+            const startBtn = document.getElementById('startBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const progressText = document.getElementById('progressText');
+            const progressFill = document.getElementById('progressFill');
+            const leaderName = document.getElementById('leaderName');
+            const lapTime = document.getElementById('lapTime');
+            const positionCount = document.getElementById('positionCount');
+            const levelIndicators = document.querySelectorAll('.level');
+            
+            // Initialize game
+            function initGame() {
+                createRunnerProfiles();
+                updateLevelIndicator();
+                updatePositionCount();
+                resetBtn.disabled = true;
+                startBtn.disabled = true;
+            }
+            
+            // Create runner profiles
+            function createRunnerProfiles() {
+                runnerProfiles.innerHTML = '';
+                runners.forEach(runner => {
+                    const profileCard = document.createElement('div');
+                    profileCard.className = 'profile-card';
+                    profileCard.dataset.id = runner.id;
+                    profileCard.draggable = true;
+                    profileCard.innerHTML = `
+                        <h3>${runner.name}</h3>
+                        <p>${runner.country}</p>
+                        <p>Speed: ${runner.speed.toFixed(1)}x</p>
+                    `;
+                    profileCard.style.borderLeft = `4px solid ${runner.color}`;
+                    
+                    profileCard.addEventListener('dragstart', handleDragStart);
+                    runnerProfiles.appendChild(profileCard);
+                });
+            }
+            
+            // Drag and drop functionality
+            function handleDragStart(e) {
+                e.dataTransfer.setData('text/plain', e.target.dataset.id);
+            }
+            
+            raceTrack.addEventListener('dragover', e => {
+                e.preventDefault();
+            });
+            
+            raceTrack.addEventListener('drop', e => {
+                e.preventDefault();
+                if (gameState.raceStarted) return;
+                
+                const runnerId = e.dataTransfer.getData('text/plain');
+                const runner = runners.find(r => r.id == runnerId);
+                
+                if (runner && !gameState.placedRunners.includes(runnerId)) {
+                    placeRunnerOnTrack(runner, e.clientX, e.clientY);
+                    gameState.runnersPlaced++;
+                    gameState.placedRunners.push(runnerId);
+                    updatePositionCount();
+                    
+                    resetBtn.disabled = false;
+                    if (gameState.runnersPlaced === runners.length) {
+                        startBtn.disabled = false;
+                    }
+                }
+            });
+            
+            // Place runner on track
+            function placeRunnerOnTrack(runner, x, y) {
+                const rect = raceTrack.getBoundingClientRect();
+                const laneHeight = 60;
+                const lane = Math.min(3, Math.floor((y - rect.top) / laneHeight));
+                
+                const runnerElement = document.createElement('div');
+                runnerElement.className = 'runner';
+                runnerElement.dataset.id = runner.id;
+                runnerElement.style.backgroundColor = runner.color;
+                runnerElement.style.top = `${30 + lane * 60}px`;
+                runnerElement.style.left = `${Math.random() * 80 + 10}%`;
+                runnerElement.textContent = runner.id;
+                
+                const infoElement = document.createElement('div');
+                infoElement.className = 'runner-info';
+                infoElement.textContent = runner.name;
+                runnerElement.appendChild(infoElement);
+                
+                runnerElement.draggable = true;
+                runnerElement.addEventListener('dragstart', handleDragStart);
+                
+                raceTrack.appendChild(runnerElement);
+            }
+            
+            // Update position count
+            function updatePositionCount() {
+                positionCount.textContent = `${gameState.runnersPlaced}/${runners.length}`;
+            }
+            
+            // Update level indicator
+            function updateLevelIndicator() {
+                levelIndicators.forEach(indicator => {
+                    if (parseInt(indicator.dataset.level) === gameState.currentLevel) {
+                        indicator.classList.add('active');
+                    } else {
+                        indicator.classList.remove('active');
+                    }
+                });
+                
+                document.querySelector('.instructions p').textContent = levels[gameState.currentLevel - 1];
+            }
+            
+            // Start race simulation
+            startBtn.addEventListener('click', () => {
+                if (gameState.runnersPlaced < runners.length) return;
+                
+                gameState.raceStarted = true;
+                startBtn.disabled = true;
+                resetBtn.disabled = true;
+                
+                // Determine leader based on position and speed
+                const frontRunner = gameState.placedRunners[0];
+                const runner = runners.find(r => r.id == frontRunner);
+                gameState.leader = runner.name;
+                gameState.lapTime = (70 / runner.speed).toFixed(1);
+                
+                updateRaceStats();
+                simulateRace();
+            });
+            
+            // Update race stats
+            function updateRaceStats() {
+                leaderName.textContent = gameState.leader;
+                lapTime.textContent = `${gameState.lapTime}s`;
+            }
+            
+            // Simulate race progress
+            function simulateRace() {
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 2;
+                    gameState.raceProgress = progress;
+                    progressFill.style.width = `${progress}%`;
+                    progressText.textContent = `${progress}%`;
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        setTimeout(finishRace, 500);
+                    }
+                }, 100);
+            }
+            
+            // Finish race
+            function finishRace() {
+                // Determine if player won based on level
+                let levelPassed = false;
+                
+                if (gameState.currentLevel === 1) {
+                    levelPassed = true;
+                } else if (gameState.currentLevel === 2) {
+                    const frontRunner = gameState.placedRunners[0];
+                    levelPassed = frontRunner == 3; // Fastest runner in front
+                } else if (gameState.currentLevel === 3) {
+                    const lastRunner = gameState.placedRunners[gameState.placedRunners.length - 1];
+                    levelPassed = lastRunner == 4; // Underdog wins
+                }
+                
+                if (levelPassed) {
+                    alert(`Level ${gameState.currentLevel} completed! ${levelPassed ? 'Success!' : 'Try again.'}`);
+                    if (gameState.currentLevel < 3) {
+                        gameState.currentLevel++;
+                        resetGame();
+                    } else {
+                        alert('Congratulations! You completed all levels!');
+                        resetGame();
+                        gameState.currentLevel = 1;
+                    }
+                } else {
+                    alert(`Level ${gameState.currentLevel} failed. Try again!`);
+                    resetGame();
+                }
+            }
+            
+            // Reset game
+            resetBtn.addEventListener('click', resetGame);
+            
+            function resetGame() {
+                // Clear track
+                document.querySelectorAll('.runner').forEach(runner => runner.remove());
+                
+                // Reset game state
+                gameState.runnersPlaced = 0;
+                gameState.raceStarted = false;
+                gameState.raceProgress = 0;
+                gameState.leader = null;
+                gameState.lapTime = null;
+                gameState.placedRunners = [];
+                
+                // Reset UI
+                progressFill.style.width = '0%';
+                progressText.textContent = '0%';
+                leaderName.textContent = '-';
+                lapTime.textContent = '-';
+                updatePositionCount();
+                resetBtn.disabled = true;
+                startBtn.disabled = true;
+                
+                updateLevelIndicator();
+            }
+            
+            // Initialize the game
+            initGame();
+        });
+    </script>
+</body>
+</html>

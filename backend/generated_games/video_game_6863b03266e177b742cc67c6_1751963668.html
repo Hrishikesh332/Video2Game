@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dance Studio Rhythm and Flow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        #game-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: #f5f5f5;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .screen {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        h2 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        p {
+            margin-bottom: 20px;
+            line-height: 1.5;
+            color: #555;
+        }
+        
+        .btn {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #555;
+        }
+        
+        #dance-floor {
+            width: 100%;
+            height: 300px;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .beat-target {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background-color: #3F51B5;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        
+        .beat-target.active {
+            transform: scale(1.1);
+            background-color: #2196F3;
+            box-shadow: 0 0 15px #2196F3;
+        }
+        
+        .beat-target.perfect {
+            background-color: #4CAF50 !important;
+        }
+        
+        .beat-target.missed {
+            background-color: #F44336 !important;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background-color: #e0e0e0;
+            padding: 10px 15px;
+            border-radius: 8px;
+            min-width: 80px;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #3F51B5;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .feedback {
+            height: 30px;
+            margin: 10px 0;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .level-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .combo-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFC107;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        @media (max-width: 500px) {
+            .stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .beat-target {
+                width: 60px;
+                height: 60px;
+                font-size: 14px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="start-screen" class="screen">
+            <h1>Dance Studio Rhythm and Flow</h1>
+            <p>Test your rhythm and timing skills! Hit the targets in sync with the beat to score points.</p>
+            <button id="start-btn" class="btn">Start Game</button>
+        </div>
+        
+        <div id="game-screen" class="screen hidden">
+            <div class="level-indicator">Level <span id="level">1</span></div>
+            <div class="stats">
+                <div class="stat-box">Score: <span id="score">0</span></div>
+                <div class="stat-box">Combo: <span id="combo">1</span>x</div>
+                <div class="stat-box">Beats: <span id="beats">0</span>/<span id="total-beats">10</span></div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <div id="dance-floor">
+                <div class="combo-display" id="combo-display"></div>
+            </div>
+            
+            <button id="restart-btn" class="btn">Restart</button>
+        </div>
+        
+        <div id="game-over" class="screen hidden">
+            <h2>Game Complete!</h2>
+            <p>Your final score: <span id="
+    </div>
+    </div>
+</body>
+</html>

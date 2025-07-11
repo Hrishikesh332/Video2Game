@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Array Explorer: NumPy Simulation</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            color: #222222;
+            margin-bottom: 10px;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .panel {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #444444;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h3 {
+            font-size: 1.2rem;
+            margin: 15px 0 10px;
+            color: #555555;
+        }
+        
+        .array-display {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: monospace;
+            min-height: 120px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+        }
+        
+        .code-editor {
+            width: 100%;
+            height: 150px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            background-color: #ffffff;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            background-color: #4a4a4a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-right: 10px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: #333333;
+        }
+        
+        .btn-run {
+            background-color: #2c7da0;
+        }
+        
+        .btn-run:hover {
+            background-color: #1a5276;
+        }
+        
+        .btn-next {
+            background-color: #28a745;
+        }
+        
+        .btn-next:hover {
+            background-color: #1e7e34;
+        }
+        
+        .output {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            min-height: 80px;
+            margin-top: 15px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .error {
+            color: #dc3545;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .success {
+            color: #28a745;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .challenge-info {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 0 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #28a745;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .score-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: right;
+            margin-bottom: 15px;
+        }
+        
+        .instructions {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        .level-indicator {
+            display: inline-block;
+            background-color: #4a4a4a;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>2D Array Explorer: NumPy Simulation</h1>
+        <p>Practice creating, accessing, and manipulating 2D arrays</p>
+    </header>
+    
+    <div class="score-display">Score: <span id="score">0</span></div>
+    
+    <div class="progress-container">
+        <span>Level 1</span>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <span>Level 3</span>
+    </div>
+    
+    <div class="instructions">
+        <h2>Instructions</h2>
+        <p>Complete challenges to practice 2D array operations:</p>
+        <ul>
+            <li>Access array elements using indexing (e.g., trip_info[0][1])</li>
+            <li>Handle out-of-bounds access errors</li>
+            <li>Append new rows to the array</li>
+            <li>Use the pre-defined array: trip_info = [[280, 300, 360, 240], [7.1, 8.2, 10.1, 6.8]]</li>
+        </ul>
+    </div>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Array Operations <span class="level-indicator">Level: <span id="current-level">1</span>/3</span></h2>
+            
+            <div class="challenge-info">
+                <h3>Current Challenge</h3>
+                <p id="challenge-description">Access the first element of the miles list (280) using indexing</p>
+            </div>
+            
+            <h3>Array Display</h3>
+            <div class="array-display" id="array-display">
+                trip_info = [
+                [280, 300, 360, 240],   // miles_list
+                [7.1, 8.2, 10.1, 6.8]    // gallons_list
+                ]
+            </div>
+            
+            <h3>Code Editor</h3>
+            <textarea class="code-editor" id="code-editor">            
+            <div>
+                <button class="btn btn-run" id="run-btn">Run Code</button>
+                <button class="btn" id="reset-btn">Reset Array</button>
+                <button class="btn btn-next" id="next-btn" style="display: none;">Next Challenge</button>
+            </div>
+            
+            <h3>Output</h3>
+            <div class="output" id="output">Output will appear here...</div>
+        </div>
+        
+        <div class="panel">
+            <h2>Learning Guide</h2>
+            
+            <div class="instructions">
+                <h3>Working with 2D Arrays</h3>
+                <p>A 2D array is a grid of values arranged in rows and columns.</p>
+                
+                <h3>Accessing Elements</h3>
+                <p>Use [row][column] indexing:</p>
+                <div class="array-display">
+                                        value = trip_info[0][1]                  </div>
+                
+                <h3>Appending Rows</h3>
+                <p>Add new rows to the array:</p>
+                <div class="array-display">
+                                        mpg_values = []<br>
+                    for i in range(len(trip_info[0])):<br>
+                    &nbsp;&nbsp;mpg = trip_info[0][i] / trip_info[1][i]<br>
+                    &nbsp;&nbsp;mpg_values.append(round(mpg, 1))<br><br>
+                    
+                                        trip_info.append(mpg_values)
+                </div>
+                
+                <h3>Error Handling</h3>
+                <p>Accessing invalid indexes will cause an error:</p>
+                <div class="array-display">
+                                                        </div>
+            </div>
+            
+            <h3>Practice Examples</h3>
+            <div class="array-display">
+                                gallons = trip_info[1][1]                  
+                                miles = trip_info[0]                  
+                                mpg = trip_info[0][0] / trip_info[1][0]              </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentLevel: 1,
+            score: 0,
+            trip_info: [
+                [280, 300, 360, 240],   // miles_list
+                [7.1, 8.2, 10.1, 6.8]   // gallons_list
+            ],
+            challenges: [
+                {
+                    description: "Access the first element of the miles list (280) using indexing",
+                    solution: "280",
+                    code: "trip_info[0][0]"
+                },
+                {
+                    description: "Access the entire gallons list using row indexing",
+                    solution: "[7.1,8.2,10.1,6.8]",
+                    code: "trip_info[1]"
+                },
+                {
+                    description: "Intentionally cause an out-of-bounds error by accessing row 2",
+                    solution: "Error",
+                    code: "trip_info[2][0]"
+                },
+                {
+                    description: "Calculate and append MPG values as a new row (miles/gallons)",
+                    solution: "Append",
+                    code: `mpg_values = []
+for i in range(len(trip_info[0])):
+    mpg = trip_info[0][i] / trip_info[1][i]
+    mpg_values.append(round(mpg, 1))
+trip_info.append(mpg_values)`
+                }
+            ],
+            currentChallenge: 0
+        };
+
+        // DOM elements
+        const arrayDisplay = document.getElementById('array-display');
+        const codeEditor = document.getElementById('code-editor');
+        const outputDisplay = document.getElementById('output');
+        const runBtn = document.getElementById('run-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const scoreDisplay = document.getElementById('score');
+        const challengeDescription = document.getElementById('challenge-description');
+        const currentLevelDisplay = document.getElementById('current-level');
+        const progressFill = document.getElementById('progress-fill');
+
+        // Initialize game
+        function initGame() {
+            updateArrayDisplay();
+            loadChallenge();
+            updateScore();
+            updateProgress();
+        }
+
+        // Update array display
+        function updateArrayDisplay() {
+            let displayHTML = "trip_info = [<br>";
+            
+            gameState.trip_info.forEach((row, i) => {
+                displayHTML += `&nbsp;&nbsp;[${row.join(", ")}]`;
+                if (i === 0) displayHTML += "   // miles_list";
+                else if (i === 1) displayHTML += "   // gallons_list";
+                else if (i === 2) displayHTML += "   // mpg_list";
+                if (i < gameState.trip_info.length - 1) displayHTML += ",";
+                displayHTML += "<br>";
+            });
+            
+            displayHTML += "]";
+            arrayDisplay.innerHTML = displayHTML;
+        }
+
+        // Load current challenge
+        function loadChallenge() {
+            const challenge = gameState.challenges[gameState.currentChallenge];
+            challengeDescription.textContent = challenge.description;
+            codeEditor.value = challenge.code;
+            outputDisplay.textContent = "Output will appear here...";
+            nextBtn.style.display = "none";
+            
+            // Update level display based on challenge progression
+            gameState.currentLevel = Math.floor(gameState.currentChallenge / 1) + 1;
+            if (gameState.currentLevel > 3) gameState.currentLevel = 3;
+            currentLevelDisplay.textContent = gameState.currentLevel;
+        }
+
+        // Update score display
+        function updateScore() {
+            scoreDisplay.textContent = gameState.score;
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progress = (gameState.currentChallenge / gameState.challenges.length) * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+
+        // Execute user code
+        function executeUserCode() {
+            const userCode = codeEditor.value.trim();
+            outputDisplay.textContent = "";
+            outputDisplay.className = "output";
+            
+            try {
+                // Simulate Python-like behavior
+                let result = "";
+                
+                // Access operations
+                if (userCode.includes("[") && userCode.includes("]")) {
+                    const match = userCode.match(/trip_info\[(\d+)\](\[(\d+)\])?/);
+                    
+                    if (match) {
+                        const row = parseInt(match[1]);
+                        const col = match[3] ? parseInt(match[3]) : null;
+                        
+                        if (row >= gameState.trip_info.length) {
+                            throw new Error(`IndexError: Row index ${row} out of bounds. Array has ${gameState.trip_info.length} rows.`);
+                        }
+                        
+                        if (col !== null) {
+                            if (col >= gameState.trip_info[row].length) {
+                                throw new Error(`IndexError: Column index ${col} out of bounds. Row ${row} has ${gameState.trip_info[row].length} elements.`);
+                            }
+                            result = gameState.trip_info[row][col].toString();
+                        } else {
+                            result = JSON.stringify(gameState.trip_info[row]);
+                        }
+                    }
+                }
+                
+                // Append operation
+                if (userCode.includes("append(") || userCode.includes("appendRow")) {
+                    // Calculate MPG values
+                    const mpgValues = [];
+                    for (let i = 0; i < gameState.trip_info[0].length; i++) {
+                        const mpg = gameState.trip_info[0][i] / gameState.trip_info[1][i];
+                        mpgValues.push(parseFloat(mpg.toFixed(1)));
+                    }
+                    
+                    // Append to array
+                    gameState.trip_info.push(mpgValues);
+                    result = "New row appended successfully!";
+                    updateArrayDisplay();
+                }
+                
+                // Handle empty/invalid code
+                if (!result) {
+                    result = "No valid operation detected. Try accessing elements or appending a new row.";
+                }
+                
+                outputDisplay.textContent = result;
+                checkChallengeCompletion(userCode, result);
+            } catch (error) {
+                outputDisplay.textContent = error.message;
+                outputDisplay.className = "output error";
+                checkChallengeCompletion(userCode, "Error");
+            }
+        }
+
+        // Check if challenge was completed
+        function checkChallengeCompletion(userCode, result) {
+            const challenge = gameState.challenges[gameState.currentChallenge];
+            let challengeCompleted = false;
+            
+            // Check solution based on challenge type
+            if (challenge.solution === "Error" && result.includes("Error")) {
+                challengeCompleted = true;
+            } else if (challenge.solution === "Append" && userCode.includes("append")) {
+                challengeCompleted = true;
+            } else if (result === challenge.solution) {
+                challengeCompleted = true;
+            } else if (result.includes(challenge.solution)) {
+                challengeCompleted = true;
+            }
+            
+            // Handle challenge completion
+            if (challengeCompleted) {
+                outputDisplay.innerHTML += `<div class="success">Challenge completed! +10 points</div>`;
+                gameState.score += 10;
+                updateScore();
+                nextBtn.style.display = "inline-block";
+            }
+        }
+
+        // Move to next challenge
+        function nextChallenge() {
+            gameState.currentChallenge++;
+            
+            if (gameState.currentChallenge >= gameState.challenges.length) {
+                gameState.currentChallenge = 0;
+                gameState.trip_info = [
+                    [280, 300, 360, 240],
+                    [7.1, 8.2, 10.1, 6.8]
+                ];
+                outputDisplay.innerHTML = "<div class='success'>All challenges completed! Reset to play again.</div>";
+            }
+            
+            loadChallenge();
+            updateArrayDisplay();
+            updateProgress();
+        }
+
+        // Reset array and challenge
+        function resetGame() {
+            gameState.trip_info = [
+                [280, 300, 360, 240],
+                [7.1, 8.2, 10.1, 6.8]
+            ];
+            gameState.currentChallenge = 0;
+            gameState.score = 0;
+            initGame();
+        }
+
+        // Event listeners
+        runBtn.addEventListener('click', executeUserCode);
+        nextBtn.addEventListener('click', nextChallenge);
+        resetBtn.addEventListener('click', resetGame);
+
+        // Initialize game on load
+        window.onload = initGame;
+    </script>
+</body>
+</html>

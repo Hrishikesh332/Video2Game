@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<think>
+We are creating an interactive educational game about Principal Component Analysis (PCA).
+ The game type that best fits the content is a "classification" and "visual manipulation" game.
+ We'll design a game where the player:
+   - Interacts with a 2D scatter plot and then adds dimensions (like in the video) to see clustering challenges.
+   - Then, applies PCA to reduce dimensions and see how it simplifies the data.
+
+ However, note that the video also includes a table of loans. We can incorporate that as a data classification challenge.
+
+ Proposed Game Flow:
+ 1. Introduction screen: Title and brief instructions.
+ 2. A series of 6-8 challenges (steps) that teach PCA concepts.
+
+ Challenges:
+   Challenge 1: Present a 2D scatter plot (x: income, y: loan amount). The player must identify clusters (e.g., by drawing circles around them).
+   Challenge 2: Add a third dimension (z-axis: e.g., credit score). The player must rotate the 3D plot to see the clusters. Then, the challenge is to see that it's harder to visualize.
+   Challenge 3: Present a table of loans with multiple dimensions (income, loan amount, credit score, age, etc.). The player must classify which loans are risky (based on some rule, e.g., high loan amount and low income).
+   Challenge 4: Explain that with many dimensions, it's hard. Introduce PCA. Show the same data in 2D after PCA. The player must again identify clusters (which should be easier now).
+   Challenge 5: The player is shown two plots: one with original 3D and one with PCA 2D. They must match points between the two plots (to understand that PCA preserves the structure).
+   Challenge 6: Quiz about the purpose of PCA and its benefits.
+
+ Design:
+   - Black backdrop with neon white and green colors to match the video.
+   - Use canvas for the scatter plots and 3D visualization (using Three.js? But requirement is vanilla JS and no external dependencies -> so we'll use 2D canvas for 3D projection? or fake 3D with 2D projection).
+   - However, note: we cannot use external libraries. So for 3D, we will simulate a 3D effect with 2D projection (using perspective and rotation).
+
+ But note: 3D in vanilla JS without WebGL is complex. Alternatively, we can use a pre-rendered rotation or a simple 3D engine in vanilla JS? 
+   We can use a simple 3D point projection: 
+        x' = x * cos(theta) - z * sin(theta)
+        y' = y * cos(phi) - z * sin(phi)   ... but this is an oversimplification.
+
+ However, to keep it simple and within scope, we might avoid true 3D and instead:
+   - For challenge 2: show a static 3D plot and then animate a rotation by changing the projection (using a 2D canvas and updating the points with a rotation matrix). We can use a simple orthographic projection.
+
+ Alternatively, we can use a series of images for the 3D plot at different angles? But that is not interactive.
+
+ Given the complexity and the requirement for vanilla JS, we will do:
+
+   Challenge 1: 2D scatter plot on canvas. Player draws circles (using mouse) around clusters. We'll have predefined clusters and check if the drawn circle contains at least 80% of a cluster.
+
+   Challenge 2: We'll create a 3D scatter plot that the user can rotate by dragging. We'll use a 2D canvas and project 3D points to 2D with a rotation around the y-axis and x-axis. We'll use orthographic projection (ignore perspective for simplicity).
+
+   Challenge 3: A table with rows of loans. The player clicks on rows to mark them as risky. We'll have a predefined set of risky loans (e.g., loan amount > 80% of income).
+
+   Challenge 4: Show the same data after PCA (we'll precompute a PCA for a small dataset and show the 2D plot). Then the player draws clusters again.
+
+   Challenge 5: We show two side-by-side canvases: one with the original 3D data (static, at a fixed angle) and the other with the PCA 2D. The player must connect points (by dragging) from the 3D plot to the 2D plot.
+
+   Challenge 6: Multiple choice quiz.
+
+ Implementation Plan:
+
+   We'll create an HTML file with:
+     - A container for the game, which will show one challenge at a time.
+     - A progress bar or step indicator.
+     - Each challenge will be a div with the necessary elements (canvas, table, etc.)
+
+   We'll use:
+     - Semantic HTML: <main>, <section> for challenges.
+     - CSS: Grid for layout, flexbox for inner alignment. Black background, neon green for highlights.
+     - JavaScript: Vanilla JS for event handling, canvas drawing, and game logic.
+
+   Steps:
+
+   Step 1: Structure
+     - We'll have:
+          <div id="game-container">
+            <section id="intro"> ... </section>
+            <section id="challenge1" class="challenge"> ... </section>
+            ... up to challenge6
+            <section id="completion"> ... </section>
+          </div>
+
+   Step 2: Styling
+     - Global style: black background, white text, monospace font (like the video). Use neon green for buttons and highlights.
+
+   Step 3: JavaScript
+     - We'll have an object for each challenge that initializes the challenge and handles the logic.
+     - A state object to track current challenge, score, etc.
+
+   Step 4: Challenges Implementation
+
+     Challenge 1: 2D Scatter Plot Clustering
+        - Canvas with fixed size, pre-plotted points (with two clusters).
+        - The player draws circles by clicking and dragging. We'll store the circles and draw them.
+        - When the player clicks a "Check" button, we verify if each cluster has a circle that contains at least 80% of its points and doesn't contain too many from the other cluster.
+
+     Challenge 2: 3D Scatter Plot Rotation
+        - We'll create a canvas for the 3D plot. We'll have a set of 3D points (x, y, z) for two clusters.
+        - We'll map 3D to 2D with: 
+             projected_x = (x * cos(angleY) - z * sin(angleY)) * scale + centerX
+             projected_y = (y * cos(angleX) - (x * sin(angleY) + z * cos(angleY)) * sin(angleX)) * scale + centerY
+          But note: this is a simple rotation. We'll use track of rotation angles (angleX, angleY) that change with mouse drag.
+        - The goal: the player must rotate until they can see the two clusters. We'll check if the clusters are separated in the current view (by checking if the projected points of each cluster are in distinct regions).
+
+     Challenge 3: Table Classification
+        - We'll create an HTML table with rows of loans (randomly generated). Each row has: income, loan amount, credit score, age.
+        - The player must click on rows that are "risky". We define risky as: loan amount > 0.8 * income OR credit score < 600.
+        - The player clicks a "Submit" button to check.
+
+     Challenge 4: PCA 2D Plot Clustering
+        - We'll show a 2D plot of the same data after PCA (we precompute the first two principal components of the data from challenge 2).
+        - The player draws circles around clusters again.
+
+     Challenge 5: Point Matching
+        - Two canvases: left (3D plot at a fixed angle) and right (PCA 2D plot).
+        - We'll have a set of points (with IDs). The player must draw lines from a point in the left to the same point in the right.
+        - We'll let the player click on a point in the left, then click on a point in the right to form a pair. We'll show the line.
+        - Check if all pairs are correct.
+
+     Challenge 6: Quiz
+        - Multiple choice questions about PCA.
+
+   Step 5: Scoring and Progress
+        - Each challenge gives a score (e.g., 100 points per challenge, partial credit for some).
+        - Show a progress bar at the top.
+
+   Step 6: Completion Screen
+        - Show total score and a message.
+
+   Note: We are generating random data for the challenges? But we need fixed data for the PCA to be consistent.
+
+   We'll precompute a small dataset for challenges 1,2,4,5.
+
+   Example dataset for challenges 1,2,4,5:
+
+     Cluster 1 (low income, low loan): 
+        points: [ [100, 50, 500], [120, 60, 520], ... ]
+     Cluster 2 (high income, high loan): 
+        points: [ [500, 400, 700], [550, 420, 720], ... ]
+
+   For PCA, we'll compute the principal components of the entire dataset (both clusters) and project to 2D.
+
+   We'll write a simple PCA function for 3D to 2D? Since the data is small, we can do:
+
+     Steps for PCA:
+        1. Center the data (subtract mean).
+        2. Compute covariance matrix (3x3).
+        3. Find eigenvalues and eigenvectors (we can use a simple power iteration for the two largest).
+        4. Project the data onto the top two eigenvectors.
+
+   But note: We are in a browser and the data is small. We can hardcode the eigenvectors for our fixed dataset? Or compute with a simple method.
+
+   Alternatively, we can precompute the PCA in JavaScript for the fixed dataset.
+
+   We'll write a helper function for PCA.
+
+   However, note: the requirement is no external dependencies, so we must code PCA ourselves.
+
+   But the data is fixed and small, so we can precompute the PCA for the fixed dataset and then just use the projection.
+
+   We'll do:
+
+     let data = [ ... ]; // 3D points
+
+     function pca(data) {
+        // Step 1: Center
+        let means = [0,0,0];
+        for (let i=0; i<data.length; i++) {
+            means[0] += data[i][0];
+            means[1] += data[i][1];
+            means[2] += data[i][2];
+        }
+        means = means.map(m => m/data.length);
+        let centered = data.map(p => [p[0]-means[0], p[1]-means[1], p[2]-means[2]]);
+
+        // Step 2: Covariance matrix
+        let cov = [[0,0,0],[0,0,0],[0,0,0]];
+        for (let i=0; i<centered.length; i++) {
+            let x = centered[i][0], y = centered[i][1], z = centered[i][2];
+            cov[0][0] += x*x; cov[0][1] += x*y; cov[0][2] += x*z;
+            cov[1][0] += y*x; cov[1][1] += y*y; cov[1][2] += y*z;
+            cov[2][0] += z*x; cov[2][1] += z*y; cov[2][2] += z*z;
+        }
+        for (let i=0; i<3; i++) {
+            for (let j=0; j<3; j++) {
+                cov[i][j] /= (centered.length-1);
+            }
+        }
+
+        // Step 3: Eigenvectors - we'll use a simple power iteration for the two largest.
+        // Since the matrix is 3x3, we can compute the eigenvalues by solving the cubic characteristic equation? 
+        // But that is complex. Alternatively, we can use the Jacobi method? 
+
+        // Given time constraints, we'll use a numeric method for 3x3. We can use the Jacobi method for symmetric matrices.
+
+        // However, note: we are in a game and the data is fixed. We can precompute the eigenvectors offline and hardcode them? 
+        // Let's do that: we'll compute the PCA for the fixed dataset in an external tool and then hardcode the eigenvectors.
+
+        // For the sake of the game, we'll assume we have a fixed dataset and we precomputed the eigenvectors.
+
+        // We'll skip the implementation of the eigensolver and hardcode the eigenvectors for the example data.
+
+        // For now, we'll return a placeholder projection: just the first two dimensions (for testing). Then we'll replace with hardcoded vectors.
+
+        // But to make it work, we'll compute the eigenvectors with a simple iterative method for 3x3.
+
+        // We'll implement a simple power iteration for the largest eigenvector, then deflate.
+
+        // Due to complexity and time, we'll do a simplified version: 
+
+        // Power iteration for the largest:
+        let vec = [1,0,0];
+        for (let iter=0; iter<100; iter++) {
+            let newVec = [0,0,0];
+            for (let i=0; i<3; i++) {
+                for (let j=0; j<3; j++) {
+                    newVec[i] += cov[i][j] * vec[j];
+                }
+            }
+            let norm = Math.sqrt(newVec[0]*newVec[0] + newVec[1]*newVec[1] + newVec[2]*newVec[2]);
+            vec = newVec.map(v => v/norm);
+        }
+        // Now for the second largest: we deflate by removing the component of the first vector.
+        // We'll create a new matrix: B = cov - lambda * v * v^T, but we don't have lambda. Alternatively, we can use orthogonal iteration.
+
+        // Instead, we can compute the second vector by power iteration in the space orthogonal to the first.
+
+        // We'll do:
+        let vec2 = [0,1,0];
+        // Orthogonalize against vec
+        let dot = vec2[0]*vec[0] + vec2[1]*vec[1] + vec2[2]*vec[2];
+        vec2 = [vec2[0]-dot*vec[0], vec2[1]-dot*vec[1], vec2[2]-dot*vec[2]];
+        norm = Math.sqrt(vec2[0]*vec2[0] + vec2[1]*vec2[1] + vec2[2]*vec2[2]);
+        vec2 = vec2.map(v => v/norm);
+
+        for (let iter=0; iter<100; iter++) {
+            let newVec = [0,0,0];
+            for (let i=0; i<3; i++) {
+                for (let j=0; j<3; j++) {
+                    newVec[i] += cov[i][j] * vec2[j];
+                }
+            }
+            // Orthogonalize against vec
+            dot = newVec[0]*vec[0] + newVec[1]*vec[1] + newVec[2]*vec[2];
+            newVec = [newVec[0]-dot*vec[0], newVec[1]-dot*vec[1], newVec[2]-dot*vec[2]];
+            norm = Math.sqrt(newVec[0]*newVec[0] + newVec[1]*newVec[1] + newVec[2]*newVec[2]);
+            vec2 = newVec.map(v => v/norm);
+        }
+
+        return { vec1

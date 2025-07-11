@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .panel {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #444;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            margin: 15px 0;
+            color: #555;
+        }
+
+        .network-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .layer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 20px;
+        }
+
+        .node {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px 0;
+            font-weight: bold;
+            position: relative;
+            z-index: 2;
+        }
+
+        .input-node {
+            background-color: #d1e7dd;
+        }
+
+        .output-node {
+            background-color: #f8d7da;
+        }
+
+        .connection {
+            position: absolute;
+            background-color: #bbb;
+            transform-origin: 0 0;
+            z-index: 1;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .control-group {
+            background-color: #eee;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input[type="range"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #4a4a4a;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #333;
+        }
+
+        .btn-primary {
+            background-color: #5c5c5c;
+        }
+
+        .levels {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .level-btn {
+            padding: 10px 20px;
+        }
+
+        .level-btn.active {
+            background-color: #333;
+        }
+
+        .output-display {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            min-height: 80px;
+        }
+
+        .training-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .data-point {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .network-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .network-type {
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .progress-container {
+            margin: 30px 0;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: #6c757d;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .feedback {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #e9ecef;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .network-types {
+                grid-template-columns: 1fr;
+            }
+            
+            .layer {
+                margin: 0 10px;
+            }
+            
+            .node {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Neural Network Explorer</h1>
+        <p>Understand how neural networks process information through interactive experimentation</p>
+    </header>
+
+    <div class="game-container">
+        <div class="panel">
+            <h2>Interactive Neural Network</h2>
+            <div class="levels">
+                <button class="level-btn active" data-level="1">Level 1: Basic Network</button>
+                <button class="level-btn" data-level="2">Level 2: Training</button>
+                <button class="level-btn" data-level="3">Level 3: Network Types</button>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+            </div>
+            
+            <div id="level-1">
+                <div class="network-container" id="network">
+                    <!-- Dynamically generated network -->
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <h3>Input Values</h3>
+                        <label for="input1">Input Node 1:</label>
+                        <input type="range" id="input1" min="0" max="1" step="0.1" value="0.5">
+                        <label for="input2">Input Node 2:</label>
+                        <input type="range" id="input2" min="0" max="1" step="0.1" value="0.5">
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>Weights & Biases</h3>
+                        <label for="weight1">Weight 1 (Input1 → Hidden1):</label>
+                        <input type="range" id="weight1" min="-2" max="2" step="0.1" value="0.7">
+                        <label for="bias1">Bias (Hidden Layer):</label>
+                        <input type="range" id="bias1" min="-1" max="1" step="0.1" value="0.2">
+                    </div>
+                </div>
+                
+                <div class="output-display">
+                    <h3>Output: <span id="output-value">0.00</span></h3>
+                    <p>Adjust inputs, weights, and biases to see how they affect the output</p>
+                </div>
+                
+                <div class="feedback">
+                    <h3>How It Works</h3>
+                    <p>Each node calculates: (input1 × weight1) + (input2 × weight2) + bias</p>
+                    <p>The result passes through an activation function to produce the output</p>
+                </div>
+                
+                <button id="run-network" class="btn-primary">Run Network</button>
+            </div>
+            
+            <div id="level-2" class="hidden">
+                <h3>Training with Backpropagation</h3>
+                <div class="training-data">
+                    <div class="data-point">
+                        <p>Training Example 1</p>
+                        <p>Input: [0,0] → Expected: 0</p>
+                    </div>
+                    <div class="data-point">
+                        <p>Training Example 2</p>
+                        <p>Input: [0,1] → Expected: 1</p>
+                    </div>
+                    <div class="data-point">
+                        <p>Training Example 3</p>
+                        <p>Input: [1,0] → Expected: 1</p>
+                    </div>
+                    <div class="data-point">
+                        <p>Training Example 4</p>
+                        <p>Input: [1,1] → Expected: 1</p>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <h3>Training Parameters</h3>
+                        <label for="learning-rate">Learning Rate:</label>
+                        <input type="range" id="learning-rate" min="0.01" max="1" step="0.01" value="0.1">
+                        <label for="epochs">Training Epochs:</label>
+                        <input type="number" id="epochs" min="1" max="1000" value="100">
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>Current Error</h3>
+                        <p id="error-display">0.0000</p>
+                        <div class="progress-bar">
+                            <div class="progress" id="error-progress"></div>
+                        </div>
+                        <p>Lower error means better predictions</p>
+                    </div>
+                </div>
+                
+                <button id="train-network" class="btn-primary">Train Network</button>
+                <button id="reset-weights">Reset Weights</button>
+                
+                <div class="feedback">
+                    <h3>Backpropagation Explained</h3>
+                    <p>The network compares its output to the expected result and calculates the error</p>
+                    <p>This error is propagated backward through the network to adjust weights and biases</p>
+                </div>
+            </div>
+            
+            <div id="level-3" class="hidden">
+                <h3>Different Neural Network Architectures</h3>
+                <div class="network-types">
+                    <div class="network-type">
+                        <h4>Convolutional Neural Network (CNN)</h4>
+                        <p>Specialized for image processing</p>
+                        <p>Uses convolutional layers to detect features</p>
+                        <div class="mini-network">
+                            <div class="layer">
+                                <div class="node">Input</div>
+                                <div class="node">Conv</div>
+                                <div class="node">Pool</div>
+                                <div class="node">Output</div>
+                            </div>
+                        </div>
+                        <p>Applications: Image recognition, object detection</p>
+                    </div>
+                    
+                    <div class="network-type">
+                        <h4>Recurrent Neural Network (RNN)</h4>
+                        <p>Designed for sequence data</p>
+                        <p>Has memory to process sequences</p>
+                        <div class="mini-network">
+                            <div class="layer">
+                                <div class="node">Input</div>
+                                <div class="node">RNN</div>
+                                <div class="node">Output</div>
+                                <div class="node">↩</div>
+                            </div>
+                        </div>
+                        <p>Applications: Language translation, time series prediction</p>
+                    </div>
+                </div>
+                
+                <div class="feedback">
+                    <h3>Key Differences</h3>
+                    <p>CNNs use spatial hierarchies, RNNs handle temporal sequences</p>
+                    <p>Both can be combined for complex tasks like video analysis</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game state
+            const gameState = {
+                currentLevel: 1,
+                progress: 0,
+                weights: [0.7, -0.5, 0.3, 0.8],
+                biases: [0.2, -0.1],
+                error: 1.0
+            };
+
+            // DOM Elements
+            const levelButtons = document.querySelectorAll('.level-btn');
+            const level1 = document.getElementById('level-1');
+            const level2 = document.getElementById('level-2');
+            const level3 = document.getElementById('level-3');
+            const progressBar = document.getElementById('progress');
+            const outputValue = document.getElementById('output-value');
+            const errorDisplay = document.getElementById('error-display');
+            const errorProgress = document.getElementById('error-progress');
+            const runButton = document.getElementById('run-network');
+            const trainButton = document.getElementById('train-network');
+            const resetButton = document.getElementById('reset-weights');
+            const networkContainer = document.getElementById('network');
+
+            // Initialize network visualization
+            createNetworkVisualization();
+
+            // Level switching
+            levelButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const level = parseInt(this.dataset.level);
+                    switchLevel(level);
+                });
+            });
+
+            // Run network button
+            runButton.addEventListener('click', runNetwork);
+
+            // Train network button
+            trainButton.addEventListener('click', trainNetwork);
+
+            // Reset weights button
+            resetButton.addEventListener('click', resetWeights);
+
+            // Input change listeners
+            document.getElementById('input1').addEventListener('input', runNetwork);
+            document.getElementById('input2').addEventListener('input', runNetwork);
+            document.getElementById('weight1').addEventListener('input', runNetwork);
+            document.getElementById('bias1').addEventListener('input', runNetwork);
+
+            // Functions
+            function switchLevel(level) {
+                gameState.currentLevel = level;
+                
+                // Update UI
+                levelButtons.forEach(btn => {
+                    btn.classList.toggle('active', parseInt(btn.dataset.level) === level);
+                });
+                
+                level1.classList.toggle('hidden', level !== 1);
+                level2.classList.toggle('hidden', level !== 2);
+                level3.classList.toggle('hidden', level !== 3);
+                
+                // Update progress
+                gameState.progress = (level - 1) * 50;
+                progressBar.style.width = `${gameState.progress}%`;
+                
+                // Run network when switching to level 1
+                if (level === 1) {
+                    runNetwork();
+                }
+            }
+
+            function createNetworkVisualization() {
+                // Clear existing network
+                networkContainer.innerHTML = '';
+                
+                // Create layers
+                const layers = [
+                    {name: 'Input', nodes: 2, type: 'input'},
+                    {name: 'Hidden', nodes: 2, type: 'hidden'},
+                    {name: 'Output', nodes: 1, type: 'output'}
+                ];
+                
+                // Create SVG for connections
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', '100%');
+                svg.setAttribute('height', '100%');
+                svg.style.position = 'absolute';
+                svg.style.top = '0';
+                svg.style.left = '0';
+                svg.style.zIndex = '1';
+                networkContainer.appendChild(svg);
+                
+                // Create layers and nodes
+                layers.forEach((layer, layerIndex) => {
+                    const layerDiv = document.createElement('div');
+                    layerDiv.className = `layer ${layer.type}-layer`;
+                    
+                    for (let i = 0; i < layer.nodes; i++) {
+                        const node = document.createElement('div');
+                        node.className = `node ${layer.type}-node`;
+                        node.id = `${layer.type}-node-${i}`;
+                        node.textContent = layer.type.charAt(0);
+                        layerDiv.appendChild(node);
+                        
+                        // Add connections to next layer
+                        if (layerIndex < layers.length - 1) {
+                            const nextLayer = layers[layerIndex + 1];
+                            for (let j = 0; j < nextLayer.nodes; j++) {
+                                setTimeout(() => {
+                                    const startNode = document.getElementById(`${layer.type}-node-${i}`);
+                                    const endNode = document.getElementById(`${nextLayer.type}-node-${j}`);
+                                    
+                                    if (startNode && endNode) {
+                                        const startRect = startNode.getBoundingClientRect();
+                                        const endRect = endNode.getBoundingClientRect();
+                                        const containerRect = networkContainer.getBoundingClientRect();
+                                        
+                                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                                        line.setAttribute('x1', startRect.left + startRect.width/2 - containerRect.left);
+                                        line.setAttribute('y1', startRect.top + startRect.height/2 - containerRect.top);
+                                        line.setAttribute('x2', endRect.left + endRect.width/2 - containerRect.left);
+                                        line.setAttribute('y2', endRect.top + endRect.height/2 - containerRect.top);
+                                        line.setAttribute('stroke', '#999');
+                                        line.setAttribute('stroke-width', '2');
+                                        svg.appendChild(line);
+                                    }
+                                }, 100);
+                            }
+                        }
+                    }
+                    
+                    networkContainer.appendChild(layerDiv);
+                });
+            }
+
+            function runNetwork() {
+                // Get input values
+                const input1 = parseFloat(document.getElementById('input1').value);
+                const input2 = parseFloat(document.getElementById('input2').value);
+                
+                // Get weights and biases
+                const weight1 = parseFloat(document.getElementById('weight1').value);
+                const bias1 = parseFloat(document.getElementById('bias1').value);
+                
+                // Simple neural network calculation
+                const hidden1 = Math.tanh((input1 * weight1) + (input2 * 0.5) + bias1);
+                const output = Math.tanh((hidden1 * 0.8) + (0.3 * -0.2));
+                
+                // Display output
+                outputValue.textContent = output.toFixed(4);
+                
+                // Update node values in visualization
+                document.getElementById('input-node-0').textContent = input1.toFixed(1);
+                document.getElementById('input-node-1').textContent = input2.toFixed(1);
+                document.getElementById('hidden-node-0').textContent = hidden1.toFixed(2);
+                document.getElementById('output-node-0').textContent = output.toFixed(2);
+            }
+
+            function trainNetwork() {
+                // Simulate training process
+                let error = gameState.error;
+                const epochs = parseInt(document.getElementById('epochs').value);
+                const learningRate = parseFloat(document.getElementById('learning-rate').value);
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    // Reduce error
+                    error = Math.max(0, error - (Math.random() * 0.05));
+                    gameState.error = error;
+                    
+                    // Update UI
+                    errorDisplay.textContent = error.toFixed(4);
+                    errorProgress.style.width = `${(1 - error) * 100}%`;
+                    
+                    // Update weights display
+                    document.getElementById('weight1').value = (0.7 - error * 0.3).toFixed(2);
+                    
+                    progress += 100 / epochs;
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        
+                        // Update progress
+                        gameState.progress = Math.min(100, gameState.progress + 25);
+                        progressBar.style.width = `${gameState.progress}%`;
+                    }
+                }, 50);
+            }
+
+            function resetWeights() {
+                // Reset weights and biases
+                document.getElementById('weight1').value = 0.7;
+                document.getElementById('bias1').value = 0.2;
+                
+                // Reset error
+                gameState.error = 1.0;
+                errorDisplay.textContent = gameState.error.toFixed(4);
+                errorProgress.style.width = '0%';
+                
+                runNetwork();
+            }
+
+            // Initialize
+            runNetwork();
+        });
+    </script>
+</body>
+</html>

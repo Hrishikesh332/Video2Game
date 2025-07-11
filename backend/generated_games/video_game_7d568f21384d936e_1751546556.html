@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Learning Path Challenge</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            background-color: #f8f8f8;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .progress-container {
+            background-color: #e9e9e9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #d0d0d0;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .challenge-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .challenge-card {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .challenge-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+
+        .challenge-card h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.3rem;
+        }
+
+        .challenge-card p {
+            margin-bottom: 15px;
+            color: #555555;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .option {
+            padding: 12px;
+            background-color: #f0f0f0;
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .option:hover {
+            background-color: #e0e0e0;
+        }
+
+        .option.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .option.incorrect {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .feedback.correct {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .restart-btn {
+            background-color: #f44336;
+        }
+
+        .restart-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .completion-screen {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .completion-screen h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .badge {
+            font-size: 4rem;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .challenge-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>AI Learning Path Challenge</h1>
+        <p>Test your foundational AI knowledge through this interactive challenge</p>
+    </header>
+
+    <main class="game-container">
+        <div class="progress-container">
+            <h2>Learning Progress: <span id="progress-text">0%</span></h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="stats">
+                <div>Score: <span id="score">0</span></div>
+                <div>Level: <span id="level">1</span>/3</div>
+            </div>
+        </div>
+
+        <div id="challenge-screen">
+            <div class="challenge-container">
+                <div class="challenge-card">
+                    <h3 id="question-title">Question Title</h3>
+                    <p id="question-text">Question text will appear here...</p>
+                    
+                    <div class="options-container" id="options-container">
+                        <!-- Options will be injected here -->
+                    </div>
+                    
+                    <div class="feedback" id="feedback"></div>
+                </div>
+                
+                <div class="challenge-card">
+                    <h3>Knowledge Insight</h3>
+                    <p id="knowledge-text">Relevant knowledge insights will appear here after you answer questions.</p>
+                    <div id="badge-preview" style="text-align: center; margin-top: 20px; display: none;">
+                        <div class="badge">🏆</div>
+                        <p>Earn badges for completing levels!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button id="restart-btn" class="restart-btn">Restart</button>
+                <button id="next-btn">Next Challenge</button>
+            </div>
+        </div>
+        
+        <div id="completion-screen" class="completion-screen">
+            <h2>Congratulations!</h2>
+            <div class="badge">🏆</div>
+            <p>You've completed the AI Learning Path Challenge!</p>
+            <p>Your final score: <span id="final-score">0</span></p>
+            <button id="play-again-btn" class="restart-btn">Play Again</button>
+        </div>
+    </main>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentLevel: 1,
+            score: 0,
+            currentQuestion: 0,
+            questionsAnswered: 0,
+            totalQuestions: 0,
+            levels: [
+                {
+                    title: "Math Fundamentals",
+                    questions: [
+                        {
+                            title: "Calculus Concept",
+                            text: "Which concept is fundamental for understanding how machine learning models learn from errors?",
+                            options: [
+                                "Matrix Multiplication",
+                                "Derivatives and Gradients",
+                                "Probability Distributions",
+                                "Eigenvalues"
+                            ],
+                            correct: 1,
+                            insight: "Derivatives and gradients are essential for optimization algorithms like gradient descent, which minimize error in ML models."
+                        },
+                        {
+                            title: "Linear Algebra",
+                            text: "What operation is crucial for neural network computations?",
+                            options: [
+                                "Integration",
+                                "Matrix Multiplication",
+                                "Logarithmic Functions",
+                                "Trigonometric Identities"
+                            ],
+                            correct: 1,
+                            insight: "Matrix multiplication enables efficient computation of neural network layers and transformations."
+                        }
+                    ]
+                },
+                {
+                    title: "Programming Essentials",
+                    questions: [
+                        {
+                            title: "Python Efficiency",
+                            text: "Which Python feature is most important for handling large datasets efficiently?",
+                            options: [
+                                "Decorators",
+                                "List Comprehensions",
+                                "Generators",
+                                "Lambda Functions"
+                            ],
+                            correct: 2,
+                            insight: "Generators allow memory-efficient processing of large datasets by yielding items one at a time."
+                        },
+                        {
+                            title: "Data Structures",
+                            text: "Which data structure provides O(1) average time complexity for search operations?",
+                            options: [
+                                "Linked List",
+                                "Binary Search Tree",
+                                "Hash Table",
+                                "Array"
+                            ],
+                            correct: 2,
+                            insight: "Hash tables provide constant-time average complexity for search operations through hashing functions."
+                        }
+                    ]
+                },
+                {
+                    title: "AI Fundamentals",
+                    questions: [
+                        {
+                            title: "Machine Learning",
+                            text: "What distinguishes supervised from unsupervised learning?",
+                            options: [
+                                "Use of neural networks",
+                                "Requirement for GPUs",
+                                "Availability of labeled data",
+                                "Model complexity"
+                            ],
+                            correct: 2,
+                            insight: "Supervised learning uses labeled datasets to train models, while unsupervised learning finds patterns in unlabeled data."
+                        },
+                        {
+                            title: "Model Evaluation",
+                            text: "Which metric is most important for evaluating classification models with imbalanced datasets?",
+                            options: [
+                                "Accuracy",
+                                "Mean Squared Error",
+                                "F1 Score",
+                                "R-squared"
+                            ],
+                            correct: 2,
+                            insight: "F1 score balances precision and recall, providing better insight for imbalanced classification problems."
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // DOM Elements
+        const elements = {
+            progressText: document.getElementById('progress-text'),
+            progressFill: document.getElementById('progress-fill'),
+            score: document.getElementById('score'),
+            level: document.getElementById('level'),
+            questionTitle: document.getElementById('question-title'),
+            questionText: document.getElementById('question-text'),
+            optionsContainer: document.getElementById('options-container'),
+            feedback: document.getElementById('feedback'),
+            knowledgeText: document.getElementById('knowledge-text'),
+            badgePreview: document.getElementById('badge-preview'),
+            nextBtn: document.getElementById('next-btn'),
+            restartBtn: document.getElementById('restart-btn'),
+            challengeScreen: document.getElementById('challenge-screen'),
+            completionScreen: document.getElementById('completion-screen'),
+            finalScore: document.getElementById('final-score'),
+            playAgainBtn: document.getElementById('play-again-btn')
+        };
+
+        // Initialize game
+        function initGame() {
+            gameState.currentLevel = 1;
+            gameState.score = 0;
+            gameState.currentQuestion = 0;
+            gameState.questionsAnswered = 0;
+            gameState.totalQuestions = gameState.levels.reduce((total, level) => total + level.questions.length, 0);
+            
+            updateProgress();
+            showQuestion();
+            
+            elements.challengeScreen.style.display = 'block';
+            elements.completionScreen.style.display = 'none';
+            elements.badgePreview.style.display = 'none';
+        }
+
+        // Show current question
+        function showQuestion() {
+            const level = gameState.levels[gameState.currentLevel - 1];
+            const question = level.questions[gameState.currentQuestion];
+            
+            elements.level.textContent = gameState.currentLevel;
+            elements.questionTitle.textContent = question.title;
+            elements.questionText.textContent = question.text;
+            elements.knowledgeText.textContent = "Answer the question to reveal insights...";
+            elements.feedback.className = 'feedback';
+            elements.feedback.style.display = 'none';
+            
+            // Clear previous options
+            elements.optionsContainer.innerHTML = '';
+            
+            // Create new options
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+                optionElement.addEventListener('click', () => checkAnswer(index));
+                elements.optionsContainer.appendChild(optionElement);
+            });
+            
+            // Update button state
+            elements.nextBtn.disabled = true;
+        }
+
+        // Check selected answer
+        function checkAnswer(selectedIndex) {
+            const level = gameState.levels[gameState.currentLevel - 1];
+            const question = level.questions[gameState.currentQuestion];
+            const options = elements.optionsContainer.querySelectorAll('.option');
+            
+            // Disable further selection
+            options.forEach(option => {
+                option.style.pointerEvents = 'none';
+            });
+            
+            // Mark correct and incorrect answers
+            options[question.correct].classList.add('correct');
+            if (selectedIndex !== question.correct) {
+                options[selectedIndex].classList.add('incorrect');
+            }
+            
+            // Update score and show feedback
+            if (selectedIndex === question.correct) {
+                gameState.score += 10;
+                elements.feedback.textContent = "Correct! Well done!";
+                elements.feedback.classList.add('correct');
+            } else {
+                elements.feedback.textContent = "Incorrect. The right answer is highlighted.";
+                elements.feedback.classList.add('incorrect');
+            }
+            
+            elements.feedback.style.display = 'block';
+            elements.knowledgeText.textContent = question.insight;
+            elements.score.textContent = gameState.score;
+            
+            // Enable next button
+            elements.nextBtn.disabled = false;
+            gameState.questionsAnswered++;
+            updateProgress();
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progress = Math.min(100, Math.round((gameState.questionsAnswered / gameState.totalQuestions) * 100));
+            elements.progressText.textContent = `${progress}%`;
+            elements.progressFill.style.width = `${progress}%`;
+        }
+
+        // Move to next challenge
+        function nextChallenge() {
+            const level = gameState.levels[gameState.currentLevel - 1];
+            
+            if (gameState.currentQuestion < level.questions.length - 1) {
+                // Next question in current level
+                gameState.currentQuestion++;
+                showQuestion();
+            } else if (gameState.currentLevel < gameState.levels.length) {
+                // Move to next level
+                gameState.currentLevel++;
+                gameState.currentQuestion = 0;
+                elements.badgePreview.style.display = 'block';
+                showQuestion();
+            } else {
+                // Game completed
+                elements.challengeScreen.style.display = 'none';
+                elements.completionScreen.style.display = 'block';
+                elements.finalScore.textContent = gameState.score;
+            }
+        }
+
+        // Event Listeners
+        elements.nextBtn.addEventListener('click', nextChallenge);
+        elements.restartBtn.addEventListener('click', initGame);
+        elements.playAgainBtn.addEventListener('click', initGame);
+
+        // Initialize game on load
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

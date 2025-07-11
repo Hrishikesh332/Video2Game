@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .game-area {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .graph-container {
+            position: relative;
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            height: 400px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        #regressionCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        select, button {
+            padding: 10px 15px;
+            border: 1px solid #d0d0d0;
+            border-radius: 5px;
+            background-color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        button {
+            background-color: #f0f0f0;
+            min-width: 100px;
+        }
+        
+        button:hover, select:hover {
+            background-color: #e8e8e8;
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .info-panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #222222;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        .highlight {
+            background-color: #fff0f0;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+        
+        .levels {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .level-btn {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            border: 2px solid transparent;
+        }
+        
+        .level-btn.active {
+            background-color: #e0e0e0;
+            border-color: #a0a0a0;
+            font-weight: 600;
+        }
+        
+        .feedback {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background-color: #f0fff0;
+            border: 1px solid #a0e0a0;
+            display: block;
+        }
+        
+        .feedback.incorrect {
+            background-color: #fff0f0;
+            border: 1px solid #e0a0a0;
+            display: block;
+        }
+        
+        .instructions {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #d0d0d0;
+        }
+        
+        .heart {
+            color: #ff6b6b;
+            font-size: 1.2rem;
+            vertical-align: middle;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .levels {
+                flex-direction: column;
+            }
+            
+            .graph-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Linear Regression Explorer</h1>
+        <p>Understand relationships in data through interactive exploration</p>
+    </header>
+    
+    <div class="container">
+        <div class="game-area">
+            <div class="levels">
+                <div class="level-btn active" data-level="1">Level 1: Add Data Points</div>
+                <div class="level-btn" data-level="2">Level 2: Identify Outliers</div>
+                <div class="level-btn" data-level="3">Level 3: Make Predictions</div>
+            </div>
+            
+            <div class="instructions" id="levelInstructions">
+                Click on the graph to add data points. Add at least 5 points to see the regression line.
+            </div>
+            
+            <div class="graph-container">
+                <canvas id="regressionCanvas"></canvas>
+            </div>
+            
+            <div class="controls">
+                <select id="datasetSelect">
+                    <option value="custom">Custom Dataset</option>
+                    <option value="height">Height vs Shoe Size</option>
+                    <option value="age">Age vs Income</option>
+                    <option value="study">Study Time vs Test Score</option>
+                </select>
+                
+                <button id="resetBtn">Reset Points</button>
+                <button id="clearLineBtn">Clear Regression Line</button>
+                <button id="nextBtn">Next Level</button>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+        </div>
+        
+        <div class="info-panel">
+            <h2>Understanding Linear Regression</h2>
+            <p>Linear regression models the relationship between a <span class="highlight">dependent variable</span> (Y-axis) and one or more <span class="highlight">independent variables</span> (X-axis) by fitting a straight line through the data points.</p>
+            
+            <p>This best-fit line helps us:</p>
+            <ul>
+                <li>Identify patterns and relationships in data</li>
+                <li>Make predictions about future values</li>
+                <li>Understand the strength of relationships between variables</li>
+                <li>Spot unusual data points (outliers) that don't follow the trend <span class="heart">❤</span></li>
+            </ul>
+            
+            <p>In machine learning, linear regression is a fundamental supervised learning algorithm for predicting continuous numerical values based on labeled datasets.</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const canvas = document.getElementById('regressionCanvas');
+        const ctx = canvas.getContext('2d');
+        const resetBtn = document.getElementById('resetBtn');
+        const clearLineBtn = document.getElementById('clearLineBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const datasetSelect = document.getElementById('datasetSelect');
+        const levelButtons = document.querySelectorAll('.level-btn');
+        const levelInstructions = document.getElementById('levelInstructions');
+        const feedback = document.getElementById('feedback');
+        
+        // Game state
+        let points = [];
+        let regressionLine = null;
+        let currentLevel = 1;
+        let outlierPoint = null;
+        let predictionX = null;
+        let predictionY = null;
+        
+        // Canvas setup
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            drawGraph();
+        }
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            setupEventListeners();
+            generatePredictionValue();
+        });
+        
+        window.addEventListener('resize', resizeCanvas);
+        
+        function setupEventListeners() {
+            // Canvas interaction
+            canvas.addEventListener('click', handleCanvasClick);
+            
+            // Buttons
+            resetBtn.addEventListener('click', resetPoints);
+            clearLineBtn.addEventListener('click', clearRegressionLine);
+            nextBtn.addEventListener('click', goToNextLevel);
+            
+            // Dataset selection
+            datasetSelect.addEventListener('change', handleDatasetChange);
+            
+            // Level selection
+            levelButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const level = parseInt(btn.dataset.level);
+                    if (level !== currentLevel) {
+                        switchLevel(level);
+                    }
+                });
+            });
+        }
+        
+        function handleCanvasClick(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Convert to data coordinates
+            const dataX = (x / canvas.width) * 100;
+            const dataY = 100 - (y / canvas.height) * 100;
+            
+            // Add point
+            points.push({x: dataX, y: dataY});
+            
+            // Special heart for points close to the line
+            if (regressionLine && Math.abs(dataY - (regressionLine.slope * dataX + regressionLine.intercept)) < 5) {
+                points[points.length - 1].heart = true;
+            }
+            
+            // Calculate regression if we have enough points
+            if (points.length >= 2) {
+                calculateRegression();
+            }
+            
+            // Check level objectives
+            checkLevelCompletion();
+            
+            drawGraph();
+        }
+        
+        function calculateRegression() {
+            if (points.length < 2) {
+                regressionLine = null;
+                return;
+            }
+            
+            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+            const n = points.length;
+            
+            for (const point of points) {
+                sumX += point.x;
+                sumY += point.y;
+                sumXY += point.x * point.y;
+                sumXX += point.x * point.x;
+            }
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            regressionLine = { slope, intercept };
+        }
+        
+        function drawGraph() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            
+            // Vertical grid lines
+            for (let x = 0; x <= 100; x += 10) {
+                const pixelX = (x / 100) * canvas.width;
+                ctx.beginPath();
+                ctx.moveTo(pixelX, 0);
+                ctx.lineTo(pixelX, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Horizontal grid lines
+            for (let y = 0; y <= 100; y += 10) {
+                const pixelY = canvas.height - (y / 100) * canvas.height;
+                ctx.beginPath();
+                ctx.moveTo(0, pixelY);
+                ctx.lineTo(canvas.width, pixelY);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 2;
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, canvas.height);
+            ctx.stroke();
+            
+            // Draw axis labels
+            ctx.fillStyle = '#333333';
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'center';
+            
+            // X-axis labels
+            for (let x = 0; x <= 100; x += 20) {
+                const pixelX = (x / 100) * canvas.width;
+                ctx.fillText(x, pixelX, canvas.height - 10);
+            }
+            
+            // Y-axis labels
+            ctx.textAlign = 'right';
+            for (let y = 0; y <= 100; y += 20) {
+                const pixelY = canvas.height - (y / 100) * canvas.height;
+                ctx.fillText(y, 30, pixelY + 5);
+            }
+            
+            // Draw points
+            for (const point of points) {
+                const pixelX = (point.x / 100) * canvas.width;
+                const pixelY = canvas.height - (point.y / 100) * canvas.height;
+                
+                // Draw point
+                ctx.fillStyle = point === outlierPoint ? '#ff6b6b' : '#4285f4';
+                ctx.beginPath();
+                ctx.arc(pixelX, pixelY, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw heart for special points
+                if (point.heart) {
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('❤', pixelX, pixelY - 20);
+                }
+            }
+            
+            // Draw regression line
+            if (regressionLine) {
+                const x1 = 0;
+                const y1 = regressionLine.slope * x1 + regressionLine.intercept;
+                const x2 = 100;
+                const y2 = regressionLine.slope * x2 + regressionLine.intercept;
+                
+                const pixelX1 = (x1 / 100) * canvas.width;
+                const pixelY1 = canvas.height - (y1 / 100) * canvas.height;
+                const pixelX2 = (x2 / 100) * canvas.width;
+                const pixelY2 = canvas.height - (y2 / 100) * canvas.height;
+                
+                ctx.strokeStyle = '#e91e63';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(pixelX1, pixelY1);
+                ctx.lineTo(pixelX2, pixelY2);
+                ctx.stroke();
+            }
+            
+            // Draw prediction marker for Level 3
+            if (currentLevel === 3 && predictionX !== null) {
+                const pixelX = (predictionX / 100) * canvas.width;
+                const pixelY = canvas.height - 20;
+                
+                ctx.fillStyle = '#333333';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`Predict Y for X = ${predictionX}`, pixelX, pixelY);
+                
+                // Draw marker line
+                ctx.strokeStyle = '#9e9e9e';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(pixelX, 0);
+                ctx.lineTo(pixelX, canvas.height);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+        
+        function resetPoints() {
+            points = [];
+            regressionLine = null;
+            outlierPoint = null;
+            feedback.className = 'feedback';
+            drawGraph();
+            
+            if (currentLevel === 2) {
+                addOutlier();
+            }
+            
+            if (currentLevel === 3) {
+                generatePredictionValue();
+            }
+        }
+        
+        function clearRegressionLine() {
+            regressionLine = null;
+            drawGraph();
+        }
+        
+        function handleDatasetChange() {
+            resetPoints();
+            const dataset = datasetSelect.value;
+            
+            // Preload sample datasets
+            if (dataset === 'height') {
+                points = [
+                    {x: 60, y: 7}, {x: 62, y: 7.5}, {x: 64, y
+    </script>
+</body>
+</html>

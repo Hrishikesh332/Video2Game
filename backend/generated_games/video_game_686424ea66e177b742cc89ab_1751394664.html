@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transformer Learning Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .panel {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #222222;
+        }
+        
+        .blackboard {
+            background-color: #222222;
+            color: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            min-height: 200px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            white-space: pre-wrap;
+        }
+        
+        .transformer-model {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .component {
+            background-color: #e0e0e0;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 200px;
+            margin: 10px;
+        }
+        
+        .robot {
+            background-color: #d0d0d0;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 0 auto 20px;
+        }
+        
+        .attention-visual {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .word {
+            padding: 10px 15px;
+            margin: 5px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .word.highlighted {
+            background-color: #a0a0a0;
+            color: white;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        input, select, button {
+            padding: 12px 15px;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        button {
+            background-color: #333333;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+        }
+        
+        button:hover {
+            background-color: #555555;
+        }
+        
+        .output {
+            background-color: #e0e0e0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            min-height: 80px;
+        }
+        
+        .feedback {
+            margin-top: 30px;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 1rem;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+        }
+        
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background-color: #e0e0e0;
+            position: relative;
+        }
+        
+        .progress-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 0;
+            width: 20px;
+            height: 2px;
+            background-color: #a0a0a0;
+            transform: translateY(-50%);
+        }
+        
+        .progress-step.active {
+            background-color: #a0a0a0;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .score-container {
+            text-align: right;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        
+        .level-instructions {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #eaeaea;
+            border-radius: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .transformer-model {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            input, select, button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Transformer Learning Game</h1>
+        <p>Understand deep learning transformers through interactive challenges</p>
+    </header>
+    
+    <div class="score-container">
+        Score: <span id="score">0</span>
+    </div>
+    
+    <div class="progress-container">
+        <div class="progress-step active" id="step1">1. Architecture</div>
+        <div class="progress-step" id="step2">2. Attention</div>
+        <div class="progress-step" id="step3">3. Applications</div>
+    </div>
+    
+    <div class="game-container">
+        <div class="panel">
+            <h2>Interactive Blackboard</h2>
+            <div class="blackboard" id="blackboard">Write your notes or questions here...</div>
+            <div class="controls">
+                <input type="text" id="blackboard-input" placeholder="Type your text...">
+                <button id="add-text">Add to Blackboard</button>
+                <button id="clear-board">Clear Blackboard</button>
+            </div>
+        </div>
+        
+        <div class="panel" id="architecture-panel">
+            <h2>Transformer Architecture</h2>
+            <div class="level-instructions">
+                <p>Build the transformer model by connecting components. Drag the arrows to connect Encoder to Attention and Attention to Decoder.</p>
+            </div>
+            
+            <div class="transformer-model">
+                <div class="component">
+                    <div class="robot">Encoder</div>
+                    <p>Processes input sequence</p>
+                </div>
+                
+                <div class="component">
+                    <div class="robot">Attention</div>
+                    <p>Context understanding</p>
+                    <div class="controls" style="justify-content: center; margin-top: 15px;">
+                        <button id="connect-encoder">← Connect Encoder</button>
+                        <button id="connect-decoder">Connect Decoder →</button>
+                    </div>
+                </div>
+                
+                <div class="component">
+                    <div class="robot">Decoder</div>
+                    <p>Generates output sequence</p>
+                </div>
+            </div>
+            
+            <div class="output" id="architecture-output">
+                Connect the components to build the transformer model...
+            </div>
+        </div>
+        
+        <div class="panel" id="attention-panel" style="display: none;">
+            <h2>Attention Mechanism</h2>
+            <div class="level-instructions">
+                <p>Click on the most important words in the sentence that the transformer would focus on for translation.</p>
+            </div>
+            
+            <div class="attention-visual" id="sentence-container">
+                <!-- Words will be inserted here by JavaScript -->
+            </div>
+            
+            <div class="controls">
+                <button id="check-attention">Check Attention</button>
+                <button id="reset-attention">Reset Selection</button>
+            </div>
+            
+            <div class="output" id="attention-output">
+                Select the key words in the sentence above...
+            </div>
+        </div>
+        
+        <div class="panel" id="application-panel" style="display: none;">
+            <h2>Transformer Applications</h2>
+            <div class="level-instructions">
+                <p>Enter text and select a task to see the transformer in action. Try different inputs to explore capabilities.</p>
+            </div>
+            
+            <div class="controls">
+                <input type="text" id="user-input" placeholder="Enter your text here...">
+                <select id="task-select">
+                    <option value="translate">Translate to French</option>
+                    <option value="summarize">Summarize</option>
+                    <option value="joke">Generate Joke</option>
+                </select>
+                <button id="transform-button">Transform</button>
+            </div>
+            
+            <div class="output" id="application-output">
+                Your transformed output will appear here...
+            </div>
+        </div>
+        
+        <div class="panel feedback">
+            <h2>Feedback & Questions</h2>
+            <textarea id="feedback-input" placeholder="Ask a question or share your feedback..."></textarea>
+            <button id="submit-feedback">Submit</button>
+            <div class="output" id="feedback-response" style="display: none;">
+                Thank you for your feedback! Our system will respond shortly.
+            </div>
+        </div>
+    </div>
+    
+    <div class="controls" style="justify-content: center; margin-top: 30px;">
+        <button id="prev-level">Previous</button>
+        <button id="next-level">Next Challenge</button>
+        <button id="restart-game">Restart Game</button>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentLevel: 1,
+            score: 0,
+            connectedComponents: {
+                encoder: false,
+                decoder: false
+            },
+            selectedWords: [],
+            correctWords: ['transformer', 'models', 'attention', 'context'],
+            jokeCount: 0
+        };
+
+        // DOM elements
+        const scoreElement = document.getElementById('score');
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const architecturePanel = document.getElementById('architecture-panel');
+        const attentionPanel = document.getElementById('attention-panel');
+        const applicationPanel = document.getElementById('application-panel');
+        const architectureOutput = document.getElementById('architecture-output');
+        const attentionOutput = document.getElementById('attention-output');
+        const applicationOutput = document.getElementById('application-output');
+        const sentenceContainer = document.getElementById('sentence-container');
+        const feedbackResponse = document.getElementById('feedback-response');
+
+        // Initialize game
+        function initGame() {
+            updateProgress();
+            updateScore();
+            setupBlackboard();
+            setupArchitectureLevel();
+            setupAttentionLevel();
+            setupApplicationLevel();
+            setupEventListeners();
+        }
+
+        // Update progress indicators
+        function updateProgress() {
+            step1.classList.toggle('active', gameState.currentLevel === 1);
+            step2.classList.toggle('active', gameState.currentLevel === 2);
+            step3.classList.toggle('active', gameState.currentLevel === 3);
+            
+            architecturePanel.style.display = gameState.currentLevel === 1 ? 'block' : 'none';
+            attentionPanel.style.display = gameState.currentLevel === 2 ? 'block' : 'none';
+            applicationPanel.style.display = gameState.currentLevel === 3 ? 'block' : 'none';
+        }
+
+        // Update score display
+        function updateScore() {
+            scoreElement.textContent = gameState.score;
+        }
+
+        // Setup blackboard functionality
+        function setupBlackboard() {
+            const blackboard = document.getElementById('blackboard');
+            const addTextBtn = document.getElementById('add-text');
+            const clearBoardBtn = document.getElementById('clear-board');
+            const input = document.getElementById('blackboard-input');
+            
+            addTextBtn.addEventListener('click', () => {
+                if (input.value.trim()) {
+                    blackboard.textContent += '\n' + input.value;
+                    input.value = '';
+                }
+            });
+            
+            clearBoardBtn.addEventListener('click', () => {
+                blackboard.textContent = 'Write your notes or questions here...';
+            });
+        }
+
+        // Setup architecture level
+        function setupArchitectureLevel() {
+            const connectEncoderBtn = document.getElementById('connect-encoder');
+            const connectDecoderBtn = document.getElementById('connect-decoder');
+            
+            connectEncoderBtn.addEventListener('click', () => {
+                gameState.connectedComponents.encoder = true;
+                connectEncoderBtn.disabled = true;
+                checkArchitectureCompletion();
+            });
+            
+            connectDecoderBtn.addEventListener('click', () => {
+                gameState.connectedComponents.decoder = true;
+                connectDecoderBtn.disabled = true;
+                checkArchitectureCompletion();
+            });
+        }
+
+        // Check if architecture is complete
+        function checkArchitectureCompletion() {
+            if (gameState.connectedComponents.encoder && gameState.connectedComponents.decoder) {
+                architectureOutput.textContent = 'Great job! You\'ve successfully built the transformer architecture. Encoder processes input, attention understands context, and decoder generates output.';
+                gameState.score += 10;
+                updateScore();
+            }
+        }
+
+        // Setup attention level
+        function setupAttentionLevel() {
+            const sentence = "Transformer models use attention to understand context in sequences";
+            const words = sentence.split(' ');
+            
+            // Clear previous words
+            sentenceContainer.innerHTML = '';
+            
+            // Add words to container
+            words.forEach(word => {
+                const wordElement = document.createElement('div');
+                wordElement.className = 'word';
+                wordElement.textContent = word;
+                wordElement.addEventListener('click', () => {
+                    wordElement.classList.toggle('highlighted');
+                    const index = gameState.selectedWords.indexOf(word);
+                    if (index === -1) {
+                        gameState.selectedWords.push(word);
+                    } else {
+                        gameState.selectedWords.splice(index, 1);
+                    }
+                });
+                sentenceContainer.appendChild(wordElement);
+            });
+            
+            // Setup buttons
+            document.getElementById('check-attention').addEventListener('click', checkAttention);
+            document.getElementById('reset-attention').addEventListener('click', () => {
+                gameState.selectedWords = [];
+                document.querySelectorAll('.word').forEach(word => {
+                    word.classList.remove('highlighted');
+                });
+                attentionOutput.textContent = 'Select the key words in the sentence above...';
+            });
+        }
+
+        // Check attention selection
+        function checkAttention() {
+            const correctSelections = gameState.selectedWords.filter(word => 
+                gameState.correctWords.includes(word.toLowerCase())
+            ).length;
+            
+            const accuracy = correctSelections / gameState.correctWords.length;
+            
+            if (accuracy >= 0.75) {
+                attentionOutput.innerHTML = `Excellent! You selected ${Math.round(accuracy * 100)}% of the important words. The attention mechanism helps transformers focus on relevant parts of the input.`;
+                gameState.score += 10;
+                updateScore();
+            } else {
+                attentionOutput.textContent = 'Good try! Pay attention to words like "transformer", "models", "attention", and "context". These are key to understanding the sentence.';
+            }
+        }
+
+        // Setup application level
+        function setupApplicationLevel() {
+            document.getElementById('transform-button').addEventListener('click', transformText);
+        }
+
+        // Transform text based on selected task
+        function transformText() {
+            const input = document.getElementById('user-input').value.trim();
+            const task = document.getElementById('task-select').value;
+            
+            if (!input) {
+                applicationOutput.textContent = 'Please enter some text to transform.';
+                return;
+            }
+            
+            let output = '';
+            
+            switch(task) {
+                case 'translate':
+                    output = translateToFrench(input);
+                    break;
+                case 'summarize':
+                    output = summarizeText(input);
+                    break;
+                case 'joke':
+                    output = generateJoke(input);
+                    break;
+            }
+            
+            applicationOutput.textContent = output;
+            gameState.score += 5;
+            updateScore();
+        }
+
+        // Translation function
+        function translateToFrench(text) {
+            const translations = {
+                "hello": "bonjour",
+                "world": "monde",
+                "transformer": "transformateur",
+                "deep learning": "apprentissage profond",
+                "attention": "attention",
+                "model": "modèle",
+                "neural network": "réseau neuronal",
+                "sequence": "séquence"
+            };
+            
+            const words = text.toLowerCase().split(' ');
+            const translated = words.map(word => translations[word] || word).join(' ');
+            return translated.charAt(0).toUpperCase() + translated.slice(1);
+        }
+
+        // Summarization function
+        function summarizeText(text) {
+            const sentences = text.split('.');
+            if (sentences.length > 1) {
+                return sentences[0] + '. [Summary]';
+            }
+            return text.substring(0, Math.min(50, text.length)) + '...';
+        }
+
+        // Joke generation function
+        function generateJoke() {
+            const jokes = [
+                "Why did the transformer go to school? To get more attention!",
+                "How do transformers stay cool? With attention air conditioning!",
+                "Why was the transformer a good student? It had encoder-decoder focus!",
+                "What's a transformer's favorite dance? The attention shuffle!"
+            ];
+            
+            return jokes[gameState.jokeCount++ % jokes.length];
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Navigation
+            document.getElementById('next-level').addEventListener('click', () => {
+                if (gameState.currentLevel < 3) {
+                    gameState.currentLevel++;
+                    updateProgress();
+                }
+            });
+            
+            document.getElementById('prev-level').addEventListener('click', () => {
+                if (gameState.currentLevel > 1) {
+                    gameState.currentLevel--;
+                    updateProgress();
+                }
+            });
+            
+            document.getElementById('restart-game').addEventListener('click', () => {
+                gameState.currentLevel = 1;
+                gameState.score = 0;
+                gameState.connectedComponents = { encoder: false, decoder: false };
+                gameState.selectedWords = [];
+                gameState.jokeCount = 0;
+                
+                // Reset UI elements
+                document.getElementById('connect-encoder').disabled = false;
+                document.getElementById('connect-decoder').disabled = false;
+                architectureOutput.textContent = 'Connect the components to build the transformer model...';
+                
+                updateProgress();
+                updateScore();
+                setupAttentionLevel();
+            });
+            
+            // Feedback submission
+            document.getElementById('submit-feedback').addEventListener('click', () => {
+                const feedback = document.getElementById('feedback-input').value.trim();
+                if (feedback) {
+                    feedbackResponse.style.display = 'block';
+                    document.getElementById('feedback-input').value = '';
+                    setTimeout(() => {
+                        feedbackResponse.style.display = 'none';
+                    }, 3000);
+                }
+            });
+        }
+
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>

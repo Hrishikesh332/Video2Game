@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morning Stretch Routine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            min-height: 80vh;
+        }
+        
+        .view {
+            display: none;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        h1, h2, h3 {
+            color: #222222;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .exercise-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .exercise-title {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: #444444;
+        }
+        
+        .exercise-description {
+            margin-bottom: 15px;
+            color: #555555;
+        }
+        
+        .timer-display {
+            font-size: 3rem;
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+            color: #222222;
+        }
+        
+        .progress-container {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 25px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #4a4a4a;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background-color: #4a4a4a;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            min-width: 140px;
+        }
+        
+        button:hover {
+            background-color: #333333;
+        }
+        
+        button:disabled {
+            background-color: #b0b0b0;
+            cursor: not-allowed;
+        }
+        
+        .instruction {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-style: italic;
+        }
+        
+        .motivation {
+            text-align: center;
+            font-size: 1.1rem;
+            margin: 20px 0;
+            color: #444444;
+            font-weight: 500;
+        }
+        
+        .exercise-visual {
+            height: 150px;
+            background-color: #eaeaea;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+        
+        .setup-option {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        .setup-option input {
+            margin-right: 10px;
+        }
+        
+        .summary-stats {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .timer-display {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Setup View -->
+        <div id="setupView" class="view active">
+            <h1>Morning Stretch Routine</h1>
+            <p>Customize your stretching session:</p>
+            
+            <div class="exercise-card">
+                <h3>Select Exercises</h3>
+                <div class="setup-option">
+                    <input type="checkbox" id="breathing" checked>
+                    <label for="breathing">Breathing Exercise (1 min)</label>
+                </div>
+                <div class="setup-option">
+                    <input type="checkbox" id="armStretch" checked>
+                    <label for="armStretch">Arm Stretch (45 sec)</label>
+                </div>
+                <div class="setup-option">
+                    <input type="checkbox" id="elbowRotation" checked>
+                    <label for="elbowRotation">Elbow Rotation (45 sec)</label>
+                </div>
+                <div class="setup-option">
+                    <input type="checkbox" id="thighStretch">
+                    <label for="thighStretch">Inner Thigh Stretch (30 sec)</label>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button id="startBtn">Begin Routine</button>
+            </div>
+        </div>
+        
+        <!-- Exercise View -->
+        <div id="exerciseView" class="view">
+            <h2 id="currentExercise">Breathing Exercise</h2>
+            <div class="exercise-visual">🧘</div>
+            
+            <div class="timer-display" id="timer">01:00</div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="exerciseProgress"></div>
+            </div>
+            
+            <div class="instruction" id="exerciseInstruction">
+                Stand with feet shoulder-width apart. Inhale deeply through your nose, raising your arms above your head. Exhale slowly through your mouth, lowering your arms.
+            </div>
+            
+            <div class="motivation" id="motivationMessage">Great start! Focus on your breathing.</div>
+            
+            <div class="button-group">
+                <button id="pauseBtn">Pause</button>
+                <button id="nextBtn" disabled>Next</button>
+            </div>
+        </div>
+        
+        <!-- Summary View -->
+        <div id="summaryView" class="view">
+            <h1>Session Complete!</h1>
+            
+            <div class="summary-stats">
+                <p>Total Time: <span id="totalTime">03:00</span></p>
+                <p>Exercises Completed: <span id="exercisesCompleted">3</span></p>
+            </div>
+            
+            <div class="motivation">
+                Excellent work! Consistency is key to improving flexibility.
+            </div>
+            
+            <div class="button-group">
+                <button id="replayBtn">Repeat Routine</button>
+                <button id="newRoutineBtn">New Routine</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const state = {
+            currentExercise: 0,
+            isPaused: true,
+            totalTime: 0,
+            exercisesCompleted: 0,
+            selectedExercises: [],
+            timerInterval: null,
+            timeRemaining: 0
+        };
+
+        // Exercise data
+        const exercises = [
+            {
+                name: "Breathing Exercise",
+                duration: 60,
+                instruction: "Stand with feet shoulder-width apart. Inhale deeply through your nose, raising your arms above your head. Exhale slowly through your mouth, lowering your arms.",
+                visual: "🧘",
+                motivation: "Focus on deep, steady breaths. Inhale positivity, exhale stress."
+            },
+            {
+                name: "Arm Stretch",
+                duration: 45,
+                instruction: "Extend one arm across your body. Use the other arm to gently pull it closer. Hold for 15 seconds. Repeat with the other arm.",
+                visual: "💪",
+                motivation: "Feel the stretch in your shoulders. Keep your breathing steady."
+            },
+            {
+                name: "Elbow Rotation",
+                duration: 45,
+                instruction: "Place your hands on your shoulders. Rotate your elbows in large circles forward for 20 seconds, then backward for 20 seconds.",
+                visual: "🔄",
+                motivation: "Maintain smooth, controlled movements. You're doing great!"
+            },
+            {
+                name: "Inner Thigh Stretch",
+                duration: 30,
+                instruction: "Sit on the floor with the soles of your feet together. Gently press your knees down toward the floor. Lean forward slightly for a deeper stretch.",
+                visual: "🧎",
+                motivation: "Relax into the stretch. Breathe deeply and release tension."
+            }
+        ];
+
+        // DOM elements
+        const setupView = document.getElementById('setupView');
+        const exerciseView = document.getElementById('exerciseView');
+        const summaryView = document.getElementById('summaryView');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const replayBtn = document.getElementById('replayBtn');
+        const newRoutineBtn = document.getElementById('newRoutineBtn');
+        const timerDisplay = document.getElementById('timer');
+        const exerciseProgress = document.getElementById('exerciseProgress');
+        const currentExerciseEl = document.getElementById('currentExercise');
+        const exerciseInstruction = document.getElementById('exerciseInstruction');
+        const motivationMessage = document.getElementById('motivationMessage');
+        const totalTimeEl = document.getElementById('totalTime');
+        const exercisesCompletedEl = document.getElementById('exercisesCompleted');
+
+        // Initialize game
+        function init() {
+            startBtn.addEventListener('click', startRoutine);
+            pauseBtn.addEventListener('click', togglePause);
+            nextBtn.addEventListener('click', nextExercise);
+            replayBtn.addEventListener('click', replayRoutine);
+            newRoutineBtn.addEventListener('click', newRoutine);
+        }
+
+        // Start the stretching routine
+        function startRoutine() {
+            // Get selected exercises
+            state.selectedExercises = [];
+            if (document.getElementById('breathing').checked) state.selectedExercises.push(0);
+            if (document.getElementById('armStretch').checked) state.selectedExercises.push(1);
+            if (document.getElementById('elbowRotation').checked) state.selectedExercises.push(2);
+            if (document.getElementById('thighStretch').checked) state.selectedExercises.push(3);
+            
+            if (state.selectedExercises.length === 0) return;
+            
+            // Reset state
+            state.currentExercise = 0;
+            state.isPaused = false;
+            state.totalTime = 0;
+            state.exercisesCompleted = 0;
+            
+            // Show exercise view
+            setupView.classList.remove('active');
+            exerciseView.classList.add('active');
+            
+            // Start first exercise
+            loadExercise();
+            startExerciseTimer();
+        }
+
+        // Load current exercise data
+        function loadExercise() {
+            const exercise = exercises[state.selectedExercises[state.currentExercise]];
+            currentExerciseEl.textContent = exercise.name;
+            exerciseInstruction.textContent = exercise.instruction;
+            motivationMessage.textContent = exercise.motivation;
+            document.querySelector('.exercise-visual').textContent = exercise.visual;
+            state.timeRemaining = exercise.duration;
+            updateTimerDisplay();
+            exerciseProgress.style.width = '0%';
+            nextBtn.disabled = true;
+        }
+
+        // Start exercise timer
+        function startExerciseTimer() {
+            clearInterval(state.timerInterval);
+            
+            state.timerInterval = setInterval(() => {
+                if (!state.isPaused) {
+                    state.timeRemaining--;
+                    state.totalTime++;
+                    updateTimerDisplay();
+                    
+                    // Update progress bar
+                    const exercise = exercises[state.selectedExercises[state.currentExercise]];
+                    const progress = 100 - (state.timeRemaining / exercise.duration * 100);
+                    exerciseProgress.style.width = `${progress}%`;
+                    
+                    // Play audio cue at specific intervals
+                    if (state.timeRemaining === 10 || state.timeRemaining === 5) {
+                        playAudioCue();
+                    }
+                    
+                    // Enable next button near end
+                    if (state.timeRemaining <= 5) {
+                        nextBtn.disabled = false;
+                    }
+                    
+                    // Exercise complete
+                    if (state.timeRemaining <= 0) {
+                        clearInterval(state.timerInterval);
+                        state.exercisesCompleted++;
+                        
+                        // Move to next exercise or finish
+                        if (state.currentExercise < state.selectedExercises.length - 1) {
+                            state.currentExercise++;
+                            setTimeout(() => {
+                                loadExercise();
+                                startExerciseTimer();
+                            }, 1500);
+                        } else {
+                            finishRoutine();
+                        }
+                    }
+                }
+            }, 1000);
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            const minutes = Math.floor(state.timeRemaining / 60);
+            const seconds = state.timeRemaining % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Toggle pause state
+        function togglePause() {
+            state.isPaused = !state.isPaused;
+            pauseBtn.textContent = state.isPaused ? 'Resume' : 'Pause';
+            
+            if (!state.isPaused) {
+                motivationMessage.textContent = "Great job getting back to it!";
+            } else {
+                motivationMessage.textContent = "Paused. Take a moment if needed.";
+            }
+        }
+
+        // Move to next exercise
+        function nextExercise() {
+            clearInterval(state.timerInterval);
+            state.exercisesCompleted++;
+            
+            if (state.currentExercise < state.selectedExercises.length - 1) {
+                state.currentExercise++;
+                loadExercise();
+                startExerciseTimer();
+            } else {
+                finishRoutine();
+            }
+        }
+
+        // Finish routine
+        function finishRoutine() {
+            clearInterval(state.timerInterval);
+            
+            // Calculate total time
+            const minutes = Math.floor(state.totalTime / 60);
+            const seconds = state.totalTime % 60;
+            totalTimeEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            exercisesCompletedEl.textContent = state.selectedExercises.length;
+            
+            // Show summary view
+            exerciseView.classList.remove('active');
+            summaryView.classList.add('active');
+        }
+
+        // Replay the same routine
+        function replayRoutine() {
+            state.currentExercise = 0;
+            state.isPaused = false;
+            state.exercisesCompleted = 0;
+            
+            summaryView.classList.remove('active');
+            exerciseView.classList.add('active');
+            
+            loadExercise();
+            startExerciseTimer();
+        }
+
+        // Create a new routine
+        function newRoutine() {
+            summaryView.classList.remove('active');
+            setupView.classList.add('active');
+        }
+
+        // Play audio cue
+        function playAudioCue() {
+            try {
+                const context = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = context.createOscillator();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(440, context.currentTime);
+                oscillator.connect(context.destination);
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.2);
+            } catch (e) {
+                console.log("Audio not supported");
+            }
+        }
+
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai Formation History Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: #555555;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .game-section {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #222222;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title::before {
+            content: "";
+            display: block;
+            width: 8px;
+            height: 30px;
+            background-color: #666666;
+            border-radius: 4px;
+        }
+        
+        .map-container {
+            position: relative;
+            height: 400px;
+            background-color: #e9f2ff;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 1px solid #d0d0d0;
+        }
+        
+        .island {
+            position: absolute;
+            border-radius: 50%;
+            background-color: #d4d4d4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #a0a0a0;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .island:hover {
+            background-color: #c4c4c4;
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 25px;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        button:hover {
+            background-color: #d0d0d0;
+        }
+        
+        button.active {
+            background-color: #a0a0a0;
+            color: white;
+        }
+        
+        .info-panel {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 150px;
+            border-left: 4px solid #888888;
+        }
+        
+        .timeline-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 20px;
+            padding: 15px 0;
+            margin-bottom: 20px;
+        }
+        
+        .timeline-item {
+            min-width: 200px;
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .timeline-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .quiz-container {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .question {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .option {
+            padding: 15px;
+            background-color: #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .option.selected {
+            background-color: #a0a0a0;
+            color: white;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 0 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #888888;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .score-display {
+            font-weight: bold;
+            font-size: 1.2rem;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .feedback {
+            text-align: center;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            display: block;
+        }
+        
+        .feedback.incorrect {
+            background-color: #ffebee;
+            color: #c62828;
+            display: block;
+        }
+        
+        .completion-screen {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .completion-screen h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        
+        .completion-screen p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .options {
+                grid-template-columns: 1fr;
+            }
+            
+            .map-container {
+                height: 300px;
+            }
+            
+            .timeline-container {
+                flex-direction: column;
+            }
+            
+            .timeline-item {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mumbai: From Seven Islands to Metropolis</h1>
+        <p class="subtitle">Explore the fascinating history of how Mumbai transformed from seven separate islands into India's bustling financial capital through land reclamation projects.</p>
+    </header>
+    
+    <main class="game-container">
+        <section class="game-section">
+            <h2 class="section-title">Interactive Map</h2>
+            <div class="map-container" id="map">
+                <!-- Islands will be positioned by JavaScript -->
+            </div>
+            
+            <div class="controls">
+                <button id="historicalBtn" class="active">Historical Islands (1661)</button>
+                <button id="modernBtn">Modern Mumbai</button>
+            </div>
+            
+            <div class="info-panel" id="islandInfo">
+                <p>Click on any island to learn about its history and significance in Mumbai's formation.</p>
+            </div>
+        </section>
+        
+        <section class="game-section">
+            <h2 class="section-title">Historical Timeline</h2>
+            <div class="timeline-container">
+                <div class="timeline-item">
+                    <div class="timeline-title">2nd Century BCE</div>
+                    <p>Satavahanas rule the islands</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-title">1st-4th Century CE</div>
+                    <p>Western Satraps and Abhiras control the region</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-title">4th-6th Century</div>
+                    <p>Vakatakas and Kalachuris govern the islands</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-title">6th-8th Century</div>
+                    <p>Chalukyas establish their rule</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-title">8th-9th Century</div>
+                    <p>Rashtrakutas control the territory</p>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <p>In 1661, the islands were ceded to the British East India Company as part of the dowry of Catherine de Braganza. This began the process of joining the islands through land reclamation projects.</p>
+            </div>
+        </section>
+        
+        <section class="game-section">
+            <h2 class="section-title">Engineering Marvels</h2>
+            <div class="info-panel">
+                <p><strong>Duncan Causeway (1803):</strong> Connected Mahalaxmi to Worli</p>
+                <p><strong>Colaba Causeway (1838):</strong> Joined Colaba to Bombay Island</p>
+                <p><strong>Mahim Causeway (1845):</strong> Linked Bandra to Mahim</p>
+                <p>These engineering projects transformed the seven islands into a single landmass, creating the foundation for modern Mumbai.</p>
+            </div>
+        </section>
+        
+        <section class="game-section">
+            <h2 class="section-title">History Quiz</h2>
+            <div class="quiz-container" id="quiz">
+                <div class="question" id="question1">
+                    <p>1. How many original islands formed the area that became Mumbai?</p>
+                    <div class="options">
+                        <div class="option" data-correct="true">Seven</div>
+                        <div class="option">Five</div>
+                        <div class="option">Ten</div>
+                        <div class="option">Three</div>
+                    </div>
+                    <div class="feedback"></div>
+                </div>
+                
+                <div class="question" id="question2" style="display:none">
+                    <p>2. Which causeway connected Mahalaxmi to Worli in 1803?</p>
+                    <div class="options">
+                        <div class="option">Colaba Causeway</div>
+                        <div class="option" data-correct="true">Duncan Causeway</div>
+                        <div class="option">Mahim Causeway</div>
+                        <div class="option">Worli Causeway</div>
+                    </div>
+                    <div class="feedback"></div>
+                </div>
+                
+                <div class="question" id="question3" style="display:none">
+                    <p>3. Which empire controlled the islands in the 2nd century BCE?</p>
+                    <div class="options">
+                        <div class="option">Rashtrakutas</div>
+                        <div class="option">Chalukyas</div>
+                        <div class="option" data-correct="true">Satavahanas</div>
+                        <div class="option">Vakatakas</div>
+                    </div>
+                    <div class="feedback"></div>
+                </div>
+            </div>
+            
+            <div class="progress-container">
+                <button id="prevBtn">Previous</button>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="quizProgress"></div>
+                </div>
+                <div class="score-display">Score: <span id="score">0</span>/3</div>
+                <button id="nextBtn">Next</button>
+            </div>
+            
+            <div class="completion-screen" id="completionScreen">
+                <h2>Quiz Completed!</h2>
+                <p>You've scored <span id="finalScore">0</span> out of 3. Mumbai's transformation from seven islands to a unified metropolis is a remarkable story of engineering and history.</p>
+                <button id="restartBtn">Restart Quiz</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Island data with positions and information
+        const islands = [
+            {
+                id: 'colaba',
+                name: 'Colaba',
+                historical: {x: 70, y: 350, width: 80, height: 80},
+                modern: {x: 70, y: 350, width: 80, height: 80},
+                info: 'The southernmost island, home to the Gateway of India and Taj Mahal Palace Hotel.'
+            },
+            {
+                id: 'oldWoman',
+                name: 'Old Woman\'s Island',
+                historical: {x: 160, y: 320, width: 60, height: 60},
+                modern: {x: 160, y: 320, width: 60, height: 60},
+                info: 'Now known as Little Colaba, it was originally separated from Colaba by a narrow channel.'
+            },
+            {
+                id: 'bombay',
+                name: 'Bombay Island',
+                historical: {x: 250, y: 250, width: 120, height: 120},
+                modern: {x: 250, y: 250, width: 120, height: 120},
+                info: 'The largest island, where the British established their initial settlement and fort.'
+            },
+            {
+                id: 'mazgaon',
+                name: 'Mazgaon',
+                historical: {x: 400, y: 280, width: 90, height: 90},
+                modern: {x: 400, y: 280, width: 90, height: 90},
+                info: 'Originally a fishing village, now an important residential and commercial area.'
+            },
+            {
+                id: 'parel',
+                name: 'Parel',
+                historical: {x: 520, y: 250, width: 80, height: 80},
+                modern: {x: 520, y: 250, width: 80, height: 80},
+                info: 'Once a separate island, now known for its textile mills and medical institutions.'
+            },
+            {
+                id: 'mahalakshmi',
+                name: 'Mahalakshmi',
+                historical: {x: 620, y: 220, width: 70, height: 70},
+                modern: {x: 620, y: 220, width: 70, height: 70},
+                info: 'Named after the Mahalakshmi Temple, connected to Worli by the Duncan Causeway.'
+            },
+            {
+                id: 'worli',
+                name: 'Worli',
+                historical: {x: 720, y: 200, width: 80, height: 80},
+                modern: {x: 720, y: 200, width: 80, height: 80},
+                info: 'A historic fishing village, now famous for the Bandra-Worli Sea Link.'
+            }
+        ];
+
+        // Initialize the map with islands
+        function initMap() {
+            const map = document.getElementById('map');
+            map.innerHTML = '';
+            
+            islands.forEach(island => {
+                const islandEl = document.createElement('div');
+                islandEl.className = 'island';
+                islandEl.id = island.id;
+                islandEl.textContent = island.name;
+                
+                // Position for historical view
+                const pos = island.historical;
+                islandEl.style.left = `${pos.x}px`;
+                islandEl.style.top = `${pos.y}px`;
+                islandEl.style.width = `${pos.width}px`;
+                islandEl.style.height = `${pos.height}px`;
+                
+                islandEl.addEventListener('click', () => {
+                    document.getElementById('islandInfo').innerHTML = 
+                        `<p><strong>${island.name}</strong></p><p>${island.info}</p>`;
+                });
+                
+                map.appendChild(islandEl);
+            });
+        }
+
+        // Toggle between historical and modern views
+        document.getElementById('historicalBtn').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('modernBtn').classList.remove('active');
+            initMap();
+        });
+
+        document.getElementById('modernBtn').addEventListener('click', function() {
+            this.classList.add('active');
+            document.getElementById('historicalBtn').classList.remove('active');
+            
+            const map = document.getElementById('map');
+            map.innerHTML = '';
+            
+            // Create a unified landmass
+            const landmass = document.createElement('div');
+            landmass.className = 'island';
+            landmass.style.left = '70px';
+            landmass.style.top = '150px';
+            landmass.style.width = '730px';
+            landmass.style.height = '250px';
+            landmass.style.borderRadius = '100px 150px 120px 100px';
+            landmass.textContent = 'Modern Mumbai';
+            landmass.addEventListener('click', () => {
+                document.getElementById('islandInfo').innerHTML = 
+                    `<p><strong>Modern Mumbai</strong></p>
+                    <p>After land reclamation projects connected the seven islands, Mumbai became a unified landmass and grew into India's financial capital.</p>`;
+            });
+            
+            map.appendChild(landmass);
+        });
+
+        // Quiz functionality
+        let currentQuestion = 1;
+        let score = 0;
+        
+        function updateProgress() {
+            const progress = (currentQuestion - 1) / 3 * 100;
+            document.getElementById('quizProgress').style.width = `${progress}%`;
+            document.getElementById('score').textContent = score;
+        }
+        
+        function showQuestion(questionNum) {
+            document.querySelectorAll('.question').forEach(q => {
+                q.style.display = 'none';
+            });
+            document.getElementById(`question${questionNum}`).style.display = 'block';
+            updateProgress();
+        }
+        
+        // Option selection
+        document.querySelectorAll('.option').forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove selected class from siblings
+                this.parentElement.querySelectorAll('.option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked option
+                this.classList.add('selected');
+                
+                // Show feedback
+                const feedback = this.parentElement.nextElementSibling;
+                if (this.dataset.correct === 'true') {
+                    feedback.className = 'feedback correct';
+                    feedback.textContent = 'Correct!';
+                } else {
+                    feedback.className = 'feedback incorrect';
+                    feedback.textContent = 'Incorrect. Try again.';
+                }
+            });
+        });
+        
+        // Navigation buttons
+        document.getElementById('nextBtn').addEventListener('click', function() {
+            if (currentQuestion < 3) {
+                currentQuestion++;
+                showQuestion(currentQuestion);
+            } else {
+                // Show completion screen
+                document.getElementById('quiz').style.display = 'none';
+                document.getElementById('completionScreen').style.display = 'block';
+                document.getElementById('finalScore').textContent = score;
+                document.querySelector('.progress-container').style.display = 'none';
+            }
+        });
+        
+        document.getElementById('prevBtn').addEventListener('click', function() {
+            if (currentQuestion > 1) {
+                currentQuestion--;
+                showQuestion(currentQuestion);
+            }
+        });
+        
+        // Restart quiz
+        document.getElementById('restartBtn').addEventListener('click', function() {
+            currentQuestion = 1;
+            score = 0;
+            document.getElementById('quiz').style.display = 'block';
+            document.getElementById('completionScreen').style.display = 'none';
+            document.querySelector('.progress-container').style.display = 'flex';
+            
+            // Reset selections and feedback
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelectorAll('.feedback').forEach(fb => {
+                fb.className = 'feedback';
+            });
+            
+            showQuestion(1);
+            updateProgress();
+        });
+        
+        // Score tracking
+        document.querySelectorAll('.option').forEach(option => {
+            option.addEventListener('click', function() {
+                if (this.dataset.correct === 'true' && !this.classList.contains('scored')) {
+                    score++;
+                    this.classList.add('scored');
+                    document.getElementById('score').textContent = score;
+                }
+            });
+        });
+        
+        // Initialize the game
+        window.onload = function() {
+            initMap();
+            showQuestion(1);
+        };
+    </script>
+</body>
+</html>

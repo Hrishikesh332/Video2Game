@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<think>
+We are building an interactive educational app for Principal Component Analysis (PCA). The app will have:
+ 1. An editable table for data input (with default data for two variables: Math and Reading scores)
+ 2. A scatter plot that updates as the data changes
+ 3. Buttons for scaling and centering the data
+ 4. PCA calculation and visualization of principal components (PC1 and PC2) as lines on the plot
+ 5. Projection of data points onto the principal components and display of eigenvalues
+ 6. A help section explaining the concepts
+
+ We'll structure the app into sections:
+  - Data Table (editable)
+  - Controls (Scale, Center, Perform PCA)
+  - Scatter Plot (with SVG)
+  - Results (eigenvalues, projections)
+  - Help Section
+
+ We'll use vanilla JavaScript for calculations and SVG for the plot.
+
+ Steps for PCA:
+  1. Center the data (subtract mean for each variable)
+  2. Scale the data (optional: divide by standard deviation)
+  3. Compute covariance matrix
+  4. Compute eigenvalues and eigenvectors of the covariance matrix
+  5. Sort eigenvectors by eigenvalues in descending order
+
+ We'll create two levels (challenges) to illustrate different scenarios:
+  Level 1: Two variables (Math, Reading) with two samples (students)
+  Level 2: Three variables (add Science) with three samples
+
+ The app will have:
+  - A level selector (to switch between scenarios)
+  - A restart button to reset the data
+
+ Design: 
+  - White background, grey accents, minimal colors (maybe one accent color for lines and points)
+  - Use a responsive layout (flexbox/grid)
+
+ We'll break the JavaScript into functions:
+  - updateTable(): updates the table from the current data
+  - updatePlot(): draws the scatter plot
+  - scaleData(): scales the data (by standard deviation)
+  - centerData(): centers the data (subtract mean)
+  - performPCA(): performs PCA and updates the plot with eigenvectors
+
+ We'll store the data as an array of objects, each representing a sample (student) with properties for each variable.
+
+ Example data for Level 1 (two variables, two samples):
+   [{ math: 80, reading: 70 }, { math: 60, reading: 90 }]
+
+ For Level 2 (three variables, three samples):
+   [{ math: 80, reading: 70, science: 75 }, ...]
+
+ The scatter plot will show two variables at a time? Since we are focusing on two principal components, we can show the first two variables by default? 
+ But note: PCA can handle more, but we are going to project onto the first two principal components.
+
+ We'll let the user choose which two variables to plot? Or we can always show the first two? 
+ Since the specification says to show PC1 and PC2 as lines, we can plot the data in the original variable space and then show the principal components as lines through the origin (after centering).
+
+ However, note: the principal components are in the space of the original variables. So for two variables, we can plot the 2D scatter and then draw the eigenvectors (which are directions in that 2D space).
+
+ Steps for the plot:
+   - We'll have an SVG element for the plot.
+   - We'll map the data to pixel coordinates (with a margin and scaling).
+   - We'll draw circles for each data point.
+   - After centering, the origin (0,0) should be at the center of the plot.
+   - The principal components (eigenvectors) will be drawn as lines passing through the origin and extending in the direction of the eigenvector.
+
+ We'll also show the projected points? Maybe as an option? Or we can show them in a different color when PCA is performed.
+
+ We'll have:
+   - A "Perform PCA" button that triggers the calculation and then draws the eigenvectors and the projections.
+
+ For the projections:
+   - We can project each data point onto the first two principal components and show the new coordinates? Or we can show the points in the new coordinate system? 
+   - Alternatively, we can show the projections on the original plot as the points "dropped" perpendicularly onto the PC lines.
+
+ We'll do:
+   - When PCA is performed, we'll draw the PC lines (with arrows) and then draw lines from each data point to its projection on PC1 and PC2? Or we can show the projected points on the PC lines? 
+   - We'll also display the eigenvalues (which represent the variance along each PC).
+
+ We'll create a section for results that shows:
+   - Eigenvalues for PC1 and PC2 (and more if available)
+   - The proportion of variance explained.
+
+ We'll also have a help section that can be toggled.
+
+ Implementation:
+
+  HTML Structure:
+    <header>
+      <h1>Principal Component Analysis (PCA) Explorer</h1>
+    </header>
+    <main>
+      <section id="controls">
+        <div>
+          <label>Level:</label>
+          <select id="level-select">
+            <option value="1">Level 1: Two Variables, Two Samples</option>
+            <option value="2">Level 2: Three Variables, Three Samples</option>
+          </select>
+          <button id="restart">Restart</button>
+        </div>
+        <div>
+          <button id="scale-btn">Scale Data</button>
+          <button id="center-btn">Center Data</button>
+          <button id="pca-btn">Perform PCA</button>
+        </div>
+      </section>
+
+      <section id="data-section">
+        <h2>Data Table</h2>
+        <table id="data-table">
+          <thead>
+            <tr>
+              <th>Sample</th>
+              <!-- Columns for variables will be added dynamically -->
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rows will be added dynamically -->
+          </tbody>
+        </table>
+      </section>
+
+      <section id="plot-section">
+        <h2>Scatter Plot</h2>
+        <svg id="scatter-plot" width="500" height="500"></svg>
+      </section>
+
+      <section id="results-section" style="display:none;">
+        <h2>PCA Results</h2>
+        <div id="eigenvalues"></div>
+        <div id="projections"></div>
+      </section>
+
+      <section id="help-section">
+        <h2>Help</h2>
+        <button id="toggle-help">Show Help</button>
+        <div id="help-content" style="display:none;">
+          <h3>Scaling</h3>
+          <p>Scaling the data means dividing each variable by its standard deviation. This ensures that all variables have the same scale and contribute equally to the analysis.</p>
+          <h3>Centering</h3>
+          <p>Centering the data means subtracting the mean of each variable from the data. This moves the center of the data to the origin (0,0).</p>
+          <h3>Principal Components</h3>
+          <p>Principal components are directions in the data that capture the most variance. The first principal component (PC1) is the direction of maximum variance, and the second (PC2) is orthogonal to PC1 and captures the next most variance.</p>
+        </div>
+      </section>
+    </main>
+
+  JavaScript:
+
+    We'll have:
+      let data = []; // array of objects for the current data
+      let scaled = false; // whether data is scaled
+      let centered = false; // whether data is centered
+      let pcaPerformed = false; // whether PCA has been performed
+      let currentLevel = 1; // current level
+
+    Functions:
+      initData(level) - initializes data for the given level
+      updateTable() - updates the table with current data
+      updatePlot() - updates the scatter plot
+      scaleData() - scales the data (if not already scaled) and updates
+      centerData() - centers the data (if not already centered) and updates
+      performPCA() - performs PCA and updates the plot with eigenvectors and projections
+
+    For the scatter plot, we'll use D3-like calculations but without D3. We'll compute the scales for x and y.
+
+    Steps for updatePlot():
+      - Clear the SVG
+      - Define the plot area (with margins)
+      - Compute the min and max for the current variables (for both x and y). We'll use the first variable for x and the second for y? 
+        But note: we might have more than two variables. We'll let the user choose? Or we can always use the first two? 
+        Since we are going to show the principal components in the space of the original variables, we must choose two variables to plot.
+
+        We'll decide: for simplicity, we'll always plot the first two variables (by the order in the table). 
+
+      - Create scales for x and y (linear scales from data domain to SVG pixel domain)
+      - Draw the axes (if needed, but we can skip and just show the points and the origin)
+      - Draw the data points as circles
+      - If centered, draw the origin (a cross at the center of the plot)
+      - If PCA has been performed, draw the eigenvectors as lines through the origin and also draw the projections.
+
+    For PCA, we'll use math.js or write our own? We'll write our own for two variables? But we want to handle more? 
+    We'll write a simple PCA for two variables? Or we can write a general one? 
+
+    Steps for PCA (for two variables):
+      - We have a matrix X (n x 2) of centered (and scaled) data.
+      - Compute covariance matrix: (X^T * X) / (n-1)
+      - Compute eigenvalues and eigenvectors of the 2x2 covariance matrix.
+
+    We'll write a function to compute eigenvalues and eigenvectors for a 2x2 symmetric matrix.
+
+    However, for level 2 we have three variables? Then we need to compute for 3x3? But note: we are going to project onto the first two principal components. 
+    We can still compute the full PCA? But that might be heavy. Alternatively, we can use the singular value decomposition (SVD) method? 
+
+    We'll do: 
+      - Use the covariance matrix method for small dimensions (<=3) because it's manageable.
+
+    Steps for PCA (general):
+      - Center the data (if not already centered) and scale (if scaling is applied).
+      - Compute covariance matrix C (d x d, where d is the number of variables)
+      - Compute eigenvalues and eigenvectors of C (we'll use a simple iterative method for small d, or Jacobi method? But for d<=3, we can use analytical formulas for eigenvalues? Or use a simple power method? 
+        Actually, for 2x2 we have a closed form. For 3x3, we can use the cubic formula? That's complex. Alternatively, we can use the SVD of the data matrix? 
+
+    We'll use the SVD method because it's more stable and we can use the same code for any dimension? But we are limited to small dimensions (max 3). 
+
+    We'll write a simple SVD function for small matrices? Or we can use the covariance matrix and a simple eigenvalue solver? 
+
+    Alternatively, we can use the power iteration method to get the first two eigenvectors? 
+
+    We'll do:
+      - For the purpose of this app, we'll compute the full covariance matrix and then use the Jacobi method for symmetric matrices? But that's a bit heavy. 
+
+    Instead, we'll use the following for 2x2 and 3x3:
+
+      For 2x2 covariance matrix:
+        Let C = [[a, b], [b, c]]
+        Then the eigenvalues are: 
+          lambda1 = (a+c)/2 + sqrt( ((a-c)/2)^2 + b^2 )
+          lambda2 = (a+c)/2 - sqrt( ((a-c)/2)^2 + b^2 )
+
+        The eigenvector for lambda1 is [b, lambda1 - a] (normalized) or [lambda1 - c, b] (normalized). We can use either.
+
+      For 3x3, we can use the analytical method? It's complex. Alternatively, we can use the power method for the first two? 
+
+    Given the complexity, and since the app is for education and the data is small, we'll do:
+
+      - For two variables: use the closed form for 2x2.
+      - For three variables: we'll compute the first two eigenvectors by power iteration? 
+
+    But to keep it simple, we'll only support two variables in the plot? And for three variables, we'll still show the first two principal components in the 3D space? But we cannot plot 3D easily. 
+
+    Alternatively, we can project the 3D data onto the first two principal components and show a 2D plot? Then the plot would be the transformed data? 
+
+    However, the specification says: "display the principal components (PC1 and PC2) as lines on the scatter plot". In the original scatter plot? But if we have three variables, we cannot show three dimensions. 
+
+    We have two options:
+      Option 1: Only allow two variables at a time? Then we can always show a 2D plot. We can let the user choose which two variables to plot? 
+      Option 2: For more than two variables, we show the projection of the data onto the first two principal components? Then the scatter plot would be in the new coordinate system? But then the principal components would be the axes? 
+
+    We'll go with Option 1: We'll let the user choose which two variables to plot. We'll add two dropdowns for selecting the x-axis and y-axis variables.
+
+    So we'll add:
+      <div>
+        <label>X-axis:</label>
+        <select id="x-axis">
+          <!-- options for variables -->
+        </select>
+        <label>Y-axis:</label>
+        <select id="y-axis">
+          <!-- options for variables -->
+        </select>
+      </div>
+
+    Then the plot will always show the two selected variables.
+
+    Steps for PCA:
+      - We perform PCA on the entire dataset (all variables) but then we show the principal components in the currently selected 2D plot? 
+        But note: the principal components are in the full space. We can project the eigenvectors onto the two selected variables? 
+
+    Alternatively, we can do PCA only on the two selected variables? That would be simpler. 
+
+    We'll do: 
+      - PCA is performed on the entire dataset? But then the eigenvectors are in the full space. We cannot visualize them in a 2D plot of two variables. 
+
+    Therefore, we decide: 
+      - We'll perform PCA only on the two selected variables? Then the plot is consistent. 
+
+    But the specification says: "determine the number of principal components based on the number of variables and samples". So we are doing PCA on all variables? 
+
+    We'll change: 
+      - The PCA is performed on the entire dataset (all variables). 
+      - Then we show the projection of the data onto the first two principal components? And we show the eigenvectors in the original variable space? But we cannot plot a vector in 3D in a 2D plot. 
+
+    Given the complexity of visualization in higher dimensions, we'll limit the app to two variables? 
+
+    But the specification says: "illustrated through different scenarios (e.g., two variables with two samples, three variables with three samples)". 
+
+    We can do:
+      - For two variables: we show the 2D plot and the eigenvectors in that 2D space.
+      - For three variables: we do PCA on the three variables and then we show the projection of the data onto the first two principal components? Then the plot would be 2D (PC1 vs PC2). 
+
+    We'll add a checkbox: "Show in PC space". When checked, the plot will show the transformed data (projected onto PC1 and PC2). Otherwise, it shows the original data (with the selected two variables) and the eigenvectors (if available) as lines in that 2D space? 
+
+    But for three variables, the eigenvectors are 3D vectors. How to show them in a 2D plot of two original variables? We cannot. 
+
+    Therefore, we decide:
+      - We'll only allow two variables at a time? Then we can always show the 2D plot and the eigenvectors in that plot. 
+      - For level 2 (three variables), we'll have three variables in the table, but the user must choose two to plot. Then we do PCA on the two selected variables? 
+
+    This way, we avoid higher dimensions. 
+
+    We'll change the level 2 to have three variables and three samples, but the PCA is done only on the two selected variables? 
+
+    But note: the specification says "determine the number of principal components based on the number of variables and samples". We can explain that the maximum number of principal components is min(n-1, d) where n is the number of samples and d is the number of variables. 
+
+    We'll show the eigenvalues for all principal components (even if we are only plotting two) in the results section.
+
+    Steps for PCA (for any number of variables, but we are only going to plot two at a time? and do PCA on the entire set?):
+
+      We'll do:
+        - PCA on the entire dataset (all variables) and then show the eigenvalues for all components.
+        - But the plot will be either:
+            a) The original two selected variables, and then we show the projection of the eigenvectors in that 2D space? (which is not straightforward) 
+        or
+            b) We show the transformed data in the new coordinate system (PC1 and PC2) and then the principal components are the axes? 
+
+    We'll go with option b) for the plot when PCA is performed? But then we lose the original variables? 
+
+    We'll have two modes for the plot:
+      - Original mode: show the original data (with two selected variables) and the eigenvectors (if available) as lines in that plot? But only if the two selected variables are the only ones? 
+      - Transformed mode: show the data in the new coordinate system (PC1 and PC2) and then the axes are the principal components.
+
+    We'll add a checkbox: "Show PCA Projection". When checked, the plot shows the transformed data (with PC1 on x and PC2 on y). Otherwise, it shows the original data.
+
+    But note: the eigenvectors are in the original variable space. In the transformed mode, we don't need to draw the eigenvectors because the axes are the principal components.
+
+    So we'll do:
+      - In the original mode, we draw the eigenvectors as lines through the origin (if centered) in the original variable space (for the two selected variables). But note: the eigenvector might not lie in the plane of the two selected variables? 
+
+    This is getting complex. 
+
+    Given the time, we'll simplify:
+
+      We'll only allow two variables in the entire app? Then we can avoid the complexity. 
+
+    But the specification says to have scenarios with three variables. 
+
+    We'll do:
+
+      - The app will have two levels: 
+          Level 1: two variables (Math, Reading) and two samples.
+          Level 2: three variables (Math, Reading, Science) and three samples.
+
+      - We'll let the user choose any two variables to plot (in both levels). 
+      - When the user performs PCA, we do PCA on the entire dataset (all variables) and then we show the eigenvalues for all components. 
+      - But for the plot, we have two options:
+
+          Option A: Always show the transformed data (projected onto PC1 and PC2) regardless of the selected variables? Then the plot is always 2D and shows the data in the new coordinate system. The axes are PC1 and PC2. We can then draw the principal components as the axes? 
+
+          Option B: In the original plot (with two selected variables), we show the projection of the first two principal components onto the plane of the two selected variables? 
+
+      We choose Option A because it's consistent and shows the dimensionality reduction. 
+
+    So we'll change the plot when PCA is performed to show the transformed data? And then we don't show the original data? 
+
+    We'll have:
+      - Before PCA: the plot shows the original data (for the two selected variables).
+      - After PCA: the plot shows the transformed data (projected onto PC1 and PC2). 
+
+    And then we can also show the eigenvectors in the original space? Not in the plot, but in the results? 
+
+    We'll do:
+
+      - The scatter plot will show:
+          - Before PCA: the original data (for the two selected variables) with the origin if centered.
+          - After PCA: the data projected onto the first two principal components (so we have a 2D plot with PC1 and PC2 as axes). In this plot, the axes are the principal components.
+
+      - We'll also draw the eigenvectors in the original space? We can skip because it's complex.
+
+    But the specification says: "display the principal components (PC1 and PC2) as lines on the scatter plot". In the original scatter plot? 
+
+    We can do: 
+      - In the original scatter plot (before PCA), after performing PCA, we draw the directions of PC1 and PC2 as arrows? But only if we are in the original mode? 
+
+    We decide to have two plots? Or one plot that can switch? 
+
+    Given the complexity, we'll have one plot and we'll change its mode when PCA is performed. We'll also provide a button to go back to the original view.
+
+    We'll add a button "Show Original Data" and "Show PCA Projection" to toggle.
+
+    But we'll start with the original data. After PCA, we switch to the projection? 
+
+    We'll do:
+
+      - Initially, the plot shows the original data (for the two selected variables).
+      - When the user clicks "Perform PCA", we do PCA on the entire dataset and then switch the plot to show the projection on PC1 and PC2.
+      - We also show the eigenvalues and the proportion of variance.
+
+    We'll also allow the user to go back to the original view? We can have a checkbox or a button? 
+
+    We'll add a checkbox: 
+      <input type="checkbox" id="pca-projection" /> <label for="pca-projection">Show PCA Projection</label>
+
+    Then the plot will show the projection when checked, and the original data when unchecked.
+
+    And when PCA is performed, we automatically check it? 
+
+    So the flow:
+
+      - User inputs data (or uses default).
+      - User can scale and center.
+      - User clicks "Perform PCA": we compute PCA, then set the checkbox to checked (so the plot shows the projection).
+
+    We'll store the transformed data? 
+
+    Implementation of PCA for any number of variables (with n samples and d variables):
+
+      Steps:
+        1. Center the data (if not centered) and scale (if scaling is applied) -> we get a matrix X (n x d)
+        2. Compute the covariance matrix: C = (X^T * X) / (n-1)   [d x d matrix]
+        3. Compute the eigenvalues and eigenvectors of C.
+        4. Sort the eigenvectors by decreasing eigenvalues.
+        5. The transformed data (projected onto the first k principal components) is: T = X * V_k, where V_k is the matrix of the first k eigenvectors (d x k).
+
+      We'll compute for k=2.
+
+    We'll write a function to compute the covariance matrix, and then a function to compute the eigenvalues and eigenvectors for a symmetric matrix? We'll use the Jacobi method? But for small d (<=3) we can use a simple iterative method? 
+
+    We'll use the power iteration for the first two eigenvectors? 
+
+    Steps for power iteration for the first eigenvector:
+
+      v0 = random vector of length d (unit vector)
+      for i in 0 to max_iterations:
+        v1 = C * v0
+        v1 = v1 / ||v1||
+        if (v1 and v0 are close) break
+        v0 = v1
+
+      Then the eigenvalue is v0^T * C * v0.
+
+      Then for the second eigenvector, we start with a random vector orthogonal to v0.
+
+    We'll do this for d<=3, so it's manageable.
+
+    We'll write a function:
+
+      function powerIteration(C, maxIter=100) {
+        // returns [eigenvalues, eigenvectors] sorted by eigenvalue descending
+        // for a symmetric matrix C (d x d)
+        // We'll do for the first two? 
+      }
+
+    But note: we need all eigenvectors? We can do deflation? 
+
+    Alternatively, we can use the analytical method for d=2 and for d=3 use the power iteration for the first two? 
+
+    We'll do:
+
+      if (d === 2) {
+        // use closed form
+      } else {
+        // use power iteration for the first two eigenvectors
+      }
+
+    We'll write the closed form for 2x2.
+
+    Given the complexity and time, we'll only support two variables for PCA? Then we can use the closed form. 
+
+    But the specification requires three variables in level 2. 
+
+    We decide: 
+      - For level 1 (two variables) we use the closed form.
+      - For level 2 (three variables) we use the power iteration for the first two eigenvectors? 
+
+    We'll write a general power iteration for the first eigenvector, and then deflate for the second.
+
+    Steps for two eigenvectors:
+
+      // First eigenvector
+      let v1 = powerIteration(C);
+      let lambda1 = v1.dot(C.multiply(v1)); // in math terms: v1^T * C * v1
+
+      // Deflate: C2 = C - lambda1 * (v1 * v1^T)
+      // Then compute v2 = powerIteration(C2)
+
+    But note: C2 might not be positive definite? And we want the second eigenvector of C, which should be orthogonal to v1. 
+
+    Alternatively, we can do:
+
+      // After getting v1, we can compute the second eigenvector by power iteration in the subspace orthogonal to v1.
+
+      Start with a random vector v0 orthogonal to v1.
+      Then iterate: 
+        v0 = v0 - (v1^T * v0) * v1   // project out the v1 component
+        v0 = v0 / ||v0||
+        then do power iteration on C (not C2) but after each multiplication, project out v1.
+
+    We'll do the latter.
+
+    We'll write a helper function for matrix-vector multiplication.
+
+    Given the time, we'll only implement for two variables in this version? And for level 2, we'll only have three variables but we'll do PCA on the entire set using a library? But we cannot use external libraries.
+
+    We'll simplify: 
+      - We'll only support two variables in the PCA calculation. So in level 2, when the user selects two variables, we do PCA on those two. 
+
+    This means that the number of principal components is always 2 (or 1 if there's only one sample? but we have at least two samples). 
+
+    So we change: 
+      - The PCA is always performed on the two currently selected variables. 
+
+    Then we can always use the closed form for 2x2.
+
+    We'll do that.
+
+    Steps for PCA (closed form for 2x2):
+
+      Let X be the data matrix (n x 2) of the two selected variables (centered and scaled if applicable).
+
+      Compute covariance matrix C:
+        C[0][0] = variance of variable 1
+        C[0][1] = covariance between var1 and var2
+        C[1][0] = C[0][1]
+        C[1][1] = variance of variable 2
+
+      Then:
+        trace = C[0][0] + C[1][1]
+        det = C[0][0]*C[1][1] - C[0][1]*C[0][1]
+
+        eigenvalues: 
+          lambda1 = trace/2 + Math.sqrt( (trace/2)**2 - det )
+          lambda2 = trace/2 - Math.sqrt( (trace/2)**2 - det )
+
+        Then for eigenvector of lambda1:
+          We solve: (C - lambda1 * I) * v = 0
+
+          If C[0][1] !== 0, then we can take:
+            v1 = [ C[0][1], lambda1 - C[0][0] ]   and then normalize.
+
+        But we can also use:
+          v1 = [1, (lambda1 - C[0][0])/C[0][1]]   if C[0][1]!==0, then normalize.
+
+        Alternatively, we can use:
+          v1 = [C[0][1], lambda1 - C[0][0]]
+          norm = Math.sqrt(v1[0]**2 + v1[1]**2)
+          v1 = [v1[0]/norm, v1[1]/norm]
+
+        But note: it's possible that C[0][1] is 0, then we have:
+          If C[0][0] > C[1][1], then v1 = [1,0] and lambda1 = C[0][0]
+          else v1 = [0,1] and lambda1 = C[1][1]
+
+    We'll code accordingly.
+
+    Then the transformed data is:
+      For each data point (x, y) (centered and scaled), the projection on PC1 is: x * v1[0] + y * v1[1]
+      and on PC2: x * v2[0] + y * v2[1]
+
+    Where v2 is the eigenvector for lambda2, and it should be orthogonal to v1? We can compute it similarly or as [-v1[1], v1[0]]? 
+
+    But note: because the matrix is symmetric, the eigenvectors are orthogonal. So we can compute v2 as orthogonal to v1.
+
+    So we can set:
+      v2 = [-v1[1], v1[0]]
+
+    Then the transformed data for a point p is:
+      pc1 = p · v1
+      pc2 = p · v2
+
+    But wait: is v2 the eigenvector for lambda2? Not necessarily. We should compute it the same way? 
+
+    We can compute both eigenvectors:
+
+      For lambda1: 
+        if (C[0][1] !== 0) {
+          v1 = [C[0][1], lambda1 - C[0][0]]
+        } else {
+          if (lambda1 === C[0][0]) {
+            v1 = [1,0]
+          } else {
+            v1 = [0,1]
+          }
+        }
+        normalize v1.
+
+      For lambda2:
+        similarly: 
+          if (C[0][1] !== 0) {
+            v2 = [C[0][1], lambda2 - C[0][0]]
+          } else {
+            if (lambda2 === C[0][0]) {
+              v2 = [1,0]
+            } else {
+              v2 = [0,1]
+            }
+          }
+        normalize v2.
+
+    But note: they should be orthogonal? We can check and then orthogonalize if needed? 
+
+    Alternatively, we can use the fact that for a 2x2 symmetric matrix, the second eigenvector is orthogonal to the first. So we can set v2 = [-v1[1], v1[0]].
+
+    We'll do that.
+
+    So summary for PCA:
+
+      function performPCA() {
+        // Get the two selected variables
+        let var1 = document.getElementById('x-axis').value;
+        let var2 = document.getElementById('y-axis').value;
+
+        // Extract the data for these two variables into an array of [x,y]
+        let points = data.map(d => [d[var1], d[var2]]);
+
+        // If not centered, center these two variables? But the global centering might not have been done on these two? 
+        // We have a global `centered` and `scaled` but they are for all variables. However, the user might have changed the data in the table without recentering? 
+
+        // We'll recenter and rescale the selected two variables locally for PCA? 
+        // But the specification says to scale and center globally. 
+
+        // We'll do: 
+        //   If the user has clicked "Center Data", then the data in the table is centered. Similarly for scaling.
+        //   So we use the current values.
+
+        // Compute means and stddev for these two variables? But if we have already centered, then the means are 0? 
+        // We don't need to recompute.
+
+        // Compute covariance matrix for these two variables:
+        let n = points.length;
+        let cov00 = 0, cov01 = 0, cov11 = 0;
+        for (let i=0; i<n; i++) {
+          cov00 += points[i][0] * points[i][0];
+          cov01 += points[i][0] * points[i][1];
+          cov11 += points[i][1] * points[i][1];
+        }
+        cov00 /= (n-1);
+        cov01 /= (n-1);
+        cov11 /= (n-1);
+
+        let trace = cov00 + cov11;
+        let det = cov00 * cov11 - cov01 * cov01;
+        let discriminant = (trace/2)**2 - det;
+        if (discriminant < 0) {
+          // due to floating point, might be negative
+          discriminant = 0;
+        }
+        let lambda1 = trace/2 + Math.sqrt(discriminant);
+        let lambda2 = trace/2 - Math.sqrt(discriminant);
+
+        // Compute eigenvector for lambda1
+        let v1;
+        if (cov01 !== 0) {
+          v1 = [cov01, lambda1 - cov00];
+        } else {
+          if (lambda1 === cov00) {
+            v1 = [1,0];
+          } else {
+            v1 = [0,1];
+          }
+        }
+        // normalize v1
+        let norm1 = Math.sqrt(v1[0]*v1[0] + v1[1]*v1[1]);
+        v1 = [v1[0]/norm1, v1[1]/norm1];
+
+        // For v2, we take orthogonal: [-v1[1], v1[0]]
+        let v2 = [-v1[1], v1[0]];
+
+        // Now, the transformed data (projected onto PC1 and PC2) is:
+        let transformed = points.map(p => {
+          let x = p[0];
+          let y = p[1];
+          return [
+            x * v1[0] + y * v1[1],   // PC1
+            x * v2[0] + y * v2[1]    // PC2
+          ];
+        });
+
+        // Store the eigenvectors and eigenvalues for the selected variables
+        // And the transformed data
+
+        // Then update the plot in PCA projection mode to show the transformed data.
+      }
+
+    Then in the plot, when in PCA projection mode, we show the transformed data.
+
+    And we draw the principal components? In the transformed plot, the axes are PC1 and PC2, so we don't need to draw lines? 
+
+    But the specification says "display the principal components (PC1 and PC2) as lines on the scatter plot". In the original plot? 
+
+    We can draw them in the original plot as well? 
+
+    We'll do:
+
+      - In the original plot (when not in PCA projection mode), after PCA, we draw two lines (for PC1 and PC2) passing through the origin (which is the mean if centered) and in the direction of the eigenvectors.
+
+    So we'll store the eigenvectors for the selected variables and then in updatePlot (when in original mode) we draw them.
+
+    We'll have:
+
+      let pcaResults = null; // { lambda1, lambda2, v1, v2, transformed }
+
+    And in updatePlot, if we are in original mode and pcaResults exists, we draw the eigenvectors.
+
+    We'll draw a line for PC1: from (0,0) to (scale * v1[0], scale * v1[1]) and similarly for PC2.
+
+    The scale can be set to a fixed value (like 50) or based on the eigenvalue? 
+
+    We'll set the length of the eigenvector line to be proportional to the square root of the eigenvalue (which is the standard deviation along that component). 
+
+    So length = Math.sqrt(lambda1) * some factor (to make it visible).
+
+    We'll choose a factor such that it fits in the plot.

@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Dimension Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: #ecf0f1;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            font-weight: 600;
+            color: #7f8c8d;
+            position: relative;
+        }
+
+        .progress-step.active {
+            color: #2c3e50;
+        }
+
+        .progress-step.active::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: #3498db;
+            border-radius: 50%;
+        }
+
+        .content-area {
+            padding: 30px;
+            min-height: 400px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .intro-text {
+            text-align: center;
+            color: #34495e;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .pca-visual {
+            background: #2c3e50;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+            height: 250px;
+            overflow: hidden;
+        }
+
+        .data-point {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3498db;
+            transform: translate(-50%, -50%);
+        }
+
+        .cluster-1 { background: #e74c3c; }
+        .cluster-2 { background: #2ecc71; }
+
+        .dimension-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .dimension-btn {
+            padding: 12px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .dimension-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .dimension-btn.selected {
+            background: #e74c3c;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .feedback-area {
+            text-align: center;
+            margin: 20px 0;
+            min-height: 60px;
+        }
+
+        .feedback-message {
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .feedback-correct {
+            background: rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+            display: block;
+        }
+
+        .feedback-incorrect {
+            background: rgba(231, 76, 60, 0.2);
+            color: #c0392b;
+            display: block;
+        }
+
+        .score-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .score-star {
+            font-size: 2rem;
+            color: #bdc3c7;
+        }
+
+        .score-star.filled {
+            color: #f1c40f;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            background: #ecf0f1;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-next {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            background: #27ae60;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn-reset {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .results-screen {
+            text-align: center;
+        }
+
+        .final-score {
+            font-size: 5rem;
+            color: #3498db;
+            margin: 20px 0;
+            font-weight: 700;
+        }
+
+        .completion-message {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 600px) {
+            .dimension-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .dimension-btn {
+                width: 100%;
+                max-width: 250px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>Principal Component Analysis</h1>
+            <p>Dimensionality Reduction Challenge</p>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-step active">1. Introduction</div>
+            <div class="progress-step">2. PCA Challenge</div>
+            <div class="progress-step">3. Results</div>
+        </div>
+        
+        <div class="content-area">
+            <!-- Introduction Screen -->
+            <div id="intro-screen" class="screen active">
+                <h2>Understanding PCA</h2>
+                <p class="intro-text">
+                    Principal Component Analysis (PCA) is a statistical technique for simplifying complex datasets 
+                    by reducing dimensions while preserving important patterns. Identify which dimensions contribute 
+                    most to separating data clusters.
+                </p>
+                
+                <div class="pca-visual" id="pca-demo">
+                    <!-- Data points will be generated by JavaScript -->
+                </div>
+                
+                <p class="intro-text">
+                    In this challenge, you'll analyze a dataset with multiple dimensions and identify the two most 
+                    significant dimensions that separate the clusters.
+                </p>
+            </div>
+            
+            <!-- Challenge Screen -->
+            <div id="challenge-screen" class="screen">
+                <h2>Identify Key Dimensions</h2>
+                <p class="intro-text">
+                    Below is a dataset with 5 dimensions. Select the TWO dimensions that best separate the clusters:
+                </p>
+                
+                <div class="dimension-controls">
+                    <button class="dimension-btn" data-dim="1">Income</button>
+                    <button class="dimension-btn" data-dim="2">Loan Amount</button>
+                    <button class="dimension-btn" data-dim="3">Credit Score</button>
+                    <button class="dimension-btn" data-dim="4">Age</button>
+                    <button class="dimension-btn" data-dim="5">Debt Ratio</button>
+                </div>
+                
+                <div class="feedback-area">
+                    <div class="feedback-message" id="feedback-message"></div>
+                </div>
+                
+                <div class="score-container">
+                    <div class="score-star">★</div>
+                    <div class="score-star">★</div>
+                    <div class="score-star">★</div>
+                </div>
+            </div>
+            
+            <!-- Results Screen -->
+            <div id="results-screen" class="screen">
+                <div class="results-screen">
+                    <h2>Analysis Complete!</h2>
+                    <div class="final-score" id="final-score">0%</div>
+                    <p class="completion-message">
+                        You've successfully identified the principal components! The dimensions "Income" and "Loan Amount" 
+                        capture the most variance in the data and best separate the clusters.
+                    </p>
+                    <p class="completion-message">
+                        PCA helps simplify complex datasets by focusing on these key dimensions while minimizing information loss.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-reset" id="reset-btn">Reset</button>
+            <button class="btn btn-next" id="next-btn">Next</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game state
+            const gameState = {
+                currentScreen: 0,
+                selectedDimensions: [],
+                score: 0,
+                maxScore: 3,
+                screens: ['intro-screen', 'challenge-screen', 'results-screen'],
+                correctDimensions: [1, 2] // Income and Loan Amount
+            };
+            
+            // DOM elements
+            const nextBtn = document.getElementById('next-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const feedbackMessage = document.getElementById('feedback-message');
+            const finalScore = document.getElementById('final-score');
+            const stars = document.querySelectorAll('.score-star');
+            const dimensionBtns = document.querySelectorAll('.dimension-btn');
+            const progressSteps = document.querySelectorAll('.progress-step');
+            const pcaDemo = document.getElementById('pca-demo');
+            
+            // Initialize PCA visualization
+            initPCADemo();
+            
+            // Next button functionality
+            nextBtn.addEventListener('click', function() {
+                if (gameState.currentScreen === 1) {
+                    // Validate selection on challenge screen
+                    if (gameState.selectedDimensions.length !== 2) {
+                        showFeedback('Please select exactly two dimensions', false);
+                        return;
+                    }
+                    
+                    // Check if selection is correct
+                    const isCorrect = checkAnswer();
+                    
+                    if (isCorrect) {
+                        gameState.score = gameState.maxScore;
+                        showFeedback('Correct! These dimensions best separate the clusters.', true);
+                        updateStars(gameState.score);
+                        setTimeout(() => nextScreen(), 1500);
+                    } else {
+                        gameState.score = Math.max(0, gameState.score - 1);
+                        showFeedback('Not quite. These dimensions don\'t separate clusters effectively.', false);
+                        updateStars(gameState.score);
+                    }
+                } else {
+                    nextScreen();
+                }
+            });
+            
+            // Reset button functionality
+            resetBtn.addEventListener('click', function() {
+                resetGame();
+            });
+            
+            // Dimension selection
+            dimensionBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const dim = parseInt(this.dataset.dim);
+                    
+                    if (this.classList.contains('selected')) {
+                        this.classList.remove('selected');
+                        gameState.selectedDimensions = gameState.selectedDimensions.filter(d => d !== dim);
+                    } else {
+                        if (gameState.selectedDimensions.length < 2) {
+                            this.classList.add('selected');
+                            gameState.selectedDimensions.push(dim);
+                        }
+                    }
+                    
+                    // Clear feedback when new selection is made
+                    feedbackMessage.className = 'feedback-message';
+                });
+            });
+            
+            // Game functions
+            function nextScreen() {
+                // Hide current screen
+                document.querySelector(`.screen.active`).classList.remove('active');
+                progressSteps[gameState.currentScreen].classList.remove('active');
+                
+                // Move to next screen
+                gameState.currentScreen++;
+                
+                // Show next screen
+                document.getElementById(gameState.screens[gameState.currentScreen]).classList.add('active');
+                progressSteps[gameState.currentScreen].classList.add('active');
+                
+                // Update button text
+                if (gameState.currentScreen === gameState.screens.length - 1) {
+                    nextBtn.textContent = 'Play Again';
+                    finalScore.textContent = `${Math.round((gameState.score / gameState.maxScore) * 100)}%`;
+                } else if (gameState.currentScreen === gameState.screens.length - 2) {
+                    nextBtn.textContent = 'Check Answer';
+                }
+                
+                // Reset button visibility
+                resetBtn.style.display = gameState.currentScreen === 0 ? 'none' : 'block';
+            }
+            
+            function checkAnswer() {
+                // Check if selected dimensions match correct dimensions
+                const selectedSet = new Set(gameState.selectedDimensions);
+                const correctSet = new Set(gameState.correctDimensions);
+                
+                // Check if sets are equal
+                return selectedSet.size === correctSet.size && 
+                       [...selectedSet].every(dim => correctSet.has(dim));
+            }
+            
+            function showFeedback(message, isCorrect) {
+                feedbackMessage.textContent = message;
+                feedbackMessage.className = isCorrect ? 
+                    'feedback-message feedback-correct' : 
+                    'feedback-message feedback-incorrect';
+            }
+            
+            function updateStars(score) {
+                stars.forEach((star, index) => {
+                    if (index < score) {
+                        star.classList.add('filled');
+                    } else {
+                        star.classList.remove('filled');
+                    }
+                });
+            }
+            
+            function resetGame() {
+                // Reset game state
+                gameState.currentScreen = 0;
+                gameState.selectedDimensions = [];
+                gameState.score = 0;
+                
+                // Reset UI
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                document.getElementById('intro-screen').classList.add('active');
+                
+                document.querySelectorAll('.progress-step').forEach((step, index) => {
+                    step.classList.toggle('active', index === 0);
+                });
+                
+                dimensionBtns.forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                
+                feedbackMessage.className = 'feedback-message';
+                updateStars(0);
+                nextBtn.textContent = 'Next';
+                resetBtn.style.display = 'none';
+            }
+            
+            function initPCADemo() {
+                // Create data points for visualization
+                const points = [
+                    { cluster: 1, x: 30, y: 70 },
+                    { cluster: 1, x: 40, y: 60 },
+                    { cluster: 1, x: 50, y: 80 },
+                    { cluster: 1, x: 35, y: 75 },
+                    { cluster: 1, x: 45, y: 65 },
+                    { cluster: 2, x: 70, y: 30 },
+                    { cluster: 2, x: 80, y: 40 },
+                    { cluster: 2, x: 75, y: 35 },
+                    { cluster: 2, x: 65, y: 25 },
+                    { cluster: 2, x: 85, y: 45 }
+                ];
+                
+                // Create point elements
+                points.forEach(point => {
+                    const pointEl = document.createElement('div');
+                    pointEl.className = `data-point cluster-${point.cluster}`;
+                    pointEl.style.left = `${point.x}%`;
+                    pointEl.style.top = `${point.y}%`;
+                    pcaDemo.appendChild(pointEl);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

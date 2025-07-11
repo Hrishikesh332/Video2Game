@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Learning Path Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: #f5f5f5;
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+        
+        nav li {
+            margin: 0 10px;
+        }
+        
+        nav button {
+            background: none;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #333;
+            transition: all 0.3s;
+        }
+        
+        nav button:hover, nav button.active {
+            background-color: #e0e0e0;
+            border-radius: 4px;
+        }
+        
+        .screen {
+            display: none;
+            padding: 30px 0;
+            min-height: 70vh;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #222;
+        }
+        
+        h2 {
+            margin: 20px 0 15px;
+            color: #222;
+        }
+        
+        .module {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .module h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #e0e0e0;
+            color: #333;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .btn-primary {
+            background-color: #4a4a4a;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #333;
+        }
+        
+        .quiz-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+        }
+        
+        .question {
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .option {
+            padding: 12px;
+            background-color: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+        
+        .option:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .option.selected {
+            background-color: #d0d0d0;
+            border-color: #b0b0b0;
+        }
+        
+        .option.correct {
+            background-color: #c8e6c9;
+            border-color: #a5d6a7;
+        }
+        
+        .option.incorrect {
+            background-color: #ffcdd2;
+            border-color: #ef9a9a;
+        }
+        
+        .feedback {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background-color: #c8e6c9;
+            display: block;
+        }
+        
+        .feedback.incorrect {
+            background-color: #ffcdd2;
+            display: block;
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #4a4a4a;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .score-container {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .resources {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed #e0e0e0;
+        }
+        
+        .resources a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+        
+        .resources a:hover {
+            text-decoration: underline;
+        }
+        
+        .completion-badge {
+            display: inline-block;
+            background-color: #4a4a4a;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            nav li {
+                margin: 5px 0;
+            }
+            
+            .module {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav>
+                <ul>
+                    <li><button class="nav-btn active" data-screen="math">Math Foundations</button></li>
+                    <li><button class="nav-btn" data-screen="programming">Programming Skills</button></li>
+                    <li><button class="nav-btn" data-screen="ai">AI Fundamentals</button></li>
+                    <li><button class="nav-btn" data-screen="projects">Projects</button></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Math Foundations Screen -->
+            <section id="math" class="screen active">
+                <h1>Math Foundations</h1>
+                
+                <div class="module">
+                    <h3>Calculus <span id="calculus-badge" class="completion-badge" style="display:none;">Completed</span></h3>
+                    <p>Study of continuous change, focusing on derivatives and integrals.</p>
+                    <button class="btn btn-primary start-quiz" data-module="calculus">Start Quiz</button>
+                    
+                    <div id="calculus-quiz" class="quiz-container" style="display:none;">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="calculus-progress"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="question" id="calculus-question"></div>
+                        <div class="options" id="calculus-options"></div>
+                        <div class="feedback" id="calculus-feedback"></div>
+                        
+                        <button class="btn" id="calculus-next" style="display:none;">Next Question</button>
+                        <button class="btn" id="calculus-restart" style="display:none;">Restart Quiz</button>
+                    </div>
+                    
+                    <div class="resources">
+                        <p>Resources: <a href="https://www.khanacademy.org/math/calculus-1" target="_blank">Khan Academy Calculus</a></p>
+                    </div>
+                </div>
+                
+                <div class="module">
+                    <h3>Linear Algebra <span id="algebra-badge" class="completion-badge" style="display:none;">Completed</span></h3>
+                    <p>Study of vectors, matrices, and linear transformations.</p>
+                    <button class="btn btn-primary start-quiz" data-module="algebra">Start Quiz</button>
+                    
+                    <div class="resources">
+                        <p>Resources: <a href="https://ocw.mit.edu/courses/mathematics/18-06-linear-algebra-spring-2010/" target="_blank">MIT Linear Algebra</a></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Programming Skills Screen -->
+            <section id="programming" class="screen">
+                <h1>Programming Skills</h1>
+                
+                <div class="module">
+                    <h3>Python <span id="python-badge" class="completion-badge" style="display:none;">Completed</span></h3>
+                    <p>High-level programming language known for its readability.</p>
+                    <button class="btn btn-primary start-quiz" data-module="python">Start Quiz</button>
+                    
+                    <div id="python-quiz" class="quiz-container" style="display:none;">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="python-progress"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="question" id="python-question"></div>
+                        <div class="options" id="python-options"></div>
+                        <div class="feedback" id="python-feedback"></div>
+                        
+                        <button class="btn" id="python-next" style="display:none;">Next Question</button>
+                        <button class="btn" id="python-restart" style="display:none;">Restart Quiz</button>
+                    </div>
+                    
+                    <div class="resources">
+                        <p>Resources: <a href="https://developers.google.com/edu/python" target="_blank">Google's Python Class</a></p>
+                    </div>
+                </div>
+                
+                <div class="module">
+                    <h3>Data Structures & Algorithms</h3>
+                    <p>Organization and storage of data for efficient access and modification.</p>
+                    <button class="btn btn-primary">Start Challenge</button>
+                    
+                    <div class="resources">
+                        <p>Resources: <a href="https://www.codecademy.com/learn/paths/data-structures-and-algorithms" target="_blank">Codecademy DSA</a></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Fundamentals Screen -->
+            <section id="ai" class="screen">
+                <h1>AI Fundamentals</h1>
+                
+                <div class="module">
+                    <h3>Machine Learning Path</h3>
+                    <p>Algorithms that improve automatically through experience.</p>
+                    <button class="btn btn-primary">Start Learning Path</button>
+                    
+                    <div class="resources">
+                        <p>Resources: <a href="https://see.stanford.edu/Course/CS229" target="_blank">Stanford CS229</a></p>
+                    </div>
+                </div>
+                
+                <div class="module">
+                    <h3>Artificial Intelligence Path</h3>
+                    <p>Creating systems capable of performing human-like tasks.</p>
+                    <button class="btn btn-primary">Start Learning Path</button>
+                </div>
+            </section>
+
+            <!-- Projects Screen -->
+            <section id="projects" class="screen">
+                <h1>Project Development</h1>
+                
+                <div class="module">
+                    <h3>Project Selection</h3>
+                    <p>Choose a project based on your interests and skills:</p>
+                    <button class="btn">Image Classifier</button>
+                    <button class="btn">Chatbot</button>
+                    <button class="btn">Recommendation System</button>
+                </div>
+                
+                <div class="module">
+                    <h3>Project Guidelines</h3>
+                    <p>Follow these steps to develop a publishable quality project:</p>
+                    <ol>
+                        <li>Define clear objectives</li>
+                        <li>Collect and preprocess data</li>
+                        <li>Select appropriate algorithms</li>
+                        <li>Evaluate and refine your model</li>
+                        <li>Document your process and results</li>
+                    </ol>
+                </div>
+                
+                <div class="module">
+                    <h3>Inspiration Gallery</h3>
+                    <p>Review past projects and conference papers:</p>
+                    <button class="btn">View Project Gallery</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Navigation system
+        document.querySelectorAll('.nav-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active navigation button
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                button.classList.add('active');
+                
+                // Show selected screen
+                const screenId = button.getAttribute('data-screen');
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                document.getElementById(screenId).classList.add('active');
+            });
+        });
+
+        // Quiz data
+        const quizzes = {
+            calculus: [
+                {
+                    question: "What is the derivative of x²?",
+                    options: ["2x", "x", "2x²", "x²"],
+                    answer: 0
+                },
+                {
+                    question: "What does the integral represent?",
+                    options: ["Slope of a curve", "Area under a curve", "Curvature of a function", "Rate of change"],
+                    answer: 1
+                },
+                {
+                    question: "Which rule is used for differentiating composite functions?",
+                    options: ["Product rule", "Quotient rule", "Chain rule", "Power rule"],
+                    answer: 2
+                }
+            ],
+            python: [
+                {
+                    question: "How do you create a list in Python?",
+                    options: ["{1,2,3}", "[1,2,3]", "(1,2,3)", "<1,2,3>"],
+                    answer: 1
+                },
+                {
+                    question: "Which keyword defines a function in Python?",
+                    options: ["func", "def", "function", "define"],
+                    answer: 1
+                },
+                {
+                    question: "What does the 'len()' function do?",
+                    options: ["Converts to lowercase", "Returns length of an object", "Rounds a number", "Imports a library"],
+                    answer: 1
+                }
+            ]
+        };
+
+        // Quiz state management
+        const quizState = {
+            currentModule: null,
+            currentQuestion: 0,
+            score: 0,
+            userAnswers: []
+        };
+
+        // Start quiz function
+        document.querySelectorAll('.start-quiz').forEach(button => {
+            button.addEventListener('click', function() {
+                const module = this.getAttribute('data-module');
+                quizState.currentModule = module;
+                quizState.currentQuestion = 0;
+                quizState.score = 0;
+                quizState.userAnswers = [];
+                
+                // Hide start button and show quiz container
+                this.style.display = 'none';
+                const quizContainer = document.getElementById(`${module}-quiz`);
+                quizContainer.style.display = 'block';
+                
+                // Initialize quiz
+                loadQuestion(module, 0);
+            });
+        });
+
+        // Load question function
+        function loadQuestion(module, index) {
+            const quiz = quizzes[module];
+            const questionElement = document.getElementById(`${module}-question`);
+            const optionsElement = document.getElementById(`${module}-options`);
+            const nextButton = document.getElementById(`${module}-next`);
+            const restartButton = document.getElementById(`${module}-restart`);
+            const feedbackElement = document.getElementById(`${module}-feedback`);
+            const progressElement = document.getElementById(`${module}-progress`);
+            
+            // Reset UI
+            feedbackElement.style.display = 'none';
+            nextButton.style.display = 'none';
+            restartButton.style.display = 'none';
+            optionsElement.innerHTML = '';
+            
+            // Update progress
+            const progressPercent = ((index) / quiz.length) * 100;
+            progressElement.style.width = `${progressPercent}%`;
+            
+            // Display question
+            questionElement.textContent = quiz[index].question;
+            
+            // Display options
+            quiz[index].options.forEach((option, i) => {
+                const optionElement = document.createElement('button');
+                optionElement.classList.add('option');
+                optionElement.textContent = option;
+                optionElement.addEventListener('click', () => checkAnswer(module, i));
+                optionsElement.appendChild(optionElement);
+            });
+        }
+
+        // Check answer function
+        function checkAnswer(module, selectedIndex) {
+            const quiz = quizzes[module];
+            const currentIndex = quizState.currentQuestion;
+            const correctIndex = quiz[currentIndex].answer;
+            const options = document.querySelectorAll(`#${module}-options .option`);
+            const feedbackElement = document.getElementById(`${module}-feedback`);
+            const nextButton = document.getElementById(`${module}-next`);
+            
+            // Disable all options
+            options.forEach(option => {
+                option.disabled = true;
+            });
+            
+            // Mark correct and incorrect answers
+            options.forEach((option, index) => {
+                if (index === correctIndex) {
+                    option.classList.add('correct');
+                } else if (index === selectedIndex) {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            // Update score and store answer
+            const isCorrect = selectedIndex === correctIndex;
+            quizState.userAnswers.push({
+                question: quiz[currentIndex].question,
+                selected: selectedIndex,
+                correct: isCorrect
+            });
+            
+            if (isCorrect) {
+                quizState.score++;
+                feedbackElement.textContent = "Correct!";
+                feedbackElement.className = "feedback correct";
+            } else {
+                feedbackElement.textContent = "Incorrect!";
+                feedbackElement.className = "feedback incorrect";
+            }
+            
+            feedbackElement.style.display = 'block';
+            nextButton.style.display = 'block';
+        }
+
+        // Next question functionality
+        document.getElementById('calculus-next').addEventListener('click', () => handleNextQuestion('calculus'));
+        document.getElementById('python-next').addEventListener('click', () => handleNextQuestion('python'));
+        
+        function handleNextQuestion(module) {
+            quizState.currentQuestion++;
+            
+            if (quizState.currentQuestion < quizzes[module].length) {
+                loadQuestion(module, quizState.currentQuestion);
+            } else {
+                showResults(module);
+            }
+        }
+
+        // Show results function
+        function showResults(module) {
+            const quizContainer = document.getElementById(`${module}-quiz`);
+            const questionElement = document.getElementById(`${module}-question`);
+            const optionsElement = document.getElementById(`${module}-options`);
+            const feedbackElement = document.getElementById(`${module}-feedback`);
+            const nextButton = document.getElementById(`${module}-next`);
+            const restartButton = document.getElementById(`${module}-restart`);
+            const progressElement = document.getElementById(`${module}-progress`);
+            const badgeElement = document.getElementById(`${module}-badge`);
+            
+            // Update UI for results
+            questionElement.textContent = `Quiz Completed! Your Score: ${quizState.score}/${quizzes[module].length}`;
+            optionsElement.innerHTML = '';
+            feedbackElement.style.display = 'none';
+            nextButton.style.display = 'none';
+            restartButton.style.display = 'block';
+            
+            // Update progress bar to 100%
+            progressElement.style.width = '100%';
+            
+            // Show completion badge
+            badgeElement.style.display = 'inline-block';
+        }
+
+        // Restart quiz functionality
+        document.getElementById('calculus-restart').addEventListener('click', () => restartQuiz('calculus'));
+        document.getElementById('python-restart').addEventListener('click', () => restartQuiz('python'));
+        
+        function restartQuiz(module) {
+            const startButton = document.querySelector(`.start-quiz[data-module="${module}"]`);
+            const quizContainer = document.getElementById(`${module}-quiz`);
+            
+            // Reset UI
+            startButton.style.display = 'inline-block';
+            quizContainer.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

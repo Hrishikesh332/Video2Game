@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Psychological Sigh Breathing Exercise</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        h1, h2, h3 {
+            color: #212529;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .active {
+            display: flex;
+        }
+
+        .btn {
+            background-color: #e9ecef;
+            color: #212529;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .btn:hover {
+            background-color: #dee2e6;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background-color: #495057;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #343a40;
+        }
+
+        .breathing-circle {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px auto;
+            transition: all 1s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .circle-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: radial-gradient(circle, #dee2e6 0%, #e9ecef 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+        }
+
+        .timer {
+            font-size: 48px;
+            font-weight: 700;
+            color: #212529;
+            z-index: 2;
+        }
+
+        .instruction {
+            font-size: 24px;
+            font-weight: 600;
+            text-align: center;
+            min-height: 36px;
+        }
+
+        .phase-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .phase-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #adb5bd;
+        }
+
+        .phase-dot.active {
+            background-color: #495057;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            height: 10px;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #495057;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .round-counter {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .setting-item label {
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .setting-item input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .benefits-list {
+            text-align: left;
+            padding-left: 20px;
+            margin: 20px 0;
+            width: 100%;
+        }
+
+        .benefits-list li {
+            margin-bottom: 10px;
+        }
+
+        .stars {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 15px 0;
+        }
+
+        .star {
+            font-size: 32px;
+            color: #e9ecef;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .star.active, .star:hover {
+            color: #ffc107;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            resize: none;
+            font-size: 16px;
+            margin: 15px 0;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .breathing-circle {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .timer {
+                font-size: 36px;
+            }
+            
+            .instruction {
+                font-size: 20px;
+            }
+            
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Welcome Screen -->
+        <section id="welcome-screen" class="screen active">
+            <h1>Psychological Sigh Breathing</h1>
+            <p>A powerful technique to reduce stress and promote relaxation through controlled breathing patterns.</p>
+            <button id="start-btn" class="btn btn-primary">Start Exercise</button>
+            <button id="learn-btn" class="btn">Learn Technique</button>
+            <button id="settings-btn" class="btn">Settings</button>
+        </section>
+
+        <!-- Settings Screen -->
+        <section id="settings-screen" class="screen">
+            <h2>Customize Your Session</h2>
+            <div class="settings-grid">
+                <div class="setting-item">
+                    <label for="inhale-time">Inhale (sec)</label>
+                    <input type="number" id="inhale-time" min="2" max="10" value="5">
+                </div>
+                <div class="setting-item">
+                    <label for="hold-time">Hold (sec)</label>
+                    <input type="number" id="hold-time" min="1" max="10" value="3">
+                </div>
+                <div class="setting-item">
+                    <label for="exhale-time">Exhale (sec)</label>
+                    <input type="number" id="exhale-time" min="3" max="15" value="7">
+                </div>
+                <div class="setting-item">
+                    <label for="rounds">Rounds</label>
+                    <input type="number" id="rounds" min="1" max="15" value="5">
+                </div>
+            </div>
+            <div class="action-row">
+                <button id="save-settings" class="btn btn-primary">Save & Start</button>
+                <button id="back-settings" class="btn">Back</button>
+            </div>
+        </section>
+
+        <!-- Breathing Exercise Screen -->
+        <section id="exercise-screen" class="screen">
+            <h2>Follow the Breathing Pattern</h2>
+            <div class="phase-indicator">
+                <div class="phase-dot" id="phase-inhale"></div>
+                <div class="phase-dot" id="phase-hold"></div>
+                <div class="phase-dot" id="phase-exhale"></div>
+            </div>
+            <div class="breathing-circle">
+                <div class="circle-inner">
+                    <div class="timer" id="countdown">5</div>
+                </div>
+            </div>
+            <div class="instruction" id="breath-instruction">Inhale Deeply</div>
+            <div class="round-counter" id="round-display">Round: 1/5</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="session-progress"></div>
+            </div>
+            <button id="pause-btn" class="btn">Pause</button>
+            <button id="stop-btn" class="btn">End Session</button>
+        </section>
+
+        <!-- Technique Info Screen -->
+        <section id="info-screen" class="screen">
+            <h2>The Psychological Sigh</h2>
+            <p>This breathing pattern consists of:</p>
+            <p><strong>Double Inhale</strong> → <strong>Hold</strong> → <strong>Long Exhale</strong></p>
+            
+            <h3>Benefits:</h3>
+            <ul class="benefits-list">
+                <li>Rapidly reduces stress and anxiety</li>
+                <li>Balances oxygen and CO₂ levels in bloodstream</li>
+                <li>Activates parasympathetic nervous system</li>
+                <li>Lowers heart rate and blood pressure</li>
+                <li>Improves mental clarity and focus</li>
+            </ul>
+            
+            <h3>Tips for Practice:</h3>
+            <ul class="benefits-list">
+                <li>Sit upright with relaxed shoulders</li>
+                <li>Focus on the physical sensation of air moving</li>
+                <li>Make exhales longer than inhales</li>
+                <li>Practice 2-3 times daily for best results</li>
+            </ul>
+            
+            <div class="action-row">
+                <button id="start-from-info" class="btn btn-primary">Start Exercise</button>
+                <button id="back-info" class="btn">Back</button>
+            </div>
+        </section>
+
+        <!-- Feedback Screen -->
+        <section id="feedback-screen" class="screen">
+            <h2>Session Complete!</h2>
+            <p>How was your breathing experience?</p>
+            
+            <div class="stars">
+                <div class="star" data-rating="1">★</div>
+                <div class="star" data-rating="2">★</div>
+                <div class="star" data-rating="3">★</div>
+                <div class="star" data-rating="4">★</div>
+                <div class="star" data-rating="5">★</div>
+            </div>
+            
+            <textarea id="feedback-text" placeholder="Optional comments or suggestions..."></textarea>
+            
+            <div class="action-row">
+                <button id="submit-feedback" class="btn btn-primary">Submit Feedback</button>
+                <button id="restart-btn" class="btn">Practice Again</button>
+            </div>
+            
+            <div class="action-row">
+                <button id="share-btn" class="btn">Share</button>
+                <button id="resources-btn" class="btn">Learn More</button>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // DOM Elements
+        const screens = {
+            welcome: document.getElementById('welcome-screen'),
+            settings: document.getElementById('settings-screen'),
+            exercise: document.getElementById('exercise-screen'),
+            info: document.getElementById('info-screen'),
+            feedback: document.getElementById('feedback-screen')
+        };
+
+        const buttons = {
+            start: document.getElementById('start-btn'),
+            learn: document.getElementById('learn-btn'),
+            settings: document.getElementById('settings-btn'),
+            saveSettings: document.getElementById('save-settings'),
+            backSettings: document.getElementById('back-settings'),
+            pause: document.getElementById('pause-btn'),
+            stop: document.getElementById('stop-btn'),
+            startFromInfo: document.getElementById('start-from-info'),
+            backInfo: document.getElementById('back-info'),
+            submitFeedback: document.getElementById('submit-feedback'),
+            restart: document.getElementById('restart-btn'),
+            share: document.getElementById('share-btn'),
+            resources: document.getElementById('resources-btn')
+        };
+
+        // Exercise Elements
+        const breathingCircle = document.querySelector('.breathing-circle');
+        const countdownEl = document.getElementById('countdown');
+        const instructionEl = document.getElementById('breath-instruction');
+        const roundDisplay = document.getElementById('round-display');
+        const progressBar = document.getElementById('session-progress');
+        const phaseDots = {
+            inhale: document.getElementById('phase-inhale'),
+            hold: document.getElementById('phase-hold'),
+            exhale: document.getElementById('phase-exhale')
+        };
+
+        // Settings Elements
+        const inhaleInput = document.getElementById('inhale-time');
+        const holdInput = document.getElementById('hold-time');
+        const exhaleInput = document.getElementById('exhale-time');
+        const roundsInput = document.getElementById('rounds');
+
+        // Feedback Elements
+        const stars = document.querySelectorAll('.star');
+        const feedbackText = document.getElementById('feedback-text');
+
+        // App State
+        let appState = {
+            currentScreen: 'welcome',
+            isPaused: false,
+            currentRound: 1,
+            totalRounds: 5,
+            currentPhase: 'inhale',
+            timeRemaining: 5,
+            timerId: null,
+            settings: {
+                inhale: 5,
+                hold: 3,
+                exhale: 7,
+                rounds: 5
+            },
+            userRating: 0
+        };
+
+        // Switch between screens
+        function showScreen(screenName) {
+            Object.values(screens).forEach(screen => {
+                screen.classList.remove('active');
+            });
+            screens[screenName].classList.add('active');
+            appState.currentScreen = screenName;
+        }
+
+        // Initialize settings from inputs
+        function loadSettings() {
+            appState.settings = {
+                inhale: parseInt(inhaleInput.value),
+                hold: parseInt(holdInput.value),
+                exhale: parseInt(exhaleInput.value),
+                rounds: parseInt(roundsInput.value)
+            };
+        }
+
+        // Start the breathing exercise
+        function startExercise() {
+            loadSettings();
+            appState.currentRound = 1;
+            appState.totalRounds = appState.settings.rounds;
+            appState.currentPhase = 'inhale';
+            appState.timeRemaining = appState.settings.inhale;
+            appState.isPaused = false;
+            
+            updateRoundDisplay();
+            updateProgressBar();
+            startPhase();
+            showScreen('exercise');
+        }
+
+        // Handle each breathing phase
+        function startPhase() {
+            resetPhaseDots();
+            phaseDots[appState.currentPhase].classList.add('active');
+            
+            // Update UI based on current phase
+            switch(appState.currentPhase) {
+                case 'inhale':
+                    instructionEl.textContent = 'INHALE DEEPLY';
+                    breathingCircle.style.transform = 'scale(1.5)';
+                    break;
+                case 'hold':
+                    instructionEl.textContent = 'HOLD';
+                    break;
+                case 'exhale':
+                    instructionEl.textContent = 'EXHALE SLOWLY';
+                    breathingCircle.style.transform = 'scale(1)';
+                    break;
+            }
+            
+            countdownEl.textContent = appState.timeRemaining;
+            
+            // Start countdown
+            if (appState.timerId) clearInterval(appState.timerId);
+            appState.timerId = setInterval(updateTimer, 1000);
+        }
+
+        // Update timer each second
+        function updateTimer() {
+            if (appState.isPaused) return;
+            
+            appState.timeRemaining--;
+            countdownEl.textContent = appState.timeRemaining;
+            
+            if (appState.timeRemaining <= 0) {
+                nextPhase();
+            }
+        }
+
+        // Move to next breathing phase
+        function nextPhase() {
+            clearInterval(appState.timerId);
+            
+            switch(appState.currentPhase) {
+                case 'inhale':
+                    appState.currentPhase = 'hold';
+                    appState.timeRemaining = appState.settings.hold;
+                    break;
+                case 'hold':
+                    appState.currentPhase = 'exhale';
+                    appState.timeRemaining = appState.settings.exhale;
+                    break;
+                case 'exhale':
+                    appState.currentRound++;
+                    if (appState.currentRound > appState.totalRounds) {
+                        completeSession();
+                        return;
+                    }
+                    appState.currentPhase = 'inhale';
+                    appState.timeRemaining = appState.settings.inhale;
+                    updateRoundDisplay();
+                    break;
+            }
+            
+            updateProgressBar();
+            startPhase();
+        }
+
+        // Update round display
+        function updateRoundDisplay() {
+            roundDisplay.textContent = `Round: ${appState.currentRound}/${appState.totalRounds}`;
+        }
+
+        // Update progress bar
+        function updateProgressBar() {
+            const progress = ((appState.currentRound - 1) / appState.totalRounds) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // Reset phase indicators
+        function resetPhaseDots() {
+            Object.values(phaseDots).forEach(dot => {
+                dot.classList.remove('active');
+            });
+        }
+
+        // Complete session
+        function completeSession() {
+            clearInterval(appState.timerId);
+            breathingCircle.style.transform = 'scale(1)';
+            showScreen('feedback');
+        }
+
+        // Toggle pause state
+        function togglePause() {
+            appState.isPaused = !appState.isPaused;
+            buttons.pause.textContent = appState.isPaused ? 'Resume' : 'Pause';
+        }
+
+        // Handle star rating
+        function setRating(rating) {
+            appState.userRating = rating;
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        // Submit feedback
+        function submitFeedback() {
+            const comment = feedbackText.value;
+            // In a real app, you would send this to a server
+            alert('Thank you for your feedback!');
+            showScreen('welcome');
+        }
+
+        // Share functionality
+        function shareExperience() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Psychological Sigh Breathing',
+                    text: 'I just completed a breathing exercise session! Try it yourself.',
+                    url: window.location.href
+                }).catch(console.error);
+            } else {
+                alert('Share this URL: ' + window.location.href);
+            }
+        }
+
+        // Show resources
+        function showResources() {
+            window.open('https://www.health.harvard.edu/mind-and-mood/relaxation-techniques-breath-control-helps-quell-errant-stress-response', '_blank');
+        }
+
+        // Event Listeners
+        buttons.start.addEventListener('click', () => startExercise());
+        buttons.learn.addEventListener('click', () => showScreen('info'));
+        buttons.settings.addEventListener('click', () => showScreen('settings'));
+        buttons.saveSettings.addEventListener('click', () => startExercise());
+        buttons.backSettings.addEventListener('click', () => showScreen('welcome'));
+        buttons.pause.addEventListener('click', togglePause);
+        buttons.stop.addEventListener('click', () => showScreen('feedback'));
+        buttons.startFromInfo.addEventListener('click', () => startExercise());
+        buttons.backInfo.addEventListener('click', () => showScreen('welcome'));
+        buttons.submitFeedback.addEventListener('click', submitFeedback);
+        buttons.restart.addEventListener('click', () => startExercise());
+        buttons.share.addEventListener('click', shareExperience);
+        buttons.resources.addEventListener('click', showResources);
+
+        // Star rating
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                setRating(parseInt(star.dataset.rating));
+            });
+        });
+
+        // Initialize
+        breathingCircle.style.transition = 'transform 1s ease';
+    </script>
+</body>
+</html>

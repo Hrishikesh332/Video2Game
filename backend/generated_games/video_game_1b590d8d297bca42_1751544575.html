@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grok-3 Interactive Challenge</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .screen {
+            display: none;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        h1, h2, h3 {
+            color: #212529;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        p {
+            margin-bottom: 15px;
+        }
+        
+        .btn {
+            background-color: #495057;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #343a40;
+        }
+        
+        .mode-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .mode-card {
+            background-color: #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .mode-card:hover {
+            background-color: #dee2e6;
+            transform: translateY(-3px);
+        }
+        
+        .mode-card h3 {
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        
+        .chat-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+        
+        .user-message {
+            background-color: #e9ecef;
+            margin-left: auto;
+        }
+        
+        .grok-message {
+            background-color: #dee2e6;
+            margin-right: auto;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        input, textarea {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .step-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid #dee2e6;
+        }
+        
+        .step {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            background-color: #e9ecef;
+            border-radius: 20px;
+            padding: 5px;
+        }
+        
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+        
+        .progress-active {
+            background-color: #495057;
+            color: white;
+        }
+        
+        .score-container {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .voice-btn {
+            background-color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .result-feedback {
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .mode-selector {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Start Screen -->
+    <div id="startScreen" class="screen active">
+        <h1>Grok-3 AI Challenge</h1>
+        <p>Test your knowledge of Grok-3, the advanced AI with enhanced reasoning capabilities. Complete challenges across different modes to maximize your score!</p>
+        <button id="startBtn" class="btn">Begin Challenge</button>
+    </div>
+    
+    <!-- Mode Selection Screen -->
+    <div id="modeScreen" class="screen">
+        <h2>Select Challenge Mode</h2>
+        <p>Choose how you want to interact with Grok-3:</p>
+        
+        <div class="mode-selector">
+            <div class="mode-card" data-mode="chat">
+                <h3>Interactive Chat</h3>
+                <p>Ask Grok-3 questions and get detailed answers with reasoning.</p>
+            </div>
+            
+            <div class="mode-card" data-mode="think">
+                <h3>Think Mode</h3>
+                <p>Solve problems step-by-step with Grok-3's guidance.</p>
+            </div>
+            
+            <div class="mode-card" data-mode="bigbrain">
+                <h3>Big Brain Mode</h3>
+                <p>Tackle complex challenges requiring advanced reasoning.</p>
+            </div>
+        </div>
+        
+        <div class="score-container">
+            Score: <span id="currentScore">0</span>
+        </div>
+    </div>
+    
+    <!-- Chat Mode Screen -->
+    <div id="chatScreen" class="screen">
+        <h2>Interactive Chat Mode</h2>
+        <p>Ask Grok-3 questions about its capabilities. Try to discover key features!</p>
+        
+        <div class="progress-container">
+            <div class="progress-step progress-active">1</div>
+            <div class="progress-step">2</div>
+            <div class="progress-step">3</div>
+        </div>
+        
+        <div class="chat-container" id="chatHistory">
+            <div class="message grok-message">
+                Hello! I'm Grok-3. Ask me about my capabilities or how I work.
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <input type="text" id="chatInput" placeholder="Type your question...">
+            <button id="sendBtn" class="btn">Send</button>
+        </div>
+        
+        <button id="voiceBtn" class="btn voice-btn">
+            <span>🎤</span> Voice Question
+        </button>
+        
+        <button id="nextChatBtn" class="btn" style="display:none;">Next Challenge</button>
+    </div>
+    
+    <!-- Think Mode Screen -->
+    <div id="thinkScreen" class="screen">
+        <h2>Think Mode Challenge</h2>
+        <p>Solve this problem step-by-step with Grok-3's guidance.</p>
+        
+        <div class="progress-container">
+            <div class="progress-step">1</div>
+            <div class="progress-step progress-active">2</div>
+            <div class="progress-step">3</div>
+        </div>
+        
+        <div class="step-container">
+            <h3>Problem: Grok-3's Processing Power</h3>
+            <p>Grok-3 can process 5,000 data points per second. How many data points can it process in 2.5 minutes?</p>
+            
+            <div class="step">
+                <p><strong>Step 1:</strong> Convert minutes to seconds</p>
+                <div class="input-group">
+                    <input type="number" id="step1Input" placeholder="Seconds">
+                    <button id="step1Btn" class="btn">Check Answer</button>
+                </div>
+            </div>
+            
+            <div class="step">
+                <p><strong>Step 2:</strong> Calculate total data points</p>
+                <div class="input-group">
+                    <input type="number" id="step2Input" placeholder="Data points">
+                    <button id="step2Btn" class="btn">Check Answer</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="thinkFeedback" class="result-feedback"></div>
+        <button id="nextThinkBtn" class="btn" style="display:none;">Next Challenge</button>
+    </div>
+    
+    <!-- Big Brain Mode Screen -->
+    <div id="bigbrainScreen" class="screen">
+        <h2>Big Brain Mode Challenge</h2>
+        <p>Solve this complex problem using Grok-3's advanced reasoning capabilities.</p>
+        
+        <div class="progress-container">
+            <div class="progress-step">1</div>
+            <div class="progress-step">2</div>
+            <div class="progress-step progress-active">3</div>
+        </div>
+        
+        <div class="step-container">
+            <h3>Problem: AI Training Efficiency</h3>
+            <p>Grok-3 is training on a dataset with 1.2 million samples. It processes samples at 3 different speeds:</p>
+            <ul>
+                <li>First 30% at 400 samples/second</li>
+                <li>Next 50% at 550 samples/second</li>
+                <li>Final 20% at 700 samples/second</li>
+            </ul>
+            <p>Calculate the total training time in minutes.</p>
+            
+            <div class="input-group">
+                <input type="number" id="bigbrainInput" placeholder="Total minutes">
+                <button id="bigbrainSubmit" class="btn">Submit Answer</button>
+            </div>
+        </div>
+        
+        <div id="bigbrainFeedback" class="result-feedback"></div>
+        <button id="nextBigbrainBtn" class="btn" style="display:none;">See Results</button>
+    </div>
+    
+    <!-- Results Screen -->
+    <div id="resultsScreen" class="screen">
+        <h2>Challenge Complete!</h2>
+        
+        <div class="score-container">
+            Final Score: <span id="finalScore">0</span>
+        </div>
+        
+        <div id="highScoreContainer" style="margin: 20px 0; font-size: 18px;">
+            High Score: <span id="highScore">0</span>
+        </div>
+        
+        <div id="performanceFeedback" class="result-feedback success">
+            Great job! You've demonstrated strong reasoning skills.
+        </div>
+        
+        <button id="restartBtn" class="btn">Play Again</button>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            currentScreen: 'start',
+            currentMode: '',
+            currentChallenge: 0,
+            score: 0,
+            challenges: [
+                {
+                    mode: 'chat',
+                    questions: [
+                        "What makes Grok-3 different from previous models?",
+                        "How does Think Mode work?",
+                        "What is Big Brain Mode used for?"
+                    ],
+                    answers: [
+                        "Grok-3 has enhanced computing power and reasoning capabilities",
+                        "Think Mode guides users through step-by-step problem solving",
+                        "Big Brain Mode handles demanding challenges requiring serious computational muscle"
+                    ],
+                    completed: false
+                },
+                {
+                    mode: 'think',
+                    steps: [
+                        { answer: 150, points: 20 }, // 2.5 * 60 = 150
+                        { answer: 750000, points: 30 } // 5000 * 150 = 750,000
+                    ],
+                    completed: false
+                },
+                {
+                    mode: 'bigbrain',
+                    answer: 41.67, // Total time in minutes
+                    points: 50,
+                    completed: false
+                }
+            ]
+        };
+
+        // DOM Elements
+        const screens = {
+            start: document.getElementById('startScreen'),
+            mode: document.getElementById('modeScreen'),
+            chat: document.getElementById('chatScreen'),
+            think: document.getElementById('thinkScreen'),
+            bigbrain: document.getElementById('bigbrainScreen'),
+            results: document.getElementById('resultsScreen')
+        };
+
+        // Navigation
+        document.getElementById('startBtn').addEventListener('click', () => showScreen('mode'));
+        
+        // Mode selection
+        document.querySelectorAll('.mode-card').forEach(card => {
+            card.addEventListener('click', () => {
+                gameState.currentMode = card.dataset.mode;
+                gameState.currentChallenge = gameState.challenges.findIndex(c => c.mode === gameState.currentMode);
+                showScreen(gameState.currentMode);
+                resetChallenge(gameState.currentMode);
+            });
+        });
+
+        // Chat Mode
+        const chatHistory = document.getElementById('chatHistory');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const nextChatBtn = document.getElementById('nextChatBtn');
+        
+        let chatQuestionIndex = 0;
+        
+        sendBtn.addEventListener('click', processChatInput);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') processChatInput();
+        });
+        
+        voiceBtn.addEventListener('click', () => {
+            const question = gameState.challenges[0].questions[chatQuestionIndex];
+            chatInput.value = question;
+            processChatInput();
+        });
+        
+        nextChatBtn.addEventListener('click', () => {
+            if (gameState.currentChallenge === 0) {
+                showScreen('mode');
+            } else {
+                showScreen('results');
+            }
+        });
+
+        // Think Mode
+        const step1Btn = document.getElementById('step1Btn');
+        const step2Btn = document.getElementById('step2Btn');
+        const nextThinkBtn = document.getElementById('nextThinkBtn');
+        const thinkFeedback = document.getElementById('thinkFeedback');
+        
+        step1Btn.addEventListener('click', () => checkStep(0));
+        step2Btn.addEventListener('click', () => checkStep(1));
+        nextThinkBtn.addEventListener('click', () => {
+            if (gameState.currentChallenge === 1) {
+                showScreen('mode');
+            } else {
+                showScreen('results');
+            }
+        });
+
+        // Big Brain Mode
+        const bigbrainSubmit = document.getElementById('bigbrainSubmit');
+        const bigbrainFeedback = document.getElementById('bigbrainFeedback');
+        const nextBigbrainBtn = document.getElementById('nextBigbrainBtn');
+        
+        bigbrainSubmit.addEventListener('click', checkBigBrainSolution);
+        nextBigbrainBtn.addEventListener('click', () => showScreen('results'));
+
+        // Results Screen
+        const restartBtn = document.getElementById('restartBtn');
+        restartBtn.addEventListener('click', () => {
+            resetGame();
+            showScreen('start');
+        });
+
+        // Game functions
+        function showScreen(screenName) {
+            Object.values(screens).forEach(screen => screen.classList.remove('active'));
+            screens[screenName].classList.add('active');
+            gameState.currentScreen = screenName;
+            
+            // Update score display
+            document.getElementById('currentScore').textContent = gameState.score;
+            document.getElementById('finalScore').textContent = gameState.score;
+            
+            // Update high score
+            updateHighScore();
+        }
+        
+        function resetChallenge(mode) {
+            if (mode === 'chat') {
+                chatHistory.innerHTML = '<div class="message grok-message">Hello! I\'m Grok-3. Ask me about my capabilities or how I work.</div>';
+                chatInput.value = '';
+                chatQuestionIndex = 0;
+                nextChatBtn.style.display = 'none';
+                
+                // Reset progress indicators
+                document.querySelectorAll('.progress-step').forEach((step, index) => {
+                    step.classList.toggle('progress-active', index === 0);
+                });
+            }
+        }
+        
+        function resetGame() {
+            gameState.score = 0;
+            gameState.currentChallenge = 0;
+            gameState.challenges.forEach(challenge => challenge.completed = false);
+        }
+        
+        function processChatInput() {
+            const question = chatInput.value.trim();
+            if (!question) return;
+            
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.classList.add('message', 'user-message');
+            userMessage.textContent = question;
+            chatHistory.appendChild(userMessage);
+            
+            // Process question
+            const challenge = gameState.challenges[0];
+            let response = "I'm not sure how to answer that. Try asking about my capabilities or features.";
+            
+            if (challenge.questions.includes(question)) {
+                response = challenge.answers[challenge.questions.indexOf(question)];
+                gameState.score += 20;
+                document.getElementById('currentScore').textContent = gameState.score;
+                
+                // Move to next question
+                chatQuestionIndex++;
+                
+                if (chatQuestionIndex >= challenge.questions.length) {
+                    challenge.completed = true;
+                    nextChatBtn.style.display = 'block';
+                }
+            }
+            
+            // Add Grok response
+            const grokMessage = document.createElement('div');
+            grokMessage.classList.add('message', 'grok-message');
+            grokMessage.textContent = response;
+            chatHistory.appendChild(grokMessage);
+            
+            // Clear input and scroll to bottom
+            chatInput.value = '';
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            
+            // Update progress
+            if (chatQuestionIndex < 3) {
+                document.querySelectorAll('.progress-step').forEach((step, index) => {
+                    step.classList.toggle('progress-active', index === chatQuestionIndex);
+                });
+            }
+        }
+        
+        function checkStep(stepIndex) {
+            const challenge = gameState.challenges[1];
+            const inputField = stepIndex === 0 ? document.getElementById('step1Input') : document.getElementById('step2Input');
+            const userAnswer = parseFloat(inputField.value);
+            const correctAnswer = challenge.steps[stepIndex].answer;
+            
+            if (userAnswer === correctAnswer) {
+                thinkFeedback.textContent = `Correct! +${challenge.steps[stepIndex].points} points`;
+                thinkFeedback.className = 'result-feedback success';
+                gameState.score += challenge.steps[stepIndex].points;
+                document.getElementById('currentScore').textContent = gameState.score;
+                
+                // Disable this step
+                inputField.disabled = true;
+                (stepIndex === 0 ? step1Btn : step2Btn).disabled = true;
+                
+                // If both steps completed
+                if (document.getElementById('step1Input').disabled && 
+                    document.getElementById('step2Input').disabled) {
+                    challenge.completed = true;
+                    nextThinkBtn.style.display = 'block';
+                }
+            } else {
+                thinkFeedback.textContent = 'Incorrect. Try again!';
+                thinkFeedback.className = 'result-feedback error';
+            }
+        }
+        
+        function checkBigBrainSolution() {
+            const challenge = gameState.challenges[2];
+            const userAnswer = parseFloat(document.getElementById('bigbrainInput').value);
+            const correctAnswer = challenge.answer;
+            const tolerance = 0.1; // Allow for rounding differences
+            
+            if (Math.abs(userAnswer - correctAnswer) < tolerance) {
+                bigbrainFeedback.textContent = `Correct! +${challenge.points} points`;
+                bigbrainFeedback.className = 'result-feedback success';
+                gameState.score += challenge.points;
+                challenge.completed = true;
+                nextBigbrainBtn.style.display = 'block';
+            } else {
+                bigbrainFeedback.textContent = 'Incorrect. Try again!';
+                bigbrainFeedback.className = 'result-feedback error';
+            }
+            
+            document.getElementById('currentScore').textContent = gameState.score;
+        }
+        
+        function updateHighScore() {
+            let highScore = localStorage.getItem('grokHighScore') || 0;
+            if (gameState.score > highScore) {
+                highScore = gameState.score;
+                localStorage.setItem('grokHighScore', highScore);
+            }
+            document.getElementById('highScore').textContent = highScore;
+        }
+    </script>
+</body>
+</html>

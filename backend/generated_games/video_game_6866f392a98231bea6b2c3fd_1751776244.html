@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hard Margin Classifier Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222222;
+        }
+        
+        .subtitle {
+            color: #555555;
+            font-size: 1.1rem;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .canvas-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .info-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #222222;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        #svmCanvas {
+            background-color: white;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            width: 100%;
+            height: 400px;
+            cursor: pointer;
+            touch-action: none;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        
+        button {
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            color: #333333;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            background-color: #d0d0d0;
+        }
+        
+        button.active {
+            background-color: #a0a0a0;
+            color: white;
+        }
+        
+        .data-points {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        
+        .positive {
+            color: #0066cc;
+        }
+        
+        .negative {
+            color: #cc0000;
+        }
+        
+        .info-panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .info-panel h3 {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            color: #222222;
+        }
+        
+        .info-panel p {
+            margin-bottom: 15px;
+            color: #444444;
+        }
+        
+        .equation {
+            font-family: 'Courier New', monospace;
+            background-color: #f0f0f0;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        
+        .support-vector {
+            padding: 8px 12px;
+            background-color: #f0f0f0;
+            border-radius: 6px;
+            margin: 8px 0;
+            font-family: monospace;
+        }
+        
+        .tutorial {
+            background-color: #f8f8f8;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .tutorial h2 {
+            margin-bottom: 15px;
+        }
+        
+        .tutorial-step {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #d0d0d0;
+        }
+        
+        .tutorial-step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .tutorial-step h3 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #333333;
+        }
+        
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+            }
+            
+            button {
+                min-width: 100px;
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Hard Margin Classifier Explorer</h1>
+        <p class="subtitle">Interactive SVM Visualization</p>
+    </header>
+    
+    <div class="game-container">
+        <div class="canvas-section">
+            <h2>Interactive Canvas</h2>
+            <canvas id="svmCanvas"></canvas>
+            
+            <div class="controls">
+                <button id="addPositiveBtn">Add Positive (+) Point</button>
+                <button id="addNegativeBtn">Add Negative (-) Point</button>
+                <button id="drawHyperplaneBtn">Draw Hyperplane</button>
+                <button id="autoAdjustBtn">Auto-Adjust Hyperplane</button>
+                <button id="toggleEquationsBtn">Toggle Equations</button>
+            </div>
+            
+            <div class="data-points">
+                <div class="positive">Positive Points: <span id="positiveCount">0</span></div>
+                <div class="negative">Negative Points: <span id="negativeCount">0</span></div>
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <h2>Classifier Information</h2>
+            
+            <div class="info-panel">
+                <h3>Hyperplane Equation</h3>
+                <div id="hyperplaneEquation" class="equation">w<sup>T</sup>x + b = 0</div>
+            </div>
+            
+            <div class="info-panel">
+                <h3>Margin Information</h3>
+                <p>Margin Width: <span id="marginWidth">0.00</span></p>
+                <p>Support Vector Distance: <span id="svDistance">0.00</span></p>
+            </div>
+            
+            <div class="info-panel">
+                <h3>Support Vectors</h3>
+                <div id="supportVectors">
+                    <div class="support-vector">No support vectors identified</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="tutorial">
+        <h2>How to Use This Explorer</h2>
+    </div>
+</body>
+</html>

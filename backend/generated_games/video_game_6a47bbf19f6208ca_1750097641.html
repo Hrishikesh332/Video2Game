@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Server Challenge</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+        
+        .description {
+            color: #555;
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .panel {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .instructions {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+        
+        .code-editor {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 15px;
+            min-height: 150px;
+            overflow: auto;
+        }
+        
+        .code-line {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        input, button {
+            padding: 10px 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        
+        input {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        button {
+            background-color: #4a4a4a;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #333;
+        }
+        
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        
+        .output {
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .status-light {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: #e74c3c;
+        }
+        
+        .status-light.connected {
+            background-color: #2ecc71;
+        }
+        
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .progress-step {
+            text-align: center;
+            z-index: 2;
+            width: 30%;
+        }
+        
+        .step-number {
+            width: 35px;
+            height: 35px;
+            background-color: #ddd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+        }
+        
+        .step-number.active {
+            background-color: #4a4a4a;
+            color: white;
+        }
+        
+        .progress-bar {
+            position: absolute;
+            height: 4px;
+            background-color: #ddd;
+            top: 17px;
+            left: 15%;
+            right: 15%;
+            z-index: 1;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #4a4a4a;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .weather-display {
+            display: none;
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+        
+        .success-message {
+            color: #2ecc71;
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+            }
+            
+            input, button {
+                width: 100%;
+            }
+            
+            .progress-step {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Weather Server Challenge</h1>
+        <p class="description">Learn to create and interact with a weather server using Model Context Protocol</p>
+    </header>
+    
+    <div class="progress-container">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-step">
+            <div class="step-number active" id="step-1">1</div>
+            <div>Server Setup</div>
+        </div>
+        <div class="progress-step">
+            <div class="step-number" id="step-2">2</div>
+            <div>Connection Test</div>
+        </div>
+        <div class="progress-step">
+            <div class="step-number" id="step-3">3</div>
+            <div>Weather Data</div>
+        </div>
+    </div>
+    
+    <div class="game-container">
+        <div class="panel">
+            <h2>Server Connection</h2>
+            <div class="status-indicator">
+                <div class="status-light" id="status-light"></div>
+                <span id="status-text">Server disconnected</span>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Code Editor</h2>
+            <div class="instructions" id="instructions">
+                <strong>Level 1:</strong> Create your weather server. Type the command to initialize the server.
+            </div>
+            
+            <div class="code-editor" id="code-editor">
+                <span class="code-line">> weatherServer = new Server();</span>
+                <span class="code-line" id="command-line">> </span>
+            </div>
+            
+            <div class="input-group">
+                <input type="text" id="code-input" placeholder="Enter your server command...">
+                <button id="run-btn">Run Code</button>
+            </div>
+            
+            <div class="success-message" id="success-message">
+                Success! Server initialized correctly.
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>Console Output</h2>
+            <div class="output" id="output">> Welcome to Weather Server CLI</div>
+        </div>
+        
+        <div class="panel" id="weather-panel">
+            <h2>Weather Information</h2>
+            <div class="input-group">
+                <input type="text" id="city-input" placeholder="Enter city name">
+                <button id="get-weather-btn">Get Weather</button>
+            </div>
+            
+            <div class="weather-display" id="weather-display">
+                <!-- Weather data will appear here -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button id="restart-btn">Restart</button>
+        <button id="next-btn" disabled>Next Level</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game state
+            const state = {
+                level: 1,
+                serverConnected: false,
+                completedLevels: [false, false, false]
+            };
+            
+            // DOM elements
+            const elements = {
+                instructions: document.getElementById('instructions'),
+                codeInput: document.getElementById('code-input'),
+                runBtn: document.getElementById('run-btn'),
+                output: document.getElementById('output'),
+                statusLight: document.getElementById('status-light'),
+                statusText: document.getElementById('status-text'),
+                weatherDisplay: document.getElementById('weather-display'),
+                weatherPanel: document.getElementById('weather-panel'),
+                cityInput: document.getElementById('city-input'),
+                getWeatherBtn: document.getElementById('get-weather-btn'),
+                nextBtn: document.getElementById('next-btn'),
+                restartBtn: document.getElementById('restart-btn'),
+                successMessage: document.getElementById('success-message'),
+                progressFill: document.getElementById('progress-fill'),
+                step1: document.getElementById('step-1'),
+                step2: document.getElementById('step-2'),
+                step3: document.getElementById('step-3')
+            };
+            
+            // Mock weather data
+            const weatherData = {
+                "new york": { temp: 72, condition: "Sunny", humidity: 65 },
+                "london": { temp: 60, condition: "Cloudy", humidity: 80 },
+                "tokyo": { temp: 75, condition: "Rainy", humidity: 75 },
+                "paris": { temp: 68, condition: "Partly Cloudy", humidity: 70 },
+                "sydney": { temp: 85, condition: "Sunny", humidity: 60 }
+            };
+            
+            // Initialize game
+            function initGame() {
+                state.level = 1;
+                state.serverConnected = false;
+                state.completedLevels = [false, false, false];
+                updateUI();
+                elements.output.textContent = "> Welcome to Weather Server CLI";
+                elements.codeInput.value = "";
+                elements.cityInput.value = "";
+                elements.weatherDisplay.style.display = "none";
+                elements.weatherDisplay.innerHTML = "";
+                elements.successMessage.style.display = "none";
+                updateProgressBar();
+            }
+            
+            // Update UI based on game state
+            function updateUI() {
+                // Update connection status
+                if (state.serverConnected) {
+                    elements.statusLight.classList.add('connected');
+                    elements.statusText.textContent = "Server connected";
+                } else {
+                    elements.statusLight.classList.remove('connected');
+                    elements.statusText.textContent = "Server disconnected";
+                }
+                
+                // Update instructions based on level
+                switch(state.level) {
+                    case 1:
+                        elements.instructions.innerHTML = "<strong>Level 1:</strong> Create your weather server. Type the command: <code>initServer()</code>";
+                        elements.weatherPanel.style.display = "none";
+                        break;
+                    case 2:
+                        elements.instructions.innerHTML = "<strong>Level 2:</strong> Connect to the server. Type the command: <code>connect()</code>";
+                        elements.weatherPanel.style.display = "none";
+                        break;
+                    case 3:
+                        elements.instructions.innerHTML = "<strong>Level 3:</strong> Retrieve weather data. Type the command: <code>getWeather(city)</code> then enter a city below";
+                        elements.weatherPanel.style.display = "block";
+                        break;
+                }
+                
+                // Update progress steps
+                elements.step1.classList.toggle('active', state.level === 1);
+                elements.step2.classList.toggle('active', state.level === 2);
+                elements.step3.classList.toggle('active', state.level === 3);
+                
+                // Update next button
+                elements.nextBtn.disabled = !state.completedLevels[state.level - 1];
+            }
+            
+            // Update progress bar
+            function updateProgressBar() {
+                const completed = state.completedLevels.filter(Boolean).length;
+                elements.progressFill.style.width = `${(completed / 3) * 100}%`;
+            }
+            
+            // Process user command
+            function processCommand(command) {
+                command = command.trim().toLowerCase();
+                let output = "";
+                
+                switch(state.level) {
+                    case 1:
+                        if (command === "initserver()") {
+                            state.serverConnected = true;
+                            output = "> Server initialized successfully!\n> Ready for connections on port 3000";
+                            state.completedLevels[0] = true;
+                            elements.successMessage.style.display = "block";
+                        } else {
+                            output = "> Error: Unknown command. Try 'initServer()'";
+                        }
+                        break;
+                        
+                    case 2:
+                        if (command === "connect()") {
+                            if (state.serverConnected) {
+                                output = "> Connection established successfully!\n> Server status: ONLINE";
+                                state.completedLevels[1] = true;
+                                elements.successMessage.style.display = "block";
+                            } else {
+                                output = "> Error: Server not initialized. Complete Level 1 first.";
+                            }
+                        } else {
+                            output = "> Error: Unknown command. Try 'connect()'";
+                        }
+                        break;
+                        
+                    case 3:
+                        if (command.startsWith("getweather(")) {
+                            const city = command.match(/getweather\(["']?(.+?)["']?\)/i);
+                            if (city && city[1]) {
+                                const cityName = city[1].trim().toLowerCase();
+                                displayWeather(cityName);
+                                output = `> Fetching weather data for ${cityName}...`;
+                                state.completedLevels[2] = true;
+                                elements.successMessage.style.display = "block";
+                            } else {
+                                output = "> Error: Invalid syntax. Use: getWeather(\"CityName\")";
+                            }
+                        } else {
+                            output = "> Error: Unknown command. Try 'getWeather(\"CityName\")'";
+                        }
+                        break;
+                }
+                
+                elements.output.textContent += `\n> ${command}\n${output}`;
+                elements.output.scrollTop = elements.output.scrollHeight;
+                updateUI();
+            }
+            
+            // Display weather information
+            function displayWeather(city) {
+                const cityKey = city.toLowerCase();
+                if (weatherData[cityKey]) {
+                    const data = weatherData[cityKey];
+                    elements.weatherDisplay.innerHTML = `
+                        <h3>Weather in ${city.charAt(0).toUpperCase() + city.slice(1)}</h3>
+                        <p>Temperature: ${data.temp}°F</p>
+                        <p>Condition: ${data.condition}</p>
+                        <p>Humidity: ${data.humidity}%</p>
+                    `;
+                    elements.weatherDisplay.style.display = "block";
+                } else {
+                    elements.weatherDisplay.innerHTML = `<p>No weather data available for ${city}</p>`;
+                    elements.weatherDisplay.style.display = "block";
+                }
+            }
+            
+            // Event listeners
+            elements.runBtn.addEventListener('click', () => {
+                if (elements.codeInput.value.trim() !== "") {
+                    processCommand(elements.codeInput.value);
+                    elements.codeInput.value = "";
+                }
+            });
+            
+            elements.codeInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    if (elements.codeInput.value.trim() !== "") {
+                        processCommand(elements.codeInput.value);
+                        elements.codeInput.value = "";
+                    }
+                }
+            });
+            
+            elements.getWeatherBtn.addEventListener('click', () => {
+                const city = elements.cityInput.value.trim();
+                if (city !== "") {
+                    processCommand(`getWeather("${city}")`);
+                    elements.cityInput.value = "";
+                }
+            });
+            
+            elements.nextBtn.addEventListener('click', () => {
+                if (state.level < 3) {
+                    state.level++;
+                    elements.successMessage.style.display = "none";
+                    elements.output.textContent += `\n> Starting Level ${state.level}...`;
+                    updateUI();
+                } else {
+                    elements.output.textContent += "\n> Congratulations! You've completed all levels.";
+                    elements.nextBtn.disabled = true;
+                }
+            });
+            
+            elements.restartBtn.addEventListener('click', initGame);
+            
+            // Initialize the game
+            initGame();
+        });
+    </script>
+</body>
+</html>

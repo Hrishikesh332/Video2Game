@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCA Financial Clustering Challenge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #e0e0ff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(10, 15, 30, 0.85);
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.4);
+            overflow: hidden;
+            border: 1px solid #00ccff;
+            position: relative;
+        }
+        
+        header {
+            background: rgba(5, 10, 25, 0.95);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #00ccff;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00ccff, #00ffcc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(0, 204, 255, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #0066cc, #00ccff);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 204, 255, 0.4);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(0, 204, 255, 0.7);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .game-area {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .instructions {
+            background: rgba(0, 40, 80, 0.4);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid #00aaff;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .instructions h2 {
+            color: #00ccff;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+        
+        .instructions p {
+            line-height: 1.6;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .visualization {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        
+        .graph-container {
+            flex: 1;
+            min-width: 300px;
+            background: rgba(0, 20, 40, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #00aaff;
+            box-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
+        }
+        
+        .graph-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #00ffcc;
+            font-size: 1.4rem;
+        }
+        
+        .graph {
+            height: 250px;
+            background: rgba(0, 10, 20, 0.8);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #0077ff;
+        }
+        
+        .cluster {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.7;
+            transition: all 0.5s ease;
+        }
+        
+        .cluster-1 { background: radial-gradient(circle, #00ccff, #0066cc); }
+        .cluster-2 { background: radial-gradient(circle, #00ffcc, #00aa88); }
+        .cluster-3 { background: radial-gradient(circle, #cc00ff, #6600cc); }
+        
+        .data-point {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 8px currentColor;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            width: 100%;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .control-group {
+            background: rgba(0, 30, 60, 0.6);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #00aaff;
+            min-width: 250px;
+        }
+        
+        .control-group h3 {
+            color: #00ccff;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .slider-container {
+            margin: 15px 0;
+        }
+        
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
+            color: #00ffcc;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            background: #003366;
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #00ccff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 204, 255, 0.8);
+        }
+        
+        .value-display {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: #00ffcc;
+        }
+        
+        .challenge-area {
+            width: 100%;
+            background: rgba(0, 40, 80, 0.4);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid #00aaff;
+            margin-bottom: 30px;
+        }
+        
+        .challenge-area h2 {
+            color: #00ccff;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .cluster-options {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .cluster-option {
+            width: 120px;
+            height: 120px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            background: rgba(0, 30, 60, 0.7);
+        }
+        
+        .cluster-option:hover {
+            transform: scale(1.05);
+            border-color: #00ccff;
+        }
+        
+        .cluster-option.selected {
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+        
+        .cluster-preview {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+        
+        .feedback {
+            text-align: center;
+            min-height: 60px;
+            font-size: 1.3rem;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .feedback.correct {
+            background: rgba(0, 200, 0, 0.2);
+            color: #00ff00;
+            border: 1px solid #00ff00;
+        }
+        
+        .feedback.incorrect {
+            background: rgba(200, 0, 0, 0.2);
+            color: #ff5555;
+            border: 1px solid #ff5555;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background: rgba(0, 30, 60, 0.6);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid #00aaff;
+            margin-bottom: 20px;
+        }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background: #003366;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0066cc, #00ccff);
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .score-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            font-size: 1.4rem;
+        }
+        
+        .score-box {
+            background: rgba(0, 40, 80, 0.6);
+            padding: 15px 30px;
+            border-radius: 15px;
+            border: 1px solid #00aaff;
+            text-align: center;
+            min-width: 150px;
+        }
+        
+        .score-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #00ffcc;
+            margin-top: 10px;
+        }
+        
+        .results-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 10, 30, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            z-index: 10;
+        }
+        
+        .results-screen.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .results-content {
+            background: rgba(0, 20, 40, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #00ccff;
+            text-align: center;
+            max-width: 600px;
+            box-shadow: 0 0 40px rgba(0, 200, 255, 0.6);
+        }
+        
+        .results-content h2 {
+            font-size: 2.5rem;
+            color: #00ccff;
+            margin-bottom: 20px;
+        }
+        
+        .final-score {
+            font-size: 4rem;
+            color: #00ffcc;
+            margin: 30px 0;
+            text-shadow: 0 0 20px rgba(0, 255, 204, 0.7);
+        }
+        
+        .performance-message {
+            font-size: 1.4rem;
+            margin: 30px 0;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 768px) {
+            .visualization, .controls {
+                flex-direction: column;
+            }
+            
+            .graph-container {
+                width: 100%;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .cluster-options {
+                gap: 10px;
+            }
+            
+            .cluster-option {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PCA Financial Clustering Challenge</h1>
+            <div class="subtitle">Analyze loan patterns using Principal Component Analysis</div>
+            <div class="nav-buttons">
+                <button class="btn" id="prevBtn">Previous</button>
+                <button class="btn" id="nextBtn">Next</button>
+            </div>
+        </header>
+        
+        <div class="game-area">
+            <div class="instructions">
+                <h2>Financial Pattern Recognition</h2>
+                <p>Adjust the financial parameters and analyze how loan payment patterns cluster based on income and loan amount.</p>
+                <p>Classify the highlighted loan into the correct cluster based on PCA visualization.</p>
+            </div>
+            
+            <div class="visualization">
+                <div class="graph-container">
+                    <div class="graph-title">Income vs Loan Amount</div>
+                    <div class="graph" id="incomeGraph"></div>
+                </div>
+                <div class="graph-container">
+                    <div class="graph-title">Payment Pattern Clusters</div>
+                    <div class="graph" id="clusterGraph"></div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <h3>Financial Parameters</h3>
+                    <div class="slider-container">
+                        <label for="incomeSlider">Annual Income ($)</label>
+                        <input type="range" id="incomeSlider" min="30000" max="150000" value="75000">
+                        <div class="value-display" id="incomeValue">$75,000</div>
+                    </div>
+                    <div class="slider-container">
+                        <label for="loanSlider">Loan Amount ($)</label>
+                        <input type="range" id="loanSlider" min="5000" max="50000" value="25000">
+                        <div class="value-display" id="loanValue">$25,000</div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>PCA Dimensions</h3>
+                    <div class="slider-container">
+                        <label for="dimension1">Principal Component 1</label>
+                        <input type="range" id="dimension1" min="0" max="100" value="45">
+                        <div class="value-display" id="dimension1Value">45% Variance</div>
+                    </div>
+                    <div class="slider-container">
+                        <label for="dimension2">Principal Component 2</label>
+                        <input type="range" id="dimension2" min="0" max="100" value="30">
+                        <div class="value-display" id="dimension2Value">30% Variance</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="challenge-area">
+                <h2>Cluster Classification Challenge</h2>
+                <p>Based on the current financial patterns, which cluster does the highlighted loan belong to?</p>
+                
+                <div class="cluster-options">
+                    <div class="cluster-option" data-cluster="1">
+                        <div class="cluster-preview" style="background: radial-gradient(circle, #00ccff, #0066cc);"></div>
+                        <div>Cluster A</div>
+                    </div>
+                    <div class="cluster-option" data-cluster="2">
+                        <div class="cluster-preview" style="background: radial-gradient(circle, #00ffcc, #00aa88);"></div>
+                        <div>Cluster B</div>
+                    </div>
+                    <div class="cluster-option" data-cluster="3">
+                        <div class="cluster-preview" style="background: radial-gradient(circle, #cc00ff, #6600cc);"></div>
+                        <div>Cluster C</div>
+                    </div>
+                </div>
+                
+                <div class="feedback" id="feedback"></div>
+</body>
+</html>

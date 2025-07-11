@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parisian Landmarks Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .screen {
+            display: none;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        h1, h2, h3 {
+            color: #333333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .btn-primary {
+            background-color: #333333;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #222222;
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .option {
+            padding: 12px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .option:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .map-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+        }
+        
+        .map-cell {
+            aspect-ratio: 1;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: background-color 0.3s;
+        }
+        
+        .map-cell:hover {
+            background-color: #d0d0d0;
+        }
+        
+        .timeline-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 10px 0;
+            margin: 20px 0;
+        }
+        
+        .timeline-event {
+            min-width: 200px;
+            padding: 15px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            cursor: grab;
+        }
+        
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+        }
+        
+        .feedback {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .progress-container {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #333333;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        @media (min-width: 768px) {
+            .options-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .btn {
+                width: auto;
+                margin: 10px auto;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="start-screen" class="screen active">
+        <h1>Parisian Landmarks Game</h1>
+        <p>Test your knowledge of Paris landmarks through three exciting challenges!</p>
+        <button id="start-btn" class="btn btn-primary">Start Game</button>
+    </div>
+    
+    <div id="quiz-level" class="screen">
+        <h2>Landmark Quiz</h2>
+        <p>Answer questions about Parisian landmarks</p>
+        <div class="progress-container">
+            <div class="progress-bar" id="quiz-progress"></div>
+        </div>
+        <div id="question-container"></div>
+        <div class="options-container" id="options-container"></div>
+        <div class="feedback" id="quiz-feedback"></div>
+        <div class="score-container">
+            <span>Score: <span id="quiz-score">0</span></span>
+            <span>Question: <span id="question-count">1</span>/3</span>
+        </div>
+    </div>
+    
+    <div id="timeline-level" class="screen">
+        <h2>Historical Timeline</h2>
+        <p>Arrange these events in chronological order</p>
+        <div class="progress-container">
+            <div class="progress-bar" id="timeline-progress"></div>
+        </div>
+        <div class="timeline-container" id="timeline-container"></div>
+        <button id="check-timeline" class="btn btn-primary">Check Order</button>
+        <div class="feedback" id="timeline-feedback"></div>
+        <div class="score-container">
+            <span>Score: <span id="timeline-score">0</span></span>
+        </div>
+    </div>
+    
+    <div id="map-level" class="screen">
+        <h2>Landmark Locator</h2>
+        <p>Find the <span id="current-landmark"></span> on the map</p>
+        <div class="progress-container">
+            <div class="progress-bar" id="map-progress"></div>
+        </div>
+        <div class="map-container" id="map-container"></div>
+        <div class="feedback" id="map-feedback"></div>
+        <div class="score-container">
+            <span>Score: <span id="map-score">0</span></span>
+            <span>Landmarks: <span id="landmark-count">1</span>/3</span>
+        </div>
+    </div>
+    
+    <div id="end-screen" class="screen">
+        <h2>Game Completed!</h2>
+        <p>Your total score: <span id="total-score">0</span></p>
+        <p>High score: <span id="high-score">0</span></p>
+        <button id="restart-btn" class="btn btn-primary">Play Again</button>
+    </div>
+
+    <script>
+        // Game data
+        const gameData = {
+            quiz: [
+                {
+                    question: "Which Parisian landmark is known as the 'Iron Lady'?",
+                    options: ["Louvre Museum", "Eiffel Tower", "Notre-Dame Cathedral", "Arc de Triomphe"],
+                    answer: 1
+                },
+                {
+                    question: "Which museum in Paris is home to the Mona Lisa?",
+                    options: ["Musée d'Orsay", "Centre Pompidou", "Louvre Museum", "Rodin Museum"],
+                    answer: 2
+                },
+                {
+                    question: "Which Gothic cathedral in Paris is famous for its gargoyles?",
+                    options: ["Sainte-Chapelle", "Sacré-Cœur", "Notre-Dame Cathedral", "Saint-Sulpice"],
+                    answer: 2
+                }
+            ],
+            timeline: [
+                { event: "Construction of Eiffel Tower", year: 1889 },
+                { event: "Completion of Louvre Museum", year: 1793 },
+                { event: "Notre-Dame Cathedral construction", year: 1345 },
+                { event: "Arc de Triomphe completed", year: 1836 }
+            ],
+            mapLandmarks: [
+                { name: "Eiffel Tower", position: 12 },
+                { name: "Louvre Museum", position: 7 },
+                { name: "Notre-Dame Cathedral", position: 22 }
+            ]
+        };
+
+        // Game state
+        const state = {
+            currentLevel: 'start',
+            quiz: {
+                currentQuestion: 0,
+                score: 0,
+                answered: false
+            },
+            timeline: {
+                score: 0,
+                completed: false,
+                order: []
+            },
+            map: {
+                currentLandmark: 0,
+                score: 0
+            },
+            totalScore: 0,
+            highScore: localStorage.getItem('parisHighScore') || 0
+        };
+
+        // DOM elements
+        const elements = {
+            startScreen: document.getElementById('start-screen'),
+            quizLevel: document.getElementById('quiz-level'),
+            timelineLevel: document.getElementById('timeline-level'),
+            mapLevel: document.getElementById('map-level'),
+            endScreen: document.getElementById('end-screen'),
+            startBtn: document.getElementById('start-btn'),
+            restartBtn: document.getElementById('restart-btn'),
+            questionContainer: document.getElementById('question-container'),
+            optionsContainer: document.getElementById('options-container'),
+            quizFeedback: document.getElementById('quiz-feedback'),
+            quizScore: document.getElementById('quiz-score'),
+            questionCount: document.getElementById('question-count'),
+            quizProgress: document.getElementById('quiz-progress'),
+            timelineContainer: document.getElementById('timeline-container'),
+            checkTimeline: document.getElementById('check-timeline'),
+            timelineFeedback: document.getElementById('timeline-feedback'),
+            timelineScore: document.getElementById('timeline-score'),
+            timelineProgress: document.getElementById('timeline-progress'),
+            mapContainer: document.getElementById('map-container'),
+            mapFeedback: document.getElementById('map-feedback'),
+            mapScore: document.getElementById('map-score'),
+            landmarkCount: document.getElementById('landmark-count'),
+            currentLandmark: document.getElementById('current-landmark'),
+            mapProgress: document.getElementById('map-progress'),
+            totalScore: document.getElementById('total-score'),
+            highScore: document.getElementById('high-score')
+        };
+
+        // Initialize game
+        function initGame() {
+            // Reset state
+            state.quiz = {
+                currentQuestion: 0,
+                score: 0,
+                answered: false
+            };
+            state.timeline = {
+                score: 0,
+                completed: false,
+                order: []
+            };
+            state.map = {
+                currentLandmark: 0,
+                score: 0
+            };
+            state.totalScore = 0;
+            
+            // Update high score display
+            elements.highScore.textContent = state.highScore;
+            
+            // Show start screen
+            showScreen('start');
+        }
+
+        // Show specific screen
+        function showScreen(screenName) {
+            // Hide all screens
+            elements.startScreen.classList.remove('active');
+            elements.quizLevel.classList.remove('active');
+            elements.timelineLevel.classList.remove('active');
+            elements.mapLevel.classList.remove('active');
+            elements.endScreen.classList.remove('active');
+            
+            // Show requested screen
+            state.currentLevel = screenName;
+            
+            switch(screenName) {
+                case 'start':
+                    elements.startScreen.classList.add('active');
+                    break;
+                case 'quiz':
+                    loadQuiz();
+                    elements.quizLevel.classList.add('active');
+                    break;
+                case 'timeline':
+                    loadTimeline();
+                    elements.timelineLevel.classList.add('active');
+                    break;
+                case 'map':
+                    loadMap();
+                    elements.mapLevel.classList.add('active');
+                    break;
+                case 'end':
+                    calculateTotalScore();
+                    elements.endScreen.classList.add('active');
+                    break;
+            }
+        }
+
+        // Load quiz level
+        function loadQuiz() {
+            const question = gameData.quiz[state.quiz.currentQuestion];
+            
+            // Update progress
+            elements.quizProgress.style.width = `${(state.quiz.currentQuestion / gameData.quiz.length) * 100}%`;
+            elements.questionCount.textContent = `${state.quiz.currentQuestion + 1}/${gameData.quiz.length}`;
+            elements.quizScore.textContent = state.quiz.score;
+            
+            // Display question
+            elements.questionContainer.innerHTML = `<h3>${question.question}</h3>`;
+            
+            // Display options
+            elements.optionsContainer.innerHTML = '';
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+                optionElement.addEventListener('click', handleAnswer);
+                elements.optionsContainer.appendChild(optionElement);
+            });
+            
+            // Reset feedback
+            elements.quizFeedback.textContent = '';
+            elements.quizFeedback.className = 'feedback';
+            state.quiz.answered = false;
+        }
+
+        // Handle quiz answer
+        function handleAnswer(e) {
+            if (state.quiz.answered) return;
+            
+            state.quiz.answered = true;
+            const selectedIndex = parseInt(e.target.dataset.index);
+            const question = gameData.quiz[state.quiz.currentQuestion];
+            const isCorrect = selectedIndex === question.answer;
+            
+            // Update UI
+            if (isCorrect) {
+                e.target.style.backgroundColor = '#d4edda';
+                elements.quizFeedback.textContent = 'Correct!';
+                elements.quizFeedback.className = 'feedback correct';
+                state.quiz.score += 10;
+                elements.quizScore.textContent = state.quiz.score;
+            } else {
+                e.target.style.backgroundColor = '#f8d7da';
+                elements.quizFeedback.textContent = `Incorrect! The correct answer is: ${question.options[question.answer]}`;
+                elements.quizFeedback.className = 'feedback incorrect';
+            }
+            
+            // Move to next question or level
+            setTimeout(() => {
+                state.quiz.currentQuestion++;
+                if (state.quiz.currentQuestion < gameData.quiz.length) {
+                    loadQuiz();
+                } else {
+                    showScreen('timeline');
+                }
+            }, 1500);
+        }
+
+        // Load timeline level
+        function loadTimeline() {
+            // Update progress
+            elements.timelineProgress.style.width = '0%';
+            elements.timelineScore.textContent = state.timeline.score;
+            
+            // Reset feedback
+            elements.timelineFeedback.textContent = '';
+            elements.timelineFeedback.className = 'feedback';
+            
+            // Create shuffled events
+            const shuffledEvents = [...gameData.timeline].sort(() => Math.random() - 0.5);
+            state.timeline.order = [];
+            
+            // Display events
+            elements.timelineContainer.innerHTML = '';
+            shuffledEvents.forEach((event, index) => {
+                const eventElement = document.createElement('div');
+                eventElement.className = 'timeline-event';
+                eventElement.textContent = event.event;
+                eventElement.dataset.index = index;
+                eventElement.draggable = true;
+                
+                eventElement.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.target.dataset.index);
+                });
+                
+                eventElement.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                });
+                
+                eventElement.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const fromIndex = e.dataTransfer.getData('text/plain');
+                    const toIndex = e.target.dataset.index;
+                    
+                    if (fromIndex !== toIndex) {
+                        const container = e.target.parentNode;
+                        const fromElement = container.querySelector(`[data-index="${fromIndex}"]`);
+                        const toElement = container.querySelector(`[data-index="${toIndex}"]`);
+                        
+                        if (fromElement && toElement) {
+                            container.insertBefore(fromElement, toElement);
+                            
+                            // Update dataset indexes
+                            Array.from(container.children).forEach((child, idx) => {
+                                child.dataset.index = idx;
+                            });
+                        }
+                    }
+                });
+                
+                elements.timelineContainer.appendChild(eventElement);
+            });
+        }
+
+        // Check timeline order
+        function checkTimelineOrder() {
+            const eventElements = Array.from(elements.timelineContainer.children);
+            const userOrder = eventElements.map(el => {
+                const originalIndex = parseInt(el.dataset.index);
+                return gameData.timeline[originalIndex];
+            });
+            
+            // Check if order is correct
+            let isCorrect = true;
+            for (let i = 0; i < userOrder.length - 1; i++) {
+                if (userOrder[i].year > userOrder[i + 1].year) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+            
+            // Update UI
+            if (isCorrect) {
+                elements.timelineFeedback.textContent = 'Correct! Events are in chronological order.';
+                elements.timelineFeedback.className = 'feedback correct';
+                state.timeline.score = 30;
+                elements.timelineScore.textContent = state.timeline.score;
+                elements.timelineProgress.style.width = '100%';
+                
+                setTimeout(() => {
+                    showScreen('map');
+                }, 1500);
+            } else {
+                elements.timelineFeedback.textContent = 'Incorrect order. Try again!';
+                elements.timelineFeedback.className = 'feedback incorrect';
+            }
+        }
+
+        // Load map level
+        function loadMap() {
+            const landmark = gameData.mapLandmarks[state.map.currentLandmark];
+            
+            // Update UI
+            elements.currentLandmark.textContent = landmark.name;
+            elements.landmarkCount.textContent = `${state.map.currentLandmark + 1}/${gameData.mapLandmarks.length}`;
+            elements.mapScore.textContent = state.map.score;
+            elements.mapProgress.style.width = `${(state.map.currentLandmark / gameData.mapLandmarks.length) * 100}%`;
+            
+            // Reset feedback
+            elements.mapFeedback.textContent = '';
+            elements.mapFeedback.className = 'feedback';
+            
+            // Create map grid
+            elements.mapContainer.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'map-cell';
+                cell.dataset.index = i;
+                cell.addEventListener('click', handleMapClick);
+                elements.mapContainer.appendChild(cell);
+            }
+        }
+
+        // Handle map click
+        function handleMapClick(e) {
+            const clickedIndex = parseInt(e.target.dataset.index);
+            const landmark = gameData.mapLandmarks[state.map.currentLandmark];
+            const isCorrect = clickedIndex === landmark.position;
+            
+            // Update UI
+            if (isCorrect) {
+                e.target.style.backgroundColor = '#d4edda';
+                elements.mapFeedback.textContent = 'Correct!';
+                elements.mapFeedback.className = 'feedback correct';
+                state.map.score += 10;
+                elements.mapScore.textContent = state.map.score;
+                
+                setTimeout(() => {
+                    state.map.currentLandmark++;
+                    if (state.map.currentLandmark < gameData.mapLandmarks.length) {
+                        loadMap();
+                    } else {
+                        showScreen('end');
+                    }
+                }, 1000);
+            } else {
+                e.target.style.backgroundColor = '#f8d7da';
+                elements.mapFeedback.textContent = 'Try again!';
+                elements.mapFeedback.className = 'feedback incorrect';
+                
+                // Reset cell color after delay
+                setTimeout(() => {
+                    e.target.style.backgroundColor = '#e0e0e0';
+                }, 500);
+            }
+        }
+
+        // Calculate total score
+        function calculateTotalScore() {
+            state.totalScore = state.quiz.score + state.timeline.score + state.map.score;
+            elements.totalScore.textContent = state.totalScore;
+            
+            // Update high score
+            if (state.totalScore > state.highScore) {
+                state.highScore = state.totalScore;
+                localStorage.setItem('parisHighScore', state.highScore);
+                elements.highScore.textContent = state.highScore;
+            }
+        }
+
+        // Event listeners
+        elements.startBtn.addEventListener('click', () => showScreen('quiz'));
+        elements.restartBtn.addEventListener('click', initGame);
+        elements.checkTimeline.addEventListener('click', checkTimelineOrder);
+
+        // Initialize game
+        initGame();
+    </script>
+</body>
+</html>

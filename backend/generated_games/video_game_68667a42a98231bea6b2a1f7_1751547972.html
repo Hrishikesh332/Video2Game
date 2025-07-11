@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Learning Roadmap</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #222;
+        }
+
+        .progress-container {
+            background-color: #f0f0f0;
+            border-radius: 20px;
+            height: 30px;
+            margin: 20px auto;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .progress-bar {
+            background-color: #4CAF50;
+            border-radius: 20px;
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .roadmap {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .phase {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            max-width: 350px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .phase:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .phase h2 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .phase ul {
+            list-style-type: none;
+            margin-bottom: 15px;
+        }
+
+        .phase li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .phase.completed {
+            border-left: 5px solid #4CAF50;
+        }
+
+        .resources {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .resources a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+
+        .resources a:hover {
+            text-decoration: underline;
+        }
+
+        .game-container {
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 30px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .challenge {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .option {
+            background-color: #e0e0e0;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .option:hover {
+            background-color: #d0d0d0;
+        }
+
+        .option.correct {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .option.incorrect {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .feedback.correct {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            display: block;
+        }
+
+        .feedback.incorrect {
+            background-color: #ffebee;
+            color: #c62828;
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        button:disabled {
+            background-color: #b0b0b0;
+            cursor: not-allowed;
+        }
+
+        .score-container {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 20px 0;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .roadmap {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .phase {
+                width: 100%;
+            }
+            
+            .options {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>AI Learning Roadmap</h1>
+        <p>Master AI through this interactive learning journey</p>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="score-container">
+            Score: <span id="score">0</span>/12
+        </div>
+    </header>
+
+    <main>
+        <section class="roadmap">
+            <div class="phase" id="math-phase">
+                <h2>Math Foundations</h2>
+                <ul>
+                    <li>Linear Algebra</li>
+                    <li>Calculus</li>
+                    <li>Probability & Statistics</li>
+                </ul>
+                <div class="resources">
+                    Resources: 
+                    <a href="https://www.khanacademy.org/math" target="_blank">Khan Academy</a>, 
+                    <a href="https://ocw.mit.edu/courses/mathematics/" target="_blank">MIT OpenCourseWare</a>
+                </div>
+            </div>
+
+            <div class="phase" id="programming-phase">
+                <h2>Programming Fundamentals</h2>
+                <ul>
+                    <li>Python Basics</li>
+                    <li>Data Structures</li>
+                    <li>Algorithms</li>
+                </ul>
+                <div class="resources">
+                    Resources: 
+                    <a href="https://www.codecademy.com/learn/learn-python-3" target="_blank">Codecademy</a>, 
+                    <a href="https://www.coursera.org/specializations/data-structures-algorithms" target="_blank">Coursera</a>
+                </div>
+            </div>
+
+            <div class="phase" id="ai-phase">
+                <h2>AI Fundamentals</h2>
+                <ul>
+                    <li>Machine Learning</li>
+                    <li>Neural Networks</li>
+                    <li>Data Preprocessing</li>
+                </ul>
+                <div class="resources">
+                    Resources: 
+                    <a href="https://www.coursera.org/learn/machine-learning" target="_blank">Andrew Ng's Course</a>, 
+                    <a href="https://fast.ai" target="_blank">Fast.ai</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="game-container">
+            <h2>Learning Challenges</h2>
+            
+            <div class="challenge" id="challenge1">
+                <h3>Challenge 1: Math Foundations</h3>
+                <p>Which mathematical concept is essential for understanding transformations in neural networks?</p>
+                <div class="options">
+                    <div class="option" data-correct="false">Trigonometry</div>
+                    <div class="option" data-correct="true">Linear Algebra</div>
+                    <div class="option" data-correct="false">Differential Equations</div>
+                    <div class="option" data-correct="false">Number Theory</div>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="challenge" id="challenge2">
+                <h3>Challenge 2: Programming Fundamentals</h3>
+                <p>Which Python library is most commonly used for scientific computing in AI?</p>
+                <div class="options">
+                    <div class="option" data-correct="false">Django</div>
+                    <div class="option" data-correct="false">Flask</div>
+                    <div class="option" data-correct="true">NumPy</div>
+                    <div class="option" data-correct="false">Pygame</div>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="challenge" id="challenge3">
+                <h3>Challenge 3: AI Fundamentals</h3>
+                <p>What type of machine learning uses labeled datasets to train algorithms?</p>
+                <div class="options">
+                    <div class="option" data-correct="false">Unsupervised Learning</div>
+                    <div class="option" data-correct="false">Reinforcement Learning</div>
+                    <div class="option" data-correct="true">Supervised Learning</div>
+                    <div class="option" data-correct="false">Semi-supervised Learning</div>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="controls">
+                <button id="reset-btn">Reset Game</button>
+                <button id="next-btn" disabled>Next Challenge</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Explore electives: Deep Learning, Computer Vision, NLP, Robotics</p>
+        <p>Tip: Focus on fundamentals before jumping to advanced topics</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Game state
+            let score = 0;
+            let currentChallenge = 1;
+            const totalChallenges = 3;
+            const maxScore = 12;
+            
+            // DOM elements
+            const scoreElement = document.getElementById('score');
+            const progressBar = document.getElementById('progress-bar');
+            const resetBtn = document.getElementById('reset-btn');
+            const nextBtn = document.getElementById('next-btn');
+            
+            // Initialize game
+            updateProgress();
+            
+            // Setup option click handlers
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    if (this.classList.contains('correct') || this.classList.contains('incorrect')) {
+                        return; // Already answered
+                    }
+                    
+                    const isCorrect = this.getAttribute('data-correct') === 'true';
+                    const feedback = this.parentElement.nextElementSibling;
+                    
+                    if (isCorrect) {
+                        this.classList.add('correct');
+                        feedback.textContent = 'Correct! This is an essential concept.';
+                        feedback.classList.add('correct');
+                        score += 4;
+                        scoreElement.textContent = score;
+                    } else {
+                        this.classList.add('incorrect');
+                        feedback.textContent = 'Not quite. Review this topic again.';
+                        feedback.classList.add('incorrect');
+                        
+                        // Highlight correct answer
+                        this.parentElement.querySelector('.option[data-correct="true"]').classList.add('correct');
+                    }
+                    
+                    // Disable all options in this challenge
+                    this.parentElement.querySelectorAll('.option').forEach(opt => {
+                        opt.style.pointerEvents = 'none';
+                    });
+                    
+                    // Enable next button
+                    nextBtn.disabled = false;
+                    updateProgress();
+                });
+            });
+            
+            // Next button handler
+            nextBtn.addEventListener('click', function() {
+                if (currentChallenge < totalChallenges) {
+                    document.getElementById(`challenge${currentChallenge}`).style.display = 'none';
+                    currentChallenge++;
+                    document.getElementById(`challenge${currentChallenge}`).style.display = 'block';
+                    this.disabled = true;
+                } else {
+                    // Game completed
+                    alert(`Congratulations! You scored ${score}/${maxScore}. Review any areas you missed.`);
+                    resetGame();
+                }
+            });
+            
+            // Reset button handler
+            resetBtn.addEventListener('click', resetGame);
+            
+            // Game functions
+            function updateProgress() {
+                const progress = (score / maxScore) * 100;
+                progressBar.style.width = `${progress}%`;
+                
+                // Update phase completion
+                if (score >= 4) document.getElementById('math-phase').classList.add('completed');
+                if (score >= 8) document.getElementById('programming-phase').classList.add('completed');
+                if (score >= 12) document.getElementById('ai-phase').classList.add('completed');
+            }
+            
+            function resetGame() {
+                // Reset game state
+                score = 0;
+                currentChallenge = 1;
+                scoreElement.textContent = '0';
+                
+                // Reset UI
+                document.querySelectorAll('.challenge').forEach((challenge, index) => {
+                    challenge.style.display = index === 0 ? 'block' : 'none';
+                });
+                
+                document.querySelectorAll('.option').forEach(option => {
+                    option.classList.remove('correct', 'incorrect');
+                    option.style.pointerEvents = 'auto';
+                });
+                
+                document.querySelectorAll('.feedback').forEach(feedback => {
+                    feedback.classList.remove('correct', 'incorrect');
+                    feedback.textContent = '';
+                });
+                
+                document.querySelectorAll('.phase').forEach(phase => {
+                    phase.classList.remove('completed');
+                });
+                
+                nextBtn.disabled = true;
+                updateProgress();
+            }
+        });
+    </script>
+</body>
+</html>
