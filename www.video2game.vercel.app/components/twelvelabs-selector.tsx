@@ -53,7 +53,7 @@ export default function TwelveLabsSelector({
   const [isLoadingDetails, setIsLoadingDetails] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const API_BASE_URL = "http://localhost:8000"
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
   useEffect(() => {
     if (isVisible && apiKey) {

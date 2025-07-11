@@ -580,9 +580,36 @@ export default function VideoToLearningApp() {
     setActiveSource("youtube")
   }
 
-  const handleVideoSelect = (videoId: string, videoName: string) => {
+  const handleVideoSelect = async (videoId: string, videoName: string) => {
     setSelectedTwelveLabsVideo(videoId)
     setSelectedTwelveLabsVideoName(videoName)
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/sample-apps`)
+      if (response.ok) {
+        const data = await response.json()
+        const found = (data.apps || []).find((app: any) => {
+
+          if (app.video_id === videoId) return true
+          if (Array.isArray(app.twelvelabs_video_ids) && app.twelvelabs_video_ids.includes(videoId)) return true
+          return false
+        })
+        if (found && found.html_file_path) {
+          setGameHtml(found.html_file_path)
+          setCurrentGameId(found.id || null)
+          setExpandedVideo(found.id || null)
+        } else {
+          setGameHtml(null)
+          setCurrentGameId(null)
+          setExpandedVideo(null)
+        }
+      }
+    } catch (err) {
+
+      setGameHtml(null)
+      setCurrentGameId(null)
+      setExpandedVideo(null)
+    }
   }
 
   const processTwelveLabsRegenerate = async () => {
