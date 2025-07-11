@@ -209,7 +209,9 @@ def process_youtube_video():
 @handle_errors
 def get_sample_apps():
     sample_games_service = SampleGamesService()
-    apps = sample_games_service.get_all_games()
+
+    data = sample_games_service._load_file()
+    apps = list(data.values())
     return jsonify({
         "apps": apps,
         "total": len(apps)
