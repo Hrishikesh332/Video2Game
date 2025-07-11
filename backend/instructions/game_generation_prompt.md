@@ -16,7 +16,7 @@ REQUIREMENTS:
 - Interactive game mechanics based on video content
 - Score tracking and feedback system
 - Clear instructions and user interface
-- Multiple levels or challenges (2-3 minimum)
+- Single level Challenge
 - Progress indicators
 - Restart/replay functionality
 
