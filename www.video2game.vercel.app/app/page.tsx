@@ -585,27 +585,25 @@ export default function VideoToLearningApp() {
     setSelectedTwelveLabsVideoName(videoName)
 
     try {
-      const response = await fetch(`${API_BASE_URL}/sample-apps`)
+      // Fetch game data from /game/<video_id>
+      const response = await fetch(`${API_BASE_URL}/game/${videoId}`)
       if (response.ok) {
         const data = await response.json()
-        const found = (data.apps || []).find((app: any) => {
-
-          if (app.video_id === videoId) return true
-          if (Array.isArray(app.twelvelabs_video_ids) && app.twelvelabs_video_ids.includes(videoId)) return true
-          return false
-        })
-        if (found && found.html_file_path) {
-          setGameHtml(found.html_file_path)
-          setCurrentGameId(found.id || null)
-          setExpandedVideo(found.id || null)
+        if (data && data.html_file_path) {
+          setGameHtml(data.html_file_path)
+          setCurrentGameId(null) // No numeric ID for Twelvelabs games
+          setExpandedVideo(null)
         } else {
           setGameHtml(null)
           setCurrentGameId(null)
           setExpandedVideo(null)
         }
+      } else {
+        setGameHtml(null)
+        setCurrentGameId(null)
+        setExpandedVideo(null)
       }
     } catch (err) {
-
       setGameHtml(null)
       setCurrentGameId(null)
       setExpandedVideo(null)
