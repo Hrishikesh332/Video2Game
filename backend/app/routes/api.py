@@ -432,3 +432,21 @@ def twelvelabs_regenerate():
         return jsonify({"error": "video_id is required"}), 400
 
     return Response(stream_with_context(event_stream(video_id, api_key)), mimetype='text/event-stream')
+
+@api_bp.route('/sample-apps/twelvelabs/<video_id>', methods=['GET'])
+@handle_errors
+def get_sample_app_by_twelvelabs_video_id(video_id):
+    sample_games_service = SampleGamesService()
+    app = sample_games_service.find_by_video_id(video_id)
+    if app:
+        return jsonify({
+            "success": True,
+            "data": app,
+            "message": "App found in sample apps by video_id"
+        })
+    else:
+        return jsonify({
+            "success": False,
+            "error": "App not found",
+            "message": "No app found for this video_id"
+        }), 404
