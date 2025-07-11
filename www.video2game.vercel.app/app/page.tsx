@@ -76,21 +76,8 @@ export default function VideoToLearningApp() {
     }
   };
 
-  const getApiBaseUrl = () => {
-    if (typeof window !== "undefined") {
-      const hostname = window.location.hostname
 
-      if (hostname === "localhost" || hostname === "127.0.0.1") {
-        return "http://localhost:8000"
-      }
-
-      return "https://production.onrender.com"
-    }
-
-    return process.env.NEXT_PUBLIC_API_URL || "https://production.onrender.com"
-  }
-
-  const API_BASE_URL = getApiBaseUrl()
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL 
   const extractVideoId = (url: string): string => {
     const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/
     const match = url.match(regex)
