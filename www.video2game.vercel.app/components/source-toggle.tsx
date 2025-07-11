@@ -23,19 +23,20 @@ export default function SourceToggle({
     <div className="flex flex-col items-center gap-4 mb-8">
       {/* Toggle Container */}
       <div
-        className="relative bg-white/40 backdrop-blur-md border border-white/30 rounded-2xl p-2 shadow-lg hover:shadow-xl transition-all duration-300"
+        className="relative bg-white/40 backdrop-blur-md border border-white/30 rounded-2xl p-2 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
 
         <div
-          className={`absolute top-2 h-12 bg-gradient-to-r from-[#1d1c1b] to-[#2d2c2b] rounded-xl shadow-lg transition-all duration-500 ease-out ${
+          className={`absolute top-2 h-12 bg-gradient-to-r from-[#1d1c1b] to-[#2d2c2b] rounded-xl shadow-lg transition-all duration-500 ease-out pointer-events-none z-0 ${
             !isApiConnected
               ? "left-2 w-[140px]"
               : activeSource === "youtube"
                 ? "left-2 w-[140px]"
                 : "left-[146px] w-[180px]"
           } ${isHovered ? "shadow-2xl scale-105" : ""}`}
+          style={{ maxWidth: 'calc(100% - 8px)' }}
         />
 
         <div className="relative flex">
