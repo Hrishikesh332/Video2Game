@@ -6,5 +6,5 @@ python-dotenv
 requests
 gunicorn
 apscheduler
-yt-dlp
 moviepy
+yt-dlp==2025.6.9

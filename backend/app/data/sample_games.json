@@ -222,5 +222,17 @@
     "channel_name": "TwelveLabs",
     "view_count": "Generated",
     "cached_at": "2025-07-07 17:40:00 UTC"
+  },
+  "6871758620489dda940818f1": {
+    "video_id": "6871758620489dda940818f1",
+    "video_analysis": "I regret to inform you that the question you've asked is of such complexity that a definitive answer eludes our current knowledge and understanding.",
+    "html_file_path": "generated_games/video_game_534571ffc0dde859_1752266229.html",
+    "created_at": "2025-07-11 20:37:09 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=T-D1OfcDW1M&t=178s",
+    "video_title": "What is Retrieval-Augmented Generation (RAG)?",
+    "channel_name": "",
+    "view_count": "",
+    "cached_at": "2025-07-11 20:37:09 UTC"
   }
 }
