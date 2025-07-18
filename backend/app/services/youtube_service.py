@@ -38,7 +38,19 @@ class YouTubeService:
             for path in possible_cookies_paths:
                 print(f"Checking for cookies.txt at: {path}")
                 if os.path.exists(path):
-                    cookies_path = path
+                    # If the cookies file is in a read-only location, copy it to a writable temp dir
+                    if path == '/etc/secrets/cookies.txt':
+                        temp_cookies_path = os.path.join(self.temp_dir, 'cookies.txt')
+                        try:
+                            import shutil
+                            shutil.copy(path, temp_cookies_path)
+                            cookies_path = temp_cookies_path
+                            print(f"Copied cookies.txt to writable location: {cookies_path}")
+                        except Exception as e:
+                            print(f"Failed to copy cookies.txt: {e}")
+                            cookies_path = None
+                    else:
+                        cookies_path = path
                     break
             if cookies_path:
                 ydl_opts['cookiefile'] = cookies_path
