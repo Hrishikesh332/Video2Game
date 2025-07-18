@@ -24,6 +24,27 @@ class YouTubeService:
                 'no_warnings': True,
                 'ignoreerrors': True
             }
+
+            # Add cookies.txt if present (for Render or restricted videos)
+            possible_cookies_paths = [
+                '/etc/secrets/cookies.txt',
+                os.path.abspath(os.path.join(os.getcwd(), 'cookies.txt')),
+                os.path.join(os.path.dirname(__file__), 'cookies.txt'),
+                os.path.abspath(os.path.join(os.path.dirname(__file__), '../cookies.txt')),
+                os.path.abspath(os.path.join(os.path.dirname(__file__), '../../cookies.txt')),
+                os.path.abspath(os.path.join(os.getcwd(), 'backend/app/cookies.txt')),
+            ]
+            cookies_path = None
+            for path in possible_cookies_paths:
+                print(f"Checking for cookies.txt at: {path}")
+                if os.path.exists(path):
+                    cookies_path = path
+                    break
+            if cookies_path:
+                ydl_opts['cookiefile'] = cookies_path
+                print(f"Using cookies file: {cookies_path}")
+            else:
+                print("No cookies.txt file found; proceeding without cookies.")
             
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 try:

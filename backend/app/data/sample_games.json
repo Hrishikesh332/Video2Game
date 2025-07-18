@@ -1,238 +1,62 @@
 {
   "686182c2da8b16ab27af8c64": {
     "video_id": "686182c2da8b16ab27af8c64",
-    "video_analysis": "```json\n{\n  \"spec\": \"In machine learning, linear regression is a supervised algorithm used to predict continuous numerical data based on labeled datasets. This app aims to help learners understand the concept of linear regression through interactive and engaging design.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive graph with a horizontal axis labeled 'Height in Inches' and a vertical axis labeled 'Shoe Size [US]'.\\n2. The app must allow users to input data points representing different heights and corresponding shoe sizes.\\n3. The app must automatically plot these data points on the graph.\\n4. The app must provide a feature to draw a best fit line through the plotted data points, indicating the positive correlation between height and shoe size.\\n5. The app must allow users to identify outliers by highlighting specific data points.\\n6. The app must include a section to explain the concept of labeled datasets and the difference between continuous and categorical data.\\n7. The app must provide examples of continuous data (height, age, foot size) and categorical data (color, gender).\\n8. The app must allow users to toggle between different types of data to see how they affect the best fit line.\\n9. The app must include a section to explain the importance of linear regression in machine learning and how it can be used to make predictions.\\n10. The app must have a playful design with clear instructions and feedback to enhance user engagement and understanding.\"\n}\n```",
-    "html_file_path": "generated_games/video_game_686182c2da8b16ab27af8c64_1751321613.html",
-    "created_at": "2025-06-30 22:13:33 UTC",
+    "video_analysis": "```json\n{\n  \"spec\": \"In machine learning, linear regression is a supervised algorithm used to predict continuous numerical data based on labeled datasets. The app should help learners understand the concept of linear regression and its application through interactive elements.\n\n  SPECIFICATIONS:\n\n  1. The app must feature an interactive graph with axes labeled 'Height in Inches' and 'Shoe Size (US)'.\n  2. The app must allow users to input data points representing different heights and corresponding shoe sizes.\n  3. The app must automatically plot these data points on the graph.\n  4. The app must include a feature to draw a best fit line through the plotted data points, indicating the positive correlation between height and shoe size.\n  5. The app must provide an explanation of linear regression as a supervised machine learning algorithm and its use in predicting continuous data.\n  6. The app must highlight the difference between continuous data (e.g., height, age, foot size) and categorical data (e.g., color, gender) and explain why categorical data is not suitable for linear regression.\n  7. The app must include a section where users can circle specific data points and add labels to them, such as 'author', to emphasize their significance.\n  8. The app must allow users to add a heart symbol around a circled point to indicate a special relationship or pattern.\n  9. The app must provide a brief summary of the importance of recognizing relationships and patterns in data for working with machine learning and AI.\n  10. The app must have a playful and engaging design, with clear instructions and visual aids to help users understand the concepts.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_686182c2da8b16ab27af8c64_1752407812.html",
+    "created_at": "2025-07-13 11:56:52 UTC",
     "cached": true,
     "youtube_url": "https://www.youtube.com/watch?v=qxo8p8PtFeA",
     "video_title": "Why Linear regression for Machine Learning?",
-    "twelvelabs_video_ids": [
-      "686182c2da8b16ab27af8c64"
-    ],
-    "primary_video_id": "686182c2da8b16ab27af8c64",
-    "total_chunks": null,
-    "cache_key": "ed463b330e0c117d",
-    "cached_at": "2025-06-30 22:13:33 UTC"
-  },
-  "686153da21f0ea193ed033fa": {
-    "video_id": "686153da21f0ea193ed033fa",
-    "video_analysis": "```json\n{\n  \"spec\": \"In the video, Michelle leads a 3-minute stretching routine that includes breathing exercises, arm stretches, elbow rotations, and torso twists. The routine is designed to be a quick and effective way to start the day with a bit of exercise and mindfulness.\\n\\nBuild an interactive web app to help learners understand and practice the stretching routine.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature a simple, user-friendly interface with clear instructions and visual cues.\\n2. The app must include an animated avatar that demonstrates each stretch in the routine.\\n3. The app must provide audio cues for breathing exercises, guiding users to inhale and exhale at the appropriate times.\\n4. The app must allow users to select and practice individual stretches or the entire routine.\\n5. The app must include a timer that counts down the duration of each stretch and the entire routine.\\n6. The app must offer a brief explanation of the benefits of each stretch, such as improved flexibility and reduced stress.\\n7. The app must include a feature to track the user's progress and encourage regular practice.\\n8. The app must allow users to customize the routine by adjusting the duration of each stretch or adding/removing stretches.\\n9. The app must provide a 'rewatch' button that allows users to revisit the routine at any time.\\n10. The app must include a section for additional resources, such as tips for maintaining a regular stretching routine and links to other related videos or articles.\"\n}\n```",
-    "html_file_path": "generated_games/video_game_686153da21f0ea193ed033fa_1751542052.html",
-    "created_at": "2025-07-03 11:27:32 UTC",
-    "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=_2v6Mbx5v1w",
-    "video_title": "3-min Stretch | Great in the morning or between work! | Beginners | Apartment Friendly",
     "channel_name": "",
     "view_count": "",
-    "cache_key": "0cd6e502bd723141",
-    "cached_at": "2025-07-03 11:27:32 UTC"
+    "cached_at": "2025-07-13 11:56:52 UTC"
   },
-  "dd2f49f007938719": {
-    "video_id": "dd2f49f007938719",
-    "video_analysis": "```json\n{\n  \"spec\": \"In neural networks, data flows through interconnected layers of nodes, each of which can be thought of as a linear regression model. The network learns and improves its accuracy over time through training data and backpropagation. Different types of neural networks, such as CNNs and RNNs, are suited for various tasks like image recognition and time series prediction.\n\n  Build an interactive web app to help learners understand the basics of neural networks.\n\n  SPECIFICATIONS:\n\n  1. The app must feature a visual representation of a neural network with input, hidden, and output layers.\n  2. The app must allow users to input data into the input layer and see how it flows through the network to the output layer.\n  3. The app must showcase the concept of linear regression models within each node, showing how inputs are multiplied by weights and added to a bias term.\n  4. The app must include a section where users can adjust the weights and biases of the nodes and observe how these changes affect the output.\n  5. The app must explain the concept of backpropagation and allow users to simulate the process of adjusting weights and biases based on training data.\n  6. The app must include examples of different types of neural networks, such as CNNs and RNNs, and explain their unique architectures and applications.\n  7. The app must provide a simple, playful interface with clear instructions and feedback to promote understanding and engagement.\n  8. The app must allow users to experiment with different scenarios and observe the outcomes, reinforcing the concepts of data flow, linear regression, and backpropagation.\"\n}\n```",
-    "html_file_path": "generated_games/video_game_dd2f49f007938719_1751215276.html",
-    "created_at": "2025-06-29 16:41:16 UTC",
+  "6873a02b8bf3dbda64619781": {
+    "video_id": "6873a02b8bf3dbda64619781",
+    "video_analysis": "```json\n{\n  \"spec\": \"In data science, linear regression is a statistical technique used to model the relationship between an output variable and one or more input variables. It involves fitting a line through data points to make predictions on unknown data, assuming a linear relationship between the variables. The coefficients of the line (slope and intercept) are optimized to minimize the sum of squared errors, which is the difference between the data points and the predictions the line would produce. This process can be extended to multiple input variables, visualized as a hyperplane in higher dimensions. The model's performance is evaluated using metrics such as R-squared, standard error of the estimate, and statistical significance. The app should complement and reinforce these key ideas through interactive design.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive scatter plot where users can add or remove data points.\\n2. The app must allow users to adjust the slope and intercept of a line to fit the data points.\\n3. The app must display the sum of squared errors (SSE) as users adjust the line, showing how the SSE changes with different line fits.\\n4. The app must include a visual representation of residuals as vertical lines from the data points to the fitted line.\\n5. The app must provide a button to automatically fit the line to the data points using a least squares method, displaying the optimized coefficients.\\n6. The app must allow users to switch between a 2D scatter plot and a 3D surface plot to visualize the relationship in higher dimensions.\\n7. The app must include a section to input multiple input variables and visualize the fitted hyperplane.\\n8. The app must display performance metrics such as R-squared and standard error of the estimate for the fitted line.\\n9. The app must include a feature to split the data into training and test sets, allowing users to validate the model on unseen data.\\n10. The app must provide a simple, playful interface with clear instructions and feedback to promote understanding and engagement.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_93e17a03e2d49adc_1752408234.html",
+    "created_at": "2025-07-13 12:03:54 UTC",
     "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=jmmW0F0biz0",
-    "video_title": "Neural Networks Explained in 5 minutes",
-    "twelvelabs_video_ids": [
-      "68616c3a042f13dfd543c91f"
-    ],
-    "primary_video_id": "68616c3a042f13dfd543c91f",
-    "total_chunks": null,
-    "cache_key": "dd2f49f007938719",
-    "cached_at": "2025-06-29 16:41:16 UTC"
+    "youtube_url": "https://www.youtube.com/watch?v=3dhcmeOTZ_Q",
+    "video_title": "Linear Regression in 3 Minutes",
+    "channel_name": "",
+    "view_count": "",
+    "cached_at": "2025-07-13 12:03:54 UTC"
   },
-  "e0f30888d8ae998d": {
-    "video_id": "e0f30888d8ae998d",
-    "video_analysis": "```json\n{\n  \"spec\": \"Build an interactive web app to help learners understand SHAP values and their application in machine learning models.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature a simple, user-friendly interface with clear navigation.\\n2. The app must include an interactive section where users can input different feature values for a hypothetical employee, such as years of experience, degree status, sales performance, and days late.\\n3. The app must display a bar chart that shows the SHAP values for each input feature, illustrating how each feature contributes to the predicted bonus.\\n4. The app must provide a visual explanation of SHAP values, including how they increase or decrease the prediction compared to the average prediction across all employees.\\n5. The app must include a section that explains the concept of SHAP values in the context of classification problems, using an example of predicting whether a mushroom is poisonous or edible.\\n6. The app must allow users to explore different scenarios by changing feature values and observing the impact on the predicted outcome and SHAP values.\\n7. The app must include a debugging section where users can input incorrect predictions and understand which features have caused the error.\\n8. The app must provide human-friendly explanations for predictions, highlighting the key features that influenced the outcome.\\n9. The app must include a data exploration section where users can learn about hidden patterns and interactions within the data set.\\n10. The app must offer a brief introduction to the theory behind SHAP and a guide to using the Python SHAP package, with links to further resources for learning.\"\n}\n```",
-    "html_file_path": "generated_games/video_game_e0f30888d8ae998d_1751321944.html",
-    "created_at": "2025-06-30 22:19:04 UTC",
+  "687ab17361acc759543fed35": {
+    "video_id": "687ab17361acc759543fed35",
+    "video_analysis": "```json\n{\n  \"spec\": \"In machine learning, understanding how models make specific predictions is crucial for debugging, providing human-friendly explanations, and data exploration. This is where SHAP values come into play, offering insights into individual model predictions by explaining how each feature contributes to the final outcome.\n\n  Build an interactive web app to help learners understand SHAP values and their application in both continuous and classification problems.\n\n  SPECIFICATIONS:\n\n  1. The app must feature an interactive dashboard with tabs for 'Continuous Target' and 'Classification'.\n  2. For the 'Continuous Target' tab, the app must display a bar chart with features like 'experience', 'degree', 'sales', 'performance', and 'days late', each with a corresponding SHAP value.\n  3. The app must allow users to adjust feature values and observe how the SHAP values and the final prediction change.\n  4. For the 'Classification' tab, the app must display a bar chart with features like 'odor', 'gill-size', 'bruises', 'stalk-shape', and others, each with a corresponding SHAP value in terms of log odds.\n  5. The app must allow users to adjust feature values and observe how the SHAP values and the predicted probability of being poisonous or edible change.\n  6. The app must include a 'Debugging' section where users can input incorrect predictions and see which features have caused the error.\n  7. The app must include a 'Data Exploration' section where users can visualize non-linear relationships and interactions between features.\n  8. The app must provide simple, playful design elements such as tooltips, interactive sliders, and clear visual feedback to enhance user engagement.\n  9. The app must include a 'Summary' section that explains the key benefits of using SHAP values, including debugging, providing human-friendly explanations, and data exploration.\n  10. The app must be implemented in a single HTML file with inline styles and scripts, ensuring simplicity and ease of use for a junior web developer.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_e0f30888d8ae998d_1752871425.html",
+    "created_at": "2025-07-18 20:43:45 UTC",
     "cached": true,
     "youtube_url": "https://www.youtube.com/watch?v=MQ6fFDwjuco",
     "video_title": "SHAP values for beginners | What they mean and their applications",
-    "twelvelabs_video_ids": [
-      "68630ce0913f41f63f5d2380"
-    ],
-    "primary_video_id": "68630ce0913f41f63f5d2380",
-    "total_chunks": null,
-    "cache_key": "e0f30888d8ae998d",
-    "cached_at": "2025-06-30 22:19:04 UTC"
-  },
-  "68631901913f41f63f5d251b": {
-    "video_id": "68631901913f41f63f5d251b",
-    "video_analysis": "I regret to inform you that the question you've asked is of such complexity that a definitive answer eludes our current knowledge and understanding.",
-    "html_file_path": "generated_games/video_game_68631901913f41f63f5d251b_1751325086.html",
-    "created_at": "2025-06-30 23:11:26 UTC",
-    "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=T-D1OfcDW1M",
-    "video_title": "What is Retrieval-Augmented Generation (RAG)?",
     "channel_name": "",
     "view_count": "",
-    "cache_key": "e30b1a0332f1f9ac",
-    "cached_at": "2025-06-30 23:11:26 UTC"
+    "cached_at": "2025-07-18 20:43:45 UTC"
   },
-  "c88ef2d11a87a57d": {
-    "video_id": "c88ef2d11a87a57d",
-    "video_analysis": "```json\n{\n  \"spec\": \"In the realm of data storage and retrieval, vector databases offer a powerful way to store and query unstructured data, such as images, text, and audio, by capturing their semantic essence through vector embeddings. This approach bridges the semantic gap between how humans understand data and how computers store it, enabling nuanced similarity searches.\\n\\nBuild an interactive web app to help learners understand vector databases and their applications.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive canvas where users can draw simple images or upload images.\\n2. The app must display a relational database model and a vector database model side by side for comparison.\\n3. The app must explain the concept of the semantic gap and how vector databases address it.\\n4. The app must allow users to convert their drawn or uploaded images into vector embeddings and display the numerical values of these embeddings.\\n5. The app must provide a feature to compare the vector embeddings of two different images and highlight the similarities and differences.\\n6. The app must showcase examples of embedding models (Clip for images, GloVe for text, and Wav2Vec for audio) and explain how they create vector embeddings.\\n7. The app must demonstrate the process of vector indexing using approximate nearest neighbor algorithms and show how it enables efficient similarity search.\\n8. The app must include a section on RAG (Retrieval Augmented Generation) and explain how vector databases are used in this context.\\n9. The app must provide a simple, playful interface with clear instructions and feedback to enhance user engagement and understanding.\"\n}\n```",
-    "html_file_path": "generated_games/video_game_c88ef2d11a87a57d_1751362880.html",
-    "created_at": "2025-07-01 09:41:20 UTC",
+  "687ab7e82b144dc12e02e5c4": {
+    "video_id": "687ab7e82b144dc12e02e5c4",
+    "video_analysis": "```json\n{\n  \"spec\": \"In the field of deep learning, understanding how neural networks make predictions is crucial. This involves visualizing feature maps and optimizing filter activations to gain insights into the network's decision-making process.\\n\\nBuild an interactive web app to help learners understand these concepts.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature a simple interface to load pre-trained models, such as VGG-16.\\n2. The app must allow users to select specific layers and filters within the model for visualization and optimization.\\n3. The app must provide a visual representation of the selected filters' activations through heatmaps overlaid onto images.\\n4. The app must include a section for gradient ascent techniques, allowing users to adjust parameters like learning rate and iteration count.\\n5. The app must showcase examples of filter visualization results, including patterns and textures generated by different filters.\\n6. The app must include a section for DeepDream, allowing users to apply the technique to images and observe the results.\\n7. The app must provide clear explanations and visual aids for each concept and technique, reinforcing the user's understanding through interactive elements.\\n8. The app must be designed with a playful and engaging interface to encourage exploration and learning.\\n9. The app must be implemented in a single HTML file with inline styles and scripts, ensuring simplicity and ease of use.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_490f268b2c3803e6_1752873075.html",
+    "created_at": "2025-07-18 21:11:15 UTC",
     "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=gl1r1XV0SLw",
-    "video_title": "What is a Vector Database? Powering Semantic Search & AI Applications",
-    "twelvelabs_video_ids": [
-      "6863aca366e177b742cc6724"
-    ],
-    "primary_video_id": "6863aca366e177b742cc6724",
-    "total_chunks": null,
-    "cache_key": "c88ef2d11a87a57d",
-    "cached_at": "2025-07-01 09:41:20 UTC"
-  },
-  "6863ae6866e177b742cc676e": {
-    "video_id": "6863ae6866e177b742cc676e",
-    "video_analysis": "```json\n{\n  \"spec\": {\n    \"title\": \"Interactive Dance Studio\",\n    \"description\": \"An engaging web app that helps users learn and practice dance moves inspired by a dynamic dance performance.\",\n    \"features\": [\n      {\n        \"name\": \"Dance Move Library\",\n        \"description\": \"A collection of dance moves demonstrated in the performance, categorized by complexity and style.\",\n        \"mechanics\": [\n          \"Users can browse and select dance moves from the library.\",\n          \"Each move includes a step-by-step guide with visual aids.\"\n        ]\n      },\n      {\n        \"name\": \"Practice Mode\",\n        \"description\": \"Allows users to practice selected dance moves in a virtual studio environment.\",\n        \"mechanics\": [\n          \"Users can set the tempo and difficulty level.\",\n          \"The app provides real-time feedback on form and timing.\"\n        ]\n      },\n      {\n        \"name\": \"Choreography Builder\",\n        \"description\": \"Enables users to create their own dance routines using the library of moves.\",\n        \"mechanics\": [\n          \"Users can drag and drop moves into a timeline.\",\n          \"The app generates a video preview of the routine.\"\n        ]\n      }\n    ],\n    \"design\": {\n      \"colorScheme\": [\"#FFC107\", \"#28A745\", \"#17A2B8\"],\n      \"fontFamily\": \"Roboto\",\n      \"layout\": \"Responsive layout optimized for mobile and desktop.\"\n    },\n    \"development\": {\n      \"technologyStack\": [\"HTML\", \"CSS\", \"JavaScript\"],\n      \"libraries\": [\"jQuery\", \"Bootstrap\"],\n      \"testing\": \"Unit tests and integration tests using Jest and Cypress.\"\n    }\n  }\n}\n```",
-    "html_file_path": "generated_games/video_game_6863ae6866e177b742cc676e_1751541364.html",
-    "created_at": "2025-07-03 11:16:04 UTC",
-    "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=w5cZM23PG-k",
-    "video_title": "On The Floor - Jenefer Lopes (Dance Cover) | Orangie Choreography",
+    "youtube_url": "https://www.youtube.com/watch?v=kKbUypZFhFk",
+    "video_title": "activation maximization using flashtorch",
     "channel_name": "",
     "view_count": "",
-    "cache_key": "5c35c36dfe1615b8",
-    "cached_at": "2025-07-03 11:16:04 UTC"
+    "cached_at": "2025-07-18 21:11:15 UTC"
   },
-  "6863b03266e177b742cc67c6": {
-    "video_id": "6863b03266e177b742cc67c6",
-    "video_analysis": "```json\n{\n  \"spec\": {\n    \"title\": \"Dance Studio Rhythm and Flow\",\n    \"description\": \"An interactive web app designed to help learners understand rhythm and flow in dance.\",\n    \"features\": [\n      {\n        \"name\": \"Interactive Dance Floor\",\n        \"description\": \"A virtual dance floor where users can perform dance moves and see their effects in real-time.\",\n        \"mechanics\": [\n          \"Users can select different dance styles and levels of difficulty.\",\n          \"The app provides visual feedback on timing and synchronization.\",\n          \"Users can record and share their performances.\"\n        ]\n      },\n      {\n        \"name\": \"Rhythm Generator\",\n        \"description\": \"A tool that generates rhythmic patterns for users to practice and improve their timing.\",\n        \"mechanics\": [\n          \"Users can choose from various rhythmic patterns and tempos.\",\n          \"The app provides visual cues to help users follow the rhythm.\",\n          \"Users can adjust the complexity of the patterns as they progress.\"\n        ]\n      },\n      {\n        \"name\": \"Flow Visualization\",\n        \"description\": \"A feature that illustrates the flow of movement in dance, helping users understand how to transition smoothly between moves.\",\n        \"mechanics\": [\n          \"The app uses animations and diagrams to show the flow of movement.\",\n          \"Users can explore different flow patterns and see how they affect the overall performance.\",\n          \"The app provides tips and exercises to improve flow and fluidity.\"\n        ]\n      }\n    ],\n    \"design\": {\n      \"colorScheme\": [\"#FFC107\", \"#28A745\", \"#17A2B8\"],\n      \"fontFamily\": \"Roboto\",\n      \"layout\": \"Responsive layout with a clean and modern design.\"\n    },\n    \"development\": {\n      \"technologyStack\": [\"HTML\", \"CSS\", \"JavaScript\"],\n      \"libraries\": [\"jQuery\", \"Bootstrap\"],\n      \"testing\": \"Unit tests and integration tests using Jest and Cypress.\"\n    }\n  }\n}\n```",
-    "html_file_path": "generated_games/video_game_6863b03266e177b742cc67c6_1751577410.html",
-    "created_at": "2025-07-03 21:16:50 UTC",
+  "687abca4934487793c563fee": {
+    "video_id": "687abca4934487793c563fee",
+    "video_analysis": "```json\n{\n  \"spec\": \"In the field of machine learning, saliency maps are used to understand which parts of an image are most important for a model's decision-making process. This is achieved through backpropagation techniques that highlight areas of interest within the image. The app should complement and reinforce these key ideas.\n\n  SPECIFICATIONS:\n\n  1. The app must feature an interactive image upload section where users can upload their own images or select from a predefined set of images (e.g., Great Grey Owl, Peacock, Toucan, Astronaut).\n  2. The app must allow users to choose between different pre-trained models (e.g., AlexNet, DenseNet) to process the uploaded images.\n  3. The app must display the original image alongside four different types of saliency maps: gradients across RGB channels, max gradients, overlay, and grayscale representation.\n  4. The app must provide a brief explanation of each type of saliency map and how it helps in understanding the model's decision-making process.\n  5. The app must include a step-by-step guide on how to generate these saliency maps, with interactive code snippets that users can modify and run.\n  6. The app must allow users to toggle between different images and models to observe how the saliency maps change.\n  7. The app must include a section for further exploration, suggesting other models available through PyTorch Hub and providing links for users to learn more.\n  8. The app must have a simple, playful design with clear instructions and visual aids to help users understand the concepts easily.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_6a12d102c3d89737_1752874296.html",
+    "created_at": "2025-07-18 21:31:36 UTC",
     "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=wjzMS8FBXSk",
-    "video_title": "Espresso - Sabrina Carpenter | HEXXY Choreography",
+    "youtube_url": "https://www.youtube.com/watch?v=MFmHLNOeKTg",
+    "video_title": "visualize saliency in flashtorch",
     "channel_name": "",
     "view_count": "",
-    "cached_at": "2025-07-03 21:16:50 UTC"
-  },
-  "6863b1fc6b30ee3bee7381a2": {
-    "video_id": "6863b1fc6b30ee3bee7381a2",
-    "video_analysis": "```json\n{\n  \"spec\": \"In the history of Mumbai, the city was initially formed by seven separate islands that were later connected through land reclamation processes. This transformation was driven by the British East India Company and involved significant civil engineering projects, including the construction of causeways and breakwaters.\\n\\nBuild an interactive web app to help learners understand the historical and geographical transformation of Mumbai.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive map of the seven islands of Mumbai, initially shown as separate entities.\\n2. The app must allow users to toggle between different time periods, showing how the islands were connected over time.\\n3. The app must include a timeline that highlights key historical events and rulers, such as the British East India Company, various Indian dynasties, and the construction of causeways.\\n4. The app must provide textual information and illustrations for each island, detailing its historical significance and the process of land reclamation.\\n5. The app must allow users to click on specific areas of the map to reveal more detailed information about the civil engineering projects, such as the Hornby Vellard and the Duncan, Colaba, and Mahim Causeways.\\n6. The app must include a section that explains the impact of these projects on the city's growth and development, including the encouragement of immigration and commerce.\\n7. The app must have a simple, playful design with clear navigation and interactive elements to engage users and promote understanding of the historical context and geographical transformation of Mumbai.\"\n}\n```",
-    "html_file_path": "generated_games/video_game_6863b1fc6b30ee3bee7381a2_1751882792.html",
-    "created_at": "2025-07-07 10:06:32 UTC",
-    "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=rpMeNGfdVqk",
-    "video_title": "History of Mumbai: A city of Seven Islands | General Geography | Land Reclamation | UPSC CSE",
-    "channel_name": "",
-    "view_count": "",
-    "cached_at": "2025-07-07 10:06:32 UTC"
-  },
-  "6863b381487d08d06eebb96f": {
-    "video_id": "6863b381487d08d06eebb96f",
-    "video_analysis": "```json\n{\n  \"spec\": \"In data science, Principal Component Analysis (PCA) is a technique used to reduce the number of dimensions in large datasets while retaining most of the original information. This is particularly useful for data visualization and machine learning applications.\\n\\nBuild an interactive web app to help learners understand PCA and its applications.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive table where users can input or modify data for multiple loans, including dimensions such as loan amount, credit score, annual income, and years in job.\\n2. The app must display a scatter plot that visualizes the data points based on the first two principal components (PC1 and PC2) derived from the input data.\\n3. The app must allow users to toggle the visibility of different dimensions in the scatter plot to observe how PCA reduces dimensionality and retains essential information.\\n4. The app must include a section that explains the concept of principal components, highlighting how they are linear combinations of the original variables that capture the maximum variance.\\n5. The app must provide examples of PCA use cases, such as image compression, data visualization, noise filtration, and healthcare applications, with interactive elements to demonstrate each use case.\\n6. The app must include a brief history section that mentions PCA's development in 1901 and its relevance in modern machine learning applications.\\n7. The app must have a simple, playful design with clear instructions and feedback to guide users through the interactive elements.\\n8. The app must be responsive and accessible, ensuring a smooth user experience across different devices and screen sizes.\"\n}\n```",
-    "html_file_path": "generated_games/video_game_6863b381487d08d06eebb96f_1751364736.html",
-    "created_at": "2025-07-01 10:12:16 UTC",
-    "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=ZgyY3JuGQY8&t=3s",
-    "video_title": "Principal Component Analysis (PCA) Explained: Simplify Complex Data for Machine Learning",
-    "channel_name": "",
-    "view_count": "",
-    "cache_key": "66d1ef4bb14d0638",
-    "cached_at": "2025-07-01 10:12:16 UTC"
-  },
-  "6863b8d56b30ee3bee7383ef": {
-    "video_id": "6863b8d56b30ee3bee7383ef",
-    "video_analysis": "```json\n{\n  \"spec\": \"In Principal Component Analysis (PCA), the goal is to reduce the dimensionality of data while preserving as much variance as possible. This is achieved by scaling and centering the data, and then identifying the principal components that capture the most variance.\\n\\nBuild an interactive web app to help learners understand PCA.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive scatter plot where users can input or drag data points.\\n2. The app must allow users to scale the data by adjusting the range of values for each variable. This can be done through sliders or input fields.\\n3. The app must center the data by shifting the origin to the mean of the data points. This should be a toggleable feature.\\n4. The app must display the principal components (PC1 and PC2) as lines on the scatter plot. Users should be able to see how these lines change as they scale and center the data.\\n5. The app must explain the concept of scaling and centering, and how these processes affect the PCA results. This can be done through tooltips or a help section.\\n6. The app must allow users to add or remove data points to observe how the number of samples affects the number of principal components. This should be clearly indicated on the scatter plot.\\n7. The app must display the eigenvalues for each principal component, showing the amount of variance captured by each component.\\n8. The app must include a simple example dataset to demonstrate the concepts, such as student scores in Math and Reading.\\n9. The app must have a clear and simple interface with minimal distractions to focus on the core mechanics of PCA.\\n10. The app must be responsive and work well on both desktop and mobile devices.\"\n}\n```",
-    "html_file_path": "generated_games/video_game_6863b8d56b30ee3bee7383ef_1751577038.html",
-    "created_at": "2025-07-03 21:10:38 UTC",
-    "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=oRvgq966yZg",
-    "video_title": "StatQuest: PCA - Practical Tips",
-    "channel_name": "",
-    "view_count": "",
-    "cached_at": "2025-07-03 21:10:38 UTC"
-  },
-  "1b590d8d297bca42": {
-    "video_id": "1b590d8d297bca42",
-    "video_analysis": "```json\n{\n  \"spec\": {\n    \"title\": \"Grok-3 Interactive Web App\",\n    \"description\": \"An interactive web app designed to complement and reinforce the key ideas presented about Grok-3, an advanced artificial intelligence model with enhanced reasoning and computational capabilities.\",\n    \"features\": [\n      {\n        \"name\": \"Interactive Chat Interface\",\n        \"description\": \"Users can engage in a simulated conversation with Grok-3, asking questions and receiving detailed explanations.\",\n        \"mechanics\": [\n          \"Users type questions into a text box.\",\n          \"Grok-3 responds with detailed answers, explaining the reasoning behind them.\"\n        ]\n      },\n      {\n        \"name\": \"Think Mode Simulation\",\n        \"description\": \"A visual representation of Grok-3's Think Mode, illustrating step-by-step problem-solving.\",\n        \"mechanics\": [\n          \"Users select a problem from a list.\",\n          \"Grok-3 breaks down the problem into smaller steps, showing each step visually.\"\n        ]\n      },\n      {\n        \"name\": \"Big Brain Mode Challenge\",\n        \"description\": \"A series of complex problems that require Grok-3's advanced computational power.\",\n        \"mechanics\": [\n          \"Users choose a challenge from a list.\",\n          \"Grok-3 solves the problem, demonstrating its ability to handle complex tasks.\"\n        ]\n      }\n    ],\n    \"design\": {\n      \"colorScheme\": [\"#007BFF\", \"#FFC107\", \"#28A745\"],\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"layout\": \"Responsive layout with a clean and modern design.\"\n    },\n    \"development\": {\n      \"technologyStack\": [\"HTML\", \"CSS\", \"JavaScript\"],\n      \"libraries\": [],\n      \"dependencies\": []\n    }\n  }\n}\n```",
-    "html_file_path": "generated_games/video_game_1b590d8d297bca42_1751544983.html",
-    "created_at": "2025-07-03 12:16:23 UTC",
-    "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=lYuXx4TGUk4",
-    "video_title": "Elon Musk's Grok-3 AI Model in 2 Minutes",
-    "channel_name": "",
-    "view_count": "",
-    "cached_at": "2025-07-03 12:16:23 UTC"
-  },
-  "68667949a98231bea6b2a1be": {
-    "video_id": "68667949a98231bea6b2a1be",
-    "video_analysis": "I regret to inform you that the question you've asked is of such complexity that a definitive answer eludes our current knowledge and understanding.",
-    "html_file_path": "generated_games/video_game_68667949a98231bea6b2a1be_1751576568.html",
-    "created_at": "2025-07-03 21:02:48 UTC",
-    "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=b0XI-cbel1U",
-    "video_title": "Is Elon’s Grok 3 the new AI king?",
-    "channel_name": "",
-    "view_count": "",
-    "cached_at": "2025-07-03 21:02:48 UTC"
-  },
-  "68667a42a98231bea6b2a1f7": {
-    "video_id": "68667a42a98231bea6b2a1f7",
-    "video_analysis": "",
-    "html_file_path": "generated_games/video_game_68667a42a98231bea6b2a1f7_1751576122.html",
-    "created_at": "2025-07-03 20:55:22 UTC",
-    "cached": true,
-    "youtube_url": "",
-    "video_title": "Test Video",
-    "channel_name": "",
-    "view_count": "",
-    "cached_at": "2025-07-03 20:55:22 UTC"
-  },
-  "6866f392a98231bea6b2c3fd": {
-    "video_id": "6866f392a98231bea6b2c3fd",
-    "video_analysis": "```json\n{\n  \"spec\": \"In machine learning, a hard margin classifier is a type of support vector machine (SVM) that aims to find a hyperplane that maximizes the margin between two classes of data points. This hyperplane should be as far as possible from the nearest data points of each class, known as support vectors. The classifier uses constraints to ensure that all data points are correctly classified with a margin of at least half the width of the hyperplane.\n\n  Build an interactive web app to help learners understand the concept of a hard margin classifier and its mechanics.\n\n  SPECIFICATIONS:\n\n  1. The app must feature a scatter plot with draggable blue plus signs and red minus signs representing positive and negative examples, respectively.\n  2. The app must allow users to draw a green line (hyperplane) on the scatter plot and adjust its position and orientation.\n  3. The app must display two dashed lines (margins) parallel to the hyperplane, indicating the forbidden region where no data points should lie.\n  4. The app must highlight the support vectors (nearest data points to the hyperplane) with circles and display their coordinates.\n  5. The app must calculate and display the margin width and the distance of the support vectors from the hyperplane.\n  6. The app must provide a button to automatically adjust the hyperplane to maximize the margin, ensuring all data points are correctly classified.\n  7. The app must allow users to toggle between viewing the hyperplane equation (w^T x + b = 0) and the margin equations (w^T x + b = ±1).\n  8. The app must include a section to explain the concept of support vectors and their role in defining the hyperplane.\n  9. The app must include a section to explain the objective function (minimize 1/2 * ||w||²) and the constraints (y_i(w^T x_i + b) >= 1) used in the SVM formulation.\n  10. The app must allow users to add or remove data points and observe how the hyperplane and margins adjust accordingly.\n  11. The app must include a simple tutorial or guide to help users understand how to use the app and interpret the results.\"\n}\n```",
-    "html_file_path": "generated_games/video_game_6866f392a98231bea6b2c3fd_1751776244.html",
-    "created_at": "2025-07-06 04:30:44 UTC",
-    "cached": true,
-    "youtube_url": "",
-    "video_title": "TwelveLabs Video 6866f392a98231bea6b2c3fd",
-    "channel_name": "TwelveLabs",
-    "view_count": "Generated",
-    "cached_at": "2025-07-06 04:30:44 UTC"
-  },
-  "6866f6b0a98231bea6b2c500": {
-    "video_id": "6866f6b0a98231bea6b2c500",
-    "video_analysis": "```json\n{\n  \"spec\": {\n    \"title\": \"Parisian Landmarks Explorer\",\n    \"description\": \"An interactive web app that helps learners explore and understand the landmarks of Paris.\",\n    \"features\": [\n      {\n        \"name\": \"Interactive Map\",\n        \"description\": \"A map of Paris with clickable markers representing famous landmarks. Clicking on a marker displays a brief description and an image of the landmark.\",\n        \"mechanics\": [\n          \"Users can click on markers to learn about landmarks.\",\n          \"Each marker displays a brief description and an image.\"\n        ]\n      },\n      {\n        \"name\": \"Historical Timeline\",\n        \"description\": \"A timeline showcasing the history of Parisian landmarks. Users can drag the timeline to explore different eras.\",\n        \"mechanics\": [\n          \"Users can drag the timeline to explore different eras.\",\n          \"Each era highlights significant landmarks and events.\"\n        ]\n      },\n      {\n        \"name\": \"Cultural Quiz\",\n        \"description\": \"A quiz testing users' knowledge of Parisian culture and landmarks.\",\n        \"mechanics\": [\n          \"Users answer multiple-choice questions about Parisian landmarks.\",\n          \"Correct answers unlock additional information about the landmarks.\"\n        ]\n      }\n    ],\n    \"design\": {\n      \"colorScheme\": [\"#FFD700\", \"#008000\", \"#FF69B4\"],\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"layout\": \"Responsive layout that adapts to different screen sizes.\"\n    },\n    \"development\": {\n      \"technology\": \"HTML, CSS, JavaScript\",\n      \"libraries\": [],\n      \"dependencies\": []\n    }\n  }\n}\n```",
-    "html_file_path": "generated_games/video_game_6866f6b0a98231bea6b2c500_1751809521.html",
-    "created_at": "2025-07-06 13:45:21 UTC",
-    "cached": true,
-    "youtube_url": "",
-    "video_title": "TwelveLabs Video 6866f6b0a98231bea6b2c500",
-    "channel_name": "TwelveLabs",
-    "view_count": "Generated",
-    "cached_at": "2025-07-06 13:45:21 UTC"
-  },
-  "6803ede5e2fe6a706bda9ca5": {
-    "video_id": "6803ede5e2fe6a706bda9ca5",
-    "video_analysis": "```json\n{\n  \"spec\": {\n    \"title\": \"Women's 5000m Race Interactive App\",\n    \"description\": \"An interactive web app designed to help learners understand the dynamics of a women's 5000m race, including pacing, strategy, and the importance of the final lap.\",\n    \"features\": [\n      {\n        \"name\": \"Interactive Track\",\n        \"description\": \"Users can drag and drop runners onto the track to simulate different race scenarios and observe how changes in position affect the race outcome.\",\n        \"mechanics\": [\n          \"Display a virtual track with lanes.\",\n          \"Allow users to select runners from a list and place them on the track.\",\n          \"Enable users to adjust the starting positions of runners and simulate the race.\"\n        ]\n      },\n      {\n        \"name\": \"Runner Profiles\",\n        \"description\": \"Provide detailed profiles of each runner, including their country, name, and race statistics, to help users understand the competition.\",\n        \"mechanics\": [\n          \"Create a profile page for each runner.\",\n          \"Include images, names, countries, and race statistics such as previous race times and achievements.\",\n          \"Allow users to view and compare profiles.\"\n        ]\n      },\n      {\n        \"name\": \"Race Simulation\",\n        \"description\": \"Simulate the race with real-time updates and highlight key moments, such as changes in the lead and the final sprint.\",\n        \"mechanics\": [\n          \"Show a timeline of the race with key moments marked, such as the start, mid-race, and final lap.\",\n          \"Highlight the leading runner at each moment and show their position relative to other runners.\",\n          \"Provide statistics such as lap times and final positions.\"\n        ]\n      },\n      {\n        \"name\": \"Strategy Game\",\n        \"description\": \"Allow users to take control of a runner and make strategic decisions during the race, such as when to sprint or conserve energy.\",\n        \"mechanics\": [\n          \"Provide a set of strategic options for the user to choose from during different stages of the race.\",\n          \"Show the consequences of each decision on the race outcome.\",\n          \"Enable users to replay the race with different strategies to see how they affect the final result.\"\n        ]\n      }\n    ],\n    \"design\": {\n      \"colorScheme\": [\"#FFD700\", \"#008000\", \"#FF69B4\"],\n      \"fontFamily\": \"Arial, sans-serif\",\n      \"layout\": \"Responsive layout that adapts to different screen sizes.\"\n    },\n    \"development\": {\n      \"technologyStack\": [\"HTML\", \"CSS\", \"JavaScript\"],\n      \"libraries\": [],\n      \"dependencies\": []\n    }\n  }\n}\n```",
-    "html_file_path": "generated_games/video_game_6803ede5e2fe6a706bda9ca5_1751910000.html",
-    "created_at": "2025-07-07 17:40:00 UTC",
-    "cached": true,
-    "youtube_url": "",
-    "video_title": "TwelveLabs Video 6803ede5e2fe6a706bda9ca5",
-    "channel_name": "TwelveLabs",
-    "view_count": "Generated",
-    "cached_at": "2025-07-07 17:40:00 UTC"
-  },
-  "6871758620489dda940818f1": {
-    "video_id": "6871758620489dda940818f1",
-    "video_analysis": "I regret to inform you that the question you've asked is of such complexity that a definitive answer eludes our current knowledge and understanding.",
-    "html_file_path": "generated_games/video_game_534571ffc0dde859_1752266229.html",
-    "created_at": "2025-07-11 20:37:09 UTC",
-    "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=T-D1OfcDW1M&t=178s",
-    "video_title": "What is Retrieval-Augmented Generation (RAG)?",
-    "channel_name": "",
-    "view_count": "",
-    "cached_at": "2025-07-11 20:37:09 UTC"
+    "cached_at": "2025-07-18 21:31:36 UTC"
   }
 }

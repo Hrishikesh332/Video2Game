@@ -37,6 +37,6 @@ REQUIREMENTS:
 
 6. COLOR THEME to Use - White Background and Grey as bg color and then over that use other color if needed, keep it simplistic as black, white and gray
 
-7. Only meaningful text concise. The Next button and the complete HTML Interactive game should be created
+7. Only meaningful text concise. Make sure not to have buttons, and have fully interactivity
         
 IMPORTANT: Generate the COMPLETE HTML file. Do not truncate or abbreviate any code. Ensure ALL opening tags have corresponding closing tags, especially </body> and </html>.

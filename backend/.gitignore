@@ -10,3 +10,5 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+
+app/cookies.txt
