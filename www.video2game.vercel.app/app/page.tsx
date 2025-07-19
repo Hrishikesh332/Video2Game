@@ -350,99 +350,175 @@ export default function VideoToLearningApp() {
           : `${API_BASE_URL}/youtube/process?youtube_url=${encodeURIComponent(youtubeUrl)}`
         let evtSource: EventSource;
         if (apiKey) {
-          // Use fetch-event-source polyfill for custom headers if needed
-          // Or fallback to fetch for initial request, then poll for updates
-          // For now, fallback to fetch for initial request if apiKey is present
           fetch(endpoint, { headers: { "X-Twelvelabs-Api-Key": apiKey } })
             .then(() => {
               evtSource = new EventSource(endpoint);
+
+              evtSource.onmessage = (event) => {
+                const e = event as MessageEvent
+                if (e.data === "[DONE]") {
+                  evtSource.close()
+                  setIsLoading(false)
+                  setIsStreaming(false)
+                  setStreamingProgress("")
+                  setTimeout(async () => {
+                    try {
+                      // Fetch the latest sample app for this YouTube video
+                      const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(youtubeUrl)}`)
+                      if (response.ok) {
+                        const data = await response.json()
+                        if (data.success && data.data && data.data.html_file_path) {
+                          setGameHtml(data.data.html_file_path)
+                          setCurrentGameId(data.data.id || null)
+                          setExpandedVideo(data.data.id || null)
+                        } else {
+                          // fallback: fetch all sample apps and try to find the right one
+                          const allResp = await fetch(`${API_BASE_URL}/sample-apps`)
+                          if (allResp.ok) {
+                            const allData = await allResp.json()
+                            const found = (allData.apps || []).find((app: any) => app.youtube_url === youtubeUrl)
+                            if (found) {
+                              setGameHtml(found.html_file_path)
+                              setCurrentGameId(found.id)
+                              setExpandedVideo(found.id)
+                            }
+                          }
+                        }
+                      }
+                    } catch (err) {
+                      console.error("Error refreshing app data:", err)
+                    }
+                  }, 1000)
+                  resolve()
+                }
+              }
+
+              evtSource.addEventListener("progress", (event) => {
+                const e = event as MessageEvent
+                progressMsg = e.data
+                setStreamingProgress(progressMsg)
+                setStatusMessage(progressToMessage(progressMsg, regenerate))
+                if (progressMsg.includes("Generating game with SambaNova")) {
+                  setIsStreaming(true)
+                }
+              })
+
+              evtSource.addEventListener("analysis", (event) => {
+                const e = event as MessageEvent
+                streamedAnalysis = e.data
+                setStreamingProgress("Twelvelabs Analysis...")
+                setGameHtml(streamedAnalysis)
+              })
+
+              evtSource.addEventListener("game_chunk", (event) => {
+                const e = event as MessageEvent
+                streamedHtml += e.data
+                setGameHtml(streamedHtml)
+                console.log("Received game chunk, total length:", streamedHtml.length)
+              })
+
+              evtSource.addEventListener("done", () => {
+                evtSource.close()
+                setIsLoading(false)
+                setIsStreaming(false)
+                setStreamingProgress("")
+                resolve()
+              })
+
+              evtSource.addEventListener("error", (event) => {
+                const e = event as MessageEvent
+                setError(e.data || "Streaming error")
+                evtSource.close()
+                setIsLoading(false)
+                setIsStreaming(false)
+                setStreamingProgress("")
+                reject(e.data || "Streaming error")
+              })
             });
         } else {
           evtSource = new EventSource(endpoint);
-        }
 
-        evtSource.onmessage = (event) => {
-          const e = event as MessageEvent
-          if (e.data === "[DONE]") {
+          evtSource.onmessage = (event) => {
+            const e = event as MessageEvent
+            if (e.data === "[DONE]") {
+              evtSource.close()
+              setIsLoading(false)
+              setIsStreaming(false)
+              setStreamingProgress("")
+              setTimeout(async () => {
+                try {
+                  // Fetch the latest sample app for this YouTube video
+                  const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(youtubeUrl)}`)
+                  if (response.ok) {
+                    const data = await response.json()
+                    if (data.success && data.data && data.data.html_file_path) {
+                      setGameHtml(data.data.html_file_path)
+                      setCurrentGameId(data.data.id || null)
+                      setExpandedVideo(data.data.id || null)
+                    } else {
+                      // fallback: fetch all sample apps and try to find the right one
+                      const allResp = await fetch(`${API_BASE_URL}/sample-apps`)
+                      if (allResp.ok) {
+                        const allData = await allResp.json()
+                        const found = (allData.apps || []).find((app: any) => app.youtube_url === youtubeUrl)
+                        if (found) {
+                          setGameHtml(found.html_file_path)
+                          setCurrentGameId(found.id)
+                          setExpandedVideo(found.id)
+                        }
+                      }
+                    }
+                  }
+                } catch (err) {
+                  console.error("Error refreshing app data:", err)
+                }
+              }, 1000)
+              resolve()
+            }
+          }
+
+          evtSource.addEventListener("progress", (event) => {
+            const e = event as MessageEvent
+            progressMsg = e.data
+            setStreamingProgress(progressMsg)
+            setStatusMessage(progressToMessage(progressMsg, regenerate))
+            if (progressMsg.includes("Generating game with SambaNova")) {
+              setIsStreaming(true)
+            }
+          })
+
+          evtSource.addEventListener("analysis", (event) => {
+            const e = event as MessageEvent
+            streamedAnalysis = e.data
+            setStreamingProgress("Twelvelabs Analysis...")
+            setGameHtml(streamedAnalysis)
+          })
+
+          evtSource.addEventListener("game_chunk", (event) => {
+            const e = event as MessageEvent
+            streamedHtml += e.data
+            setGameHtml(streamedHtml)
+            console.log("Received game chunk, total length:", streamedHtml.length)
+          })
+
+          evtSource.addEventListener("done", () => {
             evtSource.close()
             setIsLoading(false)
             setIsStreaming(false)
             setStreamingProgress("")
-            setTimeout(async () => {
-              try {
-                // Fetch the latest sample app for this YouTube video
-                const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(youtubeUrl)}`)
-                if (response.ok) {
-                  const data = await response.json()
-                  if (data.success && data.data && data.data.html_file_path) {
-                    setGameHtml(data.data.html_file_path)
-                    setCurrentGameId(data.data.id || null)
-                    setExpandedVideo(data.data.id || null)
-                  } else {
-                    // fallback: fetch all sample apps and try to find the right one
-                    const allResp = await fetch(`${API_BASE_URL}/sample-apps`)
-                    if (allResp.ok) {
-                      const allData = await allResp.json()
-                      const found = (allData.apps || []).find((app: any) => app.youtube_url === youtubeUrl)
-                      if (found) {
-                        setGameHtml(found.html_file_path)
-                        setCurrentGameId(found.id)
-                        setExpandedVideo(found.id)
-                      }
-                    }
-                  }
-                }
-              } catch (err) {
-                console.error("Error refreshing app data:", err)
-              }
-            }, 1000)
             resolve()
-          }
+          })
+
+          evtSource.addEventListener("error", (event) => {
+            const e = event as MessageEvent
+            setError(e.data || "Streaming error")
+            evtSource.close()
+            setIsLoading(false)
+            setIsStreaming(false)
+            setStreamingProgress("")
+            reject(e.data || "Streaming error")
+          })
         }
-
-        evtSource.addEventListener("progress", (event) => {
-          const e = event as MessageEvent
-          progressMsg = e.data
-          setStreamingProgress(progressMsg)
-          setStatusMessage(progressToMessage(progressMsg, regenerate))
-          
-          // Show black container only when Sambanova is about to start
-          if (progressMsg.includes("Generating game with SambaNova")) {
-            setIsStreaming(true)
-          }
-        })
-
-        evtSource.addEventListener("analysis", (event) => {
-          const e = event as MessageEvent
-          streamedAnalysis = e.data
-          setStreamingProgress("Twelvelabs Analysis...")
-          setGameHtml(streamedAnalysis)
-        })
-
-        evtSource.addEventListener("game_chunk", (event) => {
-          const e = event as MessageEvent
-          streamedHtml += e.data
-          setGameHtml(streamedHtml)
-          console.log("Received game chunk, total length:", streamedHtml.length)
-        })
-
-        evtSource.addEventListener("done", () => {
-          evtSource.close()
-          setIsLoading(false)
-          setIsStreaming(false)
-          setStreamingProgress("")
-          resolve()
-        })
-
-        evtSource.addEventListener("error", (event) => {
-          const e = event as MessageEvent
-          setError(e.data || "Streaming error")
-          evtSource.close()
-          setIsLoading(false)
-          setIsStreaming(false)
-          setStreamingProgress("")
-          reject(e.data || "Streaming error")
-        })
       })
     } catch (err) {
       setError(`Failed to process video: ${err instanceof Error ? err.message : String(err)}`)
@@ -989,15 +1065,6 @@ export default function VideoToLearningApp() {
                     onVideoSelect={handleVideoSelect}
                     selectedVideoId={selectedTwelveLabsVideo}
                   />
-                  <button
-                    className={`w-full px-6 py-3 bg-[#1d1c1b] hover:bg-[#1d1c1b]/90 text-white rounded-lg font-medium transition-all duration-200 ${
-                      isLoading ? "opacity-70 cursor-not-allowed" : ""
-                    }`}
-                    onClick={processTwelveLabsRegenerate}
-                    disabled={isLoading || !selectedTwelveLabsVideo}
-                  >
-                    {isLoading ? "Generating..." : "Generate from TwelveLabs"}
-                  </button>
                 </>
               )}
 
@@ -1180,51 +1247,48 @@ export default function VideoToLearningApp() {
                     {activeSource === 'youtube' ? 'Interactive Learning Game' : 'TwelveLabs Generated Game'}
                   </h2>
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        if (activeSource === 'youtube') {
+                    {activeSource === 'youtube' && (
+                      <button
+                        onClick={() => {
                           if (expandedVideo) {
-                            const video = sampleVideos.find((v) => v.id === expandedVideo)
+                            const video = sampleVideos.find((v) => v.id === expandedVideo);
                             if (video && video.videoUrl) {
-                              setYoutubeUrl(video.videoUrl)
-                              processYoutubeUrl(true)
-                              return
+                              setYoutubeUrl(video.videoUrl);
+                              setTimeout(() => processYoutubeUrl(true), 0); // Ensure state is updated before calling
+                              return;
                             }
                           }
-                          processYoutubeUrl(true)
-                        } else {
-                          // TwelveLabs regenerate
-                          processTwelveLabsRegenerate()
-                        }
-                      }}
-                      disabled={isLoading}
-                      className="flex items-center gap-1 text-xs bg-white/60 hover:bg-white/80 px-3 py-1.5 rounded-full transition-all duration-200 border border-[#ececec]/50 disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Regenerate with new content"
-                    >
-                      {isLoading ? (
-                        <img 
-                          src="/TwelveLabs.gif" 
-                          alt="Loading..." 
-                          className="w-3 h-3 object-contain"
-                          style={{ imageRendering: 'auto' }}
-                        />
-                      ) : (
-                        <svg
-                          width="12"
-                          height="12"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-                          <path d="M21 3v5h-5" />
-                          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-                          <path d="M3 21v-5h5" />
-                        </svg>
-                      )}
-                      {isLoading ? "Regenerating..." : activeSource === 'youtube' ? "Regenerate YouTube" : "Regenerate TwelveLabs"}
-                    </button>
+                          processYoutubeUrl(true);
+                        }}
+                        disabled={isLoading}
+                        className="flex items-center gap-1 text-xs bg-white/60 hover:bg-white/80 px-3 py-1.5 rounded-full transition-all duration-200 border border-[#ececec]/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Regenerate with new content"
+                      >
+                        {isLoading ? (
+                          <img 
+                            src="/TwelveLabs.gif" 
+                            alt="Loading..." 
+                            className="w-3 h-3 object-contain"
+                            style={{ imageRendering: 'auto' }}
+                          />
+                        ) : (
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                            <path d="M21 3v5h-5" />
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                            <path d="M3 21v-5h5" />
+                          </svg>
+                        )}
+                        {isLoading ? "Regenerating..." : "Regenerate"}
+                      </button>
+                    )}
                     <button
                       onClick={() => setGameHtml(null)}
                       className="text-xs bg-[#1d1c1b]/10 hover:bg-[#1d1c1b]/20 px-2 py-1 rounded-md transition-colors"
@@ -1359,3 +1423,4 @@ export default function VideoToLearningApp() {
     </div>
   )
 }
+
