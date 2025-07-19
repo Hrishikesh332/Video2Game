@@ -181,11 +181,11 @@ export default function VideoToLearningApp() {
 
       console.log("Attempting to connect to:", `${API_BASE_URL}/youtube/process`)
 
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (apiKey) headers["X-Twelvelabs-Api-Key"] = apiKey;
       const response = await fetch(`${API_BASE_URL}/youtube/process`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify({
           youtube_url: url,
         }),
@@ -348,7 +348,18 @@ export default function VideoToLearningApp() {
         const endpoint = regenerate
           ? `${API_BASE_URL}/youtube/regenerate?youtube_url=${encodeURIComponent(youtubeUrl)}`
           : `${API_BASE_URL}/youtube/process?youtube_url=${encodeURIComponent(youtubeUrl)}`
-        const evtSource = new EventSource(endpoint)
+        let evtSource: EventSource;
+        if (apiKey) {
+          // Use fetch-event-source polyfill for custom headers if needed
+          // Or fallback to fetch for initial request, then poll for updates
+          // For now, fallback to fetch for initial request if apiKey is present
+          fetch(endpoint, { headers: { "X-Twelvelabs-Api-Key": apiKey } })
+            .then(() => {
+              evtSource = new EventSource(endpoint);
+            });
+        } else {
+          evtSource = new EventSource(endpoint);
+        }
 
         evtSource.onmessage = (event) => {
           const e = event as MessageEvent

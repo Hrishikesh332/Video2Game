@@ -126,7 +126,7 @@ export default function TwelveLabsSelector({
     try {
       const response = await fetch(`${API_BASE_URL}/indexes`, {
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          "X-Twelvelabs-Api-Key": apiKey,
           "Content-Type": "application/json",
         },
       })
@@ -147,7 +147,7 @@ export default function TwelveLabsSelector({
     try {
       const response = await fetch(`${API_BASE_URL}/indexes/${indexId}/videos`, {
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          "X-Twelvelabs-Api-Key": apiKey,
           "Content-Type": "application/json",
         },
       })
