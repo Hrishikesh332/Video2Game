@@ -105,7 +105,13 @@ class TwelveLabsService:
         try:
             response = requests.get(url, headers=headers)
             print(f"[DEBUG] Thumbnail endpoint content-type: {response.headers.get('Content-Type')}", file=sys.stderr)
+            if response.status_code != 200:
+                print(f"[DEBUG] Thumbnail endpoint returned status {response.status_code}: {response.text}", file=sys.stderr)
+                return None
             data = response.json()
+            if not isinstance(data, dict) or 'thumbnail' not in data:
+                print(f"[DEBUG] Unexpected thumbnail response: {data}", file=sys.stderr)
+                return None
             thumbnail_url = data.get('thumbnail')
             print(f"[DEBUG] Extracted thumbnail URL: {thumbnail_url}", file=sys.stderr)
             if thumbnail_url:

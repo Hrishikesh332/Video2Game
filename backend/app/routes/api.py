@@ -88,9 +88,9 @@ def analyze_video():
 def process_youtube_video():
     from app.services.youtube_indexing_service import YouTubeIndexingService
 
-    def event_stream(youtube_url, index_id=None, force_regenerate=False):
+    def event_stream(youtube_url, index_id=None, force_regenerate=False, api_key=None):
         sample_games_service = SampleGamesService()
-        youtube_service = YouTubeIndexingService()
+        youtube_service = YouTubeIndexingService(api_key=api_key)
         yield f"event: progress\ndata: Validating YouTube URL...\n\n"
         if not youtube_url:
             yield f"event: error\ndata: youtube_url is required\n\n"
@@ -181,11 +181,12 @@ def process_youtube_video():
             return
         yield f"event: done\ndata: [DONE]\n\n"
 
+    api_key = request.headers.get('X-Twelvelabs-Api-Key')
     if request.method == 'GET':
         youtube_url = request.args.get('youtube_url')
         index_id = request.args.get('index_id')
         force_regenerate = request.args.get('regenerate', 'false').lower() == 'true'
-        return Response(stream_with_context(event_stream(youtube_url, index_id, force_regenerate)), mimetype='text/event-stream')
+        return Response(stream_with_context(event_stream(youtube_url, index_id, force_regenerate, api_key)), mimetype='text/event-stream')
     else:
         data = request.get_json()
         youtube_url = data.get('youtube_url')
@@ -193,12 +194,13 @@ def process_youtube_video():
         force_regenerate = data.get('regenerate', False)
         if not youtube_url:
             return jsonify({"error": "youtube_url is required"}), 400
-        youtube_service = YouTubeIndexingService()
+        youtube_service = YouTubeIndexingService(api_key=api_key)
         print(f"Processing YouTube URL: {youtube_url}")
         result = youtube_service.process_youtube_url(
             youtube_url=youtube_url,
             index_id=index_id,
-            force_regenerate=force_regenerate
+            force_regenerate=force_regenerate,
+            api_key=api_key
         )
         if result["success"]:
             return jsonify(result)

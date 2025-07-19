@@ -9,15 +9,15 @@ from app.services.sample_games_service import SampleGamesService
 from app.services.file_service import FileService
 
 class YouTubeIndexingService:
-    def __init__(self):
+    def __init__(self, api_key=None):
         self.youtube_service = YouTubeService()
         self.chunking_service = VideoChunkingService()
-        self.twelvelabs_service = TwelveLabsService()
+        self.twelvelabs_service = TwelveLabsService(api_key=api_key)
         self.sambanova_service = SambanovaService()
         self.sample_games_service = SampleGamesService()
         self.file_service = FileService()
     
-    def process_youtube_url(self, youtube_url, index_id=None, force_regenerate=False):
+    def process_youtube_url(self, youtube_url, index_id=None, force_regenerate=False, api_key=None):
         video_file_path = None
         chunk_files = []
         
@@ -54,7 +54,8 @@ class YouTubeIndexingService:
             print(f"Video downloaded successfully: {video_title}")
             
             if not index_id:
-                indexes = self.twelvelabs_service.get_indexes()
+                # Always use the correct API key for TwelveLabsService
+                indexes = TwelveLabsService(api_key=api_key or getattr(self.twelvelabs_service, 'client', None) and getattr(self.twelvelabs_service.client, 'api_key', None)).get_indexes()
                 if not indexes:
                     return {
                         "success": False,
@@ -122,7 +123,7 @@ class YouTubeIndexingService:
             
             print(f"Analyzing video content for game generation")
             analysis_prompt = current_app.prompt_service.get_prompt('analysis')
-            video_analysis = self.twelvelabs_service.analyze_video(primary_video_id, analysis_prompt)
+            video_analysis = TwelveLabsService(api_key=api_key or getattr(self.twelvelabs_service, 'client', None) and getattr(self.twelvelabs_service.client, 'api_key', None)).analyze_video(primary_video_id, analysis_prompt)
             
             print(f"Generating interactive game code")
             game_generation_prompt = current_app.prompt_service.get_prompt('game_generation', video_analysis=video_analysis)
