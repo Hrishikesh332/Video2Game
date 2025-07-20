@@ -1,0 +1,14 @@
+{
+  "687d2ea82b144dc12e03281a": {
+    "video_id": "687d2ea82b144dc12e03281a",
+    "video_analysis": "```json\n{\n  \"spec\": \"In statistics, Principal Component Analysis (PCA) is a method used to reduce the dimensionality of data while preserving the most significant patterns. This app will help learners understand the key concepts of PCA through interactive visualizations and simple mechanics.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive scatter plot where users can add and manipulate data points representing cells or any other entities.\\n2. The app must allow users to visualize the correlation between different entities by plotting them on a 2D graph. Users should be able to see how the entities cluster based on their correlation.\\n3. The app must include a feature to color-code clusters of highly correlated entities, making it easier for users to identify and understand different groups.\\n4. The app must display the principal component axes (PC1 and PC2) and allow users to observe how differences along these axes are ranked in order of importance.\\n5. The app must provide an option to rotate the 3D coordinate system to help users visualize the relationships between entities in different dimensions.\\n6. The app must include a PCA plot that converts the correlations among entities into a 2D graph, showing clusters of highly correlated entities.\\n7. The app must allow users to interactively change the number of entities and observe how the PCA plot and clusters change accordingly.\\n8. The app must include explanatory text and tooltips to guide users through the process of understanding PCA and its applications.\\n9. The app must be designed with simple, playful elements to engage users and reinforce the learning experience.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_3d91aee7b9102f11_1753034578.html",
+    "created_at": "2025-07-20 18:02:58 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=HMOI_lkzW08&t=216s",
+    "video_title": "StatQuest: PCA main ideas in only 5 minutes!!!",
+    "channel_name": "",
+    "view_count": "",
+    "cached_at": "2025-07-20 18:02:58 UTC"
+  }
+}

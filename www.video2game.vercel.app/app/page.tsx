@@ -833,6 +833,57 @@ export default function VideoToLearningApp() {
     }
   }, [sampleVideos, youtubeUrl, activeSource, isLoading]);
 
+  // Utility to load games from sessionStorage
+  const loadUserGames = () => {
+    try {
+      const games = JSON.parse(sessionStorage.getItem('userGames') || '[]');
+      return Array.isArray(games) ? games : [];
+    } catch {
+      return [];
+    }
+  };
+
+  // Utility to save games to sessionStorage (max 5)
+  const saveUserGame = (game: any) => {
+    let games = loadUserGames();
+    // Remove any existing game with the same videoUrl
+    games = games.filter((g: any) => g.videoUrl !== game.videoUrl);
+    games.unshift(game); // Add new game to the front
+    if (games.length > 5) games = games.slice(0, 5);
+    sessionStorage.setItem('userGames', JSON.stringify(games));
+  };
+
+  // On mount, load user games from sessionStorage
+  useEffect(() => {
+    const userGames = loadUserGames();
+    if (userGames.length > 0) {
+      setSampleVideos((prev) => {
+        // Only add games not already in prev
+        const prevUrls = new Set(prev.map((v) => v.videoUrl));
+        return [...userGames.filter((g: any) => !prevUrls.has(g.videoUrl)), ...prev];
+      });
+    }
+  }, []);
+
+  // When a game is rendered (auto-refresh or manual), save it to sessionStorage
+  const handleRenderGame = (game: any) => {
+    if (!game || !game.html_file_path) return;
+    saveUserGame({
+      id: Date.now(),
+      title: game.video_title || `Video ${game.video_id?.substring(0, 8) || ''}`,
+      duration: game.duration || '',
+      type: 'Interactive App',
+      thumbnail: game.youtube_url ? `https://img.youtube.com/vi/${extractVideoId(game.youtube_url)}/maxresdefault.jpg` : '/placeholder.svg',
+      videoUrl: game.youtube_url || '',
+      htmlFilePath: game.html_file_path,
+      isGenerated: true,
+      channelName: game.channel_name || '',
+      viewCount: game.view_count || '',
+      createdAt: game.created_at || new Date().toISOString(),
+      videoId: game.video_id || '',
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#f4f3f3] relative overflow-hidden">
 
