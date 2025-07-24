@@ -48,6 +48,7 @@ export default function VideoToLearningApp() {
   const [selectedTwelveLabsVideoName, setSelectedTwelveLabsVideoName] = useState("")
   const [isLoadingIndexes, setIsLoadingIndexes] = useState(false)
   const [isLoadingVideos, setIsLoadingVideos] = useState(false)
+  const [iframeKey, setIframeKey] = useState(0) // Force iframe refresh
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [streamingProgress, setStreamingProgress] = useState<string>("")
@@ -669,30 +670,41 @@ export default function VideoToLearningApp() {
       
       console.log("Setting iframe content:", gameHtml.substring(0, 100) + "...")
       
-      // Check if gameHtml is a file path (starts with /) or actual HTML content
-      if (gameHtml.startsWith('/') || gameHtml.includes('.html')) {
-        // It's a file path - fetch the content
-        fetchHtmlFromFile(gameHtml).then((html) => {
+      // Force clear iframe first for clean refresh
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
+      if (iframeDoc) {
+        iframeDoc.open()
+        iframeDoc.write('')
+        iframeDoc.close()
+      }
+      
+      // Small delay to ensure clean refresh
+      setTimeout(() => {
+        // Check if gameHtml is a file path (starts with /) or actual HTML content
+        if (gameHtml.startsWith('/') || gameHtml.includes('.html')) {
+          // It's a file path - fetch the content
+          fetchHtmlFromFile(gameHtml).then((html) => {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
+            if (iframeDoc) {
+              iframeDoc.open()
+              iframeDoc.write(html)
+              iframeDoc.close()
+              console.log("Iframe content set from file path")
+            }
+          })
+        } else {
+          // It's actual HTML content - use it directly
           const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
           if (iframeDoc) {
             iframeDoc.open()
-            iframeDoc.write(html)
+            iframeDoc.write(gameHtml)
             iframeDoc.close()
-            console.log("Iframe content set from file path")
+            console.log("Iframe content set from direct HTML")
           }
-        })
-      } else {
-        // It's actual HTML content - use it directly
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document
-        if (iframeDoc) {
-          iframeDoc.open()
-          iframeDoc.write(gameHtml)
-          iframeDoc.close()
-          console.log("Iframe content set from direct HTML")
         }
-      }
+      }, 100) // Small delay for clean refresh
     }
-  }, [gameHtml, activeTab])
+  }, [gameHtml, activeTab, iframeKey])
 
   const handleVideoClick = async (videoId: number) => {
     const video = sampleVideos.find((v) => v.id === videoId)
@@ -700,38 +712,45 @@ export default function VideoToLearningApp() {
       setYoutubeUrl(video.videoUrl)
       setExpandedVideo(videoId)
       setCurrentGameId(videoId)
-
-      if (video.htmlFilePath) {
-        setGameHtml(video.htmlFilePath)
-      } else {
-        try {
-          const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(video.videoUrl)}`)
-          if (response.ok) {
-            const data = await response.json()
-            if (data.success && data.data && data.data.html_file_path) {
-              setGameHtml(data.data.html_file_path)
-              
-              setSampleVideos((prev) =>
-                prev.map((v) =>
-                  v.id === videoId
-                    ? {
-                        ...v,
-                        htmlFilePath: data.data.html_file_path,
-                        type: extractGameType(data.data.html_file_path),
-                        isGenerated: true,
-                      }
-                    : v
+      
+      // Force iframe refresh by clearing first, then setting content
+      setGameHtml(null) // Clear first
+      setIframeKey(prev => prev + 1) // Force refresh
+      
+      // Small delay to ensure clean refresh
+      setTimeout(async () => {
+        if (video.htmlFilePath) {
+          setGameHtml(video.htmlFilePath)
+        } else {
+          try {
+            const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(video.videoUrl)}`)
+            if (response.ok) {
+              const data = await response.json()
+              if (data.success && data.data && data.data.html_file_path) {
+                setGameHtml(data.data.html_file_path)
+                
+                setSampleVideos((prev) =>
+                  prev.map((v) =>
+                    v.id === videoId
+                      ? {
+                          ...v,
+                          htmlFilePath: data.data.html_file_path,
+                          type: extractGameType(data.data.html_file_path),
+                          isGenerated: true,
+                        }
+                      : v
+                  )
                 )
-              )
-              return
+                return
+              }
             }
+          } catch (err) {
+            console.error("Error fetching from cache:", err)
           }
-        } catch (err) {
-          console.error("Error fetching from cache:", err)
+          
+          setShowGeneratePopup(true)
         }
-        
-        setShowGeneratePopup(true)
-      }
+      }, 150) // Small delay for clean refresh
     }
   }
 
@@ -777,30 +796,36 @@ export default function VideoToLearningApp() {
     setSelectedTwelveLabsVideo(videoId)
     setSelectedTwelveLabsVideoName(videoName)
 
-    try {
-      // Fetch game data from /game/<video_id>
-      const response = await fetch(`${API_BASE_URL}/game/${videoId}`)
-      if (response.ok) {
-        const data = await response.json()
-        if (data && data.html_file_path) {
-          setGameHtml(data.html_file_path)
-          setCurrentGameId(null) // No numeric ID for Twelvelabs games
-          setExpandedVideo(null)
+    // Force iframe refresh when selecting video
+    setGameHtml(null) // Clear first
+    setIframeKey(prev => prev + 1) // Force refresh
+
+    setTimeout(async () => {
+      try {
+        // Fetch game data from /game/<video_id>
+        const response = await fetch(`${API_BASE_URL}/game/${videoId}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data && data.html_file_path) {
+            setGameHtml(data.html_file_path)
+            setCurrentGameId(null) // No numeric ID for Twelvelabs games
+            setExpandedVideo(null)
+          } else {
+            setGameHtml(null)
+            setCurrentGameId(null)
+            setExpandedVideo(null)
+          }
         } else {
           setGameHtml(null)
           setCurrentGameId(null)
           setExpandedVideo(null)
         }
-      } else {
+      } catch (err) {
         setGameHtml(null)
         setCurrentGameId(null)
         setExpandedVideo(null)
       }
-    } catch (err) {
-      setGameHtml(null)
-      setCurrentGameId(null)
-      setExpandedVideo(null)
-    }
+    }, 150) // Small delay for clean refresh
   }
 
   const processTwelveLabsRegenerate = async () => {
@@ -995,18 +1020,6 @@ export default function VideoToLearningApp() {
     sessionStorage.setItem('userGames', JSON.stringify(games));
   };
 
-  // On mount, load user games from sessionStorage
-  useEffect(() => {
-    const userGames = loadUserGames();
-    if (userGames.length > 0) {
-      setSampleVideos((prev) => {
-        // Only add games not already in prev
-        const prevUrls = new Set(prev.map((v) => v.videoUrl));
-        return [...userGames.filter((g: any) => !prevUrls.has(g.videoUrl)), ...prev];
-      });
-    }
-  }, []);
-
   // When a game is rendered (auto-refresh or manual), save it to sessionStorage
   const handleRenderGame = (game: any) => {
     if (!game || !game.html_file_path) return;
@@ -1025,6 +1038,20 @@ export default function VideoToLearningApp() {
       videoId: game.video_id || '',
     });
   };
+
+  // On mount, load user games from sessionStorage
+  useEffect(() => {
+    const userGames = loadUserGames();
+    if (userGames.length > 0) {
+      setSampleVideos((prev) => {
+        // Only add games not already in prev
+        const prevUrls = new Set(prev.map((v) => v.videoUrl));
+        return [...userGames.filter((g: any) => !prevUrls.has(g.videoUrl)), ...prev];
+      });
+    }
+  }, []);
+
+
 
   return (
     <div className="min-h-screen bg-[#f4f3f3] relative overflow-hidden">
@@ -1559,6 +1586,7 @@ export default function VideoToLearningApp() {
                   {activeTab === "app" ? (
                     <div className="h-full bg-white rounded-lg overflow-hidden border border-[#ececec] shadow-sm">
                       <iframe
+                        key={iframeKey}
                         ref={iframeRef}
                         className="w-full h-full"
                         title="Interactive Game"

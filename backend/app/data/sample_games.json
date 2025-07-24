@@ -11,18 +11,7 @@
     "view_count": "",
     "cached_at": "2025-07-24 14:39:39 UTC"
   },
-  "68825e50ec3c5f25fbc4b329": {
-    "video_id": "68825e50ec3c5f25fbc4b329",
-    "video_analysis": "```json\n{\n  \"spec\": {\n    \"title\": \"4-7-8 Breathing Technique Interactive App\",\n    \"description\": \"An interactive web app designed to teach and reinforce the 4-7-8 breathing technique, which is known as the relaxing breath. This technique involves inhaling for 4 seconds, holding the breath for 7 seconds, and exhaling for 8 seconds. The app aims to reduce anxiety and stress while also aiding sleep induction.\",\n    \"features\": [\n      {\n        \"name\": \"Breathing Timer\",\n        \"description\": \"An interactive timer that guides users through the 4-7-8 breathing technique.\",\n        \"mechanics\": [\n          \"Display a white circle that counts up from one to four to guide the user's inhalation.\",\n          \"After reaching four, display the text 'Hold your breath' and count up from five to seven.\",\n          \"After reaching seven, display a countdown from eight to zero to guide the user's exhalation.\"\n        ]\n      },\n      {\n        \"name\": \"Progress Tracker\",\n        \"description\": \"A visual progress tracker that shows how many times the user has completed the breathing technique.\",\n        \"mechanics\": [\n          \"Display a counter that increments each time the user completes the technique.\",\n          \"After completing the technique, display the text 'REPEAT AGAIN' to encourage continued practice.\"\n        ]\n      },\n      {\n        \"name\": \"Stress Reduction Tips\",\n        \"description\": \"Provides tips on how the 4-7-8 breathing technique can reduce anxiety and stress.\",\n        \"mechanics\": [\n          \"Display text explaining the benefits of the technique, such as reducing anxiety and stress and aiding sleep induction.\"\n        ]\n      }\n    ],\n    \"design\": {\n      \"colorScheme\": \"Green background with white text and circles.\",\n      \"layout\": \"Centered layout with clear, easy-to-read text and interactive elements.\"\n    }\n  }\n}\n```",
-    "html_file_path": "generated_games/video_game_5a3037f577e32d40_1753374420.html",
-    "created_at": "2025-07-24 16:27:00 UTC",
-    "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=kpSkoXRrZnE",
-    "video_title": "4-7-8 Breathing Technique",
-    "channel_name": "",
-    "view_count": "",
-    "cached_at": "2025-07-24 16:27:00 UTC"
-  },
+
   "68824bc2373253a5d37693e8": {
     "video_id": "68824bc2373253a5d37693e8",
     "video_analysis": "```json\n{\n  \"spec\": \"In statistics, Principal Component Analysis (PCA) is a method to find a linear combination of variables that accounts for as much variability as possible. This helps in simplifying complex data by reducing dimensions while retaining important information.\n\n  Build an interactive web app to help learners understand PCA.\n\n  SPECIFICATIONS:\n\n  1. The app must feature an interactive scatter plot where users can input or drag data points.\n  2. The app must display two principal components (PC1 and PC2) as axes on the scatter plot.\n  3. The app must allow users to combine two variables (e.g., diastolic and systolic blood pressure) into a single variable using a linear combination formula.\n  4. The app must provide sliders to adjust the weights (α1 and α2) of the variables in the linear combination formula.\n  5. The app must show the combined variable's values and the resulting variance on the scatter plot.\n  6. The app must include a constraint that the sum of the squares of the weights equals one (α1^2 + α2^2 = 1).\n  7. The app must allow users to visualize the impact of different weight combinations on the variance of the combined variable.\n  8. The app must provide a brief explanation of why maximizing variance is important when combining variables.\n  9. The app must include examples of how PCA can be used in biology to analyze gene expression data and identify individuals with similar health profiles.\n  10. The app must have a simple, playful design with clear instructions and feedback to promote understanding.\"\n}\n```",
@@ -58,5 +47,17 @@
     "channel_name": "TwelveLabs",
     "view_count": "Generated",
     "cached_at": "2025-07-24 18:11:55 UTC"
+  },
+  "688273e4373253a5d3769f9f": {
+    "video_id": "688273e4373253a5d3769f9f",
+    "video_analysis": "```json\n{\n  \"spec\": \"In life, resilience and integrity are key to overcoming challenges and achieving success. This is exemplified through the journey of Rocky Balboa, who faces numerous obstacles but perseveres with determination and support from others.\\n\\nBuild an interactive web app to help learners understand the importance of resilience, integrity, and support in achieving their goals.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature a character creation interface where users can create their own avatar.\\n2. The app must include a series of challenges that the user's avatar must overcome, such as physical training, financial hardships, and personal setbacks.\\n3. The app must provide feedback on the user's choices and actions, emphasizing the importance of perseverance and integrity.\\n4. The app must allow users to form a support network by inviting friends or creating virtual allies to help them through the challenges.\\n5. The app must include a journaling feature where users can write about their experiences and reflect on the lessons learned.\\n6. The app must have a leaderboard to showcase the progress and achievements of users, promoting a sense of community and shared goals.\\n7. The app must include motivational quotes and stories from real-life figures who have overcome adversity, reinforcing the themes of resilience and integrity.\\n8. The app must allow users to customize their training environments, such as choosing different locations and settings, to simulate the diverse challenges faced in life.\\n9. The app must provide a final achievement screen where users can celebrate their success and reflect on their journey, emphasizing the importance of resilience and integrity in achieving their goals.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_688273e4373253a5d3769f9f_1753381953.html",
+    "created_at": "2025-07-24 18:32:33 UTC",
+    "cached": true,
+    "youtube_url": "",
+    "video_title": "TwelveLabs Video 688273e4373253a5d3769f9f",
+    "channel_name": "TwelveLabs",
+    "view_count": "Generated",
+    "cached_at": "2025-07-24 18:32:33 UTC"
   }
 }
