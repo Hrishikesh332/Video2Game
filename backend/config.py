@@ -8,6 +8,7 @@ class Config:
     SAMBANOVA_API_KEY = os.getenv("SAMBANOVA_API_KEY")
     TWELVELABS_INDEX_ID = os.getenv("TWELVELABS_INDEX_ID")
     SAMBANOVA_BASE_URL=os.getenv("SAMBANOVA_BASE_URL")
+    APP_URL = os.getenv("APP_URL", "http://localhost:8000")
     
     GAMES_DIR = "generated_games"
     CACHE_DIR = "game_cache"
