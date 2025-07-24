@@ -363,6 +363,9 @@ export default function VideoToLearningApp() {
                   setStreamingProgress("")
                   setTimeout(async () => {
                     try {
+                      // First refresh the sample games list
+                      await fetchSampleGames()
+                      
                       // Fetch the latest sample app for this YouTube video
                       const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(youtubeUrl)}`)
                       if (response.ok) {
@@ -371,6 +374,10 @@ export default function VideoToLearningApp() {
                           setGameHtml(data.data.html_file_path)
                           setCurrentGameId(data.data.id || null)
                           setExpandedVideo(data.data.id || null)
+                          setActiveTab("app") // Ensure we're on the app tab to see the rendered result
+                          
+                          // Save the game to user games for persistence
+                          handleRenderGame(data.data)
                         } else {
                           // fallback: fetch all sample apps and try to find the right one
                           const allResp = await fetch(`${API_BASE_URL}/sample-apps`)
@@ -381,6 +388,10 @@ export default function VideoToLearningApp() {
                               setGameHtml(found.html_file_path)
                               setCurrentGameId(found.id)
                               setExpandedVideo(found.id)
+                              setActiveTab("app") // Ensure we're on the app tab
+                              
+                              // Save the game to user games for persistence
+                              handleRenderGame(found)
                             }
                           }
                         }
@@ -417,11 +428,53 @@ export default function VideoToLearningApp() {
                 console.log("Received game chunk, total length:", streamedHtml.length)
               })
 
-              evtSource.addEventListener("done", () => {
+              evtSource.addEventListener("done", async () => {
                 evtSource.close()
                 setIsLoading(false)
                 setIsStreaming(false)
                 setStreamingProgress("")
+                
+                // Auto-refresh and select the processed video
+                setTimeout(async () => {
+                  try {
+                    // First refresh the sample games list
+                    await fetchSampleGames()
+                    
+                    // Fetch the latest sample app for this YouTube video
+                    const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(youtubeUrl)}`)
+                    if (response.ok) {
+                      const data = await response.json()
+                      if (data.success && data.data && data.data.html_file_path) {
+                        setGameHtml(data.data.html_file_path)
+                        setCurrentGameId(data.data.id || null)
+                        setExpandedVideo(data.data.id || null)
+                        setActiveTab("app") // Ensure we're on the app tab to see the rendered result
+                        
+                        // Save the game to user games for persistence
+                        handleRenderGame(data.data)
+                      } else {
+                        // fallback: fetch all sample apps and try to find the right one
+                        const allResp = await fetch(`${API_BASE_URL}/sample-apps`)
+                        if (allResp.ok) {
+                          const allData = await allResp.json()
+                          const found = (allData.apps || []).find((app: any) => app.youtube_url === youtubeUrl)
+                          if (found) {
+                            setGameHtml(found.html_file_path)
+                            setCurrentGameId(found.id)
+                            setExpandedVideo(found.id)
+                            setActiveTab("app") // Ensure we're on the app tab
+                            
+                            // Save the game to user games for persistence
+                            handleRenderGame(found)
+                          }
+                        }
+                      }
+                    }
+                  } catch (err) {
+                    console.error("Error refreshing app data:", err)
+                  }
+                }, 1000)
+                
                 resolve()
               })
 
@@ -445,34 +498,45 @@ export default function VideoToLearningApp() {
               setIsLoading(false)
               setIsStreaming(false)
               setStreamingProgress("")
-              setTimeout(async () => {
-                try {
-                  // Fetch the latest sample app for this YouTube video
-                  const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(youtubeUrl)}`)
-                  if (response.ok) {
-                    const data = await response.json()
-                    if (data.success && data.data && data.data.html_file_path) {
-                      setGameHtml(data.data.html_file_path)
-                      setCurrentGameId(data.data.id || null)
-                      setExpandedVideo(data.data.id || null)
-                    } else {
-                      // fallback: fetch all sample apps and try to find the right one
-                      const allResp = await fetch(`${API_BASE_URL}/sample-apps`)
-                      if (allResp.ok) {
-                        const allData = await allResp.json()
-                        const found = (allData.apps || []).find((app: any) => app.youtube_url === youtubeUrl)
-                        if (found) {
-                          setGameHtml(found.html_file_path)
-                          setCurrentGameId(found.id)
-                          setExpandedVideo(found.id)
+                              setTimeout(async () => {
+                  try {
+                    // First refresh the sample games list
+                    await fetchSampleGames()
+                    
+                    // Fetch the latest sample app for this YouTube video
+                    const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(youtubeUrl)}`)
+                    if (response.ok) {
+                      const data = await response.json()
+                      if (data.success && data.data && data.data.html_file_path) {
+                        setGameHtml(data.data.html_file_path)
+                        setCurrentGameId(data.data.id || null)
+                        setExpandedVideo(data.data.id || null)
+                        setActiveTab("app") // Ensure we're on the app tab to see the rendered result
+                        
+                        // Save the game to user games for persistence
+                        handleRenderGame(data.data)
+                      } else {
+                        // fallback: fetch all sample apps and try to find the right one
+                        const allResp = await fetch(`${API_BASE_URL}/sample-apps`)
+                        if (allResp.ok) {
+                          const allData = await allResp.json()
+                          const found = (allData.apps || []).find((app: any) => app.youtube_url === youtubeUrl)
+                          if (found) {
+                            setGameHtml(found.html_file_path)
+                            setCurrentGameId(found.id)
+                            setExpandedVideo(found.id)
+                            setActiveTab("app") // Ensure we're on the app tab
+                            
+                            // Save the game to user games for persistence
+                            handleRenderGame(found)
+                          }
                         }
                       }
                     }
+                  } catch (err) {
+                    console.error("Error refreshing app data:", err)
                   }
-                } catch (err) {
-                  console.error("Error refreshing app data:", err)
-                }
-              }, 1000)
+                }, 1000)
               resolve()
             }
           }
@@ -501,11 +565,53 @@ export default function VideoToLearningApp() {
             console.log("Received game chunk, total length:", streamedHtml.length)
           })
 
-          evtSource.addEventListener("done", () => {
+          evtSource.addEventListener("done", async () => {
             evtSource.close()
             setIsLoading(false)
             setIsStreaming(false)
             setStreamingProgress("")
+            
+            // Auto-refresh and select the processed video
+            setTimeout(async () => {
+              try {
+                // First refresh the sample games list
+                await fetchSampleGames()
+                
+                // Fetch the latest sample app for this YouTube video
+                const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(youtubeUrl)}`)
+                if (response.ok) {
+                  const data = await response.json()
+                  if (data.success && data.data && data.data.html_file_path) {
+                    setGameHtml(data.data.html_file_path)
+                    setCurrentGameId(data.data.id || null)
+                    setExpandedVideo(data.data.id || null)
+                    setActiveTab("app") // Ensure we're on the app tab to see the rendered result
+                    
+                    // Save the game to user games for persistence
+                    handleRenderGame(data.data)
+                  } else {
+                    // fallback: fetch all sample apps and try to find the right one
+                    const allResp = await fetch(`${API_BASE_URL}/sample-apps`)
+                    if (allResp.ok) {
+                      const allData = await allResp.json()
+                      const found = (allData.apps || []).find((app: any) => app.youtube_url === youtubeUrl)
+                      if (found) {
+                        setGameHtml(found.html_file_path)
+                        setCurrentGameId(found.id)
+                        setExpandedVideo(found.id)
+                        setActiveTab("app") // Ensure we're on the app tab
+                        
+                        // Save the game to user games for persistence
+                        handleRenderGame(found)
+                      }
+                    }
+                  }
+                }
+              } catch (err) {
+                console.error("Error refreshing app data:", err)
+              }
+            }, 1000)
+            
             resolve()
           })
 
@@ -750,11 +856,37 @@ export default function VideoToLearningApp() {
           console.log("Received game chunk, total length:", streamedHtml.length)
         })
 
-        evtSource.addEventListener("done", () => {
+        evtSource.addEventListener("done", async () => {
           evtSource.close()
           setIsLoading(false)
           setIsStreaming(false)
           setStreamingProgress("")
+          
+          // Auto-refresh and select the processed video for TwelveLabs
+          setTimeout(async () => {
+            try {
+              await fetchSampleGames();
+              
+              // Find the correct video in the updated sampleVideos and update UI
+              const allResp = await fetch(`${API_BASE_URL}/sample-apps`);
+              if (allResp.ok) {
+                const allData = await allResp.json();
+                const found = (allData.apps || []).find((app: any) => app.twelvelabs_video_ids && app.twelvelabs_video_ids.includes(selectedTwelveLabsVideo));
+                if (found) {
+                  setGameHtml(found.html_file_path);
+                  setCurrentGameId(found.id);
+                  setExpandedVideo(found.id);
+                  setActiveTab("app"); // Ensure we're on the app tab to see the rendered result
+                  
+                  // Save the game to user games for persistence
+                  handleRenderGame(found);
+                }
+              }
+            } catch (err) {
+              console.error("Error refreshing TwelveLabs app data:", err)
+            }
+          }, 1000)
+          
           resolve()
         })
 
@@ -768,27 +900,10 @@ export default function VideoToLearningApp() {
           reject(e.data || "Streaming error")
         })
       })
-      // After streaming, add the new video to the sample list
-      const newVideo = {
-        id: Date.now(),
-        title: selectedTwelveLabsVideoName || `TwelveLabs Video ${selectedTwelveLabsVideo.substring(0, 8)}`,
-        duration: "Unknown",
-        type: extractGameType(streamedHtml),
-        thumbnail: "/placeholder.svg?height=90&width=160&text=TwelveLabs",
-        videoUrl: "",
-        htmlFilePath: "", // Not available in streaming, can be set if backend returns it
-        isGenerated: true,
-        channelName: "TwelveLabs Content",
-        viewCount: "Generated",
-        videoId: selectedTwelveLabsVideo,
-      }
-      setSampleVideos((prev) => [newVideo, ...prev])
-      setGameHtml(streamedHtml)
-      // Do NOT setCurrentGameId or setExpandedVideo for TwelveLabs
-      // Do NOT set gameHtml to found.html_file_path for TwelveLabs
-      // Only update those for YouTube
+      // After streaming, refresh the sample games and select the processed video
       await fetchSampleGames();
-      // Find the correct video in the new sampleVideos and update UI
+      
+      // Find the correct video in the updated sampleVideos and update UI
       const allResp2 = await fetch(`${API_BASE_URL}/sample-apps`);
       if (allResp2.ok) {
         const allData2 = await allResp2.json();
@@ -797,6 +912,10 @@ export default function VideoToLearningApp() {
           setGameHtml(found2.html_file_path);
           setCurrentGameId(found2.id);
           setExpandedVideo(found2.id);
+          setActiveTab("app"); // Ensure we're on the app tab to see the rendered result
+          
+          // Save the game to user games for persistence
+          handleRenderGame(found2);
         }
       }
     } catch (err) {
