@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression Visualizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: white;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        canvas {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="range"], input[type="number"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .metrics {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .metric {
+            margin-bottom: 5px;
+        }
+        .point-info {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Linear Regression Visualizer</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="beta0">Intercept (β₀):</label>
+                <input type="range" id="beta0" min="-100" max="100" step="1" value="0">
+                <input type="number" id="beta0-value" value="0" step="0.1">
+                
+                <label for="beta1">Slope (β₁):</label>
+                <input type="range" id="beta1" min="-5" max="5" step="0.1" value="1">
+                <input type="number" id="beta1-value" value="1" step="0.1">
+                
+                <button id="best-fit">Calculate Best Fit</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Display Options:</label>
+                <div>
+                    <input type="checkbox" id="show-residuals" checked>
+                    <label for="show-residuals">Show residuals</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="show-sse" checked>
+                    <label for="show-sse">Show SSE</label>
+                </div>
+                <button id="add-point">Add Data Point</button>
+                <button id="reset">Reset</button>
+            </div>
+        </div>
+        
+        <div style="position: relative;">
+            <canvas id="regression-canvas" width="800" height="500"></canvas>
+            <div class="point-info" id="point-info"></div>
+        </div>
+        
+        <div class="metrics">
+            <h3>Regression Metrics</h3>
+            <div class="metric">Sum of Squared Errors (SSE): <span id="sse-value">0</span></div>
+            <div class="metric">R-squared: <span id="r2-value">0</span></div>
+            <div class="metric">Standard Error: <span id="se-value">0</span></div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('regression-canvas');
+        const ctx = canvas.getContext('2d');
+        const beta0Input = document.getElementById('beta0');
+        const beta1Input = document.getElementById('beta1');
+        const beta0Value = document.getElementById('beta0-value');
+        const beta1Value = document.getElementById('beta1-value');
+        const bestFitBtn = document.getElementById('best-fit');
+        const showResiduals = document.getElementById('show-residuals');
+        const showSSE = document.getElementById('show-sse');
+        const addPointBtn = document.getElementById('add-point');
+        const resetBtn = document.getElementById('reset');
+        const sseValue = document.getElementById('sse-value');
+        const r2Value = document.getElementById('r2-value');
+        const seValue = document.getElementById('se-value');
+        const pointInfo = document.getElementById('point-info');
+
+        let dataPoints = [];
+        let beta0 = 0;
+        let beta1 = 1;
+        let isDragging = false;
+        let draggedPoint = null;
+        let hoveredPoint = null;
+
+        function init() {
+            // Add some initial data points
+            dataPoints = [
+                { x: 100, y: 200 },
+                { x: 200, y: 250 },
+                { x: 300, y: 400 },
+                { x: 400, y: 350 },
+                { x: 500, y: 500 }
+            ];
+            
+            calculateBestFit();
+            draw();
+            
+            // Event listeners
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('mouseout', handleMouseUp);
+            
+            beta0Input.addEventListener('input', updateBeta0);
+            beta1Input.addEventListener('input', updateBeta1);
+            beta0Value.addEventListener('input', updateBeta0FromValue);
+            beta1Value.addEventListener('input', updateBeta1FromValue);
+            bestFitBtn.addEventListener('click', calculateBestFit);
+            addPointBtn.addEventListener('click', addRandomPoint);
+            resetBtn.addEventListener('click', reset);
+        }
+
+        function updateBeta0() {
+            beta0 = parseFloat(beta0Input.value);
+            beta0Value.value = beta0;
+            draw();
+        }
+
+        function updateBeta1() {
+            beta1 = parseFloat(beta1Input.value);
+            beta1Value.value = beta1;
+            draw();
+        }
+
+        function updateBeta0FromValue() {
+            beta0 = parseFloat(beta0Value.value);
+            beta0Input.value = beta0;
+            draw();
+        }
+
+        function updateBeta1FromValue() {
+            beta1 = parseFloat(beta1Value.value);
+            beta1Input.value = beta1;
+            draw();
+        }
+
+        function calculateBestFit() {
+            const n = dataPoints.length;
+            if (n === 0) return;
+            
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            
+            dataPoints.forEach(point => {
+                sumX += point.x;
+                sumY += point.y;
+                sumXY += point.x * point.y;
+                sumX2 += point.x * point.x;
+            });
+            
+            const xMean = sumX / n;
+            const yMean = sumY / n;
+            
+            beta1 = (sumXY - n * xMean * yMean) / (sumX2 - n * xMean * xMean);
+            beta0 = yMean - beta1 * xMean;
+            
+            beta0Input.value = beta0;
+            beta1Input.value = beta1;
+            beta0Value.value = beta0.toFixed(2);
+            beta1Value.value = beta1.toFixed(2);
+            
+            updateMetrics();
+            draw();
+        }
+
+        function updateMetrics() {
+            let sse = 0;
+            let sst = 0;
+            const n = dataPoints.length;
+            
+            if (n === 0) {
+                sseValue.textContent = '0';
+                r2Value.textContent = '0';
+                seValue.textContent = '0';
+                return;
+            }
+            
+            const yMean = dataPoints.reduce((sum, point) => sum + point.y, 0) / n;
+            
+            dataPoints.forEach(point => {
+                const yPred = beta0 + beta1 * point.x;
+                sse += Math.pow(point.y - yPred, 2);
+                sst += Math.pow(point.y - yMean, 2);
+            });
+            
+            const r2 = 1 - (sse / sst);
+            const se = Math.sqrt(sse / (n - 2));
+            
+            sseValue.textContent = sse.toFixed(2);
+            r2Value.textContent = r2.toFixed(4);
+            seValue.textContent = se.toFixed(2);
+        }
+
+        function addRandomPoint() {
+            const x = Math.random() * (canvas.width - 100) + 50;
+            const y = Math.random() * (canvas.height - 100) + 50;
+            dataPoints.push({ x, y });
+            calculateBestFit();
+            draw();
+        }
+
+        function reset() {
+            dataPoints = [];
+            beta0 = 0;
+            beta1 = 1;
+            beta0Input.value = 0;
+            beta1Input.value = 1;
+            beta0Value.value = 0;
+            beta1Value.value = 1;
+            sseValue.textContent = '0';
+            r2Value.textContent = '0';
+            seValue.textContent = '0';
+            draw();
+        }
+
+        function handleMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            for (let i = 0; i < dataPoints.length; i++) {
+                const point = dataPoints[i];
+                const distance = Math.sqrt(Math.pow(x - point.x, 2) + Math.pow(y - point.y, 2));
+                
+                if (distance < 10) {
+                    isDragging = true;
+                    draggedPoint = point;
+                    return;
+                }
+            }
+            
+            // Add new point if not dragging existing one
+            dataPoints.push({ x, y });
+            calculateBestFit();
+            draw();
+        }
+
+        function handleMouseMove(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (isDragging && draggedPoint) {
+                draggedPoint.x = x;
+                draggedPoint.y = y;
+                calculateBestFit();
+                draw();
+                return;
+            }
+            
+            // Check for hover
+            hoveredPoint = null;
+            for (let i = 0; i < dataPoints.length; i++) {
+                const point = dataPoints[i];
+                const distance = Math.sqrt(Math.pow(x - point.x, 2) + Math.pow(y - point.y, 2));
+                
+                if (distance < 10) {
+                    hoveredPoint = point;
+                    pointInfo.style.display = 'block';
+                    pointInfo.style.left = (e.clientX + 10) + 'px';
+                    pointInfo.style.top = (e.clientY + 10) + 'px';
+                    pointInfo.textContent = `(${point.x.toFixed(1)}, ${point.y.toFixed(1)})`;
+                    break;
+                }
+            }
+            
+            if (!hoveredPoint) {
+                pointInfo.style.display = 'none';
+            }
+            
+            draw();
+        }
+
+        function handleMouseUp() {
+            isDragging = false;
+            draggedPoint = null;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            
+            for (let x = 0; x <= canvas.width; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y <= canvas.height; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw regression line
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            const y1 = beta0 + beta1 * 0;
+            const y2 = beta0 + beta1 * canvas.width;
+            
+            ctx.moveTo(0, y1);
+            ctx.lineTo(canvas.width, y2);
+            ctx.stroke();
+            
+            // Draw data points and residuals
+            dataPoints.forEach(point => {
+                // Draw point
+                ctx.fillStyle = hoveredPoint === point ? '#e74c3c' : '#2ecc71';
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw residual if enabled
+                if (showResiduals.checked) {
+                    const yPred = beta0 + beta1 * point.x;
+                    ctx.strokeStyle = '#e74c3c';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(point.x, point.y);
+                    ctx.lineTo(point.x, yPred);
+                    ctx.stroke();
+                    
+                    // Draw small square at predicted point
+                    ctx.fillStyle = '#3498db';
+                    ctx.fillRect(point.x - 3, yPred - 3, 6, 6);
+                }
+            });
+            
+            // Draw SSE if enabled
+            if (showSSE.checked && dataPoints.length > 0) {
+                let sse = 0;
+                dataPoints.forEach(point => {
+                    const yPred = beta0 + beta1 * point.x;
+                    sse += Math.pow(point.y - yPred, 2);
+                    
+                    ctx.fillStyle = 'rgba(231, 76, 60, 0.2)';
+                    ctx.beginPath();
+                    ctx.moveTo(point.x, point.y);
+                    ctx.lineTo(point.x, yPred);
+                    ctx.lineTo(point.x + 10, yPred);
+                    ctx.lineTo(point.x + 10, point.y);
+                    ctx.closePath();
+                    ctx.fill();
+                });
+            }
+        }
+
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
