@@ -1235,6 +1235,17 @@ export default function VideoToLearningApp() {
                     onVideoSelect={handleVideoSelect}
                     selectedVideoId={selectedTwelveLabsVideo}
                   />
+                  {selectedTwelveLabsVideo && (
+                    <button
+                      className={`w-full px-6 py-3 bg-[#1d1c1b] hover:bg-[#1d1c1b]/90 text-white rounded-lg font-medium transition-all duration-200 ${
+                        isLoading ? "opacity-70 cursor-not-allowed" : ""
+                      }`}
+                      onClick={processTwelveLabsRegenerate}
+                      disabled={isLoading || !selectedTwelveLabsVideo}
+                    >
+                      {isLoading ? "Generating..." : "Generate from TwelveLabs"}
+                    </button>
+                  )}
                 </>
               )}
 
