@@ -865,21 +865,37 @@ export default function VideoToLearningApp() {
           // Auto-refresh and select the processed video for TwelveLabs
           setTimeout(async () => {
             try {
-              await fetchSampleGames();
+              // First refresh the sample games list
+              await fetchSampleGames()
               
-              // Find the correct video in the updated sampleVideos and update UI
-              const allResp = await fetch(`${API_BASE_URL}/sample-apps`);
-              if (allResp.ok) {
-                const allData = await allResp.json();
-                const found = (allData.apps || []).find((app: any) => app.twelvelabs_video_ids && app.twelvelabs_video_ids.includes(selectedTwelveLabsVideo));
-                if (found) {
-                  setGameHtml(found.html_file_path);
-                  setCurrentGameId(found.id);
-                  setExpandedVideo(found.id);
-                  setActiveTab("app"); // Ensure we're on the app tab to see the rendered result
+              // Fetch the latest sample app for this TwelveLabs video_id
+              const response = await fetch(`${API_BASE_URL}/sample-apps/twelvelabs/${encodeURIComponent(selectedTwelveLabsVideo)}`)
+              if (response.ok) {
+                const data = await response.json()
+                if (data.success && data.data && data.data.html_file_path) {
+                  setGameHtml(data.data.html_file_path)
+                  setCurrentGameId(data.data.id || null)
+                  setExpandedVideo(data.data.id || null)
+                  setActiveTab("app") // Ensure we're on the app tab to see the rendered result
                   
                   // Save the game to user games for persistence
-                  handleRenderGame(found);
+                  handleRenderGame(data.data)
+                } else {
+                  // fallback: fetch all sample apps and try to find the right one
+                  const allResp = await fetch(`${API_BASE_URL}/sample-apps`)
+                  if (allResp.ok) {
+                    const allData = await allResp.json()
+                    const found = (allData.apps || []).find((app: any) => app.video_id === selectedTwelveLabsVideo || (app.twelvelabs_video_ids && app.twelvelabs_video_ids.includes(selectedTwelveLabsVideo)))
+                    if (found) {
+                      setGameHtml(found.html_file_path)
+                      setCurrentGameId(found.id)
+                      setExpandedVideo(found.id)
+                      setActiveTab("app") // Ensure we're on the app tab
+                      
+                      // Save the game to user games for persistence
+                      handleRenderGame(found)
+                    }
+                  }
                 }
               }
             } catch (err) {
@@ -900,24 +916,6 @@ export default function VideoToLearningApp() {
           reject(e.data || "Streaming error")
         })
       })
-      // After streaming, refresh the sample games and select the processed video
-      await fetchSampleGames();
-      
-      // Find the correct video in the updated sampleVideos and update UI
-      const allResp2 = await fetch(`${API_BASE_URL}/sample-apps`);
-      if (allResp2.ok) {
-        const allData2 = await allResp2.json();
-        const found2 = (allData2.apps || []).find((app: any) => app.twelvelabs_video_ids && app.twelvelabs_video_ids.includes(selectedTwelveLabsVideo));
-        if (found2) {
-          setGameHtml(found2.html_file_path);
-          setCurrentGameId(found2.id);
-          setExpandedVideo(found2.id);
-          setActiveTab("app"); // Ensure we're on the app tab to see the rendered result
-          
-          // Save the game to user games for persistence
-          handleRenderGame(found2);
-        }
-      }
     } catch (err) {
       setError(`Failed to process video: ${err instanceof Error ? err.message : String(err)}`)
       setIsLoading(false)
@@ -939,6 +937,31 @@ export default function VideoToLearningApp() {
       fetchHtmlFromFile(gameHtml).then(setHtmlCode)
     }
   }, [gameHtml, activeTab])
+
+  // Clear portal when switching between toggle sources
+  useEffect(() => {
+    // Clear the game display when switching toggles
+    setGameHtml(null)
+    setCurrentGameId(null)
+    setExpandedVideo(null)
+    setError(null)
+    setShowGeneratePopup(false)
+    setActiveTab("app") // Reset to app tab for clean UX
+    
+    // Add smooth delay for better user experience
+    setTimeout(() => {
+      // Clear source-specific states
+      if (activeSource === 'youtube') {
+        // Clear TwelveLabs selections when switching to YouTube
+        setSelectedTwelveLabsVideo("")
+        setSelectedTwelveLabsVideoName("")
+        setSelectedTwelveLabsIndex("")
+      } else {
+        // Clear YouTube URL when switching to TwelveLabs
+        setYoutubeUrl("")
+      }
+    }, 100) // Small delay for smoother transition
+  }, [activeSource])
 
   useEffect(() => {
     if (isLoading) return;

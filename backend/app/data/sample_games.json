@@ -34,5 +34,29 @@
     "channel_name": "TwelveLabs",
     "view_count": "Generated",
     "cached_at": "2025-07-24 16:53:54 UTC"
+  },
+  "68823c98373253a5d3769005": {
+    "video_id": "68823c98373253a5d3769005",
+    "video_analysis": "```json\n{\n  \"spec\": \"In statistics, Principal Component Analysis (PCA) is a method used to reduce the dimensionality of data while retaining trends and patterns. It transforms the original data into a new coordinate system where the first principal component (PC1) captures the most variance in the data, and subsequent components capture decreasing amounts of variance. This is particularly useful for visualizing high-dimensional data in two or three dimensions.\\n\\nBuild an interactive web app to help learners understand PCA.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive scatter plot with axes labeled 'Gene 1' and 'Gene 2'.\\n2. The app must allow users to input or select a dataset with multiple variables (genes) for each sample (mouse).\\n3. The app must display the original data points on the scatter plot and allow users to center the data around the origin.\\n4. The app must enable users to rotate a line through the origin to find the best-fitting line (PC1) that maximizes the sum of squared distances from the projected points to the origin.\\n5. The app must show the projections of the data points onto the line and allow users to calculate the sum of squared distances (SSD) for PC1.\\n6. The app must display the loading scores for each gene in PC1 and allow users to see how the proportions of each gene contribute to the principal component.\\n7. The app must allow users to calculate PC2, the next best-fitting line perpendicular to PC1, and display the loading scores for each gene in PC2.\\n8. The app must provide a Scree plot to show the proportion of variance explained by each principal component.\\n9. The app must allow users to convert the 3D graph into a 2D PCA graph using PC1 and PC2 and display the projected points corresponding to the samples in the new PCA plot.\\n10. The app must include a simple, playful design with clear instructions and feedback to promote understanding of PCA concepts.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_68823c98373253a5d3769005_1753380595.html",
+    "created_at": "2025-07-24 18:09:55 UTC",
+    "cached": true,
+    "youtube_url": "",
+    "video_title": "TwelveLabs Video 68823c98373253a5d3769005",
+    "channel_name": "TwelveLabs",
+    "view_count": "Generated",
+    "cached_at": "2025-07-24 18:09:55 UTC"
+  },
+  "68823f1d3cd2453c76947290": {
+    "video_id": "68823f1d3cd2453c76947290",
+    "video_analysis": "```json\n{\n  \"spec\": \"In the realm of mindfulness and breathing exercises, the concept of controlled breathing can significantly impact mental and physical well-being. This interactive web app aims to help users understand and practice the breathing techniques demonstrated in the video.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature a circular progress bar that visually represents the breathing cycle.\\n2. The app must include four distinct phases: 'Breathe in', 'Hold', 'Breathe out', and 'Hold'. Each phase should be clearly labeled and timed.\\n3. The 'Breathe in' phase should last for four seconds, during which the progress bar fills up clockwise.\\n4. The 'Hold' phase should last for four seconds, during which the progress bar remains static and the countdown is displayed.\\n5. The 'Breathe out' phase should last for eight seconds, during which the progress bar empties counterclockwise.\\n6. The app must allow users to start, pause, and reset the breathing exercise.\\n7. The app must provide visual cues and instructions for each phase, ensuring users can follow along easily.\\n8. The app must include a gradient background of light blue and purple hues with floating bokeh lights to create a calming and engaging environment.\\n9. The app must conclude with a logo and tagline that reinforces the idea of personal mental well-being: 'just a thought' with the tagline 'your mind, your way.'\\n10. The app must be simple and intuitive, with clear instructions and minimalistic design, ensuring that users can focus on their breathing exercise without distraction.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_68823f1d3cd2453c76947290_1753380715.html",
+    "created_at": "2025-07-24 18:11:55 UTC",
+    "cached": true,
+    "youtube_url": "",
+    "video_title": "TwelveLabs Video 68823f1d3cd2453c76947290",
+    "channel_name": "TwelveLabs",
+    "view_count": "Generated",
+    "cached_at": "2025-07-24 18:11:55 UTC"
   }
 }
