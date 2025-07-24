@@ -28,7 +28,6 @@ def create_app(config_name=None, *args, **kwargs):
     _create_directories(app)
     _register_blueprints(app)
     _initialize_services(app)
-    _setup_scheduler(app)
     
     print(f"Flask app created successfully")
     return app
@@ -56,46 +55,3 @@ def _initialize_services(app):
     
     print(f"Application initialized with {len(prompt_service.prompts)} prompts loaded")
 
-def _setup_scheduler(app):
-    """Setup APScheduler to prevent app from sleeping on free hosting platforms"""
-    try:
-        from apscheduler.schedulers.background import BackgroundScheduler
-        import requests
-        import atexit
-        
-        def keep_alive():
-            """Ping the app to prevent sleeping"""
-            try:
-                # Try to ping the app's health endpoint
-                app_url = os.getenv('APP_URL', 'http://localhost:8000')
-                response = requests.get(f"{app_url}/health", timeout=30)
-                print(f"Keep-alive ping: {response.status_code}")
-            except Exception as e:
-                print(f"Keep-alive ping failed: {e}")
-        
-        # Only setup scheduler if not in development
-        if not app.config.get('DEBUG', False):
-            scheduler = BackgroundScheduler()
-            
-            # Ping every 9 minutes to prevent app sleeping
-            scheduler.add_job(
-                func=keep_alive,
-                trigger="interval",
-                minutes=9,
-                id='keep_alive_job',
-                name='Keep app alive',
-                replace_existing=True
-            )
-            
-            scheduler.start()
-            print("APScheduler keep-alive started (pinging every 9 minutes)")
-            
-            # Shut down the scheduler when exiting the app
-            atexit.register(lambda: scheduler.shutdown())
-        else:
-            print("APScheduler skipped in development mode")
-            
-    except ImportError:
-        print("APScheduler not available - app may sleep on free hosting")
-    except Exception as e:
-        print(f"Failed to setup APScheduler: {e}")
