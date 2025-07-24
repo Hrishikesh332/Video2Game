@@ -1,4 +1,4 @@
-Create a complete, single-file HTML game based on this video analysis:
+Create a complete, single-file HTML game based on this video analysis, Please focus on the functional working code, and don't write text, just minimal, and focus mainly on the funcionality and the complete html file with <body>, Complete Code. Make sure all buttons are functional, and try to have the minimal buttons:
 
 VIDEO ANALYSIS:
 {video_analysis}
@@ -32,7 +32,6 @@ REQUIREMENTS:
 - Game directly relates to video topic
 - Educational or engaging elements from the video
 - Meaningful challenges that reinforce video content
-- Appropriate difficulty progression
 
 
 6. COLOR THEME to Use - White Background and Grey as bg color and then over that use other color if needed, keep it simplistic as black, white and gray

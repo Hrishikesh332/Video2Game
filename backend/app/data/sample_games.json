@@ -1,14 +1,26 @@
 {
-  "687d2ea82b144dc12e03281a": {
-    "video_id": "687d2ea82b144dc12e03281a",
-    "video_analysis": "```json\n{\n  \"spec\": \"In statistics, Principal Component Analysis (PCA) is a method used to reduce the dimensionality of data while preserving the most significant patterns. This app will help learners understand the key concepts of PCA through interactive visualizations and simple mechanics.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive scatter plot where users can add and manipulate data points representing cells or any other entities.\\n2. The app must allow users to visualize the correlation between different entities by plotting them on a 2D graph. Users should be able to see how the entities cluster based on their correlation.\\n3. The app must include a feature to color-code clusters of highly correlated entities, making it easier for users to identify and understand different groups.\\n4. The app must display the principal component axes (PC1 and PC2) and allow users to observe how differences along these axes are ranked in order of importance.\\n5. The app must provide an option to rotate the 3D coordinate system to help users visualize the relationships between entities in different dimensions.\\n6. The app must include a PCA plot that converts the correlations among entities into a 2D graph, showing clusters of highly correlated entities.\\n7. The app must allow users to interactively change the number of entities and observe how the PCA plot and clusters change accordingly.\\n8. The app must include explanatory text and tooltips to guide users through the process of understanding PCA and its applications.\\n9. The app must be designed with simple, playful elements to engage users and reinforce the learning experience.\"\n}\n```",
-    "html_file_path": "generated_games/video_game_3d91aee7b9102f11_1753034578.html",
-    "created_at": "2025-07-20 18:02:58 UTC",
+  "68823b71fcecfb2100e4c7c7": {
+    "video_id": "68823b71fcecfb2100e4c7c7",
+    "video_analysis": "```json\n{\n  \"spec\": \"In data science, linear regression is a technique used to model the relationship between an output variable and one or more input variables. The goal is to fit a line through data points to make predictions on unknown data, assuming a linear relationship between the variables. This line is defined by coefficients that control the slope and intercept, and the best fit line minimizes the sum of squared errors between the data points and the line. The model is validated using a training and test data set to ensure it performs well on unseen data. Metrics such as R-squared, standard error of the estimate, prediction intervals, and statistical significance are used to evaluate the model's performance.\\n\\nBuild an interactive web app to help learners understand linear regression.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive scatter plot where users can add data points by clicking on the plot area.\\n2. The app must allow users to manually adjust the slope and intercept of a line to fit the data points.\\n3. The app must display the residuals as vertical lines between the data points and the line, and calculate the sum of squared errors (SSE) in real-time as the line is adjusted.\\n4. The app must provide a button to automatically fit the best line through the data points, minimizing the SSE.\\n5. The app must allow users to split the data into training and test sets, with a default split of 2/3 for training and 1/3 for testing.\\n6. The app must display the performance metrics (R-squared, standard error of the estimate, prediction intervals, and statistical significance) for the model on the test set.\\n7. The app must include a brief explanation of each concept (linear regression, slope, intercept, SSE, training and test sets, performance metrics) and how they are used in the app.\\n8. The app must have a simple, playful design with clear instructions and feedback to guide users through the learning process.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_93e17a03e2d49adc_1753365483.html",
+    "created_at": "2025-07-24 13:58:03 UTC",
     "cached": true,
-    "youtube_url": "https://www.youtube.com/watch?v=HMOI_lkzW08&t=216s",
-    "video_title": "StatQuest: PCA main ideas in only 5 minutes!!!",
+    "youtube_url": "https://www.youtube.com/watch?v=3dhcmeOTZ_Q",
+    "video_title": "Linear Regression in 3 Minutes",
     "channel_name": "",
     "view_count": "",
-    "cached_at": "2025-07-20 18:02:58 UTC"
+    "cached_at": "2025-07-24 13:58:03 UTC"
+  },
+  "68823c98373253a5d3769005": {
+    "video_id": "68823c98373253a5d3769005",
+    "video_analysis": "```json\n{\n  \"spec\": \"In statistics, Principal Component Analysis (PCA) is a method used to reduce the dimensionality of data while retaining trends and patterns. It is particularly useful for visualizing high-dimensional data and identifying clusters of similar samples based on their principal components.\\n\\nBuild an interactive web app to help learners understand PCA.\\n\\nSPECIFICATIONS:\\n\\n1. The app must feature an interactive scatter plot where users can input or select data points.\\n2. The app must allow users to add or remove dimensions (genes or variables) and visualize the data in 2D or 3D.\\n3. The app must showcase the process of centering the data around the origin and fitting a line (principal component) to the data points.\\n4. The app must explain the concept of eigenvalues and eigenvectors, and how they represent the variation in the data.\\n5. The app must allow users to rotate the principal components and observe the projection of data points onto these components.\\n6. The app must display the percentage of variance explained by each principal component and allow users to see how the data clusters based on these components.\\n7. The app must include a simple, playful design with clear instructions and visual feedback to reinforce the understanding of PCA.\\n8. The app must provide examples of datasets (e.g., mice gene expression, student test scores, business market cap) to demonstrate the application of PCA in different contexts.\\n9. The app must allow users to project samples onto the first two principal components and create a 2D PCA graph to identify clusters of similar samples.\\n10. The app must include a feature to show the original high-dimensional data and its transformation into a 2D PCA graph, emphasizing the importance of PCA in simplifying complex data visualization.\"\n}\n```",
+    "html_file_path": "generated_games/video_game_eabef6d16e78a26b_1753365892.html",
+    "created_at": "2025-07-24 14:04:52 UTC",
+    "cached": true,
+    "youtube_url": "https://www.youtube.com/watch?v=FgakZw6K1QQ",
+    "video_title": "StatQuest: Principal Component Analysis (PCA), Step-by-Step",
+    "channel_name": "",
+    "view_count": "",
+    "cached_at": "2025-07-24 14:04:52 UTC"
   }
 }
