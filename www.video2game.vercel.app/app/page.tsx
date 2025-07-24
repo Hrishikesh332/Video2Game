@@ -65,7 +65,7 @@ export default function VideoToLearningApp() {
       return "Analyzing the video content with TwelveLabs";
     } else {
       if (msg.includes("Validating YouTube URL")) return "Validating YouTube URL";
-      if (msg.includes("Downloading video")) return "Downloading video";
+      if (msg.includes("Processing video")) return "Processing video";
       if (msg.includes("Video downloaded. Indexing with TwelveLabs")) return "Indexing the Video with TwelveLabs";
       if (msg.includes("Chunking video")) return "Chunking the video";
       if (msg.includes("Indexing chunk")) return msg.replace("progress\ndata: ", "");
