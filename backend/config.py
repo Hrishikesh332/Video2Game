@@ -14,13 +14,13 @@ class Config:
     INSTRUCTIONS_DIR = "instructions"
     
     SAMBANOVA_BASE_URL = SAMBANOVA_BASE_URL
-    SAMBANOVA_MODEL = "DeepSeek-R1-Distill-Llama-70B"
+    SAMBANOVA_MODEL = "DeepSeek-V3-0324"
     
     GENERATION_TEMPERATURE = 0.1
     GENERATION_TOP_P = 0.1
-    GENERATION_MAX_TOKENS = 32000
+    GENERATION_MAX_TOKENS = 16000
     
-    MIN_HTML_LENGTH = 5000
+    MIN_HTML_LENGTH = 7000
     
     @classmethod
     def validate_config(cls):
