@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="https://github.com/Hrishikesh332/Video-To-Game/blob/main/backend/app/src/Thumbnail.png" alt="Video2Game Banner" width="100%">
+  <img src="https://github.com/Hrishikesh332/Video-To-Game/blob/main/backend/app/src/downloads/Thumbnail.png" alt="Video2Game Banner" width="100%">
 </p>
 
 <h1 align="center">Video2Game</h1>
