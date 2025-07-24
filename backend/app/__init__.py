@@ -3,6 +3,26 @@ from flask import Flask
 from flask_cors import CORS
 from config import config
 
+
+def wake_up_app():
+    try:
+        app_url = os.getenv('APP_URL')
+        if app_url:
+            response = requests.get(app_url)
+            if response.status_code == 200:
+                print(f"Successfully pinged {app_url} at {datetime.now()}")
+            else:
+                print(f"Failed to ping {app_url} (status code: {response.status_code}) at {datetime.now()}")
+        else:
+            print("APP_URL environment variable not set.")
+    except Exception as e:
+        print(f"Error occurred while pinging app: {e}")
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(wake_up_app, 'interval', minutes=9)
+scheduler.start()
+
+
 def create_app(config_name=None, *args, **kwargs):
 
     if config_name is not None and not isinstance(config_name, str):
@@ -28,9 +48,13 @@ def create_app(config_name=None, *args, **kwargs):
     _create_directories(app)
     _register_blueprints(app)
     _initialize_services(app)
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(wake_up_app, 'interval', minutes=9)
+    scheduler.start()
     
     print(f"Flask app created successfully")
     return app
+
 
 def _create_directories(app):
     directories = [
