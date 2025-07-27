@@ -6,7 +6,7 @@
 <h1 align="center">Video2Game</h1>
 
 
-**Video2Game** is an application which takes educational videos (like lectures, tutorials, or any type of the explainer videos) and transforms them into interactive games. Leveraging **TwelveLabs** for video understanding and **SambaNova** for code game generation, this project bridges passive video learning with immersive, game based experiences.
+**Video2Game** is an application which takes educational videos or Learning associated (like lectures, tutorials, or any type of the explainer videos) and transforms them into interactive games. Leveraging **TwelveLabs** for video understanding and **SambaNova** for code game generation, this project bridges passive video learning with immersive, game based experiences.
 
 
 ---
@@ -20,6 +20,22 @@
 
 
 ---
+
+## Architecture
+
+### Approach 1
+
+#### To Generate the Interactive Learning App with the TwelveLabs and Sambanova
+
+
+![Architecture 1](https://github.com/Hrishikesh332/Video2Game/blob/main/backend/app/src/architecture_1.png)
+
+### Approach 2
+
+### To Generate the Interactive App with the already Indexed App
+
+
+![Architecture 2](https://github.com/Hrishikesh332/Video2Game/blob/main/backend/app/src/architecture_2.png)
 
 ## ⚙️ Environment Setup
 
