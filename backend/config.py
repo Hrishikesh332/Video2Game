@@ -15,7 +15,7 @@ class Config:
     INSTRUCTIONS_DIR = "instructions"
     
     SAMBANOVA_BASE_URL = SAMBANOVA_BASE_URL
-    SAMBANOVA_MODEL = "DeepSeek-V3-0324"
+    SAMBANOVA_MODEL = "DeepSeek-R1-0528"  # Updated to match available model
     
     GENERATION_TEMPERATURE = 0.1
     GENERATION_TOP_P = 0.1
