@@ -1,4 +1,4 @@
-twelvelabs
+twelvelabs==0.4.10
 flask
 flask-cors
 openai
