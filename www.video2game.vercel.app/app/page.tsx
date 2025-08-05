@@ -58,6 +58,13 @@ export default function VideoToLearningApp() {
   const [statusMessage, setStatusMessage] = useState("Starting process... This may take about 1 minute.");
 
   const [isRegenerate, setIsRegenerate] = useState(false);
+  
+  // Add state for YouTube warning popup
+  const [showYouTubeWarning, setShowYouTubeWarning] = useState(false)
+  
+  // Add state to store pending YouTube URL for processing
+  const [pendingYouTubeUrl, setPendingYouTubeUrl] = useState("")
+  const [pendingRegenerate, setPendingRegenerate] = useState(false)
 
   const progressToMessage = (msg: string, isRegenerate: boolean) => {
     if (isRegenerate) {
@@ -303,6 +310,14 @@ export default function VideoToLearningApp() {
     setIsRegenerate(regenerate);
     if (!youtubeUrl) {
       setError("Please enter a YouTube URL")
+      return
+    }
+
+    // Show YouTube warning for new URLs (not regenerations)
+    if (!regenerate) {
+      setPendingYouTubeUrl(youtubeUrl)
+      setPendingRegenerate(false)
+      setShowYouTubeWarning(true)
       return
     }
 
@@ -636,6 +651,315 @@ export default function VideoToLearningApp() {
     return
   }
 
+  // Function to handle actual YouTube processing after warning
+  const handleContinueWithYouTube = async () => {
+    setShowYouTubeWarning(false)
+    
+    if (pendingYouTubeUrl) {
+      setYoutubeUrl(pendingYouTubeUrl)
+      setPendingYouTubeUrl("")
+      
+      // Process the pending URL
+      const url = pendingYouTubeUrl
+      const regenerate = pendingRegenerate
+      setPendingRegenerate(false)
+      
+      let pendingTitle = extractVideoTitle(url)
+      if (!regenerate) {
+        try {
+          pendingTitle = await fetchYouTubeTitle(url)
+        } catch {}
+      }
+
+      if (!regenerate) {
+        const tempId = Date.now()
+        setSampleVideos((prev) => [
+          {
+            id: tempId,
+            title: pendingTitle,
+            duration: "",
+            type: "Processing",
+            thumbnail: `https://img.youtube.com/vi/${extractVideoId(url)}/maxresdefault.jpg`,
+            videoUrl: url,
+            htmlFilePath: "",
+            isGenerated: false,
+            channelName: "",
+            viewCount: "",
+            createdAt: new Date().toISOString(),
+            videoId: extractVideoId(url),
+          },
+          ...prev,
+        ])
+        setExpandedVideo(tempId)
+        setCurrentGameId(tempId)
+      }
+
+      setIsLoading(true)
+      setError(null)
+      setShowGeneratePopup(false)
+      setGameHtml(null)
+      let streamedHtml = ""
+      let streamedAnalysis = ""
+      let progressMsg = ""
+      let indexingCompleted = false
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const endpoint = regenerate
+            ? `${API_BASE_URL}/youtube/regenerate?youtube_url=${encodeURIComponent(url)}`
+            : `${API_BASE_URL}/youtube/process?youtube_url=${encodeURIComponent(url)}`
+          let evtSource: EventSource;
+          if (apiKey) {
+            fetch(endpoint, { headers: { "X-Twelvelabs-Api-Key": apiKey } })
+              .then(() => {
+                evtSource = new EventSource(endpoint);
+
+                evtSource.onmessage = (event) => {
+                  const e = event as MessageEvent
+                  if (e.data === "[DONE]") {
+                    evtSource.close()
+                    setIsLoading(false)
+                    setIsStreaming(false)
+                    setStreamingProgress("")
+                    setTimeout(async () => {
+                      try {
+                        await fetchSampleGames()
+                        const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(url)}`)
+                        if (response.ok) {
+                          const data = await response.json()
+                          if (data.success && data.data && data.data.html_file_path) {
+                            setGameHtml(data.data.html_file_path)
+                            setCurrentGameId(data.data.id || null)
+                            setExpandedVideo(data.data.id || null)
+                            setActiveTab("app")
+                            handleRenderGame(data.data)
+                          } else {
+                            const allResp = await fetch(`${API_BASE_URL}/sample-apps`)
+                            if (allResp.ok) {
+                              const allData = await allResp.json()
+                              const found = (allData.apps || []).find((app: any) => app.youtube_url === url)
+                              if (found) {
+                                setGameHtml(found.html_file_path)
+                                setCurrentGameId(found.id)
+                                setExpandedVideo(found.id)
+                                setActiveTab("app")
+                                handleRenderGame(found)
+                              }
+                            }
+                          }
+                        }
+                      } catch (err) {
+                        console.error("Error refreshing app data:", err)
+                      }
+                    }, 1000)
+                    resolve()
+                  }
+                }
+
+                evtSource.addEventListener("progress", (event) => {
+                  const e = event as MessageEvent
+                  progressMsg = e.data
+                  setStreamingProgress(progressMsg)
+                  setStatusMessage(progressToMessage(progressMsg, regenerate))
+                  if (progressMsg.includes("Generating game with SambaNova")) {
+                    setIsStreaming(true)
+                  }
+                })
+
+                evtSource.addEventListener("analysis", (event) => {
+                  const e = event as MessageEvent
+                  streamedAnalysis = e.data
+                  setStreamingProgress("Twelvelabs Analysis...")
+                  setGameHtml(streamedAnalysis)
+                })
+
+                evtSource.addEventListener("game_chunk", (event) => {
+                  const e = event as MessageEvent
+                  streamedHtml += e.data
+                  setGameHtml(streamedHtml)
+                  console.log("Received game chunk, total length:", streamedHtml.length)
+                })
+
+                evtSource.addEventListener("done", async () => {
+                  evtSource.close()
+                  setIsLoading(false)
+                  setIsStreaming(false)
+                  setStreamingProgress("")
+                  
+                  setTimeout(async () => {
+                    try {
+                      await fetchSampleGames()
+                      const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(url)}`)
+                      if (response.ok) {
+                        const data = await response.json()
+                        if (data.success && data.data && data.data.html_file_path) {
+                          setGameHtml(data.data.html_file_path)
+                          setCurrentGameId(data.data.id || null)
+                          setExpandedVideo(data.data.id || null)
+                          setActiveTab("app")
+                          handleRenderGame(data.data)
+                        } else {
+                          const allResp = await fetch(`${API_BASE_URL}/sample-apps`)
+                          if (allResp.ok) {
+                            const allData = await allResp.json()
+                            const found = (allData.apps || []).find((app: any) => app.youtube_url === url)
+                            if (found) {
+                              setGameHtml(found.html_file_path)
+                              setCurrentGameId(found.id)
+                              setExpandedVideo(found.id)
+                              setActiveTab("app")
+                              handleRenderGame(found)
+                            }
+                          }
+                        }
+                      }
+                    } catch (err) {
+                      console.error("Error refreshing app data:", err)
+                    }
+                  }, 1000)
+                  
+                  resolve()
+                })
+
+                evtSource.addEventListener("error", (event) => {
+                  const e = event as MessageEvent
+                  setError(e.data || "Streaming error")
+                  evtSource.close()
+                  setIsLoading(false)
+                  setIsStreaming(false)
+                  setStreamingProgress("")
+                  reject(e.data || "Streaming error")
+                })
+              });
+          } else {
+            evtSource = new EventSource(endpoint);
+
+            evtSource.onmessage = (event) => {
+              const e = event as MessageEvent
+              if (e.data === "[DONE]") {
+                evtSource.close()
+                setIsLoading(false)
+                setIsStreaming(false)
+                setStreamingProgress("")
+                setTimeout(async () => {
+                  try {
+                    await fetchSampleGames()
+                    const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(url)}`)
+                    if (response.ok) {
+                      const data = await response.json()
+                      if (data.success && data.data && data.data.html_file_path) {
+                        setGameHtml(data.data.html_file_path)
+                        setCurrentGameId(data.data.id || null)
+                        setExpandedVideo(data.data.id || null)
+                        setActiveTab("app")
+                        handleRenderGame(data.data)
+                      } else {
+                        const allResp = await fetch(`${API_BASE_URL}/sample-apps`)
+                        if (allResp.ok) {
+                          const allData = await allResp.json()
+                          const found = (allData.apps || []).find((app: any) => app.youtube_url === url)
+                          if (found) {
+                            setGameHtml(found.html_file_path)
+                            setCurrentGameId(found.id)
+                            setExpandedVideo(found.id)
+                            setActiveTab("app")
+                            handleRenderGame(found)
+                          }
+                        }
+                      }
+                    }
+                  } catch (err) {
+                    console.error("Error refreshing app data:", err)
+                  }
+                }, 1000)
+                resolve()
+              }
+            }
+
+            evtSource.addEventListener("progress", (event) => {
+              const e = event as MessageEvent
+              progressMsg = e.data
+              setStreamingProgress(progressMsg)
+              setStatusMessage(progressToMessage(progressMsg, regenerate))
+              if (progressMsg.includes("Generating game with SambaNova")) {
+                setIsStreaming(true)
+              }
+            })
+
+            evtSource.addEventListener("analysis", (event) => {
+              const e = event as MessageEvent
+              streamedAnalysis = e.data
+              setStreamingProgress("Twelvelabs Analysis...")
+              setGameHtml(streamedAnalysis)
+            })
+
+            evtSource.addEventListener("game_chunk", (event) => {
+              const e = event as MessageEvent
+              streamedHtml += e.data
+              setGameHtml(streamedHtml)
+              console.log("Received game chunk, total length:", streamedHtml.length)
+            })
+
+            evtSource.addEventListener("done", async () => {
+              evtSource.close()
+              setIsLoading(false)
+              setIsStreaming(false)
+              setStreamingProgress("")
+              
+              setTimeout(async () => {
+                try {
+                  await fetchSampleGames()
+                  const response = await fetch(`${API_BASE_URL}/sample-apps/youtube/${encodeURIComponent(url)}`)
+                  if (response.ok) {
+                    const data = await response.json()
+                    if (data.success && data.data && data.data.html_file_path) {
+                      setGameHtml(data.data.html_file_path)
+                      setCurrentGameId(data.data.id || null)
+                      setExpandedVideo(data.data.id || null)
+                      setActiveTab("app")
+                      handleRenderGame(data.data)
+                    } else {
+                      const allResp = await fetch(`${API_BASE_URL}/sample-apps`)
+                      if (allResp.ok) {
+                        const allData = await allResp.json()
+                        const found = (allData.apps || []).find((app: any) => app.youtube_url === url)
+                        if (found) {
+                          setGameHtml(found.html_file_path)
+                          setCurrentGameId(found.id)
+                          setExpandedVideo(found.id)
+                          setActiveTab("app")
+                          handleRenderGame(found)
+                        }
+                      }
+                    }
+                  }
+                } catch (err) {
+                  console.error("Error refreshing app data:", err)
+                }
+              }, 1000)
+              
+              resolve()
+            })
+
+            evtSource.addEventListener("error", (event) => {
+              const e = event as MessageEvent
+              setError(e.data || "Streaming error")
+              evtSource.close()
+              setIsLoading(false)
+              setIsStreaming(false)
+              setStreamingProgress("")
+              reject(e.data || "Streaming error")
+            })
+          }
+        })
+      } catch (err) {
+        setError(`Failed to process video: ${err instanceof Error ? err.message : String(err)}`)
+        setIsLoading(false)
+        setIsStreaming(false)
+        setStreamingProgress("")
+      }
+    }
+  }
+
   const extractGameType = (htmlFilePath: string): string => {
     const title = htmlFilePath.match(/<title>(.*?)<\/title>/i)?.[1] || ""
 
@@ -709,6 +1033,7 @@ export default function VideoToLearningApp() {
   const handleVideoClick = async (videoId: number) => {
     const video = sampleVideos.find((v) => v.id === videoId)
     if (video) {
+      // Allow direct access to all sample apps without warning
       setYoutubeUrl(video.videoUrl)
       setExpandedVideo(videoId)
       setCurrentGameId(videoId)
@@ -1197,6 +1522,56 @@ export default function VideoToLearningApp() {
         />
       )}
 
+      {/* YouTube Warning Popup */}
+      {showYouTubeWarning && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in zoom-in-95 duration-300 border border-gray-200">
+            <div className="flex items-start gap-6">
+              <div className="w-14 h-14 bg-black rounded-full flex items-center justify-center flex-shrink-0">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="text-white"
+                >
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-black mb-3">YouTube Feature Notice</h3>
+                <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+                  The YouTube processing feature may have limitations and might not work reliably. 
+                  We recommend using the <strong className="text-black">TwelveLabs</strong> toggle for better video interaction and more reliable game generation.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowYouTubeWarning(false)
+                      setActiveSource("twelvelabs")
+                      setShowApiModal(true)
+                    }}
+                    className="flex-1 px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Switch to TwelveLabs
+                  </button>
+                  <button
+                    onClick={handleContinueWithYouTube}
+                    className="px-6 py-3 bg-white hover:bg-gray-50 text-black border-2 border-black rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Continue with YouTube
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showGeneratePopup && (
         <div className="fixed top-4 right-4 z-50 bg-white/95 backdrop-blur-sm border border-orange-200 rounded-lg shadow-lg p-4 max-w-sm animate-in slide-in-from-right-5 duration-300">
           <div className="flex items-start gap-3">
@@ -1484,6 +1859,13 @@ export default function VideoToLearningApp() {
                           if (expandedVideo) {
                             const video = sampleVideos.find((v) => v.id === expandedVideo);
                             if (video && video.videoUrl) {
+                              // Only show warning for YouTube videos that are being regenerated
+                              if (video.videoUrl.includes('youtube.com') && !video.isGenerated) {
+                                setPendingYouTubeUrl(video.videoUrl)
+                                setPendingRegenerate(true)
+                                setShowYouTubeWarning(true)
+                                return
+                              }
                               setYoutubeUrl(video.videoUrl);
                               setTimeout(() => processYoutubeUrl(true), 0); // Ensure state is updated before calling
                               return;
