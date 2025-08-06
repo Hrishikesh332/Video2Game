@@ -8,52 +8,71 @@ class TwelveLabsService:
     def __init__(self, api_key=None):
         if api_key is None:
             api_key = current_app.config['TWELVELABS_API_KEY']
+        self.api_key = api_key
         self.client = TwelveLabs(api_key=api_key)
     
     def get_indexes(self):
         try:
             print("Fetching indexes...")
-            indexes = self.client.index.list()
-            print(f"Raw response type: {type(indexes)}")
+            # Use direct HTTP request since the new SDK doesn't have index management
+            if not self.api_key:
+                print("No API key available")
+                return []
             
-            result = []
-            if hasattr(indexes, 'data'):
-                index_list = indexes.data
-                print("Using .data attribute")
+            url = "https://api.twelvelabs.io/v1.3/indexes"
+            headers = {
+                "accept": "application/json",
+                "x-api-key": self.api_key
+            }
+            
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                data = response.json()
+                result = []
+                for index in data.get('data', []):
+                    result.append({
+                        "id": index['_id'],
+                        "name": index['index_name']
+                    })
+                return result
             else:
-                index_list = indexes
-                print("Using direct response")
-                
-            for index in index_list:
-                result.append({
-                    "id": index.id,
-                    "name": index.name
-                })
-            return result
+                print(f"Failed to fetch indexes: Status {response.status_code}")
+                return []
         except Exception as e:
             print(f"Error fetching indexes: {e}")
-            raise e
+            return []
     
     def get_videos(self, index_id):
         try:
-            videos = self.client.index.video.list(index_id=index_id)
-            result = []
+            # Use direct HTTP request since the new SDK doesn't have index management
+            if not self.api_key:
+                print("No API key available")
+                return []
             
-            if hasattr(videos, 'data'):
-                video_list = videos.data
+            url = f"https://api.twelvelabs.io/v1.3/indexes/{index_id}/videos"
+            headers = {
+                "accept": "application/json",
+                "x-api-key": self.api_key
+            }
+            
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                data = response.json()
+                result = []
+                for video in data.get('data', []):
+                    system_metadata = video.get('system_metadata', {})
+                    result.append({
+                        "id": video['_id'],
+                        "name": system_metadata.get('filename', f'Video {video["_id"]}'),
+                        "duration": system_metadata.get('duration', 0)
+                    })
+                return result
             else:
-                video_list = videos
-                
-            for video in video_list:
-                result.append({
-                    "id": video.id,
-                    "name": getattr(video.metadata, 'filename', f'Video {video.id}') if hasattr(video, 'metadata') else f'Video {video.id}',
-                    "duration": getattr(video.metadata, 'duration', 0) if hasattr(video, 'metadata') else 0
-                })
-            return result
+                print(f"Failed to fetch videos: Status {response.status_code}")
+                return []
         except Exception as e:
             print(f"Error fetching videos for index {index_id}: {e}")
-            raise e
+            return []
     
     def analyze_video(self, video_id, prompt):
         try:
@@ -69,13 +88,12 @@ class TwelveLabsService:
     def get_video_details(self, index_id, video_id):
         if not hasattr(self, 'client') or not getattr(self, 'client', None):
             return None
-        api_key = self.client.api_key if hasattr(self.client, 'api_key') else None
-        if not api_key:
+        if not self.api_key:
             return None
         url = f"https://api.twelvelabs.io/v1.3/indexes/{index_id}/videos/{video_id}?embed=false"
         headers = {
             "accept": "application/json",
-            "x-api-key": api_key,
+            "x-api-key": self.api_key,
             "Content-Type": "application/json"
         }
         try:
@@ -93,14 +111,13 @@ class TwelveLabsService:
         if not hasattr(self, 'client') or not getattr(self, 'client', None):
             print("[DEBUG] No client available", file=sys.stderr)
             return None
-        api_key = self.client.api_key if hasattr(self.client, 'api_key') else None
-        if not api_key:
+        if not self.api_key:
             print("[DEBUG] No API key available", file=sys.stderr)
             return None
         url = f"https://api.twelvelabs.io/v1.3/indexes/{index_id}/videos/{video_id}/thumbnail"
         headers = {
             "accept": "application/json",
-            "x-api-key": api_key
+            "x-api-key": self.api_key
         }
         try:
             response = requests.get(url, headers=headers)
