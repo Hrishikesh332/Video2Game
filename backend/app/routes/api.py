@@ -103,82 +103,44 @@ def process_youtube_video():
             if existing_app:
                 yield f"event: done\ndata: [DONE]\n\n"
                 return
-        yield f"event: progress\ndata: Downloading video...\n\n"
-        video_file_path, video_title = youtube_service.youtube_service.download_video(youtube_url)
-        if not video_file_path:
-            yield f"event: error\ndata: Failed to download video: {video_title}\n\n"
+        
+        yield f"event: progress\ndata: Processing video with YouTube service...\n\n"
+        
+        # Use the service's processing method instead of duplicating indexing
+        result = youtube_service.process_youtube_url(
+            youtube_url=youtube_url,
+            index_id=index_id,
+            force_regenerate=force_regenerate,
+            api_key=api_key
+        )
+        
+        if not result["success"]:
+            yield f"event: error\ndata: {result.get('error', 'Processing failed')}\n\n"
             return
-        yield f"event: progress\ndata: Video downloaded. Indexing with TwelveLabs...\n\n"
-        if not index_id:
-            indexes = youtube_service.twelvelabs_service.get_indexes()
-            if not indexes:
-                yield f"event: error\ndata: No TwelveLabs indexes available. Please create an index first.\n\n"
-                return
-            index_id = indexes[0]["id"]
-        duration = youtube_service.youtube_service.get_video_duration(video_file_path)
-        max_duration = 59 * 60
-        video_ids = []
-        if duration and duration > max_duration:
-            yield f"event: progress\ndata: Chunking video...\n\n"
-            chunk_files = youtube_service.chunking_service.chunk_video(video_file_path, max_duration)
-            if not chunk_files:
-                yield f"event: error\ndata: Failed to chunk video\n\n"
-                return
-            for i, chunk_path in enumerate(chunk_files):
-                yield f"event: progress\ndata: Indexing chunk {i+1}/{len(chunk_files)}...\n\n"
-                video_id = youtube_service._index_video_file(chunk_path, index_id)
-                if video_id:
-                    video_ids.append(video_id)
-                else:
-                    yield f"event: error\ndata: Failed to index chunk {i+1}\n\n"
-            if not video_ids:
-                yield f"event: error\ndata: Failed to index any video chunks\n\n"
-                return
-            primary_video_id = video_ids[0]
-        else:
-            yield f"event: progress\ndata: Indexing video...\n\n"
-            primary_video_id = youtube_service._index_video_file(video_file_path, index_id)
-            if not primary_video_id:
-                yield f"event: error\ndata: Failed to index video with TwelveLabs\n\n"
-                return
-            video_ids = [primary_video_id]
-        yield f"event: progress\ndata: Analyzing video content...\n\n"
-        analysis_prompt = current_app.prompt_service.get_prompt('analysis')
-        video_analysis = youtube_service.twelvelabs_service.analyze_video(primary_video_id, analysis_prompt)
+        
+        # Get the processed data
+        game_data = result["data"]
+        video_analysis = game_data.get("video_analysis", "")
+        html_file_path = game_data.get("html_file_path", "")
+        
         yield f"event: analysis\ndata: {video_analysis}\n\n"
         yield f"event: progress\ndata: Generating game with SambaNova...\n\n"
-        sambanova_service = youtube_service.sambanova_service
-        game_generation_prompt = current_app.prompt_service.get_prompt('game_generation', video_analysis=video_analysis)
-        system_prompt = current_app.prompt_service.get_prompt('system')
+        
+        # Read the HTML file and stream it
         try:
-            streamed_html = ""
-            for chunk in sambanova_service.generate_game_stream(system_prompt, game_generation_prompt):
-                if chunk:
-                    streamed_html += chunk
-                    yield f"event: game_chunk\ndata: {chunk}\n\n"
+            with open(html_file_path, 'r', encoding='utf-8') as f:
+                html_content = f.read()
             
-            if streamed_html:
-                file_service = youtube_service.file_service
-                html_content = file_service.process_html_content(streamed_html)
-                video_id_hash = youtube_service._generate_video_hash(youtube_url)
-                html_file_path = file_service.save_html_file(html_content, video_id_hash)
-                
-                # Save to sample apps
-                game_data = sample_games_service.create_game_data(
-                    video_id_hash,
-                    video_analysis,
-                    html_file_path,
-                    twelvelabs_video_ids=video_ids,
-                    youtube_url=youtube_url,
-                    video_title=video_title,
-                    channel_name='',
-                    view_count=''
-                )
-                sample_games_service.save_game(game_data)
+            # Stream the HTML content in chunks
+            chunk_size = 1000
+            for i in range(0, len(html_content), chunk_size):
+                chunk = html_content[i:i + chunk_size]
+                yield f"event: game_chunk\ndata: {chunk}\n\n"
                 
         except Exception as e:
-            yield f"event: error\ndata: Error streaming from SambaNova: {str(e)}\n\n"
+            yield f"event: error\ndata: Error reading generated HTML: {str(e)}\n\n"
             return
+            
         yield f"event: done\ndata: [DONE]\n\n"
 
     api_key = request.headers.get('X-Twelvelabs-Api-Key')
@@ -348,12 +310,25 @@ def get_video_details(index_id, video_id):
 @api_bp.route('/indexes/<index_id>/videos/<video_id>/thumbnail', methods=['GET'])
 @handle_errors
 def get_video_thumbnail(index_id, video_id):
-    api_key = request.headers.get('X-Twelvelabs-Api-Key')
+    print(f"[DEBUG] Thumbnail request for index {index_id}, video {video_id}")
+    # Try to get API key from headers first, then from query parameters
+    api_key = request.headers.get('X-Twelvelabs-Api-Key') or request.args.get('api_key')
+    print(f"[DEBUG] API key present: {bool(api_key)}")
+    if not api_key:
+        return jsonify({'error': 'API key is required'}), 401
+    
     twelvelabs_service = TwelveLabsService(api_key=api_key)
     thumbnail = twelvelabs_service.get_video_thumbnail(index_id, video_id)
     if thumbnail:
-        return Response(thumbnail, mimetype='image/jpeg')
+        print(f"[DEBUG] Thumbnail fetched successfully, size: {len(thumbnail)} bytes")
+        response = Response(thumbnail, mimetype='image/jpeg')
+        # Add CORS headers for image responses
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'GET')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        return response
     else:
+        print(f"[DEBUG] Failed to fetch thumbnail")
         return jsonify({'error': 'Failed to fetch video thumbnail'}), 404
 
 @api_bp.route('/twelvelabs/regenerate', methods=['POST', 'GET'])

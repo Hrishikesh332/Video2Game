@@ -85,7 +85,7 @@ export default function VideoToLearningApp() {
   };
 
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL 
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000" 
   const extractVideoId = (url: string): string => {
     const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/
     const match = url.match(regex)
@@ -1552,8 +1552,11 @@ export default function VideoToLearningApp() {
                   <button
                     onClick={() => {
                       setShowYouTubeWarning(false)
-                      setActiveSource("twelvelabs")
-                      setShowApiModal(true)
+                      if (!isApiConnected) {
+                        setShowApiModal(true)
+                      } else {
+                        setActiveSource("twelvelabs")
+                      }
                     }}
                     className="flex-1 px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-lg text-sm font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
@@ -1624,7 +1627,13 @@ export default function VideoToLearningApp() {
 
               <SourceToggle
                 activeSource={activeSource}
-                onSourceChange={setActiveSource}
+                onSourceChange={(source) => {
+                  if (source === "twelvelabs" && !isApiConnected) {
+                    setShowApiModal(true)
+                  } else {
+                    setActiveSource(source)
+                  }
+                }}
                 isApiConnected={isApiConnected}
                 onApiConnect={() => setShowApiModal(true)}
                 onApiDisconnect={handleApiDisconnect}

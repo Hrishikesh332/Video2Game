@@ -88,7 +88,8 @@ export default function TwelveLabsSelector({
                 }
               )
               let detail = await res.json()
-              let thumbnailUrl = `${API_BASE_URL}/indexes/${selectedIndex}/videos/${video.id}/thumbnail?${Date.now()}`
+              let thumbnailUrl = `${API_BASE_URL}/indexes/${selectedIndex}/videos/${video.id}/thumbnail?api_key=${encodeURIComponent(apiKey)}&t=${Date.now()}`
+              console.log('Constructed thumbnail URL:', thumbnailUrl)
               const systemMeta = detail.system_metadata || {}
               const duration = systemMeta.duration || video.duration
               const filename = systemMeta.filename || video.name
@@ -206,6 +207,10 @@ export default function TwelveLabsSelector({
                       alt={videoDetails[selectedVideoId].name}
                       className="w-12 h-8 object-cover rounded border border-gray-200"
                       style={{ minWidth: 48 }}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = "/placeholder.svg?height=32&width=48"
+                      }}
                     />
                   </div>
                   <div className="flex-1 min-w-0 flex flex-col justify-center">
